@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.dash.mapper.ddkor.DdKorDashMapper">
+    <!--배합실유량계 그래프용-->
+    <select id="getFlowMeterList" parameterType="map"  resultType="camelMap">
+       select to_char(to_timestamp(a.unix_hms),'HH24') as chk_tm
+             , a.spot_equip_no
+             , max(coalesce (meas_val12,0)  - c.max_flow )as max_flow --배합유량
+             , round(avg(coalesce (meas_val12,0) - c.avg_flow )) as avg_flow --배합유량
+             , min(coalesce (meas_val12,0) - c.min_flow ) as min_flow --배합유량
+        from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+        					   join (
+								    	select to_char(to_timestamp(a.unix_hms),'HH24') as chk_tm
+								             , a.spot_equip_no
+								             , max(coalesce (meas_val12,0)) as max_flow --배합유량
+								             , round(avg(coalesce (meas_val12,0))) as avg_flow --배합유량
+								             , min(coalesce (meas_val12,0)) as min_flow --배합유량
+								        from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+								        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') =  to_char(now(),'YYYY-MM-DD')
+								        and to_char(to_timestamp(a.unix_hms),'HH24') = (
+									        select min(to_char(to_timestamp(a.unix_hms),'HH24'))
+									        from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+									        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') =  to_char(now(),'YYYY-MM-DD')
+									        and a.spot_equip_no =  #{spotEquipNo}
+									    )
+								        and a.spot_equip_no =  #{spotEquipNo}
+								        and round(coalesce(a.meas_val12,0)::numeric ,2) not in (0,-999)
+								        group by to_char(to_timestamp(a.unix_hms),'HH24')
+								                , a.spot_equip_no
+								        having  max(round(coalesce(a.meas_val12,0)::numeric ,2)) not in (0,-999)
+								        order by chk_tm
+        					   ) c on 1=1
+        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') =  to_char(now(),'YYYY-MM-DD')
+        and a.spot_equip_no =  #{spotEquipNo}
+        and round(coalesce(a.meas_val12,0)::numeric ,2) not in (0,-999)
+        group by to_char(to_timestamp(a.unix_hms),'HH24')
+                , a.spot_equip_no
+        having  max(round(coalesce(a.meas_val12,0)::numeric ,2)) not in (0,-999)
+        order by chk_tm
+    </select>
+
+    <select id="getPowerList" parameterType="map"  resultType="camelMap">
+    select to_char(to_timestamp(a.unix_hms),'HH24') as chk_tm
+--          , a.spot_equip_no
+         , max(coalesce (meas_val13,0))        as max_pwr --최대전력량
+         , round(avg(coalesce (meas_val12,0))) as avg_pwr --평균전력량
+         , min(coalesce (meas_val13,0))        as min_pwr --최소전력량
+    from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+    where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') =  to_char(now(),'YYYY-MM-DD')
+    and a.spot_equip_no between #{equipFr} and #{equipTo} --25~25:배합실, --26~30:충전실, 32~48:포장실
+    and round(coalesce(a.meas_val13,0)::numeric ,2) not in (0,-999)
+    group by to_char(to_timestamp(a.unix_hms),'HH24')
+--            , a.spot_equip_no
+    having  max(round(coalesce(a.meas_val13,0)::numeric ,2)) not in (0,-999)
+    order by chk_tm
+    </select>
+
+
+    <select id="getDashSpotTmpr" parameterType="map"  resultType="camelMap">
+        select  a.spot_equip_no
+            , b.spot_no
+            , c.spot_nm
+            , max(round(meas_val::numeric,2)) as co2
+            , max(round(meas_val2::numeric ,2)) as tmpr
+            , max(round(meas_val3::numeric ,2)) as humy
+        from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                                join spot_info c on b.spot_no = c.spot_no
+        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+        and b.spot_no in  (   1    ,    2    ,     3     )
+        group by a.spot_equip_no
+        , b.spot_no
+        , c.spot_nm
+        order by spot_nm
+        limit 10 offset 0
+    </select>
+
+    <select id="getDashMainData" parameterType="map"  resultType="camelMap">
+        select a.spot_equip_no
+             , max(round(coalesce (a.pass_qty,0),2)) as pass_qty -- 통과수량(정상수량)
+             , max(round(coalesce (a.weight_qty,0),2)) as weight_qty -- 중량미달수량
+             , max(coalesce(d.indc_qty,0)) as indc_qty
+        from oper_mast a join spot_equip b on a.spot_equip_no = b.spot_equip_no
+                         join spot_info c on b.spot_no = c.spot_no
+                         join make_indc d on a.indc_no = d.indc_no and d.used_yn = 'Y'
+        where a.spot_equip_no in (8, 10, 12, 14, 15, 16)
+          and to_char(to_timestamp( a.fr_unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
+        group by a.spot_equip_no
+    </select>
+
+    <select id="getDashWrapRoomData" resultType="camelMap" parameterType="map">
+        select a.spot_equip_no
+             , b.spot_no
+             , c.spot_nm
+             , max(round(coalesce(meas_val,0)::numeric ,2)) as co2 --포장실 co2
+             , max(round(coalesce(meas_val2,0)::numeric ,2)) as temp -- 포장실 프리저온도, 포장실 온도
+             , max(round(coalesce(meas_val3,0)::numeric ,2)) as humy --포장실 습도
+        from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                               join spot_info c on b.spot_no = c.spot_no
+        where b.spot_equip_no in (2, 52)
+		and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+        group by a.spot_equip_no , b.spot_no , c.spot_nm
+    </select>
+
+</mapper>

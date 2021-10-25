@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.user.mapper.UserMapper">
+    <insert id="appendUserInfo" parameterType="map">
+        insert into user_info (
+               user_id
+             , user_nm
+             , secrt_no
+             , mail_addr
+             , cell_no
+             , user_tp
+             , ocpn_kind
+             , empl_kind
+             , dept_no
+             , user_posn --직급
+             , entr_dt
+             , erp_user_no
+             , reg_id
+             , reg_ip
+             , reg_dt
+             , mod_id
+             , mod_ip
+             , mod_dt
+        )  values (
+               #{userId}
+             , #{userNm}
+             , #{secrtNo}
+             , #{mailAddr}
+             , #{cellNo}
+             , #{userTp}
+             , #{ocpnKind}
+             , #{emplKind}
+             , #{deptNo}
+             , #{userPosn}
+             , #{entrDt}
+             , #{erpUserNo}
+             , #{regId}
+             , #{ipaddr}
+             , now()
+             , #{regId}
+             , #{ipaddr}
+             , now()
+        )
+    </insert>
+
+    <select id="getUserInfo" parameterType="map" resultType="camelMap">
+        select a.user_id
+             , a.user_nm --성명
+             , a.mail_addr --메일주소
+             , a.cell_no --이동전화번호
+             , a.cell_id --이동전허식별자
+             , a.user_tp --사용자유형(ADMIN,USER,GEUST)
+             , a.ocpn_kind --직종구분(생산,사무)
+             , a.empl_kind --채용구분(내국인,외국인,용역)
+             , a.dept_no --소속부서번호
+             , c.dept_nm --소속부서명
+             , a.user_posn --직급코드
+             , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt --입사일
+             , a.erp_user_no --ERP 사용자번
+             , a.cell_no
+        from user_info a left join dept_info c on a.dept_no = c.dept_no
+        where a.user_id = #{emplId}
+    </select>
+    <select id="getUserList" parameterType="map" resultType="camelMap">
+        /* 사용자목록 (userMapper.getUserList) */
+        select a.user_id
+             , a.user_nm
+             , a.mail_addr
+             , a.cell_no
+             , a.cell_id
+             , a.user_tp  --사용자유형(관리자,사용자,게스트)
+             , a.ocpn_kind --직종구분(사무직,생산직)
+             , a.empl_kind --채용구분(내국인,외국인,용역)
+             , a.user_stat --상태코드
+             , w.code_nm as user_stat_nm--상태값
+             , coalesce (b.dept_no, 999999) as dept_no
+             , b.dept_nm --소속 / 부서명
+             , a.user_posn --직급
+             , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
+             , a.erp_user_no
+             , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
+             , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
+             , x.code_nm as user_posn_nm --직급명
+         from user_info a join code_info z on a.ocpn_kind = z.code_no
+                    left join code_info w on a.user_stat = w.code_no
+                     left join code_info x on a.user_posn = x.code_no
+                     left join code_info y on a.empl_kind = y.code_no
+                     left join dept_info b on a.dept_no = b.dept_no
+         where a.used_yn = 'Y'
+        <if test="deptNo != null and deptNo != '' and deptNo.size != 0">
+            and a.dept_no in <foreach collection="deptNo" item="deptNo" index="index" open="(" close=")" separator=",">   #{deptNo}   </foreach>
+        </if>
+
+        <if test="ocpnKind != null and ocpnKind != ''">
+            and a.ocpn_kind = #{ocpnKind}
+        </if>
+
+        <if test="emplKind != null and emplKind != ''">
+            and a.empl_kind = #{emplKind}
+        </if>
+        <if test="userStat != null and userStat != ''">
+            and a.user_stat  = #{userStat}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.user_id not in (select user_id from make_indc_mp where indc_no = #{indcNo} )
+        </if>
+        
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'deptNm'">
+                and upper(replace(b.dept_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by user_posn,dept_no, user_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getUserListCount" parameterType="map" resultType="int">
+        select count(a.user_id)
+        from ( select a.user_id
+                    , a.user_nm
+                    , a.mail_addr
+                    , a.cell_no
+                    , a.cell_id
+                    , a.user_tp  --사용자유형(관리자,사용자,게스트)
+                    , a.ocpn_kind --직종구분(사무직,생산직)
+                    , a.empl_kind --채용구분(내국인,외국인,용역)
+                    , a.user_stat --상태코드
+                    , w.code_nm --상태값
+                    , coalesce (b.dept_no, 999999) as dept_no
+                    , b.dept_nm --소속 / 부서명
+                    , a.user_posn --직급
+                    , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
+                    , a.erp_user_no
+                    , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
+                    , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
+                    , x.code_nm as user_posn_nm --직급명
+                    from user_info a join code_info z on a.ocpn_kind = z.code_no
+                                left join code_info w on a.user_stat = w.code_no
+                                left join code_info x on a.user_posn = x.code_no
+                                left join code_info y on a.empl_kind = y.code_no
+                                left join dept_info b on a.dept_no = b.dept_no
+                    where a.used_yn = 'Y'
+                    <if test="deptNo != null and deptNo != '' and deptNo.size != 0">
+                        and a.dept_no in <foreach collection="deptNo" item="deptNo" index="index" open="(" close=")" separator=",">   #{deptNo}   </foreach>
+                    </if>
+
+                    <if test="ocpnKind != null and ocpnKind != ''">
+                        and a.ocpn_kind = #{ocpnKind}
+                    </if>
+
+                    <if test="emplKind != null and emplKind != ''">
+                        and a.empl_kind = #{emplKind}
+                    </if>
+                    <if test="userStat != null and userStat != ''">
+                        and a.user_stat  = #{userStat}
+                    </if>
+                    <if test="indcNo != null and indcNo != ''">
+                        and a.user_id not in (select user_id from make_indc_mp where indc_no = #{indcNo} )
+                    </if>
+
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'userNm'">
+                            and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'deptNm'">
+                            and upper(replace(b.dept_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+                    order by user_posn,dept_no, user_nm
+        ) a
+    </select>
+
+    <select id="dropUser" parameterType="map" resultType="camelMap">
+
+    </select>
+
+    <select id="getDropUser" parameterType="map" resultType="camelMap">
+       update  user_info set user_id = #{userId} where user_id = #{userId}
+    </select>
+
+    <select id="getComboDeptList" parameterType="map" resultType="camelMap">
+        select   dept_no
+               , dept_nm
+          from dept_info
+         where used_yn = 'Y'
+
+    </select>
+    <select id="getComboDeptListCount" parameterType="map" resultType="int">
+        select count(dept_no)
+        from dept_info
+        where used_yn = 'Y'
+    </select>
+    <select id="getTabletWorkerList" parameterType="map" resultType="camelMap">
+        select   user_nm
+               , user_posn
+               , user_id
+        from user_info
+        where ocpn_kind = #{ocpnKind}
+          and used_yn = 'Y'
+    </select>
+    <select id="getTabletWorkerListCount" parameterType="map" resultType="int">
+        select count(user_id)
+        from user_info
+        where ocpn_kind = #{ocpnKind}
+          and used_yn = 'Y'
+    </select>
+
+    <select id="getHstrSummaryList" parameterType="map" resultType="camelMap">
+        select count(distinct a.user_id) as acc_cnt --접속자수
+             , to_char(a.acc_dt , 'YYYY-MM-DD') as acc_dt --접속일자
+        from acc_hstr a
+        where 1 = 1
+        <if test="dateFr != null and dateFr != ''">
+            and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+        </if>
+        group by to_char(a.acc_dt , 'YYYY-MM-DD')
+        order by acc_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getHstrSummaryListCount" parameterType="map" resultType="int">
+        select count(a.acc_dt)
+        from (
+                 select count(a.user_id)                as acc_cnt --접속자수
+                      , to_char(a.acc_dt, 'YYYY-MM-DD') as acc_dt  --접속일자
+                 from acc_hstr a
+                 where 1 = 1
+                 <if test="dateFr != null and dateFr != ''">
+                    and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+                 </if>
+                 group by to_char(a.acc_dt, 'YYYY-MM-DD')
+             ) a
+    </select>
+
+    <select id="getHstrList" parameterType="map" resultType="camelMap">
+        select a.acc_no
+             , to_char(a.acc_dt , 'YYYY-MM-DD HH24:MI') as acc_dt
+             , c.acc_cnt
+             , b.user_id
+             , a.sys_menu_no
+             , b.user_nm
+             , b.dept_no
+             , d.sys_menu_nm
+             , e.dept_nm
+        from acc_hstr a join user_info b on a.user_id = b.user_id
+                        join (select max(acc_no) as acc_no
+                                   , count(acc_no) as acc_cnt
+                                   , to_char(acc_dt,'YYYY-MM-DD') as acc_dt
+                                   ,sys_menu_no
+                               from acc_hstr
+                               group by to_char(acc_dt,'YYYY-MM-DD'),  sys_menu_no
+                            ) c on a.acc_no = c.acc_no
+                   left join sys_menu d on a.sys_menu_no = d.sys_menu_no
+                   left join dept_info e on b.dept_no = e.dept_no
+        where 1 = 1
+            <if test="accDt != null and accDt != ''">
+                and TO_CHAR(a.acc_dt,'YYYY-MM-DD') = substring(#{accDt},1,10)
+            </if>
+            <if test="dateFr != null and dateFr != ''">
+                and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substr(#{dateTo},1,10)
+            </if>
+            <if test="findSz != null and findTp != ''">
+                and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        order by a.acc_dt desc, a.acc_no asc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getHstrListCount" parameterType="map" resultType="int">
+        select count(a.acc_no)
+        from (
+                select a.acc_no
+                from acc_hstr a join user_info b on a.user_id = b.user_id
+                                join (select max(acc_no) as acc_no
+                                            , count(acc_no) as acc_cnt
+                                            , to_char(acc_dt,'YYYY-MM-DD') as acc_dt
+                                            ,sys_menu_no
+                                      from acc_hstr
+                                      group by to_char(acc_dt,'YYYY-MM-DD'),  sys_menu_no
+                                    ) c on a.acc_no = c.acc_no
+                            left join sys_menu d on a.sys_menu_no = d.sys_menu_no
+                            left join dept_info e on b.dept_no = e.dept_no
+                where 1 = 1
+                <if test="accDt != null and accDt != ''">
+                    and TO_CHAR(a.acc_dt,'YYYY-MM-DD') = substring(#{accDt},1,10)
+                </if>
+                <if test="dateFr != null and dateFr != ''">
+                    and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substr(#{dateTo},1,10)
+                </if>
+                <if test="findSz != null and findTp != ''">
+                    and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+        ) a
+    </select>
+
+    <select id="getAuthUserList" parameterType="map" resultType="camelMap">
+        select a.user_id --id
+             , a.user_nm --성명
+             , a.dept_no --소속
+             , a.user_posn --직위코드
+             , c.dept_nm --소속명
+             , d.code_nm as posn_nm --직위명
+        from user_info a join auth_user b on a.user_id = b.user_id
+                    left join dept_info c on a.dept_no = c.dept_no
+                    left join code_info d on a.user_posn = d.code_no
+        where b.auth_cd  = #{authCd}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by c.dept_nm ,a.user_posn, a.user_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getAuthUserListCount" parameterType="map" resultType="int">
+    select count(a.user_id)
+    from (
+             select a.user_id
+             from user_info a join auth_user b on a.user_id = b.user_id
+                         left join dept_info c on a.dept_no = c.dept_no
+                         left join code_info d on a.user_posn = d.code_no
+             where b.auth_cd  = #{authCd}
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'userNm'">
+                    and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+            </if>
+         ) a
+    </select>
+    <select id="getAuthUserMenuList" parameterType="map" resultType="camelMap">
+        select a.sys_menu_no
+             , a.sys_menu_nm
+             , c.auth_user_no
+             , coalesce (d.auth_user_menu_no,0) as auth_user_menu_no
+             , case when a.apnd_yn = 'N' then '-' else coalesce (d.apnd_yn,'N') end as apnd_yn
+             , case when a.save_yn = 'N' then '-' else coalesce (d.save_yn,'N') end as save_yn
+             , case when a.drop_yn = 'N' then '-' else coalesce (d.drop_yn,'N') end as drop_yn
+             , case when a.dnload_yn = 'N' then '-' else coalesce (d.dnload_yn,'N') end as dnload_yn
+             , case when a.upload_yn = 'N' then '-' else coalesce (d.upload_yn,'N') end as upload_yn
+             , case when a.list_prt_yn = 'N' then '-' else coalesce (d.list_prt_yn,'N') end as list_prt_yn
+             , case when a.info_prt_yn = 'N' then '-' else coalesce (d.info_prt_yn,'N') end as info_prt_yn
+             , case when a.per_info_yn = 'N' then '-' else coalesce (d.per_info_lvl::varchar,'0') end as per_info_lvl
+        from (  WITH recursive cte (
+                          par_sys_menu_no
+                        , sys_menu_no
+                        , sys_menu_nm
+                        , sys_menu_path
+                        , apnd_yn
+                        , save_yn
+                        , drop_yn
+                        , upload_yn
+                        , dnload_yn
+                        , list_prt_yn
+                        , info_prt_yn
+                        , per_info_yn
+                        , level
+                        , prt_seq
+                        , path
+                        , disp_yn
+                        , used_yn
+            ) AS ( SELECT
+                          a.par_sys_menu_no
+                        , a.sys_menu_no
+                        , a.sys_menu_nm
+                        , a.sys_menu_path
+                        , a.apnd_yn
+                        , a.save_yn
+                        , a.drop_yn
+                        , a.upload_yn
+                        , a.dnload_yn
+                        , a.list_prt_yn
+                        , a.info_prt_yn
+                        , a.per_info_yn
+                        , 0 AS level
+                        , a.prt_seq
+                        , lpad(a.sys_menu_no::text,5,'0')
+                        , a.disp_yn
+                        , a.used_yn
+                   FROM  sys_menu a
+                   WHERE a.par_sys_menu_no = 0
+                   UNION ALL
+                   SELECT b.par_sys_menu_no
+                        , b.sys_menu_no
+                        , b.sys_menu_nm
+                        , b.sys_menu_path
+                        , b.apnd_yn
+                        , b.save_yn
+                        , b.drop_yn
+                        , b.upload_yn
+                        , b.dnload_yn
+                        , b.list_prt_yn
+                        , b.info_prt_yn
+                        , b.per_info_yn
+                        , c.level+1 AS level
+                        , b.prt_seq
+                        , path ||lpad(b.sys_menu_no::text,5,'0')
+                        , b.disp_yn
+                        , b.used_yn
+                   FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+        )   select  par_sys_menu_no
+                  , sys_menu_no
+                  , sys_menu_nm
+                  , sys_menu_path
+                  , path
+                  , apnd_yn
+                  , save_yn
+                  , drop_yn
+                  , upload_yn
+                  , dnload_yn
+                  , list_prt_yn
+                  , info_prt_yn
+                  , per_info_yn
+                  , level
+                  , prt_seq
+                  , case when sys_menu_path is null  then 'N' else 'Y' end as leaf_yn
+           from cte
+           where used_yn = 'Y'
+           and disp_yn = 'Y'
+           and sys_menu_no in (
+                    select a.sys_menu_no
+                    from sys_menu a join auth_sys_menu b on a.sys_menu_no = b.sys_menu_no
+                                    join auth_user c on b.auth_cd  = c.auth_cd and c.auth_cd  = #{authCd} and c.user_id = #{authUserId}
+                    )
+           order by path,prt_seq
+        ) a   join auth_sys_menu b on a.sys_menu_no = b.sys_menu_no
+              join auth_user c on b.auth_cd  = c.auth_cd and c.auth_cd  = #{authCd} and c.user_id = #{authUserId}
+         left join auth_user_menu d on c.auth_user_no  = d.auth_user_no and b.sys_menu_no = d.sys_menu_no
+        where length(a.sys_menu_path)  <![CDATA[ > ]]>  0
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'sysMenuNm'">
+                and upper(replace(a.sys_menu_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.path
+    </select>
+    <select id="getAuthUserMenuListCount" parameterType="map" resultType="int">
+        select count(a.sys_menu_no)
+        from (
+                select a.sys_menu_no
+                 from (  WITH recursive cte (
+                                   par_sys_menu_no
+                                 , sys_menu_no
+                                 , sys_menu_nm
+                                 , sys_menu_path
+                                 , apnd_yn
+                                 , save_yn
+                                 , drop_yn
+                                 , upload_yn
+                                 , dnload_yn
+                                 , list_prt_yn
+                                 , info_prt_yn
+                                 , level
+                                 , prt_seq
+                                 , path
+                                 , disp_yn
+                                 , used_yn
+                     ) AS ( SELECT
+                                   a.par_sys_menu_no
+                                 , a.sys_menu_no
+                                 , a.sys_menu_nm
+                                 , a.sys_menu_path
+                                 , a.apnd_yn
+                                 , a.save_yn
+                                 , a.drop_yn
+                                 , a.upload_yn
+                                 , a.dnload_yn
+                                 , a.list_prt_yn
+                                 , a.info_prt_yn
+                                 , 0 AS level
+                                 , a.prt_seq
+                                 , lpad(a.sys_menu_no::text,5,'0')
+                                 , a.disp_yn
+                                 , a.used_yn
+                            FROM  sys_menu a
+                            WHERE a.par_sys_menu_no = 0
+                            UNION ALL
+                            SELECT  b.par_sys_menu_no
+                                 , b.sys_menu_no
+                                 , b.sys_menu_nm
+                                 , c.sys_menu_path
+                                 , b.apnd_yn
+                                 , b.save_yn
+                                 , b.drop_yn
+                                 , b.upload_yn
+                                 , b.dnload_yn
+                                 , b.list_prt_yn
+                                 , b.info_prt_yn
+                                 , c.level+1 AS level
+                                 , b.prt_seq
+                                 , path ||lpad(b.sys_menu_no::text,5,'0')
+                                 , b.disp_yn
+                                 , b.used_yn
+                            FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+                 )    select par_sys_menu_no
+                           , sys_menu_no
+                           , sys_menu_nm
+                           , sys_menu_path
+                           , path
+                           , apnd_yn
+                           , save_yn
+                           , drop_yn
+                           , upload_yn
+                           , dnload_yn
+                           , list_prt_yn
+                           , info_prt_yn
+                           , level
+                           , prt_seq
+                         from cte
+                         where used_yn = 'Y'
+                           and disp_yn = 'Y'
+                           and level = 2
+                           and sys_menu_no in (
+                             select a.sys_menu_no
+                             from sys_menu a join auth_sys_menu b on a.sys_menu_no = b.sys_menu_no
+                                             join auth_user c on b.auth_cd  = c.auth_cd and c.auth_cd  = #{authCd} and c.user_id = #{authUserId}
+                         )
+                         order by path,prt_seq
+                      ) a   join auth_sys_menu b on a.sys_menu_no = b.sys_menu_no
+                            join auth_user c on b.auth_cd  = c.auth_cd and c.auth_cd  = #{authCd} and c.user_id = #{authUserId}
+                        left join auth_user_menu d on c.auth_user_no  = d.auth_user_no and b.sys_menu_no = d.sys_menu_no
+                      where length(a.sys_menu_path) <![CDATA[ > ]]> 0
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'sysMenuNm'">
+                            and upper(replace(a.sys_menu_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+        ) a
+    </select>
+
+</mapper>

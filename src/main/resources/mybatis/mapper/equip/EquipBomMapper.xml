@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.equip.mapper.EquipBomMapper">
+    <select id="getEquipBomList" parameterType="map"  resultType="camelMap">
+        SELECT * FROM (
+               SELECT a.equip_bom_no --설비자재번호
+                    , a.equip_no --설비번호
+                    , a.matr_no  --자재번호
+                    , a.need_qty --소요수량
+                    , b.matr_nm --자재명
+                    , b.purs_unit  --구매단위
+                    , to_char(b.purs_unit_prc,'999,999,999') as purs_unit_prc --구매단가
+                    , b.safe_stk_qty --안전재고
+                    , b.make_cmpy   --제조사
+                    , b.sz          --규격
+                    , b.modl_nm     --모델명
+                    , b.part_no     --부품번
+                    , b.file_no     --이미지번호
+                    , d.code_nm AS purs_unit_nm   --구매단위명
+               FROM equip_bom a JOIN equip_matr b ON a.matr_no = b.matr_no   AND b.used_yn = 'Y'
+                                JOIN equip_info c ON a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+                                JOIN code_info  d ON b.purs_unit = d.code_no
+               WHERE 1 = 1 and c.equip_no = #{equipNo}
+               <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'matrNm'">
+                    AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+               </if>
+        ) A
+        LIMIT #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getEquipBomListCount" parameterType="map"  resultType="int">
+        SELECT COUNT(a.matr_no)
+        FROM ( SELECT  a.matr_no
+               FROM equip_bom a JOIN equip_matr b ON a.matr_no = b.matr_no   AND b.used_yn = 'Y'
+                                JOIN equip_info c ON a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+                                JOIN code_info  d ON b.purs_unit = d.code_no
+               WHERE 1 = 1
+               <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'matrNm'">
+                        AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+               </if>
+        ) a
+    </select>
+
+    <select id="getEquipBomInfo" parameterType="map"  resultType="camelMap">
+        SELECT a.equip_bom_no --설비비자재번호
+            , c.equip_no --설비번호
+            , b.matr_no  --자재번호
+            , a.need_qty --소요수량
+            , b.matr_nm --자재명
+            , b.purs_unit  --구매단위
+            , to_char(b.purs_unit_prc,'999,999,999') as purs_unit_prc --구매단가
+            , b.safe_stk_qty --안전재고
+            , b.make_cmpy   --제조사
+            , b.sz          --규격
+            , b.modl_nm     --모델명
+            , b.part_no     --부품번호
+            , b.file_no     --이미지번호
+            , d.code_nm AS purs_unit_nm   --구매단위명
+                   FROM equip_bom a JOIN equip_matr b on a.matr_no = b.matr_no and b.matr_no = #{matrNo}
+                                          JOIN equip_info c on a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+                                          JOIN code_info d on b.purs_unit = d.code_no
+    </select>
+
+    <select id="getEquipBomCartInfo" parameterType="map"  resultType="camelMap">
+        SELECT 0 as equip_bom_no --설비비자재번호
+            , c.equip_no --설비번호
+            , b.matr_no  --자재번호
+            , a.need_qty --소요수량
+            , b.matr_nm --자재명
+            , b.purs_unit  --구매단위
+            , to_char(b.purs_unit_prc,'999,999,999') as purs_unit_prc --구매단가
+            , b.safe_stk_qty --안전재고
+            , b.make_cmpy   --제조사
+            , b.sz          --규격
+            , b.modl_nm     --모델명
+            , b.part_no     --부품번호
+            , b.file_no     --이미지번호
+            , d.code_nm AS purs_unit_nm   --구매단위명
+                   FROM equip_bom_cart a JOIN equip_matr b on a.matr_no = b.matr_no and b.matr_no = #{matrNo}
+                                          JOIN equip_info c on a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+                                          JOIN code_info d on b.purs_unit = d.code_no
+        WHERE a.user_id = #{userId}
+    </select>
+
+</mapper>

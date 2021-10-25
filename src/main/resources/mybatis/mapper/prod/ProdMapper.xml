@@ -1,0 +1,1511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.prod.mapper.ProdMapper">
+    <insert id="appendProdInfo" parameterType="map" >
+        insert into prod_info (
+                                prod_no --품번
+                              , prod_nm --품명
+                              , sz --규격
+                              , mess --단위중량
+                              , sale_unit--판매단위코드
+                              , qty_per_pkg--포장단위수량
+                              , used_yn
+                              , reg_id
+                              , reg_ip
+                              , reg_dt
+                              , mod_id
+                              , mod_ip
+                              , mod_dt
+        ) values (
+                     #{prodNo}
+                 , #{prodNm}
+                 , #{sz}
+                 , #{saleUnit}
+                 , #{qtyPerPkg}
+                 , #{usedYn}
+                 , #{userId}
+                 , #{ipaddr}
+                 , now()
+                 , #{userId}
+                 , #{ipaddr}
+                 , now()
+                 )
+    </insert>
+
+    <select id="getProdStatList" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             ,a.prod_code --품코드
+             ,a.prod_nm --품명
+             ,a.erp_prod_nm
+             ,a.sale_unit --판매단위코드
+             ,a.save_tmpr --보관온도코드
+             ,e.code_nm as save_tmpr_nm  --보관온도명
+             ,a.mess --개별중량
+             ,d.code_nm as sale_unit_nm --판매단위드명
+             ,a.qty_per_pkg --세트수량
+             , a.prod_tp --판매유형(OEM,ODM) 구분, Addon by KMJ At  21.10.19
+             , a.cmpy_no --OEM상품의 주문업체번호 , Addon by KMJ At  21.10.19
+             , h.cmpy_nm --OEM상품의 주문업체명 , Addon by KMJ At  21.10.19
+        <choose>
+                <when test="custNo != null and custNo != ''and custNo == 6 ">
+                    ,coalesce (b.stk_qty / a.qty_per_pkg,0) as stk_qty --현재고
+                    ,coalesce (c.ord_qty / a.qty_per_pkg,0) as rest_qty --주문잔량
+                    ,coalesce (ys.iwh_qty / a.qty_per_pkg,0)  as bef_iwh_qty--전일입고
+                    ,coalesce (ys.owh_qty / a.qty_per_pkg,0)  as bef_owh_qty--전일출고
+                    ,coalesce (ys.stk_qty / a.qty_per_pkg,0)  as bef_stk_qty--전일재고
+                    ,coalesce (f.owh_qty / a.qty_per_pkg,0) as owh_qty --금일출고
+                    ,coalesce (g.iwh_qty / a.qty_per_pkg,0) as iwh_qty --금일입고
+                </when>
+                <otherwise >
+                    ,coalesce (b.stk_qty,0) as stk_qty --현재고
+                    ,coalesce (c.ord_qty,0) as rest_qty --주문잔량
+                    ,coalesce (ys.iwh_qty,0)  as bef_iwh_qty--전일입고
+                    ,coalesce (ys.owh_qty,0)  as bef_owh_qty--전일출고
+                    ,coalesce (ys.stk_qty,0)  as bef_stk_qty--전일재고
+                    ,coalesce (f.owh_qty,0) as owh_qty --금일출고
+                    ,coalesce (g.iwh_qty,0) as iwh_qty --금일입고
+                </otherwise>
+            </choose>
+
+        from prod_info a join code_info d on a.sale_unit  = d.code_no
+                    left join  prod_stk b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                    left join code_info e on a.save_tmpr = e.code_no
+                    left join cmpy_info h on a.cmpy_no = h.cmpy_no and h.used_yn = 'Y'
+                    left join (select b.prod_no
+                                    ,sum(b.ord_qty) as ord_qty
+                                from ord_prod b
+                                where b.used_yn  = 'Y'
+                                  and b.ord_no in (select ord_no from ord_info where used_yn = 'Y' and ord_sts = 141)
+                                group by b.prod_no) c on a.prod_no = c.prod_no
+                    left join (select prod_no
+                                    , sum(iwh_qty) as iwh_qty --전일입고
+                                    , sum(owh_qty) as owh_qty --전일출고
+                                    , sum(stk_qty) as stk_qty --전일재고
+                                 from prod_stk_clos
+                                where used_yn = 'Y'
+                                  and to_char(clos_dt,'YYYY-MM-dd' ) =  to_char(now() + interval '-1 day','YYYY-MM-DD')
+                                  group by prod_no
+                              ) ys  on a.prod_no = ys.prod_no
+                    left join (select prod_no
+                                    , sum(owh_qty) as owh_qty
+                                 from prod_owh
+                                where used_yn = 'Y'
+                                  and to_char(owh_dt,'YYYY-MM-dd') =  to_char(now(),'YYYY-MM-DD')
+                                group by prod_no
+                               ) f on a.prod_no = f.prod_no
+                    left join (select prod_no
+                                    , sum(iwh_qty) as iwh_qty
+                                 from prod_iwh
+                                where used_yn = 'Y'
+                                  and to_char(iwh_dt,'YYYY-MM-dd') =  to_char(now(),'YYYY-MM-DD')
+                                group by prod_no
+                               ) g on a.prod_no = g.prod_no
+        where a.used_yn = 'Y'
+        <if test="prodNo != null and prodNo != ''">
+            and a.prod_no = #{prodNo}
+        </if>
+
+        <if test="saveTmpr != null and saveTmpr != ''">
+          and a.save_tmpr = #{saveTmpr}
+        </if>
+        <if test="prodList != null and prodList != '' and prodList.size != 0">
+            and a.prod_no in <foreach collection="prodList" item="prodList" index="index" open="(" close=")" separator=",">   #{prodList}   </foreach>
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'erpProdNm'">
+                AND upper(replace(a.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prodCd'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'ko'">
+                <if test="findSz != null and findSz != ''">
+                    AND case when a.prod_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
+                    when ascii('ㄱ') <![CDATA[ <= ]]> ascii(prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                    when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                    when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                    when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                    when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                    when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                    when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                    when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                    when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                    when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                    when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                    when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                    when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                    when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                    else                                     'ㅎ'
+                    end = #{findSz}
+                </if>
+            </if>
+            <if test="findTp != null and findTp == 'eng'">
+                <if test="findSz != null and findSz != ''">
+                    and ascii(substring(a.prod_nm,1,1)) <![CDATA[ >= ]]> ascii('A') and ascii(substring(a.prod_nm,1,1)) <![CDATA[ <= ]]> ascii('z')
+                </if>
+            </if>
+            <if test="findTp != null and findTp == 'num'">
+                <if test="findSz != null and findSz != ''">
+                    and ascii(substring(a.prod_nm,1,1)) <![CDATA[ >= ]]> ascii('0') and ascii(substring(a.prod_nm,1,1)) <![CDATA[ <= ]]> ascii('90')
+                </if>
+            </if>
+        </if>
+        order by a.prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProdStatListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from (
+            select a.prod_no --품번
+            from prod_info a join code_info d on a.sale_unit  = d.code_no
+                        left join  prod_stk b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                        left join code_info e on a.save_tmpr = e.code_no
+                        left join cmpy_info h on a.cmpy_no = h.cmpy_no and h.used_yn = 'Y'
+                        left join (select b.prod_no
+                                        ,sum(b.ord_qty) as ord_qty
+                                    from ord_prod b
+                                    where b.used_yn  = 'Y'
+                                    and b.ord_no in (select ord_no from ord_info where used_yn = 'Y' and ord_sts = 141)
+                                    group by b.prod_no) c on a.prod_no = c.prod_no
+                        left join (select prod_no
+                                        , sum(stk_qty) as stk_qty
+                                    from prod_stk_clos
+                                    where used_yn = 'Y'
+                                    and to_char(clos_dt,'YYYY-MM-dd' ) =  to_char(now() - interval '1 day','YYYY-MM-DD')
+                                    group by prod_no
+                                    ) ys  on a.prod_no = ys.prod_no
+                        left join (select prod_no
+                                        , sum(owh_qty) as owh_qty
+                                    from prod_owh
+                                    where used_yn = 'Y'
+                                    and to_char(owh_dt,'YYYY-MM-dd') =  to_char(now(),'YYYY-MM-DD')
+                                    group by prod_no
+                                    ) f on a.prod_no = f.prod_no
+                        left join (select prod_no
+                                        , sum(iwh_qty) as iwh_qty
+                                    from prod_iwh
+                                    where used_yn = 'Y'
+                                    and to_char(iwh_dt,'YYYY-MM-dd') =  to_char(now(),'YYYY-MM-DD')
+                                    group by prod_no
+                                    ) g on a.prod_no = g.prod_no
+                        where a.used_yn = 'Y'
+                        <if test="prodNo != null and prodNo != ''">
+                            and a.prod_no = #{prodNo}
+                        </if>
+
+                        <if test="saveTmpr != null and saveTmpr != ''">
+                            and a.save_tmpr = #{saveTmpr}
+                        </if>
+                        <if test="findSz != null and findSz != ''">
+                            <if test="findTp != null and findTp == 'erpProdNm'">
+                                AND upper(replace(a.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            </if>
+                            <if test="findTp != null and findTp == 'prodNm'">
+                                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            </if>
+                            <if test="findTp != null and findTp == 'prodCd'">
+                                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            </if>
+                            <if test="findTp != null and findTp == 'ko'">
+                                <if test="findSz != null and findSz != ''">
+                                    AND case when a.prod_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
+                                    when ascii('ㄱ') <![CDATA[ <= ]]> ascii(prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                                    when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                                    when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                                    when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                                    when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                                    when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                                    when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                                    when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                                    when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                                    when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                                    when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                                    when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                                    when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                                    when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                                    else                                     'ㅎ'
+                                    end = #{findSz}
+                                </if>
+                            </if>
+                            <if test="findTp != null and findTp == 'eng'">
+                                <if test="findSz != null and findSz != ''">
+                                    and ascii(substring(a.prod_nm,1,1)) <![CDATA[ >= ]]> ascii('A') and ascii(substring(a.prod_nm,1,1)) <![CDATA[ <= ]]> ascii('z')
+                                </if>
+                            </if>
+                            <if test="findTp != null and findTp == 'num'">
+                                <if test="findSz != null and findSz != ''">
+                                    and ascii(substring(a.prod_nm,1,1)) <![CDATA[ >= ]]> ascii('0') and ascii(substring(a.prod_nm,1,1)) <![CDATA[ <= ]]> ascii('90')
+                                </if>
+                            </if>
+                        </if>
+        ) a
+    </select>
+
+
+    <!--상품재고현황-->
+    <select id="getProdStkList" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+            , a.prod_code --품코드
+            , a.prod_nm --품명
+            , a.erp_prod_nm
+            , a.sale_unit --판매단위코드
+            , a.save_tmpr --보관온도코드
+            , e.code_nm as save_tmpr_nm  --보관온도명
+            , a.sz --규격(단품중량)
+            , d.code_nm as sale_unit_nm --판매단위드명
+            , a.qty_per_pkg --세트수량
+            , g.wh_nm --창고명
+            , b.wh_no --창고번호
+            , b.stk_no --창고번호
+           -- , f.prod_real_no as prod_real_no -- 실재고상품번호
+            , coalesce (b.stk_qty,0) as stk_qty --현재고
+        from prod_info a join code_info d on a.sale_unit  = d.code_no
+                    left join prod_stk b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                    left join wh_info  g on b.wh_no = g.wh_no
+                    left join code_info e on a.save_tmpr = e.code_no
+        where a.used_yn = 'Y'
+        <if test="saveTmpr != null and saveTmpr != ''">
+            and a.save_tmpr = #{saveTmpr}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND ( upper(replace(a.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    or upper(replace(a.erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    )
+            </if>
+            <if test="findTp != null and findTp == 'prodCd'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProdStkListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from (  select a.prod_no --품번
+                from prod_info a join code_info d on a.sale_unit  = d.code_no
+                            left join prod_stk b on a.prod_no = b.prod_no  and b.used_yn = 'Y'
+                            left join wh_info  g on b.wh_no = g.wh_no
+                            left join code_info e on a.save_tmpr = e.code_no
+                where a.used_yn = 'Y'
+                <if test="saveTmpr != null and saveTmpr != ''">
+                    and a.save_tmpr = #{saveTmpr}
+                </if>
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'prodNm'">
+                        AND ( upper(replace(a.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        or upper(replace(a.erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        )
+                    </if>
+                    <if test="findTp != null and findTp == 'prodCd'">
+                        AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+        ) a
+    </select>
+
+    <select id="getProdOrdList" parameterType="map"  resultType="camelMap">
+        select a.prod_no
+             , a.prod_code
+             , a.prod_nm
+             , a.sale_unit
+             , a.save_tmpr
+             , a.sz --개별중량
+             , d.code_nm as sale_unit_nm --판매단위
+             , a.qty_per_pkg --세트구성수량
+             , coalesce (b.stk_qty,0) as stk_qty --현세트재고
+             , coalesce (c.ord_qty,0) as rest_qty --주문잔량
+             , to_char(f.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+             , c.ord_no
+             , c.ord_qty
+        from prod_info a join code_info d on a.sale_unit  = d.code_no
+                    left join prod_stk b on a.prod_no = b.prod_no
+                    left join code_info e on a.save_tmpr = e.code_no
+                    left join ord_prod c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                    left join ord_info f on c.ord_no = f.ord_no and f.ord_sts = 141 and f.used_yn = 'Y'
+        where a.used_yn = 'Y'
+
+        <if test="prodNo != null and prodNo == ''">
+            a.prod_no = #{prodNo}
+        </if>
+        <if test="saveTmpr != null and saveTmpr != ''">
+            and a.save_tmpr = #{saveTmpr}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+    </select>
+    <select id="getProdOrdListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from ( select a.prod_no
+               from prod_info a join code_info d on a.sale_unit  = d.code_no
+                           left join prod_stk b on a.prod_no = b.prod_no
+                           left join code_info e on a.save_tmpr = e.code_no
+                           left join ord_prod c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                           left join ord_info f on c.ord_no = f.ord_no and f.ord_sts = 141 and f.used_yn = 'Y'
+            where a.used_yn = 'Y'
+            <if test="prodNo != null and prodNo == ''">
+                a.prod_no = #{prodNo}
+            </if>
+            <if test="saveTmpr != null and saveTmpr != ''">
+                and a.save_tmpr = #{saveTmpr}
+            </if>
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'prodNm'">
+                    AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+            </if>
+    </select>
+
+    <select id="getProdList" parameterType="map"  resultType="camelMap">
+        /* 제품정보 List - 121_prod.vue     getProdList() */
+        select a.prod_no --품번
+             , a.prod_nm --품명
+             , a.prod_code--제품코드
+             , a.modl_nm --모델명
+             , a.heat_tp --살균기준코드
+             , a.prod_tp --판매유형(OEM,ODM)
+             , a.sz --규격
+             , a.brnch_no --제조공정
+             , coalesce (a.mess,0) as mess --단위중량
+             , coalesce (a.spga,1) as spga --비중
+             , coalesce (a.vol,0) as vol --단위용량
+             , a.prod_shape --제품형태코드
+             , a.bom_lvl --bom 단수
+             , k.code_nm as prod_shape_nm --제품형태명
+             , a.save_tmpr --보관온도
+             , a.sale_unit--판매단위코드
+             , a.qty_per_pkg--포장단수량(용량)
+             , a.file_no --사진번호
+             , a.erp_prod_nm -- ERP 제품명
+             , b.code_nm as sale_unit_nm --포장단위명
+             , d.code_nm as save_tmpr_nm --보관온도명
+             , c.save_file_nm --저장파일명
+             , c.org_file_nm --원본파일명
+             , g.code_nm as heat_tp_nm --살균기준명
+--              , e.wh_no --창고번호
+--              , f.wh_nm --창고명
+             , ci.code_nm as mngr_unit_nm
+             , coalesce( (select  sum(c.ord_qty)
+                          from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                                                         and b.used_yn  = 'Y'
+                                                         and b.ord_tp = 35 --oem주문
+                                                         and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
+                                                         and c.prod_no = a.prod_no
+                       ),0) as ord_qty
+             , coalesce( (select  sum(c.ord_qty)
+                          from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                                                            and b.used_yn  = 'Y'
+                                                            and b.ord_tp  = 36 --프로젝트주문
+                                                            and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
+                                                            and c.prod_no = a.prod_no
+                      ),0) as prj_qty
+            , coalesce( (select  sum(c.ord_qty)
+                         from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                                                        and b.used_yn  = 'Y'
+                                                        and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
+                                                        and to_char(b.dlv_dt,'yyyymm') = to_char(now(),'yyyymm')
+                                                        and c.prod_no = a.prod_no
+                     ),0) as dlv_qty
+            , h.matr_bom
+        from prod_info a join code_info b on a.sale_unit = b.code_no and b.cust_no = #{custNo}
+                    left join code_info d on a.save_tmpr = d.code_no and b.cust_no = #{custNo}
+                    left join file_info c on a.file_no = c.file_no  and c.cust_no = #{custNo}
+                    left join code_info k on a.prod_shape = k.code_no and k.cust_no = #{custNo}
+                    left join code_info g on a.heat_tp = g.code_no and g.cust_no = #{custNo}
+                    left join code_info ci on ci.code_no = a.mngr_unit and ci.cust_no = #{custNo}
+                    left join (select h.prod_no, count(h.matr_no) as matr_bom
+                               from prod_bom h
+                               where h.used_yn = 'Y'
+                               and   cust_no = #{custNo}
+                               group by h.prod_no) h  on a.prod_no = h.prod_no
+        where a.used_yn ='Y'
+          and a.cust_no = #{custNo}
+        <if test="saleUnitChk != null and saleUnitChk == 1">
+            and coalesce(a.sale_unit,0) <![CDATA[ > ]]> 0 and a.sz is not null and a.prod_code is not null
+        </if>
+
+        <if test="exceptCart != null and exceptCart == 1">
+            and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
+        </if>
+
+        <if test="findRoutingNo != null and findRoutingNo != ''">
+            and a.prod_no = #{findRoutingNo}
+        </if>
+
+        <if test="bomTp != null and bomTp != ''">
+            and 0 = (select count(pb.prod_no) from prod_bom pb where pb.prod_no = a.prod_no )
+        </if>
+
+        <if test="prodTp != null and prodTp != ''">
+            and a.prod_tp = #{prodTp}
+        </if>
+
+        <if test="findSz != null and findSz != '' and findRoutingNo == null">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prodCode'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'sale_unit'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+
+        </if>
+        order by prod_nm,prod_code
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProdListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no) --자재번호
+                from (select a.prod_no --품번
+                        from prod_info a join code_info b on a.sale_unit = b.code_no
+                                     left join code_info d on a.save_tmpr = d.code_no
+                                     left join file_info c on a.file_no = c.file_no
+                                     left join code_info k on a.prod_shape = k.code_no
+                                     left join code_info g on a.heat_tp = g.code_no
+                                     left join code_info ci on ci.code_no = a.mngr_unit
+        --                     left join prod_stk e on a.prod_no = e.prod_no
+        --                     left join wh_info f on e.wh_no = f.wh_no
+                                     left join (select h.prod_no, count(h.matr_no) as matr_bom from prod_bom h where h.used_yn = 'Y' group by h.prod_no) h  on a.prod_no = h.prod_no
+                        where a.used_yn ='Y'
+        <if test="saleUnitChk != null and saleUnitChk == 1">
+            and coalesce(a.sale_unit,0) <![CDATA[ > ]]> 0 and a.sz is not null and a.prod_code is not null
+        </if>
+
+        <if test="exceptCart != null and exceptCart == 1">
+            and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
+        </if>
+
+        <if test="findRoutingNo != null and findRoutingNo != ''">
+            and a.prod_no = #{findRoutingNo}
+        </if>
+
+        <if test="bomTp != null and bomTp != ''">
+            and 0 = (select count(pb.prod_no) from prod_bom pb where pb.prod_no = a.prod_no )
+        </if>
+
+        <if test="prodTp != null and prodTp != ''">
+            and a.prod_tp = #{prodTp}
+        </if>
+
+        <if test="findSz != null and findSz != '' and findRoutingNo == null">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prodCode'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'sale_unit'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+
+        </if>
+        ) a
+    </select>
+
+    <select id="getProdExcelList" parameterType="map"  resultType="camelMap">
+        select a.prod_no as 품번
+             , a.prod_nm as 품명
+             , a.erp_prod_nm as ERP제품명
+             , a.prod_code as 제품코드
+             , a.spga as 비중
+             , a.heat_tp  as  살균기준
+             , a.modl_nm as 모델명
+             , a.sz as 규격
+             , a.brnch_no as 제조공정번호
+             , coalesce (e.code_nm,'미확인') as 제조공정명
+             , coalesce (a.mess,0) as 단위중량
+             , a.save_tmpr as 보관온도
+             , d.code_nm as 보관온도명
+             , a.sale_unit as 판매단위코드
+             , b.code_nm as 판매단위명  --포장단위명
+             , a.qty_per_pkg as 포장단위수량
+             , c.save_file_nm as 저장파일명
+             , c.org_file_nm as 원본파일명
+             , coalesce( (select  sum(c.ord_qty)
+                            from ord_info b join ord_prod c on b.ord_no = c.ord_no and b.used_yn  = 'Y'
+                            and b.ord_tp = 35 --oem주문
+                            and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
+                            and c.prod_no = a.prod_no
+                          ),0) as 주문수량
+             , coalesce( (select  sum(c.ord_qty)
+                            from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                            and b.used_yn  = 'Y'
+                            and b.ord_tp  = 36 --프로젝트주문
+                            and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
+                            and c.prod_no = a.prod_no
+                          ),0) as 프로젝트주문수량
+             , coalesce( (select  sum(c.ord_qty)
+                            from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                            and b.used_yn  = 'Y'
+                            and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
+                            and to_char(b.dlv_dt,'yyyymm') = to_char(now(),'yyyymm')
+                            and c.prod_no = a.prod_no
+                         ),0) as 배달수량 --dlv_qty
+        from prod_info a join code_info b on a.sale_unit = b.code_no
+                    left join code_info d on a.save_tmpr = d.code_no
+                    left join file_info c on a.file_no = c.file_no
+                    left join code_info e on a.brnch_no = e.code_no
+        where a.used_yn ='Y'
+        <if test="saleUnitChk != null and saleUnitChk == 1">
+            and coalesce(a.sale_unit,0) <![CDATA[ > ]]> 0 and a.sz is not null and a.prod_code is not null
+        </if>
+
+        <if test="exceptCart != null and exceptCart == 1">
+            and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prodCode'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by prod_nm,prod_code
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getBomExcelList" parameterType="map"  resultType="camelMap">
+        select a.prod_no as 제품번호
+             , a.prod_nm as 제품명
+             , a.erp_prod_nm as 품목제조보고서제품명
+             , '' as 아아큐브_제품명
+             , a.prod_code as 제품코드
+             , a.brnch_no as 제조공정번호
+             , coalesce (e.code_nm,'미확인') as 제조공정명
+             , a.heat_tp  as  HACCP살균기준코드
+             , coalesce (h.code_nm,'미확인')  as HACCP살균기준명
+             , a.modl_nm as 모델명
+             , a.sz as 규격
+             , coalesce (a.mess,0) as 단위용량
+             , a.save_tmpr as 보관온도코드
+             , a.mngr_base as 질량중량구분
+             , l.code_nm as mngrBase
+             , p.code_nm as 보관온도명
+             , a.sale_unit as 판매단위코드
+             , coalesce (m.code_nm,'미확인') as 판매단위명
+             , a.qty_per_pkg as INCASE수량
+             , a.valid_term as 유통기한
+             , b.bom_no as BOM관리번호
+             , b.matr_no as 원료번호
+             , c.matr_nm as 원료명
+             , c.item_cd as 원료코드
+             , c.matr_tp as 원자재구분코드
+             , d.code_nm as 원자재구분명
+             , round(b.consist_rt::numeric,4) as 구성함량
+             , b.consist_rt AS 원료투입율
+             , coalesce (c.brix,0)  as 당도
+             , c.valid_term as 유효기간
+             , c.mngr_base as 질량중량구분코드
+             , k.code_nm  as matrMngrBase
+             , c.mess as 원료중량
+             , c.spga as 비중
+             , c.vol  as 질량비중곱
+             , c.sz as 규격
+             , c.purs_unit as 구매단위코드
+             , coalesce (n.code_nm,'미확인') as 구매단위명
+             , c.made as 원산지
+             , a.spga as 제품비중
+             , c.save_tmpr as 보관온도코드
+             , i.code_nm as 보관온도
+             , q.code_nm as 제품형태
+             , a.bom_lvl as prodBom레벨
+             , b.bom_lvl as bom레벨
+        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                         join matr_info c on b.matr_no = c.matr_no and c.used_yn ='Y'
+                         join code_info d on c.matr_tp = d.code_no and d.used_yn ='Y'
+                    left join code_info e on a.brnch_no  = e.code_no
+                    left join code_info n on c.purs_unit  = n.code_no
+                    left join code_info p on a.save_tmpr  = p.code_no
+                    left join code_info m on a.sale_unit  = m.code_no
+                    left join code_info g on c.purs_unit = g.code_no
+                    left join code_info k on c.mngr_base  = k.code_no
+                    left join code_info h on a.heat_tp = h.code_no
+                    left join code_info i on c.save_tmpr = i.code_no
+                    left join code_info l on a.mngr_base = l.code_no
+                    left join code_info q on a.prod_shape  = q.code_no
+         where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(c.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="bomNo != null and bomNo != ''">
+            AND b.bom_no = #{bomNo}
+        </if>
+        order by a.prod_nm, c.matr_nm
+    </select>
+
+    <select id="getProdInfo" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             , a.rept_prod_no --보고서품번
+             , a.prod_nm --명
+             , a.sz --규격
+             , a.mess --단위용량
+             , a.prod_shape --형태
+             , a.brix --brix
+             , coalesce(a.max_ph,7) as max_ph --최대산도
+             , coalesce(a.min_ph,7) as min_ph --최소산도
+             , a.spga --비중
+             , a.brnch_no --제조공정
+             , a.save_tmpr --보관온도
+             , coalesce(a.ccp_tp,0) as ccp_tp   --CCP구분
+             , coalesce(a.heat_tp,0) as heat_tp   --살균기준
+             , c.code_nm as save_tmpr_nm --보관온도명
+             , a.prod_code--제품코드
+             , a.modl_nm --모델명
+             , a.sale_unit--판매단위코드
+             , d.code_nm as sale_unit_nm -- 판매단위명
+             , a.qty_per_pkg--세트구성수
+             , b.reg_id --작성자
+             , b.file_no --사진번호
+             , b.org_file_nm as file_nm --첨부이미지파일명
+             , b.acc_url  --첨부파일 이미지경로
+             , a.erp_prod_nm
+             , a.vol
+             , a.mngr_unit
+             , a.valid_term
+             , a.prod_cont
+             , a.mngr_base
+             , a.bom_lvl
+             , a.ce_tp
+             , a.prod_tp --판매유형(OEM,ODM) 구분, Addon by KMJ At  21.10.19
+             , a.cmpy_no --OEM상품의 주문업체 , Addon by KMJ At  21.10.19
+        from prod_info a left join file_info b on a.file_no = b.file_no
+                         left join code_info c on a.save_tmpr = c.code_no
+                         left join code_info d on a.sale_unit = d.code_no
+        where a.used_yn = 'Y'
+        and a.prod_no = #{prodNo}
+    </select>
+
+
+    <select id="getProdBomInfo" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             , a.prod_nm --자재명
+             , a.mess --단위중
+             , a.prod_shape --형태
+             , a.brix --brix
+             , a.spga --비중
+             , a.mess --중량
+             , a.vol --용량
+             , a.prod_shape --제품형태코드
+             , h.code_nm as prod_shape_nm --제품형태명
+             , b.bom_no  --BOM관리번호
+             , b.matr_no --자재번호
+             , b.purs_yn --구매여부
+             , round(b.consist_rt::numeric,3) as consist_rt --구성함량
+             , round(b.consist_rt::numeric,3) * a.mess as need_qty -- 소요량
+             , g.code_nm as unit_nm --소요량단
+             , c.file_no --사진번호
+             , c.brnch_no --분류번호
+             , c.matr_nm --원부자재명
+             , c.valid_term --유효기간
+             , c.sz --규격
+             , f.brnch_nm --분류명
+             , d.code_nm as matr_tp_nm -- 원부자재구분
+        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                         join matr_info c on b.matr_no = c.matr_no
+                         join code_info d on c.matr_tp = d.code_no
+                         join code_info g on a.sale_unit = g.code_no
+                    left join code_info h on a.prod_shape = h.code_no
+                    left join brnch_info f on c.brnch_no  = f.brnch_no
+        where b.bom_no = #{bomNo}
+    </select>
+
+    <select id="getProdBomListByIndc" parameterType="map"  resultType="camelMap">
+        select a.matr_no
+             , round(a.consist_rt::numeric,2) as consist_rt
+             , ceil((a.consist_rt * 0.01) * #{indcQty} * c.vol ) as need_qty --소요량(Kg)
+        from prod_bom a  join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                    left join (select matr_no, sum(stk_qty) as stk_qty from  matr_stk where used_yn = 'Y' group by matr_no) b on a.matr_no = b.matr_no
+        where a.purs_yn = 'Y'
+          and a.used_yn  = 'Y'
+          and a.prod_no = #{prodNo}
+          and a.matr_no in ( select a.matr_no
+                             from  matr_cmpy a join cmpy_info b on a.cmpy_no = b.cmpy_no and a.cmpy_no = #{cmpyNo}
+                             where a.used_yn = 'Y'
+                           )
+        union
+        select a.matr_no
+             , round(a.consist_rt::numeric,2) as consist_rt
+             , ceil((a.consist_rt * 0.01) * #{indcQty} * c.vol ) as need_qty --소요량(Kg)
+        from prod_bom a  join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                    left join (select matr_no, sum(stk_qty) as stk_qty from  matr_stk where used_yn = 'Y' group by matr_no) b on a.matr_no = b.matr_no
+        where a.used_yn  = 'Y'
+          and a.prod_no = #{prodNo}
+          and a.matr_no not in (select a.matr_no
+                                from  matr_cmpy a join cmpy_info b on a.cmpy_no = b.cmpy_no and a.cmpy_no = #{cmpyNo}
+                                where a.used_yn = 'Y'
+                               )
+          and a.purs_yn = 'Y'
+          and a.used_yn = 'Y'
+          and a.prod_no = #{prodNo}
+
+    </select>
+
+    <select id="getSfProdBomList" parameterType="map"  resultType="camelMap">
+        select a.matr_no
+             , round(a.consist_rt::numeric,2) as consist_rt
+             , ceil((a.consist_rt * 0.01) * #{indcQty} * c.spga) as need_qty --소요량(Kg)
+        from prod_bom a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                        join prod_info c on a.prod_no = c.prod_no
+        where a.purs_yn = 'Y'
+          and a.used_yn = 'Y'
+          and a.prod_no = #{prodNo}
+
+    </select>
+
+    <select id="getHdfdProdBomListByIndc" parameterType="map"  resultType="camelMap">
+        select d.matr_no --자재번호
+             , d.matr_nm --자재명
+        <if test="indcNo != null and indcNo != ''">
+             , case when g.consist_rt = b.consist_rt
+                   then ceil(w.indc_qty * c.sz::numeric / 1000)
+                   else ceil(w.indc_qty * c.sz::numeric / 1000 * b.consist_rt / g.consist_rt) end as need_qty --소요량(Kg)
+        </if>
+        <if test="indcNo == null">
+             , case when g.consist_rt = b.consist_rt
+                   then ceil(a.ord_qty * c.sz::numeric / 1000)
+                   else ceil(a.ord_qty * c.sz::numeric / 1000 * b.consist_rt / g.consist_rt) end as need_qty --소요량(Kg)
+        </if>
+             , coalesce (e.stk_qty ,0) as stk_qty --재고량(Kg)
+             , f.wh_nm --창고명
+             , round(b.consist_rt::numeric,2) as consist_rt
+        from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                        join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                        join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y'
+                   left join matr_stk e on d.matr_no = e.matr_no and e.used_yn  ='Y'
+                   left join wh_info f on e.wh_no = f.wh_no and f.used_yn = 'Y'
+                   left join (select b.consist_rt as consist_rt
+                                from ord_prod a join prod_bom b on a.prod_no = b.prod_no and b.prod_no =  #{prodNo}  and b.purs_yn = 'Y'
+                                                join prod_info c on b.prod_no = c.prod_no and b.used_yn = 'Y'
+                                                join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y'
+                                 where d.base_cal_yn = 'Y' and a.used_yn = 'Y' and a.prod_no =  #{prodNo} and a.ord_no = #{ordNo}
+                            ) g on 1 = 1
+        <if test="indcNo != null and indcNo != ''">
+            left join ( select indc_qty from make_indc mi where indc_no = #{indcNo} ) w on 1 = 1
+        </if>
+        where a.used_yn = 'Y'  and a.ord_no = #{ordNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="bomNo != null and bomNo != ''">
+            AND b.bom_no = #{bomNo}
+        </if>
+        <if test="prodNo != null and prodNo != ''">
+            and a.prod_no = #{prodNo}
+        </if>
+        order by d.matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getSfProdBomListByIndc" parameterType="map"  resultType="camelMap">
+        select a.matr_no
+             , round(a.consist_rt::numeric,2) as consist_rt
+             , ceil((a.consist_rt * 0.01) * #{indcQty} * c.spga) as need_qty --소요량(Kg)
+        from prod_bom a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                        join prod_info c on a.prod_no = c.prod_no
+        where a.purs_yn = 'Y'
+          and a.used_yn = 'Y'
+          and a.prod_no = #{prodNo}
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProdBomList" parameterType="map"  resultType="camelMap">
+        select d.matr_no --자재번호
+             , d.matr_nm --자재명
+             , ceil(( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol ) as need_qty --소요량(Kg)
+             , sum(coalesce (e.stk_qty ,0)) as stk_qty --재고량(Kg)
+             , round(b.consist_rt::numeric,2) as consist_rt
+        from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                        join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                        join prod_info c on b.prod_no = c.prod_no
+                        join matr_info d on b.matr_no = d.matr_no
+                   left join (select matr_no, sum(stk_qty) as stk_qty from matr_stk where used_yn = 'Y' group by matr_no ) e on d.matr_no = e.matr_no
+        where a.used_yn = 'Y'
+        and a.ord_no = #{ordNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="bomNo != null and bomNo != ''">
+            AND b.bom_no = #{bomNo}
+        </if>
+        <if test="prodNo != null and prodNo != ''">
+            and a.prod_no = #{prodNo}
+        </if>
+        group by c.mess, d.matr_no , d.matr_nm,  b.consist_rt, c.vol, a.ord_qty
+        order by d.matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getHdfdProdBomList" parameterType="map"  resultType="camelMap">
+        select d.matr_no --자재번호
+             , d.matr_nm --자재명
+             <if test="indcNo != null and indcNo != ''">
+                 , case when g.consist_rt = b.consist_rt
+                         then ceil(w.indc_qty * c.sz::numeric / 1000)
+                         else ceil(w.indc_qty * c.sz::numeric / 1000 * b.consist_rt / g.consist_rt) end as need_qty --소요량(Kg)
+             </if>
+
+            <if test="indcNo == null">
+                , case when g.consist_rt = b.consist_rt
+                        then ceil(a.ord_qty * c.sz::numeric / 1000)
+                        else ceil(a.ord_qty * c.sz::numeric / 1000 * b.consist_rt / g.consist_rt) end as need_qty --소요량(Kg)
+            </if>
+             , coalesce (e.stk_qty ,0) as stk_qty --재고량(Kg)
+             --, f.wh_nm --창고명
+             , round(b.consist_rt::numeric,2) as consist_rt
+        from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                        join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                        join prod_info c on b.prod_no = c.prod_no
+                        join matr_info d on b.matr_no = d.matr_no
+                   left join (select matr_no, sum(stk_qty) as stk_qty from matr_stk where used_yn = 'Y' group by matr_no ) e on d.matr_no = e.matr_no
+                 --left join wh_info f on e.wh_no = f.wh_no
+                   left join (
+                      select b.consist_rt as consist_rt
+                      from ord_prod a join prod_bom b on a.prod_no = b.prod_no and b.prod_no =  #{prodNo}  and b.purs_yn = 'Y'
+                                      join prod_info c on b.prod_no = c.prod_no
+                                      join matr_info d on b.matr_no = d.matr_no
+                      where d.base_cal_yn = 'Y' and a.used_yn = 'Y' and a.prod_no =  #{prodNo} and a.ord_no = #{ordNo}
+
+                   ) g on 1 = 1
+                    <if test="indcNo != null and indcNo != ''">
+                        left join (
+                            select indc_qty from make_indc mi where indc_no = 	#{indcNo}
+                        ) w on 1 = 1
+                    </if>
+        where a.used_yn = 'Y'  and a.ord_no = #{ordNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="bomNo != null and bomNo != ''">
+            AND b.bom_no = #{bomNo}
+        </if>
+        <if test="prodNo != null and prodNo != ''">
+            and a.prod_no = #{prodNo}
+        </if>
+        order by d.matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+
+    <select id="getHdfdProdBomListCount" parameterType="map"  resultType="int">
+        select count(a.matr_no)
+        from (
+                select d.matr_no --자재번호
+                     , d.matr_nm --자재명
+                    <if test="indcNo != null and indcNo != ''">
+                        , case when g.consist_rt = b.consist_rt
+                        then ceil(w.indc_qty * c.sz::numeric / 1000)
+                        else ceil(w.indc_qty * c.sz::numeric / 1000 * b.consist_rt / g.consist_rt) end as need_qty --소요량(Kg)
+                    </if>
+
+                    <if test="indcNo == null">
+                        , case when g.consist_rt = b.consist_rt
+                        then ceil(a.ord_qty * c.sz::numeric / 1000)
+                        else ceil(a.ord_qty * c.sz::numeric / 1000 * b.consist_rt / g.consist_rt) end as need_qty --소요량(Kg)
+                    </if>
+                    , coalesce (e.stk_qty ,0) as stk_qty --재고량(Kg)
+
+                    , round(b.consist_rt::numeric,2) as consist_rt
+                from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                                join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                                join prod_info c on b.prod_no = c.prod_no
+                                join matr_info d on b.matr_no = d.matr_no
+                            left join ( select matr_no, sum(stk_qty) as stk_qty from matr_stk where used_yn = 'Y' group by matr_no ) e on d.matr_no = e.matr_no
+                            left join ( select b.consist_rt as consist_rt
+                                        from ord_prod a join prod_bom b on a.prod_no = b.prod_no and b.prod_no =  #{prodNo}  and b.purs_yn = 'Y'
+                                                        join prod_info c on b.prod_no = c.prod_no
+                                                        join matr_info d on b.matr_no = d.matr_no
+                                        where d.base_cal_yn = 'Y' and a.used_yn = 'Y' and a.prod_no =  #{prodNo} and a.ord_no = #{ordNo}
+
+                                     ) g on 1 = 1
+                            <if test="indcNo != null and indcNo != ''">
+                                left join ( select indc_qty from make_indc mi where indc_no = 	#{indcNo} ) w on 1 = 1
+                            </if>
+                    where a.used_yn = 'Y'  and a.ord_no = #{ordNo}
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'prodNm'">
+                            AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                        <if test="findTp != null and findTp == 'matrNm'">
+                            AND upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+                    <if test="bomNo != null and bomNo != ''">
+                        AND b.bom_no = #{bomNo}
+                    </if>
+                    <if test="prodNo != null and prodNo != ''">
+                        and a.prod_no = #{prodNo}
+                    </if>
+        ) a
+    </select>
+
+    <select id="getProdBomListCount" parameterType="map"  resultType="int">
+        select count(a.matr_no)
+        from (select d.matr_no --자재번호
+                from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                                join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                                join prod_info c on b.prod_no = c.prod_no
+                                join matr_info d on b.matr_no = d.matr_no
+                           left join (select matr_no, sum(stk_qty) as stk_qty from matr_stk where used_yn = 'Y' group by matr_no ) e on d.matr_no = e.matr_no
+        where a.used_yn = 'Y'
+                     and a.ord_no = #{ordNo}
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'prodNm'">
+                            AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                        <if test="findTp != null and findTp == 'matrNm'">
+                            AND upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+                    <if test="bomNo != null and bomNo != ''">
+                        AND b.bom_no = #{bomNo}
+                    </if>
+                    <if test="prodNo != null and prodNo != ''">
+                        and a.prod_no = #{prodNo}
+                    </if>
+                    group by c.mess, d.matr_no , d.matr_nm,  b.consist_rt, c.spga,a.ord_qty
+                    order by d.matr_nm
+                 ) a
+    </select>
+
+    <select id="getProdBomCount" parameterType="map"  resultType="int">
+        select count(a.bom_no) --자재번호
+          from prod_bom a
+         where used_yn = 'Y'
+    </select>
+
+    <select id="getAbleOnProdBomList" parameterType="map"  resultType="camelMap">
+        select a.matr_no --자재번호
+             , a.matr_tp --자재구분 (원자재,부자재)
+             , a.matr_nm --자재명
+             , a.sz --규격
+             , a.base_volt --정격
+             , a.file_no --사진번호
+             , a.brnch_no --분류번호
+             , b.code_nm as matr_tp_nm --자재구분명
+             , f.brnch_nm --분류명
+             , '/fileroot/' || '/' || c.reg_id || '/' || c.file_no || '/' || c.save_file_nm as save_file_nm-- 원자재사진 경로
+             , coalesce(d.safe_stk_qty,0) as  safe_stk_qty -- 안전재고
+        from  matr_info a join code_info b on a.matr_tp = b.code_no
+                     left join brnch_info f on a.brnch_no = f.brnch_no
+                     left join file_info c on a.file_no = c.file_no
+                     left join ( select matr_no
+                                      , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+                                             when to_char(now(),'mm') = '02'  then feb_stk_qty
+                                             when to_char(now(),'mm') = '03'  then mar_stk_qty
+                                             when to_char(now(),'mm') = '04'  then apr_stk_qty
+                                             when to_char(now(),'mm') = '05'  then may_stk_qty
+                                             when to_char(now(),'mm') = '06'  then jun_stk_qty
+                                             when to_char(now(),'mm') = '07'  then jul_stk_qty
+                                             when to_char(now(),'mm') = '08'  then aug_stk_qty
+                                             when to_char(now(),'mm') = '09'  then sep_stk_qty
+                                             when to_char(now(),'mm') = '10'  then oct_stk_qty
+                                             when to_char(now(),'mm') = '11'  then nov_stk_qty
+                                             when to_char(now(),'mm') = '12'  then dec_stk_qty
+                                     end as safe_stk_qty
+                              from matr_safe_stk mss
+                     ) d on a.matr_no = d.matr_no
+        where a.used_yn ='Y'
+        and  a.matr_no not in (select matr_no from  prod_bom where prod_no  = #{prodNo})
+        <if test="matrTp != null and matrTp != ''">   and a.matr_tp = #{matrTp}  </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getAbleOnProdBomListCount" parameterType="map"  resultType="int">
+        select count(a.matr_no) --자재번호
+        from  matr_info a join code_info b on a.matr_tp = b.code_no
+                     left join brnch_info f on a.brnch_no = f.brnch_no
+                     left join file_info c on a.file_no = c.file_no
+                     left join matr_safe_stk d on a.matr_no = d.matr_no
+        where a.used_yn ='Y'
+        and  a.matr_no not in (select matr_no from  prod_bom where prod_no  = #{prodNo})
+        <if test="matrTp != null and matrTp != ''">   and a.matr_tp = #{matrTp}  </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+    </select>
+    <select id="getProdCmpyList" parameterType="map"  resultType="camelMap">
+        select a.cmpy_no    --거래처번
+             , a.cmpy_nm    --거래처명
+             , a.biz_cd     --사업자번호
+             , a.tel_no     --대표전화
+             , a.fax_no     --대표팩스
+             , a.hp         --담당자이동전화
+             , to_char(b.ord_dt,'YYYY-MM-DD') as last_ord_dt --최종거래일자
+        from cmpy_info a  join (select a.cmpy_no, max(a.ord_dt) as ord_dt
+                                from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.prod_no = #{prodNo}
+                                where a.used_yn  = 'Y'
+                                group by cmpy_no
+                               )  b on a.cmpy_no  = b.cmpy_no and a.used_yn = 'Y'
+    </select>
+    <select id="getProdCmpyListCount" parameterType="map"  resultType="int">
+        select count(a.cmpy_no)
+        from (select a.cmpy_no --거래처번
+              from cmpy_info a
+                       join (select a.cmpy_no, max(a.ord_dt) as ord_dt
+                             from ord_info a
+                                      join ord_prod b on a.ord_no = b.ord_no and b.prod_no = #{prodNo}
+                             where a.used_yn = 'Y'
+                             group by cmpy_no
+              ) b on a.cmpy_no = b.cmpy_no
+        ) a
+    </select>
+
+    <update id="resetLineFeedToSpaceToProdNm" >
+        UPDATE prod_info SET prod_nm = regexp_replace(prod_nm, '[\n\r]+', ' ', 'g' )
+        WHERE 1 = 1
+    </update>
+
+    <delete id="dropZeroBom"  >
+        DELETE FROM prod_bom where need_qty = 0;
+    </delete>
+
+    <select id="getMonthlyOrderQty" parameterType="map"  resultType="camelMap">
+        select a.prod_no
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'yyyy-mm') = '202001'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as jan_qty
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '01'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as feb_qty
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '02'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '03'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '04'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '05'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '06'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '07'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '08'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '09'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'mm') = '10'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+             , coalesce( ( select  sum(c.ord_qty)
+                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
+                               and b.used_yn  = 'Y'
+                               and to_char(b.ord_dt,'yyyy-mm') = '11'
+                               and c.prod_no = a.prod_no
+                           where b.used_yn = 'Y'),0) as mar_qty
+
+        from  prod_info  a
+        where a.prod_no = #{prodNo}
+    </select>
+
+
+    <select id="getAnaprodList" parameterType="map" resultType="camelMap">
+        select a.date as date
+             , b.matr_no --지재번호
+             , b.matr_nm --자재명
+             , coalesce (b.stk_qty,0) as matr_stk_qty --자재재
+             , coalesce (b.iwh_qty,0) as matr_iwh_qty --자재입고
+             , coalesce (b.owh_qty,0) as matr_owh_qty --자재출고
+             , c.prod_no --품번
+             , c.prod_nm --품명
+             , coalesce (c.stk_qty,0) as prod_stk_qty --상품재고
+             , coalesce (c.iwh_qty,0) as prod_iwh_qty --상품입고
+             , coalesce (c.owh_qty,0) as prod_owh_qty --상품출고
+        from ( select to_char(DATE(GENERATE_SERIES(DATE  (#{procYy} || '-' || #{procYm})
+                     , (date_trunc('MONTH', (replace(#{procYy},'-','')||'01')::date) + INTERVAL '1 MONTH - 1 day'),'1 day')),'YYYY-MM-DD') as date
+               ) a left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
+                                    , b.matr_no
+                                    , b.matr_nm
+                                    , coalesce (sum(a.stk_qty),0) as stk_qty
+                                    , coalesce (sum(a.iwh_qty),0) as iwh_qty
+                                    , coalesce (sum(a.owh_qty),0) as owh_qty
+                               from matr_stk_clos a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                    where a.used_yn = 'Y'
+                                    group by to_char(a.clos_dt,'YYYY-MM-DD') , b.matr_no, b.matr_nm
+                               ) b on  a.date = b.date
+                    left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
+                                    , b.prod_no
+                                    , b.prod_nm
+                                    , coalesce (sum(a.stk_qty),0) as stk_qty
+                                    , coalesce (sum(a.iwh_qty),0) as iwh_qty
+                                    , coalesce (sum(a.owh_qty),0) as owh_qty
+                               from prod_stk_clos a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                                where a.used_yn = 'Y'
+                                group by to_char(a.clos_dt,'YYYY-MM-DD'), b.prod_no,b.prod_nm
+                               ) c on  a.date = b.date
+        where 1 = 1
+        and substring(a.date,1,7) = #{procYm}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matr'">
+                AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prod'">
+                AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getComboProcBrnch" parameterType="map" resultType="camelMap">
+        select code_no as value
+             , code_nm as text
+        from code_info
+        where par_code_no = #{parCodeNo}
+          and code_no in (select distinct brnch_no from proc_brnch where used_yn = 'Y')
+          and used_yn = 'Y'
+    </select>
+
+    <!--키오스크상품출고-->
+    <select id="getKioProdOwhList" parameterType="map" resultType="camelMap">
+        select   op.ord_no
+                ,op.ord_qty
+                ,pi.prod_nm
+                ,wi.wh_no
+                ,wi.wh_nm
+                ,mp.stair_idx
+                ,mp.col_idx
+                ,mp.row_idx
+                ,oi.trk_no
+                ,ci.code_nm as trk_cmpy_nm
+            from ord_prod op
+                 join ord_info oi on op.ord_no = oi.ord_no
+                 join prod_info pi on op.prod_no = pi.prod_no
+                 join prod_stk ps on op.prod_no = ps.prod_no
+                 join wh_info wi on ps.wh_no = wi.wh_no
+                 join matr_pos mp on wi.wh_no = mp.wh_no
+            left join code_info ci on oi.trk_cmpy_no = ci.code_no
+
+    </select>
+    <select id="getKioProdOwhListCount" parameterType="map" resultType="int">
+        select   count(op.ord_no)
+        from ord_prod op
+                 join ord_info oi on op.ord_no = oi.ord_no
+                 join prod_info pi on op.prod_no = pi.prod_no
+                 join prod_stk ps on op.prod_no = ps.prod_no
+                 join wh_info wi on ps.wh_no = wi.wh_no
+                 join matr_pos mp on wi.wh_no = mp.wh_no
+                 left join code_info ci on oi.trk_cmpy_no = ci.code_no
+
+    </select>
+
+
+    <select id="getFileNo" parameterType="map"  resultType="int">
+        select case when a.* is null then 0 else a.max  end as file_no
+        from ( select max(a.file_no)
+        from prod_info a join code_info b on a.sale_unit = b.code_no
+        left join code_info d on a.save_tmpr = d.code_no
+        left join file_info c on a.file_no = c.file_no
+        left join code_info k on a.prod_shape = k.code_no
+        where a.used_yn ='Y'
+        <if test="saleUnitChk != null and saleUnitChk == 1">
+            and coalesce(a.sale_unit,0) <![CDATA[ > ]]> 0 and a.sz is not null and a.prod_code is not null
+        </if>
+
+        <if test="exceptCart != null and exceptCart == 1">
+            and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'prodCode'">
+                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+
+
+    <select id="getSendInfoToElecticTagUrlList" parameterType="map" resultType="camelMap">
+			select  a.*
+            from prod_info a join code_info b on a.sale_unit = b.code_no
+                             left join code_info d on a.save_tmpr = d.code_no
+                             left join file_info c on a.file_no = c.file_no
+                             left join code_info k on a.prod_shape = k.code_no
+            where a.used_yn ='Y'
+            and a.file_no = ( select max(a.file_no)
+                              from prod_info a join code_info b on a.sale_unit = b.code_no
+                                               left join code_info d on a.save_tmpr = d.code_no
+                                               left join file_info c on a.file_no = c.file_no
+                                               left join code_info k on a.prod_shape = k.code_no
+                              where a.used_yn ='Y')
+
+    </select>
+
+    <select id="getSendInfoToElecticTagUrlListCount" parameterType="map" resultType="int">
+			select  count(a.*)
+            from prod_info a join code_info b on a.sale_unit = b.code_no
+                             left join code_info d on a.save_tmpr = d.code_no
+                             left join file_info c on a.file_no = c.file_no
+                             left join code_info k on a.prod_shape = k.code_no
+            where a.used_yn ='Y'
+            and a.file_no = ( select max(a.file_no)
+                              from prod_info a join code_info b on a.sale_unit = b.code_no
+                                               left join code_info d on a.save_tmpr = d.code_no
+                                               left join file_info c on a.file_no = c.file_no
+                                               left join code_info k on a.prod_shape = k.code_no
+                              where a.used_yn ='Y')
+
+    </select>
+
+    <select id="getProdBom" parameterType="map"  resultType="camelMap">
+        select distinct   a.prod_no --품번
+                        , a.prod_nm --자재명
+                        , a.erp_prod_nm --ERP제품명
+                        , a.spga --비중
+                        , a.mess --중량
+                        , a.vol --용량
+                        , a.prod_shape --제품형태코드
+                        , m.code_nm as prod_shape_nm --제품형태명
+                        , b.bom_no  --BOM관리번호
+                        , b.matr_no --자재번호
+                        , b.purs_yn --구매여부
+                        , round(b.consist_rt::numeric,3) as consist_rt --구성함량
+--                         , coalesce(k.stk_qty,0) AS stk_qty --재고
+--                         , coalesce(e.safe_stk_qty,0) as  safe_stk_qty -- 안전재고
+                        , c.file_no --사진번호
+                        , c.brnch_no --분류번호
+                        , c.matr_nm --원부자재명
+                        , c.valid_term --유효기간
+                        , c.sz --규격
+                        , c.purs_unit --구매단위
+                        , f.brnch_nm --분류명
+                        , d.code_nm as matr_tp_nm -- 원부자재구분
+                        , b.bom_lvl --BOM레벨
+--                         , k.wh_no --창고번호
+--                         , k.wh_nm --창고명
+                from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                                 join matr_info c on b.matr_no = c.matr_no and c.used_yn = 'Y'
+                                 join code_info d on c.matr_tp = d.code_no
+                                 join brnch_info f on c.brnch_no  = f.brnch_no
+                            left join code_info m on a.prod_shape = m.code_no
+--                             left join ( SELECT a.matr_no, a.wh_no, b.wh_nm, SUM(a.stk_qty) AS stk_qty
+--                                             FROM matr_stk a join wh_info b on a.wh_no = b.wh_no
+--                                             WHERE a.used_yn ='Y'
+--                                             GROUP BY a.matr_no, a.wh_no, b.wh_nm
+--                                       ) K ON b.matr_no = k.matr_no
+--                             left join ( select matr_no
+--                                         , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+--                                         when to_char(now(),'mm') = '02'  then feb_stk_qty
+--                                         when to_char(now(),'mm') = '03'  then mar_stk_qty
+--                                         when to_char(now(),'mm') = '04'  then apr_stk_qty
+--                                         when to_char(now(),'mm') = '05'  then may_stk_qty
+--                                         when to_char(now(),'mm') = '06'  then jun_stk_qty
+--                                         when to_char(now(),'mm') = '07'  then jul_stk_qty
+--                                         when to_char(now(),'mm') = '08'  then aug_stk_qty
+--                                         when to_char(now(),'mm') = '09'  then sep_stk_qty
+--                                         when to_char(now(),'mm') = '10'  then oct_stk_qty
+--                                         when to_char(now(),'mm') = '11'  then nov_stk_qty
+--                                         when to_char(now(),'mm') = '12'  then dec_stk_qty
+--                                         end as safe_stk_qty
+--                                         from matr_safe_stk
+--                                         ) e on c.matr_no = e.matr_no
+                             where a.prod_no = #{prodNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(c.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="bomNo != null and bomNo != ''">
+            AND b.bom_no = #{bomNo}
+        </if>
+        <if test="checkPursYn != null and checkPursYn != ''">
+            AND b.purs_yn = 'Y'
+        </if>
+        order by prod_nm, matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getListProdBomCount" parameterType="map"  resultType="int">
+        select count(b.matr_no) --자재번호
+                from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                                 join matr_info c on b.matr_no = c.matr_no and c.used_yn = 'Y'
+                                 join code_info d on c.matr_tp = d.code_no
+                                 join brnch_info f on c.brnch_no  = f.brnch_no
+                            left join code_info m on a.prod_shape = m.code_no
+--                             left join ( SELECT a.matr_no, a.wh_no, b.wh_nm, SUM(a.stk_qty) AS stk_qty
+--                                           FROM matr_stk a join wh_info b on a.wh_no = b.wh_no
+--                                          WHERE a.used_yn ='Y'
+--                                          GROUP BY a.matr_no, a.wh_no, b.wh_nm
+--                                         ) K ON b.matr_no = k.matr_no
+--                              left join ( select matr_no
+--                                         , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+--                                         when to_char(now(),'mm') = '02'  then feb_stk_qty
+--                                         when to_char(now(),'mm') = '03'  then mar_stk_qty
+--                                         when to_char(now(),'mm') = '04'  then apr_stk_qty
+--                                         when to_char(now(),'mm') = '05'  then may_stk_qty
+--                                         when to_char(now(),'mm') = '06'  then jun_stk_qty
+--                                         when to_char(now(),'mm') = '07'  then jul_stk_qty
+--                                         when to_char(now(),'mm') = '08'  then aug_stk_qty
+--                                         when to_char(now(),'mm') = '09'  then sep_stk_qty
+--                                         when to_char(now(),'mm') = '10'  then oct_stk_qty
+--                                         when to_char(now(),'mm') = '11'  then nov_stk_qty
+--                                         when to_char(now(),'mm') = '12'  then dec_stk_qty
+--                                         end as safe_stk_qty
+--                                         from matr_safe_stk
+--                                         ) e on c.matr_no = e.matr_no
+                            where a.prod_no = #{prodNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'matrNm'">
+                AND upper(replace(c.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="bomNo != null and bomNo != ''">
+            AND b.bom_no = #{bomNo}
+        </if>
+    </select>
+
+    <select id="getProdStkInfo" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             , a.prod_nm --명
+             , a.sz --규격
+             , a.mess --단위용량
+             , a.prod_shape --형태
+             , a.brix --brix
+             , a.spga --비중
+             , a.brnch_no --제조공정
+             , a.save_tmpr --보관온도
+             , a.heat_tp   --CCP 살균 기준코드
+             , c.code_nm as save_tmpr_nm --보관온도명
+             , a.prod_code--제품코드
+             , a.modl_nm --모델명
+             , a.sale_unit--판매단위코드
+             , d.code_nm as sale_unit_nm -- 판매단위명
+             , a.qty_per_pkg--세트구성수
+             , b.reg_id --작성자
+             , b.file_no --사진번호
+             , b.org_file_nm as file_nm --첨부이미지파일명
+             , b.acc_url  --첨부파일 이미지경로
+             , e.wh_no --보관창고번호
+             , f.wh_nm --보관창고명
+             , coalesce (e.stk_qty,0) as stk_qty --재고수량
+             , a.erp_prod_nm
+             , a.vol
+             , a.mngr_unit
+             , a.valid_term
+             , a.prod_cont
+             , a.mngr_base
+        from prod_info a left join file_info b on a.file_no = b.file_no
+                         left join code_info c on a.save_tmpr = c.code_no
+                         left join code_info d on a.sale_unit = d.code_no
+                         left join prod_stk e on a.prod_no = e.prod_no and e.used_yn = 'Y'
+                         left join wh_info f on e.wh_no = f.wh_no and f.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        and a.prod_no = #{prodNo}
+          <if test="whNo != null and whNo != ''">
+              and e.wh_no = #{whNo}
+          </if>
+    </select>
+
+    <select id="getBomConsist" parameterType="map" resultType="camelMap">
+        select a.prod_no
+             , a.prod_nm
+             , b.consist_rt as sum_consist_rt
+        from prod_info a join (select prod_no
+                                    , round(sum(consist_rt)::numeric, 2) as consist_rt
+                                from prod_bom
+                                where used_yn = 'Y'
+                                and prod_no = #{prodNo}
+                                group by prod_no) b on a.prod_no = b.prod_no
+        where a.used_yn = 'Y'
+    </select>
+</mapper>

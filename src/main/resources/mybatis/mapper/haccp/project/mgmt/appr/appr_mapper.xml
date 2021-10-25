@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.mgmt.appr">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [결재 - 그리드 페이징 카운트] mgmt.appr_list.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM (
+        SELECT A.*
+        FROM (
+        SELECT A.*,
+        CASE WHEN A.REVW = #{userId}
+        THEN 'Y'
+        ELSE 'N' END AS SAME_REVW,
+        CASE WHEN A.APPR = #{userId}
+        THEN 'Y'
+        ELSE 'N' END AS SAME_APPR
+        FROM (
+        SELECT
+        A.*,
+        (SELECT B.USE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE ) AS USE_YN,
+        (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE ) AS L_CODE_NM,
+        (SELECT B.REVW FROM SHC_APPROVE B WHERE B.L_CODE = A.L_CODE) AS REVW,
+        (SELECT B.APPR FROM SHC_APPROVE B WHERE B.L_CODE = A.L_CODE) AS APPR
+        FROM (
+        SELECT A.REC_NO, B.REG_DATE AS REG_DATE, B.L_CODE AS L_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.NOW_APPR_STATUS) AS NOW_APPR_STATUS,
+        A.NOW_APPR_STATUS AS NOW_APPR_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+        A.REVW_STATUS AS REVW_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS,
+        A.APPR_STATUS AS APPR_STATUS_CODE,
+        A.CREATE_DT
+        FROM SHC_APPR_LIST A
+        INNER JOIN
+        SHC_REC_PRE_LIST B
+        ON A.REC_NO = B.REC_NO
+        UNION
+        SELECT A.REC_NO, C.REG_DATE AS REG_DATE, C.L_CODE AS L_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.NOW_APPR_STATUS) AS NOW_APPR_STATUS,
+        A.NOW_APPR_STATUS AS NOW_APPR_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+        A.REVW_STATUS AS REVW_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS,
+        A.APPR_STATUS AS APPR_STATUS_CODE,
+        A.CREATE_DT
+        FROM SHC_APPR_LIST A
+        INNER JOIN
+        SHC_REC_CCP_LIST C
+        ON A.REC_NO = C.REC_NO
+        ) A
+        ) A
+        WHERE 1=1
+        AND A.USE_YN = 'Y'
+        <if test="lCodeNm != null and lCodeNm != ''">
+            AND A.L_CODE_NM LIKE CONCAT('%', #{lCodeNm}, '%')
+        </if>
+        ) A
+        WHERE 1=1
+        AND A.CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+        <choose>
+            <when test="checkType == 'REVW_ING'">
+                AND NOW_APPR_STATUS_CODE = '010'
+                AND (CASE WHEN A.SAME_REVW = 'Y' THEN A.REVW = #{userId} END)
+            </when>
+            <when test="checkType == 'APRV_ING'">
+                AND NOW_APPR_STATUS_CODE = '100'
+                AND (CASE WHEN A.SAME_APPR = 'Y' THEN A.APPR = #{userId} END)
+            </when>
+            <when test="checkType == 'REVW_REJ'">
+                AND NOW_APPR_STATUS_CODE = '030'
+            </when>
+            <when test="checkType == 'APRV_REJ'">
+                AND NOW_APPR_STATUS_CODE = '300'
+            </when>
+            <when test="checkType == 'DONE'">
+                AND A.NOW_APPR_STATUS_CODE IN ( '200' )
+            </when>
+        </choose>
+        ) A
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [결재 - 그리드 페이징] mgmt.appr_list.gridPaging */
+        SELECT A.*
+        FROM (
+        SELECT A.*,
+        CASE WHEN A.REVW = #{userId}
+        THEN 'Y'
+        ELSE 'N' END AS SAME_REVW,
+        CASE WHEN A.APPR = #{userId}
+        THEN 'Y'
+        ELSE 'N' END AS SAME_APPR
+        FROM (
+        SELECT
+        A.*,
+        (SELECT B.USE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE ) AS USE_YN,
+        (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE ) AS L_CODE_NM,
+        (SELECT B.REVW FROM SHC_APPROVE B WHERE B.L_CODE = A.L_CODE) AS REVW,
+        (SELECT B.APPR FROM SHC_APPROVE B WHERE B.L_CODE = A.L_CODE) AS APPR
+        FROM (
+        SELECT A.REC_NO, B.REG_DATE AS REG_DATE, B.L_CODE AS L_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.NOW_APPR_STATUS) AS NOW_APPR_STATUS,
+        A.NOW_APPR_STATUS AS NOW_APPR_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+        A.REVW_STATUS AS REVW_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS,
+        A.APPR_STATUS AS APPR_STATUS_CODE,
+        A.CREATE_DT
+        FROM SHC_APPR_LIST A
+        INNER JOIN
+        SHC_REC_PRE_LIST B
+        ON A.REC_NO = B.REC_NO
+        UNION
+        SELECT A.REC_NO, C.REG_DATE AS REG_DATE, C.L_CODE AS L_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.NOW_APPR_STATUS) AS NOW_APPR_STATUS,
+        A.NOW_APPR_STATUS AS NOW_APPR_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+        A.REVW_STATUS AS REVW_STATUS_CODE,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='APPSTT' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS,
+        A.APPR_STATUS AS APPR_STATUS_CODE,
+        A.CREATE_DT
+        FROM SHC_APPR_LIST A
+        INNER JOIN
+        SHC_REC_CCP_LIST C
+        ON A.REC_NO = C.REC_NO
+        ) A
+        ) A
+        WHERE 1=1
+        AND A.USE_YN = 'Y'
+        <if test="lCodeNm != null and lCodeNm != ''">
+            AND A.L_CODE_NM LIKE CONCAT('%', #{lCodeNm}, '%')
+        </if>
+        ) A
+        WHERE 1=1
+        AND A.CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+        <choose>
+            <when test="checkType == 'REVW_ING'">
+                AND NOW_APPR_STATUS_CODE = '010'
+                AND (CASE WHEN A.SAME_REVW = 'Y' THEN A.REVW = #{userId} END)
+            </when>
+            <when test="checkType == 'APRV_ING'">
+                AND NOW_APPR_STATUS_CODE = '100'
+                AND (CASE WHEN A.SAME_APPR = 'Y' THEN A.APPR = #{userId} END)
+            </when>
+            <when test="checkType == 'REVW_REJ'">
+                AND NOW_APPR_STATUS_CODE = '030'
+            </when>
+            <when test="checkType == 'APRV_REJ'">
+                AND NOW_APPR_STATUS_CODE = '300'
+            </when>
+            <when test="checkType == 'DONE'">
+                AND A.NOW_APPR_STATUS_CODE IN ( '200' )
+            </when>
+        </choose>
+
+        ORDER BY A.CREATE_DT DESC
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectRecInfo" parameterType="map" resultType="camelMap">
+        /* [결재 - 그리드 페이징] mgmt.appr_list.selectRecInfo */
+        SELECT A.REC_NO,
+               A.RMK,
+               A.FILE_KEY,
+               (SELECT B.ORG_FILE_NM FROM SHC_COMM_FILES B WHERE B.FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM,
+               (SELECT B.REG_DATE FROM SHC_REC_PRE_LIST B WHERE A.REC_NO = B.REC_NO) AS REG_DATE,
+               (SELECT B.L_CODE FROM SHC_REC_PRE_LIST B WHERE A.REC_NO = B.REC_NO) AS L_CODE,
+               (SELECT B.L_CODE_NM FROM SHC_REC_PRE_LIST B WHERE A.REC_NO = B.REC_NO) AS L_CODE_NM
+        FROM SHC_REC_PRE_LIST A
+        WHERE 1=1
+          AND A.REC_NO = #{recNo}
+    </select>
+
+    <update id="changeRevwAppr" parameterType="map">
+        /* [결재 - 검토자의 승인] mgmt.appr_list.changeRevwAppr */
+        <choose>
+            <when test="revwAppr == true">
+                UPDATE SHC_APPR_LIST SET
+                NOW_APPR_STATUS = '100',
+                REVW_STATUS = '020',
+                REVW = #{userId},
+                REVW_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'),
+                APPR_STATUS = '100',
+                APPR = NULL,
+                APPR_DATE = NULL,
+                MODIFY_ID = #{userId},
+                MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+                WHERE REC_NO = #{recNo}
+            </when>
+            <otherwise>
+                UPDATE SHC_APPR_LIST SET
+                NOW_APPR_STATUS = '030',
+                REVW_STATUS = '030',
+                REVW = #{userId},
+                REVW_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'),
+                APPR_STATUS = NULL,
+                APPR = NULL,
+                APPR_DATE = NULL,
+                MODIFY_ID = #{userId},
+                MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+                WHERE REC_NO = #{recNo}
+            </otherwise>
+        </choose>
+    </update>
+
+    <update id="changeFinalAppr" parameterType="map">
+        /* [결재 - 승인자의 승인] mgmt.appr_list.changeFinalAppr */
+        <choose>
+            <when test="finalAppr == true">
+                UPDATE SHC_APPR_LIST SET
+                NOW_APPR_STATUS = '200',
+                APPR_STATUS = '200',
+                APPR = #{userId},
+                APPR_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'),
+                MODIFY_ID = #{userId},
+                MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+                WHERE REC_NO = #{recNo}
+            </when>
+            <otherwise>
+                UPDATE SHC_APPR_LIST SET
+                NOW_APPR_STATUS = '300',
+                APPR_STATUS = '300',
+                APPR = #{userId},
+                APPR_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'),
+                MODIFY_ID = #{userId},
+                MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+                WHERE REC_NO = #{recNo}
+            </otherwise>
+        </choose>
+    </update>
+
+    <select id="selectRecPreInfoAll" parameterType="map" resultType="camelMap">
+        /* [결재 - 선행일지 리스트] mgmt.appr_list.selectRecInfoAll */
+        SELECT *
+        FROM SHC_REC_PRE_LIST
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+    </select>
+
+    <select id="selectRecCcpInfoAll" parameterType="map" resultType="camelMap">
+        /* [결재 - CCP 리스트] mgmt.appr_list.selectRecInfoAll */
+        SELECT *
+        FROM SHC_REC_CCP_LIST
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+    </select>
+
+    <select id="selectRecApprInfo" parameterType="map" resultType="camelMap">
+        SELECT *
+        FROM SHC_APPR_LIST
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+    </select>
+
+    <select id="selectFileInfo" parameterType="map" resultType="camelMap">
+        SELECT *
+        FROM SHC_COMM_FILES
+        WHERE 1=1
+          AND FILE_KEY = #{fileKey}
+    </select>
+
+    <select id="selectRecMainInfoAll" parameterType="map" resultType="camelMap">
+        SELECT *
+        FROM SHC_REC_MAIN
+        WHERE 1=1
+          AND USE_YN = 'Y'
+          AND L_CODE = #{lCode}
+    </select>
+</mapper>

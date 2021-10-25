@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.pre_rec_mgmt.P0151">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [원재료 육안검사 - 그리드 페이징 카운트] pre_rec_mgmt.p0151.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_PRE_LIST
+        WHERE 1=1
+          AND L_CODE = #{recLargeCode}
+          AND CREATE_DT BETWEEN STR_TO_DATE(#{thisYearFirst},'%Y-%m-%d') AND STR_TO_DATE(CONCAT(#{thisYearLast},' 23:59:59'), '%Y-%m-%d %H:%i:%s')
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [원재료 육안검사 - 그리드 페이징] pre_rec_mgmt.p0151.gridPaging */
+        SELECT
+            REC_NO,
+            L_CODE_NM,
+            REG_DATE,
+            IMPRV_COMM,
+            CREATE_DT,
+            CREATE_ID,
+            (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE SUBSTR(B.CODE_KIND,1,3)='APP' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+            (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE SUBSTR(B.CODE_KIND,1,3)='APP' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS
+        FROM (
+                 SELECT
+                     REC_NO,
+                     (SELECT L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+                     REG_DATE,
+                     (SELECT IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = A.REC_NO) AS IMPRV_COMM,
+                     CREATE_DT,
+                     CREATE_ID,
+                     (SELECT B.REVW_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS REVW_STATUS,
+                     (SELECT B.APPR_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS APPR_STATUS
+                 FROM SHC_REC_PRE_LIST A
+                 WHERE 1=1
+                   AND L_CODE = #{recLargeCode}
+                   AND CREATE_DT BETWEEN STR_TO_DATE(#{thisYearFirst},'%Y-%m-%d') AND STR_TO_DATE(CONCAT(#{thisYearLast},' 23:59:59'), '%Y-%m-%d %H:%i:%s')
+             ) A
+        ORDER BY A.CREATE_DT DESC
+            LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectSavedCheckList" parameterType="map" resultType="camelMap">
+        /* [원재료 육안검사 - 저장된 체크 리스트 가져오기] pre_rec_mgmt.p0151.selectSavedCheckList */
+        SELECT A.*
+        FROM (
+                 SELECT
+                     REC_NO,
+                     SEQ,
+                     ITEM_CODE_KIND,
+                     ITEM_CODE,
+                     REPORT_POSS_YN,
+                     REPORT_SUT_YN,
+                     CHK_VAL1,
+                     CHK_VAL2,
+                     CHK_VAL3,
+                     CHK_VAL4,
+                     CHK_VAL5,
+                     CHK_VAL6,
+                     CHK_VAL7,
+                     CHK_VAL8,
+                     CHK_VAL9,
+                     SUT_YN,
+                     (SELECT IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = A.REC_NO AND B.SEQ = A.SEQ) AS UNSUT_IMPRV
+                 FROM SHC_REC_PRE_VT A
+                 WHERE 1=1
+                   AND REC_NO = #{recNo}
+             ) A
+        ORDER BY SEQ ASC
+    </select>
+
+    <insert id="insertPreVt" parameterType="map">
+        /* [원재료 육안검사 - 검사상세 등록] pre_rec_mgmt.p0151.insertPreVt */
+        INSERT INTO SHC_REC_PRE_VT
+        (   REC_NO,
+            SEQ,
+            ITEM_CODE_KIND,
+            ITEM_CODE,
+            REPORT_POSS_YN,
+            REPORT_SUT_YN,
+            CHK_VAL1,
+            CHK_VAL2,
+            CHK_VAL3,
+            CHK_VAL4,
+            CHK_VAL5,
+            CHK_VAL6,
+            CHK_VAL7,
+            CHK_VAL8,
+            CHK_VAL9,
+            SUT_YN,
+            CREATE_ID,
+            CREATE_DT)
+        VALUES
+            (#{newRecNo},
+             #{seq},
+             #{itemCodeKind},
+             #{itemCode},
+             #{reportPossYn},
+             #{reportSutYn},
+             #{chkVal1},
+             #{chkVal2},
+             #{chkVal3},
+             #{chkVal4},
+             #{chkVal5},
+             #{chkVal6},
+             #{chkVal7},
+             #{chkVal8},
+             #{chkVal9},
+             #{sutYn},
+             #{userId},
+             STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+    </insert>
+
+    <insert id="insertPreImprv" parameterType="map">
+        /* [원재료 육안검사 - 선행요건일지별개선조치 등록] pre_rec_mgmt.p0151.insertPreImprv */
+        INSERT INTO SHC_REC_PRE_IMPRV (
+            REC_NO,
+            SEQ,
+            BREAK_YN,
+            IMPRV_YN,
+            IMPRV_COMM,
+            CREATE_ID,
+            CREATE_DT
+        ) VALUES (
+                     #{newRecNo},
+                     #{seq},
+                     'Y',
+                     'Y',
+                     #{unsutImprv},
+                     #{userId},
+                     STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+                 )
+    </insert>
+
+    <update id="updatePreVt" parameterType="map">
+        /* [원재료 육안검사 - 검사상세 업데이트] pre_rec_mgmt.p0151.updatePreVt */
+        UPDATE SHC_REC_PRE_VT SET
+                                  ITEM_CODE_KIND = #{itemCodeKind},
+                                  ITEM_CODE = #{itemCode},
+                                  REPORT_POSS_YN = #{reportPossYn},
+                                  REPORT_SUT_YN = #{reportSutYn},
+                                  CHK_VAL1 = #{chkVal1},
+                                  CHK_VAL2 = #{chkVal2},
+                                  CHK_VAL3 = #{chkVal3},
+                                  CHK_VAL4 = #{chkVal4},
+                                  CHK_VAL5 = #{chkVal5},
+                                  CHK_VAL6 = #{chkVal6},
+                                  CHK_VAL7 = #{chkVal7},
+                                  CHK_VAL8 = #{chkVal8},
+                                  CHK_VAL9 = #{chkVal9},
+                                  SUT_YN = #{sutYn},
+                                  MODIFY_ID = #{userId},
+                                  MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE REC_NO = #{recNo}
+          AND SEQ = #{seq}
+    </update>
+
+    <update id="updatePreImprv" parameterType="map">
+        /* [원재료 육안검사 - 선행요건일지별개선조치 업데이트] pre_rec_mgmt.p0100.updatePreImprv */
+        UPDATE SHC_REC_PRE_IMPRV SET
+                                     IMPRV_COMM = #{unsutImprv},
+                                     MODIFY_ID = #{userId},
+                                     MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE REC_NO = #{recNo}
+          AND SEQ = #{seq}
+    </update>
+
+    <delete id="deletePreVt" parameterType="map">
+        /* [원재료 육안검사 - 검사상세 항목삭제] pre_rec_mgmt.p0151.deletePreVt */
+        DELETE FROM SHC_REC_PRE_VT WHERE REC_NO = #{recNo} AND SEQ = #{seq}
+    </delete>
+
+    <delete id="deletePreImprv" parameterType="map">
+        /* [원재료 육안검사 - 선행요건일지별개선조치 삭제] pre_rec_mgmt.p0151.deletePreImprv */
+        DELETE FROM SHC_REC_PRE_IMPRV
+        WHERE REC_NO = #{recNo} AND SEQ = #{seq}
+    </delete>
+
+    <delete id="deletePreVtAll" parameterType="map">
+        /* [원재료 육안검사 - 검사상세 전체삭제] pre_rec_mgmt.p0151."deletePreVtAll" */
+        DELETE FROM SHC_REC_PRE_VT WHERE REC_NO = #{recNo}
+    </delete>
+
+    <delete id="deletePreImprvAll" parameterType="map">
+        /* [원재료 육안검사 - 선행요건일지별개선조치 삭제] pre_rec_mgmt.p0151.deletePreImprv */
+        DELETE FROM SHC_REC_PRE_IMPRV
+        WHERE REC_NO = #{recNo}
+    </delete>
+
+    <select id="selectColList" parameterType="map" resultType="camelMap">
+        /* [원재료 육안검사 - 품목 코드 리스트 가져오기] pre_rec_mgmt.p0151.selectColList */
+        SELECT M_CODE,
+               (SELECT CODE_NM FROM SHC_COMM_CODE A WHERE CODE_KIND=M_CODE_KIND AND CODE = M_CODE) AS M_CODE_NM
+        FROM SHC_REC_PRE
+        WHERE L_CODE = 'P0150'
+          AND USE_YN = 'Y'
+        ORDER by ORD_SEQ, M_CODE
+    </select>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [원재료 육안검사 - 인증원으로 보낼 체크 리스트 가져오기] pre_rec_mgmt.p0100.selectFinalCheckList */
+        SELECT
+            #{lcnsNo} AS LCNS_NO
+             ,#{companyNm} AS COMPANY_NM
+             ,DATE_FORMAT(SRPL.CREATE_DT, '%Y-%m-%d') AS CREATE_DATE
+             ,DATE_FORMAT(SRPL.CREATE_DT, '%H:%i:%s') AS CREATE_TIME
+             ,L_CODE AS REC_CODE
+             ,(SELECT L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = SRPL.L_CODE) AS REC_NM
+             ,SEQ
+             ,(SELECT CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = SRPV.ITEM_CODE_KIND AND B.CODE = SRPV.ITEM_CODE) AS MAT_NM
+             ,REPORT_POSS_YN
+             ,REPORT_SUT_YN
+             ,CHK_VAL1
+             ,CHK_VAL2
+             ,CHK_VAL3
+             ,CHK_VAL4
+             ,CHK_VAL5
+             ,CHK_VAL6
+             ,CHK_VAL7
+             ,CHK_VAL8
+             ,CHK_VAL9
+             ,SUT_YN
+             ,(SELECT BREAK_YN FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = SRPL.REC_NO AND B.SEQ = SRPV.SEQ) AS BREAK_YN
+             ,(SELECT IMPRV_YN FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = SRPL.REC_NO AND B.SEQ = SRPV.SEQ) AS IMPRV_YN
+             ,(SELECT IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = SRPL.REC_NO AND B.SEQ = SRPV.SEQ) AS IMPRV_COMM
+        FROM SHC_REC_PRE_LIST SRPL
+                 LEFT JOIN SHC_REC_PRE_VT SRPV
+                           ON SRPL.REC_NO = SRPV.REC_NO
+        WHERE SRPL.REC_NO = #{recNo}
+    </select>
+</mapper>

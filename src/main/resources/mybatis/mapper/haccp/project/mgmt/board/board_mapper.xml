@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.board">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 그리드 페이징 카운트] mgmt.board.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_BBS A
+        WHERE 1=1
+        <if test="searchValue != null and searchValue != ''">
+            AND A.TITLE LIKE CONCAT('%', #{searchValue}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND A.CATETORY = #{category}
+        </if>
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 그리드 페이징] mgmt.board.gridPaging */
+        SELECT A.SEQ, A.CATETORY,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE CODE_KIND='BBSCTG' AND B.CODE = A.CATETORY) AS CATETORY_NM,
+        CASE WHEN A.MAKE_OWNR = '인증원' THEN '인증원' ELSE (SELECT B.COMPANY_NM FROM SHC_COMPANY B WHERE B.LCNS_NO = A.MAKE_OWNR ) END AS MAKE_OWNR,
+        A.TITLE, A.CONTENTS, A.FILE_KEY, A.RMK, A.CREATE_ID, A.CREATE_DT
+        FROM SHC_BBS A
+        WHERE 1=1
+        <if test="searchValue != null and searchValue != ''">
+            AND A.TITLE LIKE CONCAT('%', #{searchValue}, '%')
+        </if>
+        <if test="category != null and category != ''">
+            AND A.CATETORY = #{category}
+        </if>
+
+        ORDER BY A.CREATE_DT DESC
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="getInfo" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 게시글 정보 가져오기] mgmt.board.getInfo */
+        SELECT A.SEQ, A.CATETORY,
+               (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='BBSCTG' AND B.CODE = CATETORY) AS CATETORY_NM,
+               A.MAKE_OWNR, A.TITLE, A.CONTENTS, A.FILE_KEY,
+               (SELECT B.ORG_FILE_NM FROM SHC_COMM_FILES B WHERE B.FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM,
+               A.RMK, A.CREATE_ID, A.CREATE_DT
+        FROM SHC_BBS A
+        WHERE 1=1
+
+          AND A.SEQ = #{id}
+    </select>
+
+    <select id="getLatestSeq" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 최근 등록한 파일 키 가져오기] mgmt.board.getLatestSeq*/
+        SELECT MAX(SEQ) AS SEQ
+        FROM SHC_BBS
+        WHERE 1=1
+    </select>
+
+    <insert id="insert" parameterType="map">
+        /* [게시판 관리 - 등록 입력하기] mgmt.board.insert */
+        INSERT INTO SHC_BBS
+            (CATETORY, MAKE_OWNR, TITLE, CONTENTS, CREATE_ID, CREATE_DT)
+        VALUES
+            (#{category}, #{lcnsNo}, #{title}, #{contents}, #{userId}, STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s') )
+    </insert>
+
+    <update id="update" parameterType="map">
+        /* [게시판 관리 - 수정 입력하기] mgmt.board.update */
+        UPDATE SHC_BBS SET TITLE = #{title},
+                           CONTENTS = #{contents},
+                           MODIFY_ID = #{userId}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE SEQ = #{id}
+    </update>
+
+    <delete id="delete" parameterType="map">
+        /* [게시판 관리 - 삭제 하기] mgmt.board.delete */
+        DELETE FROM SHC_BBS WHERE SEQ = #{id}
+    </delete>
+
+    <select id="selectLcnsInfoAll" parameterType="map" resultType="camelMap">
+        /* [게시판 관리  - 회사 정보 모두 가져옴] mgmt.board.selectLcnsInfoAll */
+        SELECT *
+        FROM SHC_COMPANY
+                 LIMIT 1
+    </select>
+
+    <select id="selectFileInfo" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 파일 정보 가져오기] mgmt.board.selectFileInfo */
+        SELECT FILE_KEY, FILE_NM, ORG_FILE_NM, FILE_PATH, RMK
+        FROM SHC_COMM_FILES
+        WHERE 1=1
+          AND FILE_KEY = #{fileKey}
+    </select>
+
+    <select id="getLatestFileKey" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 최근 등록한 파일 키 가져오기] mgmt.board.getLatestFileKey */
+        SELECT MAX(FILE_KEY) AS FILE_KEY
+        FROM SHC_COMM_FILES
+        WHERE 1=1
+    </select>
+
+    <insert id="insertFileInfo" parameterType="map">
+        /* [게시판 관리 - 파일 정보 입력] mgmt.board.insertFileInfo */
+        INSERT INTO SHC_COMM_FILES
+        (
+            FILE_NM,
+            ORG_FILE_NM,
+            FILE_PATH,
+            CREATE_ID,
+            CREATE_DT)
+        VALUES (
+                   #{fileNm},
+                   #{orginalFileName},
+                   #{filePath},
+                   #{userId},
+                   STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+               )
+    </insert>
+
+    <update id="updateFileKey" parameterType="map">
+        /* [게시판 관리 - 수정 입력하기] mgmt.board.updateFileKey */
+        UPDATE SHC_BBS SET FILE_KEY = #{fileKey},
+                           MODIFY_ID = #{userId}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE SEQ = #{id}
+    </update>
+
+    <update id="updateFileInfo" parameterType="map">
+        /* [게시판 관리 - 수정 입력하기] mgmt.board.updateFileKey */
+        UPDATE SHC_COMM_FILES SET FILE_KEY = #{fileKey}, FILE_NM = #{fileNm}, ORG_FILE_NM = #{orginalFileName}, FILE_PATH = #{filePath},
+                                  MODIFY_ID = #{userId}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE FILE_KEY = #{fileKey}
+    </update>
+
+    <delete id="deleteFileInfo" parameterType="map">
+        /* [게시판 관리 - 파일 정보 삭제] mgmt.board.deleteFileInfo */
+        DELETE FROM SHC_COMM_FILES WHERE FILE_KEY = #{fileKey}
+    </delete>
+
+    <select id="selectCompanyInfo" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 사업장 정보를 가져온다] mgmt.board.selectCompanyInfo */
+        SELECT 	LCNS_NO
+             , LCNS_DATE
+             , PROD_TYPE
+             , BIZTYP
+             , COMPANY_NM
+             , DVP_COMPANY_NM
+             , RMK
+             , CRTF_ONLINE_YN
+        FROM SHC_COMPANY
+    </select>
+
+    <select id="selectFrsBoardRecordList" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 등록 입력하기] mgmt.board.insertFromFresh */
+        SELECT A.SEQ, A.FRS_SEQ
+        FROM SHC_BBS A
+        WHERE 1=1
+          AND A.FRS_SEQ IS NOT NULL
+    </select>
+
+    <insert id="insertFromFresh" parameterType="map">
+        /* [게시판 관리 - 등록 입력하기] mgmt.board.insertFromFresh */
+        INSERT INTO SHC_BBS
+            (CATETORY, MAKE_OWNR, FRS_SEQ, TITLE, CONTENTS, CREATE_ID, CREATE_DT)
+        VALUES
+            ( #{catetory}
+            , #{makeOwnr}, #{frsSeq}, #{title}, #{contents}, 'admin', #{createDt} )
+    </insert>
+
+    <select id="checkFrsBoardRecord" parameterType="map" resultType="camelMap">
+        /* [게시판 관리 - 등록 입력하기] mgmt.board.insertFromFresh */
+        SELECT A.SEQ, A.FRS_SEQ
+        FROM SHC_BBS A
+        WHERE 1=1
+          AND A.FRS_SEQ = #{frsSeq}
+    </select>
+</mapper>

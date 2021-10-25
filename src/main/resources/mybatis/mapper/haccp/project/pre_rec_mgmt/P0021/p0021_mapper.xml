@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.pre_rec_mgmt.P0021">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [보건증 - 그리드 페이징 카운트] admin.healthCard.gridPagingCnt */
+        SELECT COUNT(DISTINCT USER_ID) AS CNT
+        FROM SHC_HEALTH_CARD A
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [보건증 - 그리드 페이징] admin.healthCard.gridPaging */
+        SELECT T.*
+        FROM (
+        SELECT
+        ROW_NUMBER () OVER (PARTITION BY USER_ID ORDER BY CREATE_DT DESC) AS ROW_NUM,
+        HLTH_CARD_NO,
+        USER_ID,
+        (SELECT USER_NAME FROM SHC_USERS B WHERE B.USER_ID = A.USER_ID) AS USER_NAME,
+        HLTH_CARD_EXP_DATE,
+        FILE_KEY,
+        RMK,
+        CREATE_ID,
+        CREATE_DT,
+        MODIFY_ID,
+        MODIFY_DT
+        FROM SHC_HEALTH_CARD A
+        WHERE 1=1
+        <if test="authCode != '02'">
+            AND USER_ID = #{userId}
+        </if>
+        ) T
+        WHERE ROW_NUM = 1
+        ORDER BY CREATE_DT DESC
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectHealthCardInfo" parameterType="map" resultType="camelMap">
+        /* [보건증 - 보건증 정보 가져오기] admin.healthCard.selectHealthCardInfo */
+        SELECT
+            HLTH_CARD_NO,
+            USER_ID,
+            (SELECT USER_NAME FROM SHC_USERS B WHERE B.USER_ID = A.USER_ID) AS USER_NAME,
+            HLTH_CARD_EXP_DATE,
+            FILE_KEY,
+            (SELECT B.ORG_FILE_NM FROM SHC_COMM_FILES B WHERE B.FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM,
+            RMK,
+            CREATE_ID,
+            CREATE_DT,
+            MODIFY_ID,
+            MODIFY_DT
+        FROM SHC_HEALTH_CARD A
+        WHERE 1=1
+          AND A.HLTH_CARD_NO = #{hlthCardNo}
+    </select>
+
+    <select id="selectUserList" parameterType="map" resultType="camelMap">
+        /* [보건증 - 유저 정보 가져오기] admin.healthCard.selectUserList */
+        SELECT
+            A.USER_ID,
+            A.USER_NAME,
+            A.AUTH_CODE,
+            (SELECT CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = 'AUTHCD' AND B.CODE = A.AUTH_CODE) AS AUTH_NM,
+            PHONE_NUMBER,
+            EMAIL,
+            RMK
+        FROM SHC_USERS A
+        WHERE 1=1
+          AND A.USE_YN = 'Y'
+        ORDER BY CREATE_DT DESC
+            LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectUserListCnt" parameterType="map" resultType="camelMap">
+        /* [보건증 - 유저 정보 가져오기 카운트] admin.healthCard.selectUserListCnt */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_USERS A
+        WHERE 1=1
+          AND A.USE_YN = 'Y'
+    </select>
+
+    <select id="selectHealthCardNoCnt" parameterType="map" resultType="camelMap">
+        /* [보건증 - 보건증 등록여부 카운트] admin.healthCard.selectHealthCardNoCnt */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_HEALTH_CARD
+        WHERE HLTH_CARD_NO = #{hlthCardNo}
+    </select>
+
+    <insert id="insertHealthCard" parameterType="map">
+        /* [보건증 - 등록 입력하기] admin.healthCard.insertHealthCard */
+        INSERT INTO SHC_HEALTH_CARD (
+            HLTH_CARD_NO,
+            USER_ID,
+            HLTH_CARD_EXP_DATE,
+            RMK,
+            CREATE_ID,
+            CREATE_DT
+        ) VALUES (
+                     #{hlthCardNo},
+                     #{hlthUserId},
+                     #{hlthCardExpDate},
+                     #{rmk},
+                     #{userId},
+                     STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+                 )
+    </insert>
+
+    <update id="updateHealthCard" parameterType="map">
+        /* [보건증 - 수정 입력하기] admin.healthCard.updateHealthCard */
+        UPDATE SHC_HEALTH_CARD
+        SET HLTH_CARD_NO = #{hlthCardNo},
+            USER_ID = #{hlthUserId},
+            HLTH_CARD_EXP_DATE = #{hlthCardExpDate},
+            rmk = #{rmk},
+            MODIFY_ID = #{userId},
+            MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE HLTH_CARD_NO = #{orgHlthCardNo}
+    </update>
+
+    <delete id="deleteHealthCard" parameterType="map">
+        /* [보건증 - 삭제 하기] admin.healthCard.deleteHealthCard */
+        DELETE FROM SHC_HEALTH_CARD WHERE HLTH_CARD_NO = #{hlthCardNo}
+    </delete>
+
+    <select id="selectInfoFromHlthCard" parameterType="map" resultType="camelMap">
+        SELECT HLTH_CARD_NO, FILE_KEY
+        FROM SHC_HEALTH_CARD
+        WHERE 1=1
+          AND HLTH_CARD_NO = #{hlthCardNo}
+    </select>
+
+    <insert id="insertFileInfo" parameterType="map">
+        /* [보건증 - 파일등록 하기] admin.healthCard.insertFileInfo */
+        INSERT INTO SHC_COMM_FILES
+        (
+            FILE_NM,
+            ORG_FILE_NM,
+            FILE_PATH,
+            CREATE_ID,
+            CREATE_DT)
+        VALUES (
+                   #{fileNm},
+                   #{orginalFileName},
+                   #{filePath},
+                   #{userId},
+                   STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+               )
+    </insert>
+
+    <select id="getLatestFileKey" parameterType="map" resultType="camelMap">
+        /* [보건증 - 파일키 가져오기] admin.healthCard.getLatestFileKey */
+        SELECT FILE_KEY
+        FROM SHC_COMM_FILES
+        WHERE 1=1
+        ORDER BY CREATE_DT DESC
+            LIMIT 1
+    </select>
+
+    <update id="updateFileInfoIntoRec" parameterType="map">
+        /* [보건증 - 파일키 수정하기] admin.healthCard.updateFileInfoIntoRec */
+        UPDATE SHC_HEALTH_CARD
+        SET FILE_KEY = #{fileKey}
+        WHERE HLTH_CARD_NO = #{hlthCardNo}
+    </update>
+
+    <update id="updateFileInfo" parameterType="map">
+        /* [보건증 - 파일정보 수정하기] admin.healthCard.updateFileInfo */
+        UPDATE SHC_COMM_FILES
+        SET ORG_FILE_NM =#{orginalFileName},
+            FILE_PATH =#{filePath},
+            MODIFY_ID = #{userId},
+            MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE FILE_KEY = #{fileKey}
+    </update>
+
+    <delete id="deleteFileInfo" parameterType="str">
+        /* [보건증 - 파일 삭제하기] admin.healthCard.deleteFileInfo */
+        DELETE FROM SHC_COMM_FILES WHERE FILE_KEY = #{fileKey}
+    </delete>
+
+    <select id="selectFileInfo" parameterType="map" resultType="camelMap">
+        /* [보건증 - 파일정보 가져오기] admin.healthCard.selectFileInfo */
+        SELECT FILE_KEY, FILE_NM, ORG_FILE_NM, FILE_PATH, RMK
+        FROM SHC_COMM_FILES
+        WHERE 1=1
+          AND FILE_KEY = #{fileKey}
+    </select>
+
+    <select id="selectLcnsInfoAll" parameterType="map" resultType="camelMap">
+        /* [보건증 - 회사 정보 모두 가져옴] admin.healthCard.selectLcnsInfoAll */
+        SELECT *
+        FROM SHC_COMPANY
+                 LIMIT 1
+    </select>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [보건증 - 인증원으로 보낼 체크 리스트 가져오기] admin.healthCard.selectFinalCheckList */
+        SELECT
+            #{lcnsNo} AS LCNS_NO
+             ,#{companyNm} AS COMPANY_NM
+             ,DATE_FORMAT(A.CREATE_DT, '%Y-%m-%d') AS CREATE_DATE
+             ,DATE_FORMAT(A.CREATE_DT, '%Y%m%d') AS CREATE_DATE_FOR_FILE
+             ,DATE_FORMAT(A.CREATE_DT, '%H:%i:%s') AS CREATE_TIME
+             ,'P0021' AS REC_CODE
+             ,COALESCE ((SELECT L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = 'P0021'), '개인위생보건증관리') AS REC_NM
+             ,HLTH_CARD_NO
+             ,(SELECT B.USER_NAME FROM SHC_USERS B WHERE B.USER_ID = A.USER_ID) AS USER_NAME
+             ,HLTH_CARD_EXP_DATE
+             ,(SELECT B.ORG_FILE_NM FROM SHC_COMM_FILES B WHERE B.FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM
+             ,A.RMK
+        FROM SHC_HEALTH_CARD A
+        WHERE A.HLTH_CARD_NO = #{hlthCardNo}
+    </select>
+</mapper>

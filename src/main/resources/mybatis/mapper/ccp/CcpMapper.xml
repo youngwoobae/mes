@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.ccp.mapper.CcpMapper">
+    <select id="getMetalTestList" parameterType="map" resultType="camelMap" >
+        select b.oper_no
+             , to_char(to_timestamp(a.unix_hms),'HH:MM:SS') as pass_tm
+             ,case when b.test_tp = 1  then case when a.meas_val = 1 then 'P,N,N,N,N' else 'F,N,N,N,N' end
+                   when b.test_tp = 2  then case when a.meas_val = 1 then 'N,P,N,N,N' else 'N,F,N,N,N' end
+                   when b.test_tp = 0  then case when a.meas_val = 1 then 'N,N,P,N,N' else 'N,N,F,N,N' end
+                   when b.test_tp = 3  then case when a.meas_val = 1 then 'N,N,N,P,N' else 'N,N,N,F,N' end
+                   when b.test_tp = 4  then case when a.meas_val = 1 then 'N,N,N,N,P' else 'N,N,N,N,F' end
+            end  as test_ar
+        from equip_mngr_hstr a join oper_mast b on a.spot_equip_no = b.spot_equip_no and b.oper_tp  = 1
+                               join spot_equip c on a.spot_equip_no  = c.spot_equip_no  and c.equip_no = 5
+        where a.used_yn = 'Y'
+          and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD'))
+        order by pass_tm
+    </select>
+
+    <select id="getGuideList" parameterType="map" resultType="camelMap" >
+        select a.ccp_no
+             , a.ccp_cd
+             , b.proc_cd --공정코드
+--              , a.meas_tp --측정유형
+             , c.code_nm as proc_tp_nm --공정코드명
+             , d.code_nm as meas_tp_nm --측정유혐명
+--              , a.hazard_elmt --위해요소
+--              , a.hazard_resn --위해요인
+--              , a.lmt_guide --한계기준
+--              , a.fst_max_term --1치 최대시간
+--              , a.fst_min_term --1치 최소시간
+--              , a.fst_max_val --1치 최대값
+--              , a.fst_min_val --1치 최소값
+--              , a.snd_max_term --2치 최대시간
+--              , a.snd_min_term --2치 최소시간
+--              , a.snd_max_val --2치 최대값
+--              , a.snd_min_val --2치 최소값
+             , a.equip_sense
+             , a.prod_sense
+             , a.pass_base
+        from ccp_guide a join proc_info b on a.proc_cd = b.proc_cd
+                         join code_info C on b.proc_cd = c.code_no
+                         join code_info d on a.meas_tp = d.code_no
+        where a.used_yn = 'Y'
+            limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getGuideListCount" parameterType="map" resultType="int" >
+        select count(a.ccp_no)
+        from (select a.ccp_no
+              from ccp_guide a join proc_info b on a.ccp_no = b.ccp_no
+                                 join code_info c on b.proc_cd = c.code_no
+                                 join code_info d on a.meas_tp = d.code_no
+              where a.used_yn = 'Y'
+             ) a
+    </select>
+
+    <update id="dropGuide" parameterType="map" >
+        update ccp_guide set used_yn = 'N' where ccp_no = #{ccpNo}
+    </update>
+
+    <!--가열공정 한계기준목록-->
+    <select id="getHeatLmtList" parameterType="map" resultType="camelMap" >
+        select coalesce (b.lmt_no,0) as lmt_no
+             , a.code_no as lmt_cd
+             , a.code_nm  --제품분류코드
+             , b.max_tmpr --최대가열온도
+             , b.min_tmpr --최소가열온도
+             , b.max_time   --최대가열시간
+             , b.min_time   --최소가열시간
+        from code_info a left join heat_lmt_info b ON  a.code_no = b.lmt_cd and b.used_yn = 'Y'
+        where a.par_code_no = #{parCodeNo}
+        and a.used_yn = 'Y'
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getHeatLmtListCount" parameterType="map" resultType="int" >
+        select count(a.lmt_no)
+        from (
+                 select b.lmt_no
+                 from code_info a left join heat_lmt_info b ON  a.code_no = b.lmt_cd and b.used_yn = 'Y'
+                 where a.par_code_no = #{parCodeNo}
+                 and a.used_yn = 'Y'
+        ) a
+    </select>
+    <select id="getHeatLmtInfo" parameterType="map" resultType="camelMap" >
+        select b.lmt_no
+             , a.code_no as lmt_cd
+             , a.code_nm  --제품분류코드
+             , b.max_tmpr --최대가열온도
+             , b.min_tmpr --최소가열온도
+             , b.max_time   --최대가열시간
+             , b.min_time   --최소가열시간
+        from code_info a join heat_lmt_info b ON  a.code_no = b.lmt_cd and b.used_yn = 'Y'
+        where b.lmt_no = #{lmtNo}
+    </select>
+
+</mapper>

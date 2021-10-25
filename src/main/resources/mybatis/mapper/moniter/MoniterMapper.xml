@@ -1,0 +1,578 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.moniter.mapper.MoniterMapper">
+    <select id="getComboOrderCmpy" parameterType="map" resultType="camelMap">
+        select 0 as prt_ord
+             , '0' as value
+             , #{selStr} as text
+        union
+        select 1 as prt_ord
+             , a.cmpy_no
+             , b.cmpy_nm
+        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no
+        where a.used_yn = 'Y'
+          and to_char(a.dlv_req_dt ,'YYYY-MM-DD') between substring(#{dateFr},1,10) and '2021-04-30'
+        group by a.cmpy_no, b.cmpy_nm
+        order by prt_ord, text
+    </select>
+
+    <select id="getComboEquip" parameterType="map"  resultType="camelMap">
+        select 1 as prt_seq
+             , null as value
+             , #{chooseStr} as text
+        union
+        SELECT 2
+             , a.spot_no
+             , a.spot_nm
+        FROM spot_info a
+        WHERE 1 =  1
+          AND a.svc_tp = #{svcTp}
+        ORDER by prt_seq, text
+    </select>
+
+    <select id="getEquipUsedHstr" parameterType="map"  resultType="camelMap">
+        select a.min_lmt_val --—최소값
+        , a.max_lmt_val --—최대값
+        , a.meas_val --—측정값
+        , c.spot_nm --—측정장
+        , e.indc_no --생산지시번호
+        , f.prod_nm --품명
+        , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24:MI') as meas_dt -- —측정일시
+        , a.fe_yn --철편통과여부
+        , a.prod_fe_yn --제품+철편통과여부
+        , a.sus_yn --시편통과여부
+        , a.prod_sus_yn --제품+시편통과여부
+        , a.prod_yn --제품통과여부
+        , a.alarm_yn --알람발생여부
+        from   equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no
+                                 join spot_info c on b.spot_no = c.spot_no
+                                 join oper_mast d on a.oper_no  = d.oper_no
+                                 join make_indc e on d.indc_no  = e.indc_no
+                                 join prod_info f on e.prod_no  = f.prod_no
+        where  a.used_yn = 'Y'
+        and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        <if test="equioNo != null and equioNo != ''"> and b.equip_no = #{equipNo} </if>
+        <if test="spotNo != null and spotNo != ''"> and b.spot_no = #{spotNo} </if>
+        <if test="svc_tp != null and svcTp != ''"> and c.svc_tp = #{svcTp} </if>
+        <if test="custNo != null and spotNo != ''"> and c.cust_no = #{custNo} </if>
+        order by a.unix_hms desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getEquipUsedHstrCount" parameterType="map"  resultType="int">
+        select count(a.spot_equip_no)
+        from (
+        select a.spot_equip_no --—최소값
+        from   equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no
+                                 join spot_info c on b.spot_no = c.spot_no
+                                 join oper_mast d on a.oper_no  = d.oper_no
+                                 join make_indc e on d.indc_no  = e.indc_no
+                                 join prod_info f on e.prod_no  = f.prod_no
+        where  a.used_yn = 'Y'
+        and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        <if test="equioNo != null and equioNo != ''"> and b.equip_no = #{equipNo} </if>
+        <if test="spotNo != null and spotNo != ''"> and b.spot_no = #{spotNo} </if>
+        <if test="svc_tp != null and svcTp != ''"> and c.svc_tp = #{svcTp} </if>
+        <if test="custNo != null and spotNo != ''"> and c.cust_no = #{custNo} </if>
+        ) a
+    </select>
+
+    <select id="getTotalStatusList" parameterType="map"  resultType="camelMap">
+        select a.ord_no --주문번호
+        , a.cmpy_no --거래처번
+        , b.cmpy_nm --고객사
+        , to_char(a.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --요청일
+        , c.prod_no  --품번
+        , d.prod_nm --품명
+        , e.code_nm as prod_shape --구분(스틱,삼방파우치등)
+        , d.sz
+        , c.ord_qty --주문량(생산요청)
+        , round(h.stk_qty::numeric,0) as stk_qty  --재고수량
+            , case when  to_char(a.dlv_req_dt,'YYYY-MM-DD') <![CDATA[ > ]]> to_char(now(),'YYYY-MM-DD')
+                   then  round(case when h.stk_qty - c.ord_qty  <![CDATA[ > ]]> 0 then 0 else c.ord_qty - h.stk_qty end::numeric)
+                   else 0 end as need_set_qty -- SET 생산필요랑
+        , round(case when h.stk_qty - c.ord_qty  <![CDATA[ > ]]> 0 then 0 else (c.ord_qty - h.stk_qty) * c.qty_per_pkg end::numeric) as need_unit_qty --UNIT생산필요량
+        , round(case when f.day_capa = 0 then 0 else (case when h.stk_qty - c.ord_qty  <![CDATA[ > ]]> 0 then 0 else (c.ord_qty - h.stk_qty) * c.qty_per_pkg end ) / f.day_capa end::numeric ,2) as need_date --소요일
+        from ord_info  a join cmpy_info b on a.cmpy_no = b.cmpy_no
+        join ord_prod  c on a.ord_no = c.ord_no and c.used_yn  = 'Y'
+        join prod_info d on c.prod_no = d.prod_no
+        join code_info e on d.prod_shape = e.code_no
+        join prod_capa f on d.prod_shape  = f.prod_shape
+        left join (select prod_no, sum(stk_qty) as stk_qty from prod_stk where used_yn = 'Y' group by prod_no) h on c.prod_no = h.prod_no
+        where 1 = 1
+        <if test="dateFr != null and dateFr != ''"> and to_char(a.dlv_req_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10) </if>
+        <if test="cmpyNo != null and cmpyNo != 0"> and b.cmpy_no = #{cmpyNo} </if>
+        <if test="prpdNo != null and prodNo != 0"> and c.prod_no = #{prodNo} </if>
+        <if test="prodShape != null and prodShape != 0"> and d.prod_shape = #{prodShape} </if>
+        order by dlv_req_dt
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getTotalStatusListCount" parameterType="map"  resultType="int">
+        select count(a.ord_no)
+        from (
+        select a.ord_no --주문번호
+        from ord_info  a join cmpy_info b on a.cmpy_no = b.cmpy_no
+        join ord_prod  c on a.ord_no = c.ord_no and c.used_yn  = 'Y'
+        join prod_info d on c.prod_no = d.prod_no
+        join code_info e on d.prod_shape = e.code_no
+        join prod_capa f on d.prod_shape  = f.prod_shape
+        left join (select prod_no, sum(stk_qty) as stk_qty from prod_stk where used_yn = 'Y' group by prod_no) h on c.prod_no = h.prod_no
+        where 1 = 1
+        <if test="dateFr != null and dateFr != ''"> and to_char(a.dlv_req_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10) </if>
+        <if test="cmpyNo != null and cmpyNo != 0"> and b.cmpy_no = #{cmpyNo} </if>
+        <if test="prodNo != null and prodNo != 0"> and c.prod_no = #{prodNo} </if>
+        <if test="prodShape != null and prodShape != 0"> and d.prod_shape = #{prodShape} </if>
+        ) a
+    </select>
+    <select id="getCcpHeatList" parameterType="map" resultType="camelMap">
+        select a.*
+            , b.pass_qty
+            , case when a.oper_hm >= 1800 then to_char(to_timestamp(a.fr_unix_hms+1800),'YYYY-MM-DD HH24:MI') else null end as mid_tm --중간일시
+            , case when a.oper_hm >= 1800 then ( select y.meas_val2
+                                                 from oper_mast x join equip_mngr_hstr y on x.spot_equip_no  = y.spot_equip_no
+                                                 where x.fr_unix_hms = a.fr_unix_hms + 1800
+                                                )
+                                          else null
+              end as mid_val --중간값
+        from ( select c.oper_no
+                    , c.spot_equip_no
+                    , a.spot_no
+                    , b.spot_nm --가동장소
+                    , d.prod_nm  --품명
+                    , c.fr_unix_hms
+                    , c.to_unix_hms
+                    , c.date_fr
+                    , c.date_to
+                    , coalesce (c.oper_hm, 0 ) as oper_hm --작동시간
+                    , TO_CHAR((coalesce (c.oper_hm, 0 )|| ' second')::interval, 'HH24:MI:SS') as second_hour
+                    , max(round(coalesce (e.meas_val2, 0))) as heat_tmpr  --살균온도
+              from spot_equip a join spot_info b on a.spot_no = b.spot_no and b.ccp_tp = #{ccpTp}
+                                join equip_mngr_hstr  e on a.spot_equip_no = e.spot_equip_no
+                                join ( select a.oper_no
+                                            , a.spot_equip_no
+                                            , a.equip_no
+                                            , a.prod_no
+                                            , a.pass_qty
+                                            , a.metal_qty
+                                            , a.fr_unix_hms
+                                            , a.to_unix_hms
+                                            , to_char(to_timestamp(a.fr_unix_hms),'YYYY-MM-DD HH24:MI') as date_fr
+                                            , to_char(to_timestamp(a.to_unix_hms),'YYYY-MM-DD HH24:MI') as date_to
+                                            , a.to_unix_hms - a.fr_unix_hms as oper_hm
+                                      from oper_mast a
+                                     where a.to_unix_hms > 0
+                                ) c on a.spot_equip_no = c.spot_equip_no
+                           left join prod_info d on c.prod_no = d.prod_no
+              where a.used_yn = 'Y'
+              and coalesce (c.oper_hm, 0 ) <![CDATA[ > ]]>  0
+              and d.prod_nm is not null
+              --and c.pass_qty is not null and c.pass_qty  not in (0)
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'spotNm'">
+                        and upper(replace(b.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                    <if test="findTp != null and findTp == 'prodNm'">
+                        and upper(replace(d.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+                <if test="spot_equip_no != null and spot_equip_no == ''">
+                    and a.spot_equip_no = #{spot_equip_no}
+                </if>
+              group by  c.oper_no
+                    , c.spot_equip_no
+                    , a.spot_no
+                    , b.spot_nm
+                    , d.prod_nm
+                    , c.date_fr
+                    , c.date_to
+                    , coalesce (c.oper_hm, 0 )
+                    , c.fr_unix_hms
+                    , c.to_unix_hms
+        ) a join oper_mast b on a.oper_no = b.oper_no
+        order by spot_no, date_to desc, spot_no, prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getCcpHeatListCount" parameterType="map" resultType="int">
+        select count(a.spot_no)
+        from (
+               select a.*
+                    , coalesce (b.pass_qty,0) as pass_qty --통과수량
+                    , case when a.oper_hm >= 1800 then to_char(to_timestamp(a.fr_unix_hms+1800),'YYYY-MM-DD HH24:MI') else null end as mid_tm --중간일시
+                    , case when a.oper_hm >= 1800 then ( select y.meas_val2
+                                                         from oper_mast x join equip_mngr_hstr y on x.spot_equip_no  = y.spot_equip_no
+                                                         where x.fr_unix_hms = a.fr_unix_hms + 1800
+                                                        )
+                           else null
+                    end as mid_val --중간값
+               from (  select c.oper_no
+                            , c.spot_equip_no
+                            , a.spot_no
+                            , b.spot_nm --가동장소
+                            , d.prod_nm  --품명
+                            , c.fr_unix_hms
+                            , c.to_unix_hms
+                            , c.date_fr
+                            , c.date_to
+                            , coalesce (c.oper_hm, 0 ) as oper_hm --작동시간
+                            , TO_CHAR((coalesce (c.oper_hm, 0 )|| ' second')::interval, 'HH24:MI:SS') as second_hour
+                            , max(round(coalesce (e.meas_val2, 0))) as heat_tmpr  --살균온도
+                     from spot_equip a join spot_info b on a.spot_no = b.spot_no and b.ccp_tp = #{ccpTp}
+                                       join equip_mngr_hstr  e on a.spot_equip_no = e.spot_equip_no
+                                       join ( select  a.oper_no
+                                                    , a.spot_equip_no
+                                                    , a.equip_no
+                                                    , a.prod_no
+                                                    , a.pass_qty
+                                                    , a.metal_qty
+                                                    , a.fr_unix_hms
+                                                    , a.to_unix_hms
+                                                    , to_char(to_timestamp(a.fr_unix_hms),'YYYY-MM-DD HH24:MI') as date_fr
+                                                    , to_char(to_timestamp(a.to_unix_hms),'YYYY-MM-DD HH24:MI') as date_to
+                                                    , a.to_unix_hms - a.fr_unix_hms as oper_hm
+                                                from oper_mast a
+                                                where a.to_unix_hms > 0
+                                       ) c on a.spot_equip_no = c.spot_equip_no
+                                  left join prod_info d on c.prod_no = d.prod_no
+                    where a.used_yn = 'Y'
+                    and coalesce (c.oper_hm, 0 ) <![CDATA[ > ]]>  0
+                    and d.prod_nm is not null
+                     --and c.pass_qty is not null and c.pass_qty  not in (0)
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'spotNm'">
+                            and upper(replace(b.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                        <if test="findTp != null and findTp == 'prodNm'">
+                            and upper(replace(d.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+                    <if test="spot_equip_no != null and spot_equip_no == ''">
+                        and a.spot_equip_no = #{spot_equip_no}
+                    </if>
+                    group by  c.oper_no
+                            , c.spot_equip_no
+                            , a.spot_no
+                            , b.spot_nm
+                            , d.prod_nm
+                            , c.date_fr
+                            , c.date_to
+                            , coalesce (c.oper_hm, 0 )
+                            , c.fr_unix_hms
+                            , c.to_unix_hms
+               ) a join oper_mast b on a.oper_no = b.oper_no
+        ) a
+    </select>
+
+
+    <select id="getEquipProdMove" parameterType="map" resultType="camelMap">
+        select a.*
+              , case when a.oper_hm >= 1800 then to_char(to_timestamp(a.fr_unix_hms+1800),'YYYY-MM-DD HH24:MI') else null end as mid_tm --중간일시
+              , case when a.oper_hm >= 1800 then ( select y.meas_val2 from oper_mast x join equip_mngr_hstr y on x.spot_equip_no  = y.spot_equip_no
+                                                   where x.fr_unix_hms > a.fr_unix_hms + 1800
+                                                   order by x.fr_unix_hms
+                                                    limit 1
+                                                 )
+                    else null
+                end as mid_val --중간값
+        from( select  a.spot_equip_no
+                    , a.spot_no
+                    , b.spot_nm --가동장소
+                    , d.prod_nm  --품명
+                    , c.fr_unix_hms
+                    , c.to_unix_hms
+                    , c.date_fr
+                    , c.date_to
+                    , coalesce (c.oper_hm, 0 ) as oper_hm --작동새간
+                    , min(g.min_val)
+                    , max(g.max_val)
+                    , case when min( g.min_val )  <![CDATA[ < ]]>   88 or max(g.max_val) <![CDATA[ > ]]>   92  or coalesce (c.oper_hm, 0 )  <![CDATA[ < ]]>   3600  then 'X' else 'Y' end as normal_yn
+                    , max(round(coalesce (e.meas_val2, 0))) as heat_tmpr  --살균온도
+            from spot_equip a join spot_info b on a.spot_no = b.spot_no
+                              join equip_mngr_hstr e on a.spot_equip_no = e.spot_equip_no
+                              join ( select   a.spot_equip_no
+                                            , a.prod_no
+                                            , a.pass_qty
+                                            , a.metal_qty
+                                            , a.fr_unix_hms
+                                            , a.to_unix_hms
+                                            , to_char(to_timestamp(a.fr_unix_hms),'YYYY-MM-DD HH24:MI') as date_fr
+                                            , to_char(to_timestamp(a.to_unix_hms),'YYYY-MM-DD HH24:MI') as date_to
+                                            , a.to_unix_hms - a.fr_unix_hms as oper_hm
+                                    from oper_mast a
+                                    where a.to_unix_hms  <![CDATA[ > ]]>0
+                              ) c on a.spot_equip_no = c.spot_equip_no
+                             join prod_info d on c.prod_no = d.prod_no
+                             join ( select   a.spot_equip_no ,
+                                            max(a.meas_val2) as max_val ,
+                                            min(a.meas_val2) as min_val
+                                            from equip_mngr_hstr a
+                                    where  a.meas_val2 not in (-999)
+                                    group by a.spot_equip_no
+                             ) g on c.spot_equip_no = g.spot_equip_no
+            where a.used_yn = 'Y'
+            and coalesce (c.oper_hm, 0 ) <![CDATA[ > ]]>  0
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'spotNm'">
+                    and upper(replace(b.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+                <if test="findTp != null and findTp == 'prodNm'">
+                    and upper(replace(d.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+            </if>
+            <if test="spot_equip_no != null and spot_equip_no != ''">
+                and a.spot_equip_no = #{spot_equip_no}
+            </if>
+            group by  a.spot_no
+                    , a.spot_equip_no
+                    , b.spot_nm
+                    , d.prod_nm
+                    , c.date_fr
+                    , c.date_to
+                    , coalesce (c.oper_hm, 0 )
+                    , c.fr_unix_hms
+                    , c.to_unix_hms) a
+                    order by spot_no, date_to desc, spot_no, prod_nm
+             limit #{pageSz} offset #{pageNo}
+    </select>
+
+
+    <select id="getCccpTexts" parameterType="map" resultType="camelMap">
+        select
+	        abn_ctnt,
+        from ccp_hstr
+        where ccp_no = #{ccp_no}
+    </select>
+
+    <select id="getProdIoFileList" parameterType="map" resultType="camelMap">
+        select a.file_no
+             , a.org_file_nm
+             , b.ord_no
+             , to_char(b.ord_dt, 'YYYY-MM-DD') as upload_dt
+        from file_info a join ord_info b on a.file_no = b.file_no and b.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            and upper(replace(a.org_file_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        </if>
+        order by org_file_nm
+    </select>
+
+    <select id="getProdIoFileListCount" parameterType="map" resultType="int">
+        select count(a.file_no)
+        from (  select a.file_no
+                     , a.org_file_nm
+                     , b.ord_no
+                from file_info a join ord_info b on a.file_no = b.file_no and b.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                <if test="findSz != null and findSz != ''">
+                    and upper(replace(a.org_file_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+             ) a
+    </select>
+
+    <select id="getOrdHstList" parameterType="map" resultType="camelMap">
+        select a.ord_no
+             , a.ord_nm
+             , b.ord_qty
+             , c.prod_nm
+             , c.erp_prod_nm
+             , d.cmpy_nm
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                        join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join cmpy_info d on a.cmpy_no = d.cmpy_no and d.used_yn  = 'Y'
+        where a.used_yn = 'Y'
+          and a.file_no = #{fileNo}
+        order by ord_nm, prod_nm
+    </select>
+
+    <select id="getOrdHstListCount" parameterType="map" resultType="int">
+        select count(a.ord_no)
+        from (  select a.ord_no
+                     , a.ord_nm
+                     , b.ord_qty
+                     , c.prod_nm
+                     , c.erp_prod_nm
+                     , d.cmpy_nm
+                from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                                join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                                join cmpy_info d on a.cmpy_no = d.cmpy_no and d.used_yn  = 'Y'
+                where a.used_yn = 'Y'
+                  and a.file_no = #{fileNo}
+             ) a
+    </select>
+
+    <select id="getProdIwhHstList" parameterType="map" resultType="camelMap">
+        select a.ord_no
+             , coalesce (c.iwh_qty, 0) as iwh_qty
+             , coalesce (to_char(c.iwh_dt, 'YYYY-MM-DD') , '-') as iwh_dt
+             , e.stk_qty
+             , f.prod_nm
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                        left join prod_iwh c on b.prod_no = c.prod_no and c.used_yn = 'Y' and to_char(c.iwh_dt, 'YYYY-MM-DD') = #{date}
+                        join prod_stk e on b.prod_no = e.prod_no and e.used_yn = 'Y'
+                        join prod_info f on b.prod_no = f.prod_no and f.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.file_no = #{fileNo}
+        order by f.prod_nm
+    </select>
+
+    <select id="getProdIwhHstListCount" parameterType="map" resultType="int">
+        select count(a.ord_no)
+        from (  select a.ord_no
+                     , coalesce (c.iwh_qty, 0) as iwh_qty
+                     , coalesce (to_char(c.iwh_dt, 'YYYY-MM-DD') , '-') as iwh_dt
+                     , e.stk_qty
+                     , f.prod_nm
+                from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                                left join prod_iwh c on b.prod_no = c.prod_no and c.used_yn = 'Y' and to_char(c.iwh_dt, 'YYYY-MM-DD') = #{date}
+                                join prod_stk e on b.prod_no = e.prod_no and e.used_yn = 'Y'
+                                join prod_info f on b.prod_no = f.prod_no and f.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                  and a.file_no = #{fileNo}
+             ) a
+    </select>
+
+    <select id="getProdOwhHstList" parameterType="map" resultType="camelMap">
+        select a.ord_no
+             , coalesce (d.owh_qty, 0) as owh_qty
+             , coalesce (to_char(d.owh_dt, 'YYYY-MM-DD'), '-') as owh_dt
+             , e.stk_qty
+             , f.prod_nm
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                        left join prod_owh d on b.prod_no = d.prod_no and d.used_yn = 'Y' and to_char(d.owh_dt, 'YYYY-MM-DD') = #{date}
+                        join prod_stk e on b.prod_no = e.prod_no and e.used_yn = 'Y'
+                        join prod_info f on b.prod_no = f.prod_no and f.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.file_no = #{fileNo}
+        order by f.prod_nm
+    </select>
+
+    <select id="getProdOwhHstListCount" parameterType="map" resultType="int">
+        select count(a.ord_no)
+        from (  select a.ord_no
+                     , coalesce (d.owh_qty, 0) as owh_qty
+                     , coalesce (to_char(d.owh_dt, 'YYYY-MM-DD'), '-') as owh_dt
+                     , e.stk_qty
+                     , f.prod_nm
+                from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                                left join prod_owh d on b.prod_no = d.prod_no and d.used_yn = 'Y' and to_char(d.owh_dt, 'YYYY-MM-DD') = #{date}
+                                join prod_stk e on b.prod_no = e.prod_no and e.used_yn = 'Y'
+                                join prod_info f on b.prod_no = f.prod_no and f.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                  and a.file_no = #{fileNo}
+             ) a
+    </select>
+
+    <select id="getMatrPursHstList" parameterType="map" resultType="camelMap">
+        select a.purs_matr_no --구매자재관리번호
+             , a.matr_no  --자재번호
+             , floor(a.purs_qty) as purs_qty --구매의뢰수량
+             , z.code_nm as purs_unit_nm  --구매단위명
+             , w.prod_nm --사용제품명
+             , b.matr_nm --자재명
+             , case when coalesce (a.cmpy_no,0) = 0 then '-' else f.cmpy_nm end as purs_cmpy_nm
+             , coalesce (f.cmpy_nm,'구매처미상') as cmpy_nm-- 구매처
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y'
+                         join code_info z on a.purs_unit  = z.code_no
+                         join purs_info d on a.purs_no = d.purs_no and d.used_yn = 'Y' and d.purs_sts in ( 165)
+                         join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y'
+                         join ord_prod k on e.ord_no = k.ord_no and k.used_yn = 'Y'
+                         join prod_info w on k.prod_no = w.prod_no and w.used_yn  = 'Y'
+                         left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
+        where a.used_yn  = 'Y'
+        and e.file_no  = #{fileNo}
+    </select>
+
+    <select id="getMatrPursHstListCount" parameterType="map" resultType="int">
+        select count(a.purs_matr_no)
+        from ( select a.purs_matr_no --구매자재관리번호
+                    , a.matr_no  --자재번호
+                    , floor(a.purs_qty) as purs_qty --구매의뢰수량
+                    , z.code_nm as purs_unit_nm  --구매단위명
+                    , w.prod_nm --사용제품명
+                    , b.matr_nm --자재명
+                    , case when coalesce (a.cmpy_no,0) = 0 then '-' else f.cmpy_nm end as purs_cmpy_nm
+                    , coalesce (f.cmpy_nm,'구매처미상') as cmpy_nm-- 구매처
+               from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y'
+                                join code_info z on a.purs_unit  = z.code_no
+                                join purs_info d on a.purs_no = d.purs_no and d.used_yn = 'Y' and d.purs_sts in ( 165)
+                                join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y'
+                                join ord_prod k on e.ord_no = k.ord_no and k.used_yn = 'Y'
+                                join prod_info w on k.prod_no = w.prod_no and w.used_yn  = 'Y'
+                                left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
+               where a.used_yn  = 'Y'
+                 and e.file_no  = #{fileNo}
+             ) a
+    </select>
+
+    <select id="getMatrIwhHstList" parameterType="map" resultType="camelMap">
+        select d.matr_no
+             , d.matr_nm
+             , coalesce (f.iwh_qty,0) as iwh_qty
+             , coalesce (to_char(f.iwh_dt, 'YYYY-MM-DD'),'-') as iwh_dt
+             , g.stk_qty
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join matr_info d on c.matr_no = d.matr_no and d.used_yn = 'Y'
+                        left join matr_iwh f on c.matr_no = f.matr_no and to_char(f.iwh_dt, 'YYYY-MM-DD') = #{date}
+                        join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.file_no = #{fileNo}
+        order by matr_nm
+    </select>
+
+    <select id="getMatrIwhHstListCount" parameterType="map" resultType="int">
+        select count(a.matr_no)
+        from (  select d.matr_no
+                     , d.matr_nm
+                     , coalesce (f.iwh_qty,0) as iwh_qty
+                     , coalesce (to_char(f.iwh_dt, 'YYYY-MM-DD'),'-') as iwh_dt
+                     , g.stk_qty
+                from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                                join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                                join matr_info d on c.matr_no = d.matr_no and d.used_yn = 'Y'
+                                left join matr_iwh f on c.matr_no = f.matr_no and to_char(f.iwh_dt, 'YYYY-MM-DD') = #{date}
+                                join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                  and a.file_no = #{fileNo}
+                order by matr_nm
+             ) a
+    </select>
+
+    <select id="getMatrOwhHstList" parameterType="map" resultType="camelMap">
+        select d.matr_no
+             , d.matr_nm
+             , coalesce (f.owh_qty,0) as owh_qty
+             , coalesce (to_char(f.owh_dt, 'YYYY-MM-DD'),'-') as owh_dt
+             , g.stk_qty
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join matr_info d on c.matr_no = d.matr_no and d.used_yn = 'Y'
+                        left join matr_owh f on c.matr_no = f.matr_no and to_char(f.owh_dt, 'YYYY-MM-DD') = #{date}
+                        join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.file_no = #{fileNo}
+        order by matr_nm
+    </select>
+
+    <select id="getMatrOwhHstListCount" parameterType="map" resultType="int">
+        select count(a.matr_no)
+        from (  select d.matr_no
+                     , d.matr_nm
+                     , coalesce (f.owh_qty,0) as owh_qty
+                     , coalesce (to_char(f.owh_dt, 'YYYY-MM-DD'),'-') as owh_dt
+                     , g.stk_qty
+                from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                                join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                                join matr_info d on c.matr_no = d.matr_no and d.used_yn = 'Y'
+                                left join matr_owh f on c.matr_no = f.matr_no and to_char(f.owh_dt, 'YYYY-MM-DD') = #{date}
+                                join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                  and a.file_no = #{fileNo}
+                order by matr_nm
+             ) a
+    </select>
+</mapper>
+

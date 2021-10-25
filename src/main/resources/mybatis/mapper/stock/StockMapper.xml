@@ -1,0 +1,1366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.stock.mapper.StockMapper">
+    <delete id="dropMatrPos" parameterType="map" >
+        delete from matr_pos where purs_matr_no = #{pursMatrNo} and matr_no = #{matrNo}
+    </delete>
+
+    <select id="getComboWh" parameterType="map"  resultType="camelMap">
+        select   0  as value
+              , '선택' as text
+        union
+        select a.wh_no
+             , a.wh_nm || '(' || b.code_nm || ')' as wh_nm
+        from wh_info a join code_info b on a.save_tmpr = b.code_no
+        where a.used_yn = 'Y'
+         and  a.wh_tp = #{whTp}
+        order by value
+    </select>
+
+    <select id="getWhList" parameterType="map"  resultType="camelMap">
+            select a.wh_no
+                 , a.wh_nm
+                 , a.wh_tp
+                 , a.save_tmpr
+                 , coalesce(a.max_row,0) as max_row
+                 , coalesce(a.max_col,0) as max_col
+                 , coalesce(a.max_stair,0) as max_stair
+                 , z.code_nm as save_tmpr_nm
+                 , y.code_nm as wh_tp_nm
+            from wh_info a join code_info z on a.save_tmpr = z.code_no
+                           join code_info y on a.wh_tp    =  y.code_no
+            where a.used_yn = 'Y'
+            <if test="whTp != null and whTp != ''">
+                and a.wh_tp = #{whTp}
+            </if>
+            <if test="saveTmpr != null and saveTmpr != ''">
+                and a.save_tmpr = #{saveTmpr}
+            </if>
+
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'whNm'">
+                    and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+            </if>
+            limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getWhListCount" parameterType="map"  resultType="int">
+        select count(a.wh_no)
+        from ( select a.wh_no
+                from wh_info a join code_info z on a.save_tmpr = z.code_no
+                               join code_info y on a.wh_tp    =  y.code_no
+                where a.used_yn = 'Y'
+                <if test="whTp != null and whTp != ''">
+                    and a.wh_tp = #{whTp}
+                </if>
+                <if test="saveTmpr != null and saveTmpr != ''">
+                    and a.save_tmpr = #{saveTmpr}
+                </if>
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'whNm'">
+                        and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+        ) a
+    </select>
+
+    <select id="getWhInfo" parameterType="map"  resultType="camelMap">
+        select a.wh_no    --창고번호
+             , a.wh_nm    --창고명
+             , a.wh_tp     --창고유형(자재창고,상품장고)
+             , a.save_tmpr  --보관온도(상온,냉장,냉동)
+             , a.max_row   --잭재가능행수
+             , a.max_col   --적재가능열수
+             , a.max_stair --적재가능단수
+        from wh_info a
+        where a.wh_no = #{whNo}
+    </select>
+
+    <select id="getMatrPosList" parameterType="map"  resultType="camelMap">
+        /*원자재 적재위치 (stockMapper.getMatrPosList)*/
+        select a.matr_pos_no --적재관리번호
+             , a.matr_no --자재번호
+             , a.wh_no   --적재창고번호
+             , a.col_idx  --적재위치(열)
+             , a.row_idx  --적재위치(행)
+             , a.stair_idx --적재우치(단)
+             , a.bar_code_img --바코드이미지
+             , a.qr_code_img --QR코드이미지
+             , to_char(a.mod_dt,'YYYY-MM-DD') as stk_dt --적재일자
+             , b.wh_nm     --창고명
+             , e.matr_nm  --원자재명
+             , a.iwh_seq
+             , f.code_nm as matr_stat_nm --원자재상태(구매일고,생산투입,폐기,분실등)
+        from matr_pos a join matr_info e on a.matr_no = e.matr_no
+                        join code_info f on a.matr_stat  = f.code_no
+                   left join wh_info b on a.wh_no = b.wh_no
+        where a.used_yn  = 'Y'
+        <if test="TYPE == 'Wh'">
+            and not a.col_idx = 0
+            and not a.row_idx = 0
+            and not a.stair_idx = 0
+        </if>
+        <if test="TYPE == 'Iwh'">
+            and a.col_idx = 0
+            and a.row_idx = 0
+            and a.stair_idx = 0
+        </if>
+        <if test="pursMatrNo != null and pursMatrNo != ''">
+            and a.purs_matr_no = #{pursMatrNo}
+        </if>
+        <if test="matrNo != null and matrNo != ''">
+            and a.matr_no = #{matrNo}
+        </if>
+        <if test="whNo != null and whNo != ''">
+            and a.wh_no = #{whNo}
+        </if>
+        ORDER BY a.matr_pos_no desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMatrPosListCount" parameterType="map"  resultType="int">
+        select count(a.matr_no)
+        from (  select a.matr_no --자재번호
+                from matr_pos a join matr_info e on a.matr_no = e.matr_no
+                                join code_info f on a.matr_stat  = f.code_no
+                           left join wh_info b on a.wh_no = b.wh_no
+                where a.used_yn  = 'Y'
+                <if test="TYPE == 'Wh'">
+                    and not a.col_idx = 0
+                    and not a.row_idx = 0
+                    and not a.stair_idx = 0
+                </if>
+
+                <if test="TYPE == 'Iwh'">
+                    and a.col_idx = 0
+                    and a.row_idx = 0
+                    and a.stair_idx = 0
+                </if>
+                <if test="pursMatrNo != null and pursMatrNo != ''">
+                    and a.purs_matr_no = #{pursMatrNo}
+                </if>
+
+                <if test="matrNo != null and matrNo != ''">
+                    and a.matr_no = #{matrNo}
+                </if>
+
+                <if test="whNo != null and whNo != ''">
+                    and a.wh_no = #{whNo}
+                </if>
+        ) a
+    </select>
+
+    <select id="getMatrStkList" parameterType="map" resultType="camelMap">
+        select a.matr_stk_no --적재관리번호
+             , a.matr_no --자재번호
+             , a.wh_no --창고번호
+             , to_char(a.mod_dt, 'YYYY-MM-DD') as stk_dt -- 적재일자
+             , b.matr_nm -- 자재명
+             , b.item_cd  -- 자재코드
+             , b.valid_term  --유효기간
+             , b.bar_code_img  -- 바코드이미지
+             , b.qr_code_img  --QR코드 이미지
+             , c.code_nm as matr_tp_nm
+             , coalesce (a.stk_qty,0) as stk_qty  -- 재고량
+        from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                   left join code_info c on b.matr_tp = c.code_no
+        where a.used_yn = 'Y'
+        <if test="whNo != null and whNo != ''">
+            and a.wh_no = #{whNo}
+        </if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMatrStkListCount" parameterType="map" resultType="int">
+        select count(a.matr_stk_no)
+        from (
+        select a.matr_stk_no --적재관리번호
+        from matr_stk a join matr_info b on a.matr_no = b.matr_no
+        where a.used_yn = 'Y'
+        <if test="whNo != null and whNo != ''">
+            and a.wh_no = #{whNo}
+        </if>
+        ) a
+    </select>
+
+    <select id="getMatrPosInfo" parameterType="map"  resultType="camelMap">
+        select a.matr_pos_no --적재관리번호
+             , a.purs_matr_no --구매자재관리번호
+             , a.matr_no --자재번호
+             , a.iwh_seq --입고처리순번
+             , a.wh_no   --적재창고번호
+             , a.col_idx  --적재위치(열)
+             , a.row_idx  --적재위치(행)
+             , a.stair_idx --적재위치(단)
+             , a.bar_code_img --바코드이미지
+             , a.qr_code_img --QR코드이미지
+             , to_char(d.dlv_dt,'YYYY-MM-DD') as iwh_dt --창고입고일
+             , to_char(a.owh_dt,'YYYY-MM-DD') as owh_dt --창고출고일
+        from matr_pos a join wh_info b on a.wh_no = b.wh_no
+                        join purs_matr c on a.purs_matr_no  = c.purs_matr_no
+                        join purs_info d on c.purs_no = d.purs_no
+                        join matr_info e on c.matr_no = e.matr_no
+                        join code_info f on a.matr_stat  = f.code_no
+        where matr_pos_no = #{matrPosNo}
+    </select>
+
+    <select id="getMatrCurrentStock" parameterType="map"  resultType="float">
+         select coalesce (b.iwh_qty,0) - coalesce (c.owh_qty,0)::numeric(10,3)
+         from matr_info a  left join ( select a.matr_no, sum(a.iwh_qty) as iwh_qty
+                                       from matr_iwh a
+                                       where wh_no = #{whNo}
+                                       and used_yn = 'Y'
+                                       group by a.matr_no
+                           ) b on a.matr_no = b.matr_no
+                           left join ( select a.matr_no, sum(a.owh_qty) as owh_qty
+                                       from matr_owh a
+                                       where wh_no = #{whNo}
+                                       and used_yn = 'Y'
+                                       group by a.matr_no
+                           ) c on a.matr_no = c.matr_no
+         where  a.matr_no = #{matrNo}
+    </select>
+
+    <update id="addOnStock" parameterType="map">
+        update iwh_stk set stk_qty = coalesce(stk_qty,0) + coalesce (#{stkQty},0)
+                         , stat_cd = #{stat_cd}
+                         , stat_trf_dt = now()
+        where matr_no = #{matrNo}
+          and wh_no = #{whNo}
+    </update>
+    <select id="reductStock" parameterType="map">
+        update iwh_stk set stk_qty = coalesce(stk_qty,0) - coalesce (#{stkQty},0)
+                         , stat_cd = #{stat_cd}
+                         , stat_trf_dt = now()
+        where matr_no = #{matrNo}
+          and wh_no = #{whNo}
+    </select>
+
+    <update id="dropWhInfo" parameterType="map">
+        update wh_info set used_yn = 'N' where wh_no = #{whNo}
+    </update>
+    <!--살사재고목록-->
+    <select id="getRealStockList" parameterType="map" resultType="camelMap">
+            select a.matr_no --자재번호
+                 , a.matr_nm --자재명
+                 , a.sz      --자재규격
+                 , a.vol --단위용량
+                 --, b.chng_no --실사재고관리번
+                 , c.matr_stk_no --현재고관리번호
+                 , c.wh_no   --창고번
+                 , coalesce (c.stk_qty,0) as matr_stk --현재고(최종재고)
+                 , d.wh_nm
+                 , e.code_nm as save_tmpr_nm --창고F
+                 --, b.chng_resn --변경사유코드
+                 --, coalesce (b.stk_qty,0) as real_stk --실사재고
+                 --, coalesce (b.used_yn,'Y')  as used_yn
+                 --, z.code_alais as chng_resn_nm
+            from matr_info a join code_info e on a.save_tmpr = e.code_no
+                        left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                        --left join ( select a.*
+                        --            from matr_stk_hstr a
+                        --           where a.chng_no = (select max(chng_no) from matr_stk_hstr where matr_no = a.matr_no and used_yn = 'Y')
+                        --            and a.used_yn = 'Y'
+                        --         ) b on c.wh_no = b.wh_no and a.matr_no = b.matr_no
+                        left join wh_info d on c.wh_no = d.wh_no
+                        --left join code_info z on b.chng_resn = z.code_no
+              where a.used_yn = 'Y'
+            <if test="saveTmpr != null and saveTmpr != ''">
+                and a.save_tmpr = #{saveTmpr}
+            </if>
+            <if test="saveMatrTp != null and saveMatrTp != ''">
+                and a.matr_tp = #{saveMatrTp}
+            </if>
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'matrNm'">
+                    and  upper(replace(a.matr_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+            </if>
+
+             order by matr_nm
+        limit #{pageSz} offset #{pageNo}
+
+    </select>
+
+    <select id="getRealStockListCount" parameterType="int" resultType="int">
+        select count(a.matr_no)
+        from (
+                select a.matr_no --자재번호
+                from matr_info a join code_info e on a.save_tmpr = e.code_no
+                            left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                           --left join ( select a.*
+                           --              from matr_stk_hstr a
+                           --              where a.chng_no = (select max(chng_no) from matr_stk_hstr where matr_no = a.matr_no and used_yn = 'Y')
+                           --              and a.used_yn = 'Y'
+                           --            ) b on c.wh_no = b.wh_no and a.matr_no = b.matr_no
+                            left join wh_info d on c.wh_no = d.wh_no
+                            --left join code_info z on b.chng_resn = z.code_no
+                where a.used_yn = 'Y'
+                <if test="saveTmpr != null and saveTmpr != ''">
+                    and a.save_tmpr = #{saveTmpr}
+                </if>
+                <if test="saveMatrTp != null and saveMatrTp != ''">
+                    and a.matr_tp = #{saveMatrTp}
+                </if>
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'matrNm'">
+                        and  upper(replace(a.matr_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+             ) a
+    </select>
+
+
+    <select id="getMatrIoList" parameterType="map" resultType="camelMap">
+        select a.date as date
+                , b.matr_no --지재번호
+                , b.matr_nm --자재명
+                , coalesce (b.yes_stk_qty,0) as matr_yes_stk_qty --자재전일재고
+                , coalesce (b.stk_qty,0) as matr_stk_qty --자재재고
+                , coalesce (b.iwh_qty,0) as matr_iwh_qty --자재입고
+                , coalesce (b.owh_qty,0) as matr_owh_qty --자재출고
+           from (   select  to_char(generate_series(date('2021'||'-'||#{procYm}||'-'||'01')
+                        , (date_trunc('month', (replace('2021','-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
+                ) a left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
+                                    , b.matr_no
+                                    , b.matr_nm
+                                    , coalesce (sum(a.stk_qty),0) as yes_stk_qty
+                                    , coalesce (sum(a.iwh_qty),0) as iwh_qty
+                                    , coalesce (sum(a.owh_qty),0) as owh_qty
+                                    , coalesce (sum(c.stk_qty),0) as stk_qty
+                                from matr_stk_clos a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                                left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                                where a.used_yn = 'Y'
+                                group by to_char(a.clos_dt,'YYYY-MM-DD') , b.matr_no, b.matr_nm
+                                ) b on  a.date = b.date
+        where 1 = 1
+        and coalesce(b.iwh_qty,0) + coalesce(b.owh_qty,0) <![CDATA[ > ]]> 0
+        and substring(a.date,1,7) = #{procYy}||'-'||#{procYm}
+        order by date
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matr'">
+                AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMatrIoListCount" parameterType="map" resultType="int">
+        select count(a.date)
+        from (  select a.date as date
+                    , b.matr_no --지재번호
+                    , b.matr_nm --자재명
+                    , coalesce (b.yes_stk_qty,0) as matr_yes_stk_qty --자재전일재고
+                    , coalesce (b.stk_qty,0) as matr_stk_qty --자재재고
+                    , coalesce (b.iwh_qty,0) as matr_iwh_qty --자재입고
+                    , coalesce (b.owh_qty,0) as matr_owh_qty --자재출고
+                from (  select  to_char(generate_series(date('2021'||'-'||#{procYm}||'-'||'01')
+                            , (date_trunc('month', (replace('2021','-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
+                     ) a left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
+                                        , b.matr_no
+                                        , b.matr_nm
+                                        , coalesce (sum(a.stk_qty),0) as yes_stk_qty
+                                        , coalesce (sum(a.iwh_qty),0) as iwh_qty
+                                        , coalesce (sum(a.owh_qty),0) as owh_qty
+                                        , coalesce (sum(c.stk_qty),0) as stk_qty
+                                    from matr_stk_clos a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                                    left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                                where a.used_yn = 'Y'
+                                group by to_char(a.clos_dt,'YYYY-MM-DD') , b.matr_no, b.matr_nm
+                                    ) b on  a.date = b.date
+        where 1 = 1
+        and coalesce(b.iwh_qty,0) + coalesce(b.owh_qty,0) <![CDATA[ > ]]> 0
+        and substring(a.date,1,7) =   #{procYy}||'-'||#{procYm}
+                        <if test="findSz != null and findSz != ''">
+                            <if test="findTp != null and findTp == 'matr'">
+                                AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            </if>
+                        </if>
+              ) a
+    </select>
+
+    <select id="getProdIoList" parameterType="map" resultType="camelMap">
+        select a.date as date
+            , b.prod_no --품번
+            , b.prod_nm --품명
+            , coalesce (b.yes_stk_qty,0) as prod_yes_stk_qty --상품재고
+            , coalesce (b.stk_qty,0) as prod_stk_qty --상품재고
+            , coalesce (b.iwh_qty,0) as prod_iwh_qty --상품입고
+            , coalesce (b.owh_qty,0) as prod_owh_qty --상품출고
+        from (  select  to_char(generate_series(date('2021'||'-'||#{procYm}||'-'||'01')
+                     , (date_trunc('month', (replace('2021','-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
+             ) a left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
+                                , b.prod_no
+                                , b.prod_nm
+                                , coalesce (sum(a.stk_qty),0) as yes_stk_qty
+                                , coalesce (sum(a.iwh_qty),0) as iwh_qty
+                                , coalesce (sum(a.owh_qty),0) as owh_qty
+                                , coalesce (sum(c.stk_qty),0) as stk_qty
+                            from prod_stk_clos a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                                            left join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                           where a.used_yn = 'Y'
+                           group by to_char(a.clos_dt,'YYYY-MM-DD'), b.prod_no,b.prod_nm
+                         ) b on  a.date = b.date
+        where 1 = 1
+        and coalesce(b.iwh_qty,0) + coalesce(b.owh_qty,0) <![CDATA[ > ]]> 0
+        and substring(a.date,1,7) =  #{procYy}||'-'||#{procYm}
+        order by date
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prod'">
+                AND upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProdIoListCount" parameterType="map" resultType="int">
+        select count(a.date)
+        from (  select a.date as date
+        from ( select  to_char(generate_series(date('2021'||'-'||#{procYm}||'-'||'01')
+                        , (date_trunc('month', (replace('2021','-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
+             ) a left join ( select to_char(a.clos_dt,'YYYY-MM-DD') as date
+                                , b.prod_no
+                                , b.prod_nm
+                                , coalesce (sum(a.stk_qty),0) as yes_stk_qty
+                                , coalesce (sum(a.iwh_qty),0) as iwh_qty
+                                , coalesce (sum(a.owh_qty),0) as owh_qty
+                                , coalesce (sum(c.stk_qty),0) as stk_qty
+                            from prod_stk_clos a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                                            left join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                            where a.used_yn = 'Y'
+                            group by to_char(a.clos_dt,'YYYY-MM-DD'), b.prod_no,b.prod_nm
+                        ) c on  a.date = c.date
+        where 1 = 1
+        and coalesce(c.iwh_qty,0) + coalesce(c.owh_qty,0) <![CDATA[ > ]]> 0
+        and substring(a.date,1,7) =  #{procYy}||'-'||#{procYm}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prod'">
+                AND upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+
+    <select id="getMatrProdIoYearList" parameterType="map" resultType="camelMap">
+        select '' as value
+             , '선택' as text
+        union
+        select to_char(a.clos_dt,'YYYY') as value
+        		      , to_char(a.clos_dt,'YYYY')  || '년' as text
+        from matr_stk_clos a
+        where a.used_yn = 'Y'
+        group by to_char(a.clos_dt,'YYYY')
+        union
+        select to_char(a.clos_dt,'YYYY')
+             , to_char(a.clos_dt,'YYYY') || '년'
+        from prod_stk_clos a
+        where a.used_yn = 'Y'
+        group by to_char(a.clos_dt,'YYYY')
+        order by value
+    </select>
+
+    <select id="getCurrentYear" parameterType="map" resultType="camelMap">
+        select '' as value
+             , '선택' as text
+        union
+        select to_char(now(),'YYYY') as value
+        	 , to_char(now(),'YYYY')  || '년' as text
+    </select>
+
+    <select id="getMatrStockByPos" parameterType="map" resultType="camelMap">
+         select sum(matr_qty) as stk_qty
+           from matr_pos
+           where matr_no = #{matrNo} and wh_no = #{whNo} and matr_stat = #{matrStat} and used_yn = 'Y'
+        where wh_no = #{whNo} and matr_no = #{matrNo}
+    </select>
+
+
+    <update id="renewalMatrStock" parameterType="map">
+        update matr_stk
+        set stk_qty = (select sum(matr_qty)
+                       from matr_pos
+                       where matr_no = #{matrNo} and wh_no = #{whNo} and matr_stat = #{matrStat} and used_yn = 'Y'
+                       )
+            , stat_trf_dt = now()
+        where wh_no = #{whNo} and matr_no = #{matrNo}
+    </update>
+
+    <update id="renewalMatrStockPos" parameterType="map">
+        select sum(matr_qty) from matr_pos where wh_no = #{whNo} and matr_no = #{matrNo} and stair_idx = #{stairIdx} and col_idx = #{col_idx} and row_idx = #[row_idx]
+    </update>
+
+    <select id="getMatrStockList" parameterType="map"  resultType="camelMap">
+        select a.matr_no
+             , b.bar_code_img
+             , a.row_idx
+             , a.col_idx
+             , a.stair_idx
+             , b.mess --단위중량
+             , a.matr_qty --적재용량
+             , 'http://'||#{serverIp} || ':' || #{portNo} || '/static/img/' || a.matr_qty::varchar || '.png' as bar_code_url
+        from matr_pos a join matr_info b on a.matr_no = b.matr_no
+        where a.matr_no = #{matrNo}
+          and a.stair_idx  = #{stairIdx}
+          and a.wh_no = #{whNo}
+    </select>
+
+    <select id="getMatrStockListAndLayout" parameterType="map" resultType="camelMap">
+        select a.stair_idx
+             , a.col_idx
+             , a.row_idx
+             , sum(a.matr_qty) as stk_qty
+             , a.matr_no
+             , a.wh_no
+             , c.max_stair
+             , c.max_row
+             , c.max_col
+        from matr_pos a join matr_stk b on a.matr_no = b.matr_no
+                        join wh_info c on a.wh_no = c.wh_no
+        where a.stair_idx * a.row_idx * a.col_idx != 0
+          and a.matr_no = #{matr_no}
+          and a.wh_no = #{wh_no}
+        group by a.stair_idx , a.col_idx , a.row_idx , a.matr_no, a.wh_no , c.max_stair , c.max_col , c.max_row
+    </select>
+
+    <select id="getMatrStockListAndLayoutCount" parameterType="map" resultType="int">
+        select count(a.matr_no)
+        from matr_pos a join matr_stk b on a.matr_no = b.matr_no
+                        join wh_info c on a.wh_no = c.wh_no
+        where a.stair_idx * a.row_idx * a.col_idx != 0
+          and a.matr_no = #{matr_no}
+          and a.wh_no = #{wh_no}
+        group by a.stair_idx , a.col_idx , a.row_idx , a.matr_no, a.wh_no , c.max_stair , c.max_col , c.max_row
+    </select>
+
+    <update id="updateMatrPos" parameterType="map">
+        update matr_pos a set matr_qty = matr_qty - #{owh_qty}
+        where a.stair_idx = #{stair_idx}
+          and a.row_idx = #{row_idx}
+          and a.col_idx = #{col_idx}
+          and a.matr_no = #{matr_no}
+          and a.wh_no = #{wh_no}
+    </update>
+
+    <update id="updateMatrStk" parameterType="map">
+        update matr_stl a set stk_qty = stk_qty - #{owh_qty}
+        where a.matr_no = #{matr_no}
+          and a.wh_no = #{wh_no}
+    </update>
+
+    <select id="getCheckMatrIwhListCount" parameterType="map" resultType="int">
+        select count(iwh_no)
+        from matr_iwh
+        where matr_no = #{matrNo}
+          and purs_no = #{pursNo}
+          and purs_matr_no = #{pursMatrNo}
+          and coalesce(retn_qty, 0) = 0
+          and used_yn = 'Y'
+    </select>
+
+    <select id="getMatrStockByIo" parameterType="map" resultType="camelMap" >
+        select  iwh_qty - owh_qty as stk_qty
+         from ( select coalesce (sum(owh_qty),0) as owh_qty from matr_owh where wh_no = #{wh_no} and matr_no= #{matr_no} and used_yn = 'Y') as owh_qty
+            , ( select coalesce (sum(iwh_qty),0) as iwh_qty from matr_iwh where wh_no = #{wh_no} and matr_no= #{matr_no} and used_yn = 'Y') as iwh_qty
+    </select>
+
+    <update id="renewalMatrStockByIOwh" parameterType="map">
+        update matr_stk
+        set stk_qty = (  select  iwh_qty - owh_qty
+                         from ( select coalesce (sum(owh_qty),0) as owh_qty from matr_owh where wh_no = #{wh_no} and matr_no= #{matr_no}) as owh_qty
+                            , ( select coalesce (sum(iwh_qty),0) as iwh_qty from matr_iwh where wh_no = #{wh_no} and matr_no= #{matr_no}) as iwh_qty
+        )
+          , stat_trf_dt = now()
+        where wh_no = #{wh_no} and matr_no = #{matr_no}
+    </update>
+
+    <update id="renewalProdStockByIOwh" parameterType="map">
+        update prod_stk
+        set stk_qty = (  select  iwh_qty - owh_qty
+                         from ( select coalesce (sum(owh_qty),0) as owh_qty from prod_owh where wh_no = #{wh_no} and matr_no= #{prod_no}) as owh_qty
+                            , ( select coalesce (sum(iwh_qty),0) as iwh_qty from prod_iwh where wh_no = #{wh_no} and matr_no= #{prod_no}) as iwh_qty
+        )
+          , stat_trf_dt = now()
+        where wh_no = #{wh_no} and prod_no = #{prod_no}
+    </update>
+
+    <!--수불대장/자재-->
+    <select id="getMatrStkClosList" parameterType="map" resultType="camelMap" >
+        select distinct a.wh_no --창고번호
+             , e.wh_nm  --창고명
+             , a.matr_no --원자재번호
+             , b.matr_nm --원자재명
+             , g.matr_stk_clos_no --마감번호
+             , to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일자
+             , floor (coalesce (d.stk_qty,0)) as jb_stk_qty --전일재고
+             , floor (coalesce (g.iwh_qty,0)) as iwh_qty --자재입고
+             , floor (coalesce (g.owh_qty,0)) as owh_qty --자재출고
+             , floor (coalesce (g.stk_qty,0)) as stk_qty --자재재고
+             , case when coalesce(f.iwh_qty,0) + coalesce (k.owh_qty,0) > 0 then '재고조정발생'
+                    when h.stk_qty is null then '전일자료이관'
+                    else '변경이력발생' --금일재고변경이력
+                end as stk_tp --재고발생사유
+        from matr_stk a  join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                         join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y'
+                                                                   and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                         join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
+                         left join ( select a.wh_no
+                                         , a.matr_no
+                                         , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+                                         , coalesce (sum(stk_qty),0) as  stk_qty
+                                     from matr_stk_clos a
+                                     where to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD')
+                                     group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
+                                    ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
+                         left join ( select matr_no, wh_no, sum(iwh_qty) as iwh_qty
+                                    from matr_iwh
+                                    where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                    and used_yn = 'Y'
+                                    group by wh_no,matr_no
+                                   ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
+                         left join ( select matr_no, wh_no, sum(owh_qty) as owh_qty
+                                    from matr_owh
+                                    where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                    and used_yn = 'Y'
+                                    group by wh_no,matr_no
+                                    ) k on a.wh_no = k.wh_no and a.matr_no = k.matr_no
+                         left join ( select a.stk_qty
+                                    , a.matr_no
+                                    , a.wh_no
+                                    from matr_stk_hstr a
+                                    where chng_no = ( select max(k.chng_no)
+                                                        from matr_stk_hstr k
+                                                       where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                                         and a.matr_no = k.matr_no
+                                                         and a.wh_no = k.wh_no
+                                                    )
+                                    ) h on a.matr_no = h.matr_no and a.wh_no  = h.wh_no
+        where 1 = 1
+        <if test="findSz != null and findSz != ''">
+           AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        </if>
+        order by clos_dt,matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getMatrStkClosListCount" parameterType="map" resultType="int" >
+        select count(a.matr_stk_clos_no)
+        from (
+                select distinct g.matr_stk_clos_no
+                  from matr_stk a  join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                   join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y'
+                                                                             and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                   join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
+                              left join ( select a.wh_no
+                                                , a.matr_no
+                                                , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+                                                , coalesce (sum(stk_qty),0) as  stk_qty
+                                            from matr_stk_clos a
+                                            where to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD')
+                                            group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
+                                        ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
+                              left join ( select matr_no, wh_no, sum(iwh_qty) as iwh_qty
+                                            from matr_iwh
+                                            where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                            and used_yn = 'Y'
+                                            group by wh_no,matr_no
+                                        ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
+                              left join ( select matr_no, wh_no, sum(owh_qty) as owh_qty
+                                            from matr_owh
+                                            where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                            and used_yn = 'Y'
+                                            group by wh_no,matr_no
+                                         ) k on a.wh_no = k.wh_no and a.matr_no = k.matr_no
+                              left join ( select a.stk_qty
+                                                , a.matr_no
+                                                , a.wh_no
+                                            from matr_stk_hstr a
+                                            where chng_no = ( select max(k.chng_no)
+                                                                from matr_stk_hstr k
+                                                                where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                                                and a.matr_no = k.matr_no
+                                                                and a.wh_no = k.wh_no
+                                                             )
+                                        ) h on a.matr_no = h.matr_no and a.wh_no  = h.wh_no
+                  where 1 = 1
+                <if test="findSz != null and findSz != ''">
+                    AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+        ) a
+    </select>
+
+    <!--수불대장/제품-->
+    <select id="getProdStkClosList" parameterType="map" resultType="camelMap" >
+        select g.prod_stk_clos_no --마감번호
+              , to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일자
+              , a.wh_no
+              , f.wh_nm
+              , a.prod_no
+              , c.prod_nm      --품목제조보고 품명
+              , c.erp_prod_nm  --ERP 품명
+              , floor(coalesce (g.iwh_qty,0)) as iwh_qty --재품입고
+              , floor(coalesce (g.owh_qty,0)) as owh_qty --재품출고
+              , floor(coalesce (g.stk_qty,0)) as stk_qty --마감일자기준 재품최종재고
+              , floor(coalesce (d.stk_qty,0)) as jb_stk_qty --전일재고
+              , case when coalesce(e.iwh_qty,0) + coalesce (k.owh_qty,0) > 0 then '재고조정발생'
+                     when h.stk_qty is null then '전일자료이관'
+                     else '변경이력발생' --금일재고변경이력
+                end as stk_tp --재고발생사유
+        from prod_stk  a     join wh_info f on a.wh_no = f.wh_no and f.used_yn   = 'Y'
+                             join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
+                                                                       and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                             join prod_info c on a.prod_no = c.prod_no
+                        left join ( select a.wh_no
+                                         , a.prod_no
+                                         , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+                                         , coalesce (sum(stk_qty),0) as  stk_qty
+                                    from prod_stk_clos a
+                                    where to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD')
+                                    group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
+                                  ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+                        left join ( select prod_no, wh_no, sum(iwh_qty) as iwh_qty
+                                    from prod_iwh
+                                    where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                    and used_yn = 'Y'
+                                    group by wh_no,prod_no
+                                  ) e on a.wh_no = e.wh_no and a.prod_no = e.prod_no
+                        left join ( select prod_no, wh_no, sum(owh_qty) as owh_qty
+                                    from prod_owh
+                                    where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                    and used_yn = 'Y'
+                                    group by wh_no,prod_no
+                                  ) k on a.wh_no = k.wh_no and a.prod_no = k.prod_no
+                        left join ( select a.stk_qty
+                                         , a.prod_no
+                                         , a.wh_no
+                                    from prod_stk_hstr a
+                                    where chng_no = ( select max(k.chng_no)
+                                                      from prod_stk_hstr k
+                                                      where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                                      and a.prod_no = k.prod_no
+                                                      and a.wh_no = k.wh_no
+                                                    )
+                                    ) h on a.prod_no = h.prod_no and a.wh_no  = h.wh_no
+        where  1 = 1
+        <if test="findSz != null and findSz != ''">
+           AND (   upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                or upper(replace(c.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                )
+       </if>
+        order by prod_nm,clos_dt
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getProdStkClosListCount" parameterType="map" resultType="int" >
+        select count(a.prod_stk_clos_no)
+        from (
+                select g.prod_stk_clos_no --마감번호
+                from prod_stk a join wh_info f on a.wh_no = f.wh_no and f.used_yn = 'Y'
+                                join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
+                                                                               and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                join prod_info c on a.prod_no = c.prod_no
+                                left join ( select a.wh_no
+                                                 , a.prod_no
+                                                 , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+                                                 , coalesce (sum(stk_qty),0) as  stk_qty
+                                            from prod_stk_clos a
+                                            where to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD')
+                                            group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
+                                            ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+
+                                left join ( select prod_no, wh_no, sum(iwh_qty) as iwh_qty
+                                            from prod_iwh
+                                            where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                            and used_yn = 'Y'
+                                            group by wh_no,prod_no
+                                          ) e on a.wh_no = e.wh_no and a.prod_no = e.prod_no
+                                left join ( select prod_no, wh_no, sum(owh_qty) as owh_qty
+                                            from prod_owh
+                                            where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                            and used_yn = 'Y'
+                                            group by wh_no,prod_no
+                                          ) k on a.wh_no = k.wh_no and a.prod_no = k.prod_no
+                                left join ( select a.stk_qty
+                                                 , a.prod_no
+                                                 , a.wh_no
+                                            from prod_stk_hstr a
+                                            where chng_no = ( select max(k.chng_no)
+                                                                from prod_stk_hstr k
+                                                                where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                                                and a.prod_no = k.prod_no
+                                                                and a.wh_no = k.wh_no
+                                                            )
+                                            ) h on a.prod_no = h.prod_no and a.wh_no  = h.wh_no
+                where  1 = 1
+                <if test="findSz != null and findSz != ''">
+                    AND (   upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                         or upper(replace(c.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    )
+                </if>
+        ) a
+    </select>
+
+    <!--수불대장/총괄장;사용중지-->
+    <select id="getStkClosList" parameterType="map" resultType="camelMap" >
+        select a.stk_clos_no
+             , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+              <if test="ioTp != null and ioTp == 'matr'">
+             , a.matr_no as mp_no
+             , b.matr_nm as mp_nm
+             , coalesce (a.matr_iwh_qty,0) as iwh_qty --자재입고
+             , coalesce (a.matr_owh_qty,0) as owh_qty --자재출고
+             , coalesce (a.matr_stk_qty,0) as stk_qty --자재재고
+             , coalesce (d.matr_stk_qty,0) as jb_stk_qty --전일재고
+              </if>
+
+              <if test="ioTp != null and ioTp == 'prod'">
+             , a.prod_no as mp_no
+             , case when c.prod_nm = c.erp_prod_nm then c.prod_nm else concat (c.prod_nm,'(',c.erp_prod_nm,')')  end as mp_nm
+             , coalesce (a.prod_iwh_qty,0) as iwh_qty --재품입고
+             , coalesce (a.prod_owh_qty,0) as owh_qty --재품출고
+             , coalesce (a.prod_stk_qty,0) as stk_qty --재품재고
+             , coalesce (e.prod_stk_qty,0) as jb_stk_qty --전일재고
+              </if>
+        from stk_clos a left join matr_info b on a.matr_no = b.matr_no
+                        left join prod_info c on a.prod_no = c.prod_no
+                        left join ( select matr_no,to_char(clos_dt,'YYYY-MM-DD') as clos_dt ,coalesce (sum(matr_stk_qty),0) as  matr_stk_qty
+                                    from stk_clos
+                                    where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() - '1 day' ::interval,'YYYY-MM-DD')
+                                    group by matr_no,to_char(clos_dt,'YYYY-MM-DD')
+                        ) d on a.matr_no = d.matr_no
+                        left join ( select prod_no,to_char(clos_dt,'YYYY-MM-DD') as clos_dt ,coalesce (sum(prod_stk_qty),0) as  prod_stk_qty
+                                    from stk_clos
+                                    where to_char(clos_dt,'YYYY-MM-DD') = to_char(clos_dt - '1 day' ::interval,'YYYY-MM-DD')
+                                    group by prod_no,to_char(clos_dt,'YYYY-MM-DD')
+                        ) e on a.prod_no = e.prod_no
+        where to_char(a.clos_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        <if test="findSz != null and findSz != ''">
+            <if test="ioTp != null and findTp == 'matr'">
+                AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="ioTp != null and findTp == 'prod'">
+                AND (     upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                      or upper(replace(c.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    )
+            </if>
+        </if>
+        order by clos_dt,matr_nm,prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getStkClosListCount" parameterType="map" resultType="int" >
+        select count(a.stk_clos_no)
+        from (
+               select a.stk_clos_no
+               from stk_clos a  left join matr_info b on a.matr_no = b.matr_no
+                                left join prod_info c on a.prod_no = c.prod_no
+
+                                left join ( select matr_no,to_char(clos_dt,'YYYY-MM-DD') as clos_dt ,coalesce (sum(matr_stk_qty),0) as  matr_stk_qty
+                                            from stk_clos
+                                            where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() - '1 day' ::interval,'YYYY-MM-DD')
+                                            group by matr_no,to_char(clos_dt,'YYYY-MM-DD')
+                                ) d on a.matr_no = d.matr_no
+
+                                left join ( select prod_no,to_char(clos_dt,'YYYY-MM-DD') as clos_dt ,coalesce (sum(prod_stk_qty),0) as  prod_stk_qty
+                                            from stk_clos
+                                            where to_char(clos_dt,'YYYY-MM-DD') = to_char(clos_dt - '1 day' ::interval,'YYYY-MM-DD')
+                                            group by prod_no,to_char(clos_dt,'YYYY-MM-DD')
+                                ) e on a.prod_no = e.prod_no
+
+               where to_char(a.clos_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+               <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'matr'">
+                        AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                    <if test="findTp != null and findTp == 'prod'">
+                        AND (     upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                              or upper(replace(c.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            )
+                    </if>
+               </if>
+        ) a
+    </select>
+    <!--수불대장/총괄장-자재입고 상세 팝업-->
+    <select id="getStkClosMatrIwhDetlHstr" parameterType="map" resultType="camelMap" >
+        select a.matr_no --자재번호
+             , a.matr_nm --자재명
+             , b.iwh_no --입고번호
+             , b.cmpy_no as purs_cmpy_no --구매처번호
+             , b.purs_no --구매번호
+             , f.ord_no --주문번호
+             , d.cmpy_no --주문고객번호
+             , g.cmpy_nm --주문고객명
+             , h.prod_nm --주문상품명
+             , b.iwh_qty --입고수량
+             , to_char(d.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+             , to_char(c.purs_dt,'YYYY-MM-DD') as purs_dt --자재구매일자
+             , to_char(b.iwh_dt,'YYYY-MM-DD') as iwh_dt --자재납품일자
+        from matr_info a join matr_iwh b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                        and to_char(b.iwh_dt,'YYYY-MM-DD') = #{procDt}
+                         join purs_info c on b.purs_no  = c.purs_no
+                    left join ord_info d on c.ord_no = d.ord_no --and d.used_yn  'Y'
+                    left join ord_prod e on d.ord_no = e.ord_no and e.used_yn  = 'Y'
+                    left join make_indc f on d.ord_no = f.ord_no and f.par_indc_no  = 0 and f.used_yn = 'Y'
+                    left join cmpy_info g on d.cmpy_no = g.cmpy_no
+                    left join prod_info h on e.prod_no = h.prod_no
+        where 1 = 1
+        <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo} </if>
+        <if test="prodNo != null and prodNo != ''"> AND e.prod_no = #{prodNo} </if>
+        order by matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getStkClosMatrIwhDetlHstrCount" parameterType="map" resultType="int" >
+        select count(a.matr_no)
+        from (
+                select a.matr_no --자재번호
+                from matr_info a join matr_iwh b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                                and to_char(b.iwh_dt,'YYYY-MM-DD') = #{procDt}
+                                 join purs_info c on b.purs_no  = c.purs_no
+                            left join ord_info d on c.ord_no = d.ord_no --and d.used_yn  'Y'
+                            left join ord_prod e on d.ord_no = e.ord_no and e.used_yn  = 'Y'
+                            left join make_indc f on d.ord_no = f.ord_no and f.par_indc_no  = 0 and f.used_yn = 'Y'
+                            left join cmpy_info g on d.cmpy_no = g.cmpy_no
+                            left join prod_info h on e.prod_no = h.prod_no
+                where 1 = 1
+                <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo} </if>
+                <if test="prodNo != null and prodNo != ''"> AND e.prod_no = #{prodNo} </if>
+        ) a
+    </select>
+    <!--수불대장/총괄장-자재출고고 상세 팝업-->
+    <select id="getStkClosMatrOwhDetlHstr" parameterType="map" resultType="camelMap" >
+        select a.matr_no --자재번호
+             , a.matr_nm --자재명
+             , b.owh_no --자재출고번호
+             , f.ord_no --주문번호
+             , d.cmpy_no --주문고객번호
+             , g.cmpy_nm --주문고객명
+             , h.prod_nm --주문상품명
+             , b.owh_qty --입고수량
+             , to_char(d.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+             , to_char(c.indc_dt,'YYYY-MM-DD') as indc_dt --작업지시일자
+             , to_char(b.owh_dt,'YYYY-MM-DD') as iwh_dt --자재출고일자
+        from matr_info a join matr_owh b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+            and to_char(b.owh_dt,'YYYY-MM-DD') = #{procDt}
+                         left join make_indc c on b.indc_no = c.indc_no and c.par_indc_no  = 0
+                         left join ord_info d on c.ord_no = d.ord_no --and d.used_yn  'Y'
+                         left join ord_prod e on d.ord_no = e.ord_no --and e.used_yn  = 'Y'
+                         left join make_indc f on d.ord_no = f.ord_no and f.par_indc_no  = 0 --and f.used_yn = 'Y'
+                         left join cmpy_info g on d.cmpy_no = g.cmpy_no
+                         left join prod_info h on e.prod_no = h.prod_no
+        where 1 = 1
+        <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo} </if>
+        <if test="prodNo != null and prodNo != ''"> AND e.prod_no = #{prodNo} </if>
+        order by iwh_dt desc , matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getStkClosMatrOwhDetlHstrCount" parameterType="map" resultType="int" >
+        select count(a.matr_no)
+        from (
+                 select a.matr_no --자재번호
+                 from matr_info a join matr_owh b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                               and to_char(b.owh_dt,'YYYY-MM-DD') = '2021-04-16'
+                             left join make_indc c on b.indc_no = c.indc_no and c.par_indc_no  = 0
+                             left join ord_info d on c.ord_no = d.ord_no --and d.used_yn  'Y'
+                             left join ord_prod e on d.ord_no = e.ord_no and e.used_yn  = 'Y'
+                             left join make_indc f on d.ord_no = f.ord_no and f.par_indc_no  = 0 and f.used_yn = 'Y'
+                             left join cmpy_info g on d.cmpy_no = g.cmpy_no
+                             left join prod_info h on e.prod_no = h.prod_no
+                 where 1 = 1
+                <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo} </if>
+                <if test="prodNo != null and prodNo != ''"> AND e.prod_no = #{prodNo} </if>
+             ) a
+    </select>
+
+    <!--수불대장/총괄장-상품입고 상세 팝업-->
+    <select id="getStkClosProdIwhDetlHstr" parameterType="map" resultType="camelMap" >
+        select a.prod_no --품번
+             , a.prod_nm --품명
+             , coalesce (b.wh_no,0) as wh_no --창고번호
+             , f.ord_no --주문번호
+             , to_char(f.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+             , to_char(f.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --납기요청일자
+             , to_char(b.iwh_dt,'YYYY-MM-DD')  as iwh_dt --상품일고일
+             , round(coalesce(b.iwh_qty,0)) as iwh_qty --입고수량
+             , to_char(f.dlv_dt,'YYYY-MM-DD')  as dlv_dt --납품일자
+             , g.cmpy_no --고객번호
+             , g.cmpy_nm --고객명
+        from prod_info a join prod_iwh b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+            and to_char(b.iwh_dt,'YYYY-MM-DD') =  #{procDt}
+                         join make_indc e on a.prod_no = e.prod_no and e.par_indc_no  = 0 --and e.proc_cd  = 999
+                         left join ord_info  f on e.ord_no = f.ord_no
+                         left join cmpy_info g on f.cmpy_no  = g.cmpy_no
+        where a.used_yn =  'Y'
+        <if test="prodNo != null and prodNo != ''"> AND a.prod_no = #{prodNo} </if>
+        order by iwh_dt desc , prod_nm, cmpy_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getStkClosProdIwhDetlHstrCount" parameterType="map" resultType="int" >
+        select count(a.prod_no)
+        from (
+                 select a.prod_no --품번
+                 from prod_info a join prod_iwh b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                     and to_char(b.iwh_dt,'YYYY-MM-DD') =  '2021-04-16'
+                                  join make_indc e on a.prod_no = e.prod_no and e.par_indc_no  = 0 --and e.proc_cd  = 999
+                                  left join ord_info  f on e.ord_no = f.ord_no
+                                  left join cmpy_info g on f.cmpy_no  = g.cmpy_no
+                 where a.used_yn =  'Y'
+                <if test="prodNo != null and prodNo != ''"> AND a.prod_no = #{prodNo} </if>
+        ) a
+    </select>
+
+    <!--수불대장/총괄장-상품출고 상세 팝업-->
+    <select id="getStkClosProdOwhDetlHstr" parameterType="map" resultType="camelMap" >
+        select a.prod_no --품번
+             , a.prod_nm --품명
+             , coalesce (b.wh_no,0) as wh_no --창고번호
+             , round(coalesce(b.owh_qty,0)) as owh_qty --출고수량
+             , f.ord_no --주문번호
+             , to_char(f.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+             , to_char(f.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --납기요청일자
+             , to_char(b.owh_dt,'YYYY-MM-DD')  as owh_dt --상품출고일자
+             , to_char(f.dlv_dt,'YYYY-MM-DD')  as dlv_dt --납품일자
+             , g.cmpy_no --고객번호
+             , g.cmpy_nm --고객명
+        from prod_info a join prod_owh b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                                       and to_char(b.owh_dt,'YYYY-MM-DD') =  #{procDt}
+                         join make_indc e on a.prod_no = e.prod_no and e.par_indc_no  = 0 --and e.proc_cd  = 999
+                    left join ord_info  f on e.ord_no = f.ord_no
+                    left join cmpy_info g on f.cmpy_no  = g.cmpy_no
+        where a.used_yn =  'Y'
+        <if test="prodNo != null and prodNo != ''"> AND a.prod_no = #{prodNo} </if>
+        order by dlv_req_dt desc , prod_nm, cmpy_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getStkClosProdOwhDetlHstrCount" parameterType="map" resultType="int" >
+        select count(a.prod_no)
+        from (
+                 select a.prod_no --품번
+                 from prod_info a join prod_owh b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                                                 and to_char(b.owh_dt,'YYYY-MM-DD') =  #{procDt}
+                                  join make_indc e on a.prod_no = e.prod_no and e.par_indc_no  = 0 --and e.proc_cd  = 999
+                             left join ord_info  f on e.ord_no = f.ord_no
+                             left join cmpy_info g on f.cmpy_no  = g.cmpy_no
+                 where a.used_yn =  'Y'
+                <if test="prodNo != null and prodNo != ''"> AND a.prod_no = #{prodNo} </if>
+        ) a
+    </select>
+
+    <select id="getMatrForRealStkList" parameterType="map" resultType="camelMap">
+        select a.matr_no --자재번호
+             , a.matr_nm --자재명
+             , coalesce (c.stk_qty,0) as stk_qty --현재고
+        from matr_info a join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        <choose>
+            <when test="findTp != null and findTp == 'en'">
+                and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
+            </when>
+            <when test="findTp != null and findTp == 'no'">
+                and a.matr_nm like '%' || #{findSz} || '%'
+            </when>
+            <otherwise>
+                AND case when a.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
+                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
+                when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                else                                'ㅎ'
+                end = #{findSz}
+            </otherwise>
+        </choose>
+        order by matr_nm
+    </select>
+    <select id="getMatrForRealStkListCount" parameterType="map" resultType="int">
+        select count(a.matr_no)
+          from (
+                    select a.matr_no --자재번호
+                    from matr_info a join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                    where a.used_yn = 'Y'
+                    <choose>
+                        <when test="findTp != null and findTp == 'en'">
+                            and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
+                        </when>
+                        <when test="findTp != null and findTp == 'no'">
+                            and a.matr_nm like '%' || #{findSz} || '%'
+                        </when>
+                        <otherwise>
+                            AND case when a.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
+                            when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
+                            when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                            when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                            when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                            when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                            when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                            when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                            when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                            when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                            when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                            when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                            when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                            when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                            when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                            else                                'ㅎ'
+                            end = #{findSz}
+                        </otherwise>
+                    </choose>
+                    order by matr_nm
+                ) a
+
+    </select>
+
+    <select id="getProdForRealStkList" parameterType="map" resultType="camelMap">
+        select a.prod_no --자재번호
+             , a.prod_nm --자재명
+             , coalesce (c.stk_qty,0) as stk_qty --현재고
+        from prod_info a join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        <choose>
+            <when test="findTp != null and findTp == 'en'">
+                and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
+            </when>
+            <when test="findTp != null and findTp == 'no'">
+                and a.prod_nm like '%' || #{findSz} || '%'
+            </when>
+            <otherwise>
+                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
+                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                else                                'ㅎ'
+                end = #{findSz}
+            </otherwise>
+        </choose>
+        order by prod_nm
+    </select>
+    <select id="getProdForRealStkListCount" parameterType="map" resultType="int">
+        select count(a.prod_no)
+        from (
+                select a.prod_no --자재번호
+                from prod_info a join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                <choose>
+                    <when test="findTp != null and findTp == 'en'">
+                        and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
+                    </when>
+                    <when test="findTp != null and findTp == 'no'">
+                        and a.prod_nm like '%' || #{findSz} || '%'
+                    </when>
+                    <otherwise>
+                        AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
+                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                        when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                        when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                        when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                        when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                        when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                        when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                        when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                        when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                        when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                        when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                        when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                        when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                        when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                        else                                'ㅎ'
+                        end = #{findSz}
+                    </otherwise>
+                </choose>
+                order by prod_nm
+        ) a
+    </select>
+
+
+    <delete id="initMatrClosStk" parameterType="map">
+        delete from matr_stk_clos where to_char(clos_dt,'YYYY-MM-DD') = substring(#{procDt},1,10)
+    </delete>
+
+    <delete id="initProdClosStk" parameterType="map">
+        delete from prod_stk_clos where to_char(clos_dt,'YYYY-MM-DD') = substring(#{procDt},1,10)
+    </delete>
+
+    <!--자재마감-->
+    <select id="getMatrClosList" parameterType="map"  resultType="camelMap">
+        select a.matr_no --자재번호
+             , f.matr_nm --자재명
+             , coalesce (a.wh_no,0) as wh_no --자재창고번호
+             , coalesce (b.iwh_qty,0) as iwh_qty --금일입고수량
+             , coalesce (c.owh_qty,0) as owh_qty --금일출고수량
+             , get_clos_stk_qty(  coalesce(g.stk_qty,0)::numeric,coalesce (b.iwh_qty,0)::numeric,coalesce (c.owh_qty,0)::numeric,coalesce(k.stk_qty,0)::numeric) as stk_qty
+        from matr_stk a join matr_info f on a.matr_no = f.matr_no
+                        left join ( select matr_no, wh_no, sum(iwh_qty) as iwh_qty
+                                    from matr_iwh
+                                    where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{procDt},1,10)
+                                      and used_yn = 'Y'
+                                    group by wh_no,matr_no
+        ) b on a.wh_no = b.wh_no and a.matr_no = b.matr_no
+                        left join ( select matr_no, wh_no, sum(owh_qty) as owh_qty
+                                    from matr_owh
+                                    where to_char(owh_dt,'YYYY-MM-DD') = substring(#{procDt},1,10)
+                                      and used_yn = 'Y'
+                                    group by wh_no,matr_no
+        ) c on a.wh_no = c.wh_no and a.matr_no = c.matr_no
+                        left join ( select wh_no, matr_no, sum(iwh_qty) as iwh_qty
+                                    from matr_iwh
+                                    where used_yn = 'Y'
+                                      and to_char(iwh_dt,'YYYY-MM-DD')  <![CDATA[ <= ]]> substring(#{procDt},1,10)
+                                    group by wh_no, matr_no
+                                   ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
+                        left join ( select wh_no, matr_no, sum(owh_qty) as owh_qty
+                                    from matr_owh
+                                    where used_yn = 'Y'
+                                      and to_char(owh_dt,'YYYY-MM-DD') <![CDATA[ <= ]]> substring(#{procDt},1,10)
+                                    group by wh_no, matr_no
+                                  ) e on a.wh_no = e.wh_no and a.matr_no = e.matr_no
+                        left join ( select a.stk_qty
+                                         , a.matr_no
+                                         , a.wh_no
+                                    from matr_stk_hstr a
+                                    where chng_no = (select max(k.chng_no)
+                                                     from matr_stk_hstr k
+                                                     where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{procDt},1,10)
+                                                       and a.matr_no = k.matr_no
+                                                       and a.wh_no = k.wh_no
+                                                    )
+                                    ) g on a.matr_no = g.matr_no and a.wh_no  = g.wh_no
+                        left join ( select a.stk_qty
+                                         , a.matr_no
+                                         , a.wh_no
+                                    from matr_stk_clos a
+                                    where a.matr_stk_clos_no = ( select max(k.matr_stk_clos_no)
+                                                                 from matr_stk_clos k
+                                                                 where k.used_yn = 'Y'
+                                                                   and to_char(k.clos_dt,'YYYY-MM-DD') = to_char(substring(#{procDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD')
+                                                                   and a.matr_no = k.matr_no
+                                                                   and a.wh_no = k.wh_no
+                                                               )
+                                    ) k on a.matr_no = k.matr_no and a.wh_no  = k.wh_no
+        where a.used_yn =  'Y'
+          and   coalesce (b.iwh_qty,0)
+                    + coalesce(c.owh_qty,0)
+                    + coalesce(d.iwh_qty,0)
+                    + coalesce(e.owh_qty,0)
+                    + coalesce(g.stk_qty,0)
+                    + coalesce(k.stk_qty,0) <![CDATA[ <> ]]>  0
+        order by matr_no,wh_no
+    </select>
+    <!--제품마감-->
+    <select id="getProdClosList" parameterType="map"  resultType="camelMap">
+        select a.prod_no --제품번호
+             , f.prod_nm --제품명
+             , coalesce (a.wh_no,0) as wh_no --제품창고번호
+             , coalesce (b.iwh_qty,0) as iwh_qty --금일입고수량
+             , coalesce (c.owh_qty,0) as owh_qty --금일출고수량
+             , coalesce(k.stk_qty,0) as jb_stk_qty --전일재고
+             , coalesce(g.stk_qty,0) as cu_stk_hstr --금일재고변경이력
+             , get_clos_stk_qty(  coalesce(g.stk_qty,0)::numeric,coalesce (b.iwh_qty,0)::numeric,coalesce (c.owh_qty,0)::numeric,coalesce(k.stk_qty,0)::numeric) as stk_qty
+        from prod_stk a join prod_info f on a.prod_no = f.prod_no
+                        left join ( select prod_no, wh_no, sum(iwh_qty) as iwh_qty
+                                    from prod_iwh
+                                    where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{procDt},1,10)
+                                      and used_yn = 'Y'
+                                    group by wh_no,prod_no
+                                  ) b on a.wh_no = b.wh_no and a.prod_no = b.prod_no
+                        left join ( select prod_no, wh_no, sum(owh_qty) as owh_qty
+                                    from prod_owh
+                                    where to_char(owh_dt,'YYYY-MM-DD') = substring(#{procDt},1,10)
+                                      and used_yn = 'Y'
+                                    group by wh_no,prod_no
+                                   ) c on a.wh_no = c.wh_no and a.prod_no = c.prod_no
+                        left join ( select wh_no, prod_no, sum(iwh_qty) as iwh_qty
+                                    from prod_iwh
+                                    where used_yn = 'Y'
+                                      and to_char(iwh_dt,'YYYY-MM-DD') <![CDATA[ <= ]]> substring(#{procDt},1,10)
+                                    group by wh_no, prod_no
+                                  ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+                        left join ( select wh_no, prod_no, sum(owh_qty) as owh_qty
+                                    from prod_owh
+                                    where used_yn = 'Y'
+                                      and to_char(owh_dt,'YYYY-MM-DD') <![CDATA[ <= ]]> substring(#{procDt},1,10)
+                                    group by wh_no, prod_no
+                                   )  e on a.wh_no = e.wh_no and a.prod_no = e.prod_no
+                        left join ( select a.stk_qty
+                                         , a.prod_no
+                                         , a.wh_no
+                                    from prod_stk_hstr a
+                                    where chng_no = ( select max(k.chng_no)
+                                                      from prod_stk_hstr k
+                                                      where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{procDt},1,10)
+                                                      and a.prod_no = k.prod_no
+                                                      and a.wh_no = k.wh_no
+                                                     )
+                                    ) g on a.prod_no = g.prod_no and a.wh_no  = g.wh_no
+                        left join ( select a.stk_qty
+                                         , a.prod_no
+                                         , a.wh_no
+                                    from prod_stk_clos a
+                                    where a.prod_stk_clos_no = ( select max(k.prod_stk_clos_no)
+                                                                 from prod_stk_clos k
+                                                                 where k.used_yn = 'Y'
+                                                                   and to_char(k.clos_dt,'YYYY-MM-DD') = to_char(substring(#{procDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD')
+                                                                   and a.prod_no = k.prod_no
+                                                                   and a.wh_no = k.wh_no
+                                                                )
+                                    ) k on a.prod_no = k.prod_no and a.wh_no  = k.wh_no
+        where a.used_yn =  'Y'
+          and   coalesce (b.iwh_qty,0)
+              + coalesce(c.owh_qty,0)
+              + coalesce(d.iwh_qty,0)
+              + coalesce(e.owh_qty,0)
+              + coalesce(g.stk_qty,0)
+              + coalesce(k.stk_qty,0) <![CDATA[ <> ]]>  0
+        order by prod_no,wh_no
+    </select>
+    <!--원자재실사재고변경이력-->
+    <select id="getRealStockHstr" parameterType="map"  resultType="camelMap">
+        select a.chng_no --변경이력번호
+             , a.matr_no --자재번호
+             , d.matr_nm --자재명
+             , to_char(coalesce(a.mod_dt,a.reg_dt),'YYYY-MM-HH HH24:MI:SS') as chng_dt --변경일자
+             , a.stk_qty --변경재고
+             , a.chng_resn --변경사유
+             , a.wh_no --창고번호
+             , b.code_nm as chng_resn_nm --변경사유명
+             , c.wh_nm --창고명
+        from matr_stk_hstr a join code_info b on a.chng_resn = b.code_no
+                             join wh_info c on a.wh_no = c.wh_no
+                             join matr_info d on a.matr_no = d.matr_no
+        where a.used_yn = 'Y'
+          and a.matr_no = #{matrNo}
+        order by chng_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getRealStockHstrCount" parameterType="map"  resultType="int">
+        select count(a.chng_no)
+        from (
+                 select a.chng_no
+                 from matr_stk_hstr a join code_info b on a.chng_resn = b.code_no
+                                      join wh_info c on a.wh_no = c.wh_no
+                                      join matr_info d on a.matr_no = d.matr_no
+                 where a.used_yn = 'Y'
+                   and a.matr_no = #{matrNo}
+
+             ) a
+    </select>
+
+</mapper>

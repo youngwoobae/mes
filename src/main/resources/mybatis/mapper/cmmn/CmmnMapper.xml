@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.cmmn.mapper.CmmnMapper">
+    <select id="getCalDateList" parameterType="map"  resultType="camelMap">
+        select to_char(DATE(GENERATE_SERIES(DATE  (substring(#{procDt},1,7) || '-01')
+                        , (date_trunc('MONTH', (substring(replace(#{procDt},'-',''),1,6)||'01')::date) + INTERVAL '1 MONTH - 1 day'),'1 day')),'YYYY-MM-DD') as date
+    </select>
+
+    <select id="getIntervalDate" parameterType="map"  resultType="date">
+        select now() + #{interval} ::interval as after_day
+    </select>
+    <select id="getAuthUserMenuInfo" parameterType="map"  resultType="camelMap">
+        select b.sys_menu_no
+             , coalesce(b.apnd_yn,'-')  as apnd_yn --등록권한
+             , coalesce(b.save_yn,'-')  as save_yn --수정권한
+             , coalesce(b.drop_yn,'-')  as drop_yn --삭제권한
+             , coalesce(b.upload_yn,'-')  as upload_yn --자료업로드권한
+             , coalesce(b.dnload_yn,'-')  as dnload_yn --자료다운로ㄷ권한
+             , coalesce(b.list_prt_yn,'-')  as list_prt_yn --리스트출력권한
+             , coalesce(b.info_prt_yn,'-')  as info_prt_yn --상세내역출력권한
+             , coalesce(b.per_info_lvl,0)  as per_info_lvl --개인정보접근권한
+        from auth_user a join auth_user_menu b on a.auth_user_no = b.auth_user_no and b.sys_menu_no = #{sysMenuNo}
+        where a.user_id = #{userId}
+        and   a.auth_cd = #{authCd}
+    </select>
+
+    <select id="getMakeHstrPreVal" parameterType="map"  resultType="camelMap">
+        select  extract(epoch from to_date(substring(#{dateFr},1,10),'YYYY-MM-DD')) ::integer as start_unix_time --시작일시 unixTime
+               , case when to_char(to_date(substring(#{dateTo},1,10),'YYYY-MM-DD'),'YYYY-MM-DD') >= to_char(now(),'YYYY-MM-DD')
+                      then extract(epoch from now()) ::integer + (3600 * 9) --3600 * 9 = 해당월마지막일자 18:00
+                      else extract(epoch from to_date(substring(#{dateTo},1,10),'YYYY-MM-DD')) ::integer + (3600 * 9)
+                 end
+               - extract(epoch from to_date(substring(#{dateFr},1,10),'YYYY-MM-DD')) ::integer as unix_term --종료일시 - 시작일자의 unixTime
+              , (select max(make_seq) + 1 from sys_menu ) as menu_cnt --처리매뉴 최대 Sequence
+              , (select max(make_seq) + 1 from user_info) as user_cnt --사용자 최대 Sequence
+    </select>
+
+    <select id="getWeekIdxByUnixTime" parameterType="map"  resultType="int">
+        SELECT EXTRACT(ISODOW FROM to_timestamp(#{procUnixTime}))
+    </select>
+
+    <select id="getComboWh" resultType="camelMap" parameterType="camelMap">
+        /* 창고목록 (cmmnMapper.getComboWh) */
+        select 0    as seq
+             , null     as value
+              ,'창고선택' as text
+        union
+        select 1
+             , a.wh_no
+             , concat(a.wh_nm,'(',b.code_nm,')')
+        from wh_info a join code_info b on a.save_tmpr = b.code_no
+        where a.used_yn = 'Y'
+          and a.wh_tp = #{whTp}
+        order by seq, text
+    </select>
+</mapper>

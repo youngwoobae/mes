@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.mgmt.db_backup">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [데이터베이스 백업 - 그리드 페이징 카운트] mgmt.db_backup.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM (
+        SELECT SEQ, FILE_NM, FILE_PATH, SUCC_YN, ERROR_COMMENT, CREATE_ID, CREATE_DT, MODIFY_ID, MODIFY_DT
+        FROM SHC_DB_BACKUP_MGMT
+        WHERE 1=1
+        AND CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+        <choose>
+            <when test="done == 'succ'">
+                AND SUCC_YN = 'Y'
+            </when>
+            <when test="done == 'fail'">
+                AND SUCC_YN = 'N'
+                <if test="failReason != null and failReason != ''">
+                    AND ERROR_COMMENT LIKE CONCAT('%', #{failReason} , '%')
+                </if>
+            </when>
+            <when test="done == 'ALL'">
+                <if test="failReason != null and failReason != ''">
+                    AND ERROR_COMMENT LIKE CONCAT('%', #{failReason} , '%')
+                </if>
+            </when>
+        </choose>
+        ) A
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [데이터베이스 백업 - 그리드 페이징] mgmt.db_backup.gridPaging */
+        SELECT A.*
+        FROM (
+        SELECT SEQ, FILE_NM, FILE_PATH, SUCC_YN, ERROR_COMMENT, CREATE_ID, CREATE_DT, MODIFY_ID, MODIFY_DT, @rownum:=@rownum+1 AS RNUM
+        FROM SHC_DB_BACKUP_MGMT, (SELECT @rownum := 0) r
+        WHERE 1=1
+        AND CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+        <choose>
+            <when test="done == 'succ'">
+                AND SUCC_YN = 'Y'
+            </when>
+            <when test="done == 'fail'">
+                AND SUCC_YN = 'N'
+                <if test="failReason != null and failReason != ''">
+                    AND ERROR_COMMENT LIKE CONCAT('%', #{failReason} , '%')
+                </if>
+            </when>
+            <when test="done == 'ALL'">
+                <if test="failReason != null and failReason != ''">
+                    AND ERROR_COMMENT LIKE CONCAT('%', #{failReason} , '%')
+                </if>
+            </when>
+        </choose>
+        ORDER BY SEQ DESC
+        ) A
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="getInfo" parameterType="map" resultType="camelMap">
+        /* [데이터베이스 백업 - 특정 검색] mgmt.db_backup.getInfo */
+        SELECT SEQ, FILE_NM, FILE_PATH, SUCC_YN, ERROR_COMMENT, CREATE_ID, CREATE_DT, MODIFY_ID, MODIFY_DT
+        FROM SHC_DB_BACKUP_MGMT
+        WHERE 1=1
+          AND SEQ = #{seq}
+    </select>
+
+    <insert id="insertData" parameterType="map">
+        /* [데이터베이스 백업 - 등록 ] mgmt.db_backup.insertData */
+        INSERT INTO SHC_DB_BACKUP_MGMT
+            (FILE_NM, FILE_PATH, SUCC_YN, ERROR_COMMENT, RMK, CREATE_ID, CREATE_DT)
+        VALUES
+            (#{fileNm}, #{filePath}, #{succYn}, #{errorComment}, #{rmk}, #{userId}, STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s') )
+    </insert>
+
+    <delete id="deleteData" parameterType="map">
+        /* [데이터베이스 백업 - 삭제 ] mgmt.db_backup.deleteData */
+        DELETE FROM SHC_DB_BACKUP_MGMT
+        WHERE 1=1
+          AND FILE_NM = #{fileNm}
+    </delete>
+
+    <update id="updateBasicBackupTarget" parameterType="map">
+        /* [데이터베이스 백업 - 환경 설정에 따른 백업 디렉토리 설정] mgmt.db_backup.updateBasicBackupTarget */
+        UPDATE SHC_COMM_CODE
+        SET CODE_DESC = #{backcupDestinationTarget}, MODIFY_ID = 'SYSTEM', MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE CODE_KIND ='BACKUP' AND CODE = 'DBPATH'
+    </update>
+
+    <select id="selectBackupTargets" parameterType="map" resultType="camelMap">
+        /* [데이터베이스 백업 - 저장되어 있는 경로들 검색] mgmt.db_backup.selectBackupTargets */
+        SELECT CODE_KIND, CODE, CODE_NM, CODE_DESC, USE_YN
+        FROM SHC_COMM_CODE
+        WHERE 1=1
+          AND CODE_KIND='BACKUP'
+          AND CODE != 'DBPATH'
+    </select>
+
+    <update id="updateBasicBackupTarget1" parameterType="map">
+        /* [데이터베이스 백업 - 환경 설정에 따른 백업 디렉토리 설정] mgmt.db_backup.updateBasicBackupTarget1 */
+        UPDATE SHC_COMM_CODE
+        SET CODE_DESC = #{backupPath1}, USE_YN = #{backup1UseYn} ,MODIFY_ID = #{userId}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE CODE_KIND ='BACKUP' AND CODE = 'DBPATHU1'
+    </update>
+</mapper>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.admin.standardMng">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_STD_LIST
+        WHERE 1=1
+        AND CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+    	SELECT
+    		REC_NO, L_CODE, L_CODE_NM, REG_DATE, RMK, FILE_KEY, CREATE_DT, CREATE_ID
+    	FROM (
+    		SELECT REC_NO, L_CODE, (SELECT L_CODE_NM FROM SHC_REC_MAIN WHERE L_CODE = A.L_CODE ) AS L_CODE_NM, REG_DATE, RMK, FILE_KEY, CREATE_DT, CREATE_ID
+	        FROM SHC_REC_STD_LIST A
+	        WHERE 1=1
+	        AND CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+    	) A
+        ORDER BY A.CREATE_DT DESC
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectRecInfo" parameterType="map" resultType="camelMap">
+    	SELECT A.REC_NO, A.RMK, A.L_CODE, A.FILE_KEY, (SELECT B.ORG_FILE_NM FROM SHC_COMM_FILES B WHERE B.FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM, EST_REV_SUMMARY
+    	FROM SHC_REC_STD_LIST A
+    	WHERE 1=1
+    	AND A.REC_NO = #{recNo}
+    </select>
+
+    <update id="updateRecPre" parameterType="map">
+    	UPDATE SHC_REC_STD_LIST SET RMK = #{rmk}, MODIFY_ID = #{userId}, EST_REV_SUMMARY = #{estRevSummary}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'), MODIFY_ID = #{userId}
+    		WHERE REC_NO = #{recNo}
+    </update>
+
+    <insert id="insertRecPre2" parameterType="map">
+		/* 기준서관리 등록 */
+        INSERT INTO SHC_REC_STD_LIST
+        (	REC_NO,
+	        REG_DATE,
+	        L_CODE,
+	        RMK,
+	        EST_REV_SUMMARY,
+	        FILE_KEY,
+	        CREATE_ID,
+	        CREATE_DT)
+		VALUES
+			(
+			CONCAT(#{recLargeCode}, DATE_FORMAT(NOW(), '%Y%m%d%H%i%s')),
+			DATE_FORMAT(NOW(), '%Y-%m-%d'),
+			#{recLargeCode},
+			#{rmk},
+			#{estRevSummary},
+			-1,
+			#{userId},
+			STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+			)
+    </insert>
+
+    <select id="selectLatestRecPre2" parameterType="map" resultType="camelMap">
+    	/* strdMng.selectLatestRecPre2 */
+    	SELECT REC_NO
+    	FROM SHC_REC_STD_LIST
+    	WHERE 1=1
+    	AND L_CODE = #{recLargeCode}
+    	ORDER BY CREATE_DT DESC
+    	LIMIT 1
+    </select>
+
+    <select id="selectStrdInfo" parameterType="map" resultType="camelMap">
+    	/* strdMng.selectStrdInfo */
+    	SELECT A.REC_NO, A.RMK, A.FILE_KEY, (SELECT B.ORG_FILE_NM FROM SHC_COMM_FILES B WHERE B.FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM
+    	FROM SHC_REC_STD_LIST A
+    	WHERE 1=1
+    	AND A.REC_NO = #{recNo}
+    </select>
+
+    <select id="selectInfoFromRec" parameterType="map" resultType="camelMap">
+    	SELECT REC_NO, FILE_KEY
+    	FROM SHC_REC_STD_LIST
+    	WHERE 1=1
+    	AND REC_NO = #{recNo}
+    </select>
+
+    <insert id="insertFileInfo" parameterType="map">
+    	INSERT INTO SHC_COMM_FILES
+    	(
+    		FILE_NM,
+	    	ORG_FILE_NM,
+	    	FILE_PATH,
+	    	CREATE_ID,
+	    	CREATE_DT)
+	    VALUES (
+	    	#{fileNm},
+	    	#{orginalFileName},
+	    	#{filePath},
+	    	#{userId},
+	    	STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+	    )
+    </insert>
+
+    <select id="getLatestFileKey" parameterType="map" resultType="camelMap">
+    	SELECT FILE_KEY
+    	FROM SHC_COMM_FILES
+    	WHERE 1=1
+    	ORDER BY CREATE_DT DESC
+    	LIMIT 1
+    </select>
+
+    <update id="updateFileInfoIntoRec" parameterType="map">
+    	UPDATE SHC_REC_STD_LIST SET FILE_KEY = #{fileKey} WHERE REC_NO = #{recNo}
+    </update>
+
+    <update id="updateFileInfo" parameterType="map">
+    	UPDATE SHC_COMM_FILES SET ORG_FILE_NM =#{orginalFileName}, FILE_PATH =#{filePath}, MODIFY_ID = #{userId}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+    	WHERE FILE_KEY = #{fileKey}
+    </update>
+
+    <select id="selectInfoFromRecForDelete" parameterType="string" resultType="camelMap">
+    	SELECT REC_NO, FILE_KEY
+    	FROM SHC_REC_STD_LIST
+    	WHERE 1=1
+    	AND REC_NO = #{recNo}
+    </select>
+
+    <delete id="deleteFileInfo" parameterType="string">
+    	DELETE FROM SHC_COMM_FILES WHERE FILE_KEY = #{fileKey}
+    </delete>
+
+    <select id="selectFileInfo" parameterType="map" resultType="camelMap">
+    	SELECT FILE_KEY, FILE_NM, ORG_FILE_NM, FILE_PATH, RMK
+		FROM SHC_COMM_FILES
+		WHERE 1=1
+		AND FILE_KEY = #{fileKey}
+    </select>
+
+    <delete id="deleteRec" parameterType="string">
+    	DELETE FROM SHC_REC_STD_LIST WHERE REC_NO = #{recNo}
+    </delete>
+
+    <select id="selectLcnsInfoAll" parameterType="map" resultType="camelMap">
+    	/* [기준서 관리 - 회사 정보 모두 가져옴] strdMng.selectLcnsInfoAll */
+    	SELECT *
+		FROM SHC_COMPANY
+		LIMIT 1
+    </select>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [기준서 관리 - 인증원으로 보낼 체크 리스트 가져오기] strdMng.selectFinalCheckList */
+		SELECT
+            #{lcnsNo} AS LCNS_NO
+            ,#{companyNm} AS COMPANY_NM
+            ,DATE_FORMAT(CREATE_DT, '%Y-%m-%d') AS CREATE_DATE
+            ,DATE_FORMAT(CREATE_DT, '%Y%m%d') AS CREATE_DATE_FOR_FILE
+			,DATE_FORMAT(CREATE_DT, '%H:%i:%s') AS CREATE_TIME
+            ,L_CODE AS REC_CODE
+            ,(SELECT L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS REC_NM
+            , 1 AS SEQ
+            ,(select ORG_FILE_NM from SHC_COMM_FILES where FILE_KEY = A.FILE_KEY) AS ORG_FILE_NM
+            ,A.RMK
+            ,A.EST_REV_SUMMARY
+        FROM SHC_REC_STD_LIST A
+        WHERE REC_NO = #{recNo}
+    </select>
+</mapper>

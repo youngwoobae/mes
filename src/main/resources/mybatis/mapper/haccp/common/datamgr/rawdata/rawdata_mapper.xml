@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.common.datamgr.rawdata.RawDataMapper">
+
+    <!--     <select id="selectShcSensorList" parameterType="map" resultType="camelMap"> -->
+    <!--     /* [CCP 데이터 축적 - 설비 리스트 조회 ] rawdata.selectLastMonData */ -->
+    <!-- 		SELECT EQUIP.M_CODE, EQUIP.SENSOR_IP, EQUIP.SENSOR_PORT  -->
+    <!--     	  FROM SHC_CCP_EQUIP EQUIP -->
+    <!-- 	    	  ,SHC_REC_CCP CCP -->
+    <!-- 	    	  ,SHC_CCP_LMT_STD STD -->
+    <!--   		 WHERE EQUIP.M_CODE = CCP.M_CODE -->
+    <!--     	   AND CCP.LMT_STD_CODE = STD.LMT_STD_CODE -->
+    <!--     	   AND EQUIP.USE_YN = 'Y' -->
+    <!--     </select> -->
+
+    <insert id="insertRawdata" parameterType="map">
+        /* [CCP 데이터 축적 - 설비 센서에서 수신된 데이터 등록 ] rawdata.insertRawdata */
+        INSERT INTO SHC_CCP_RAW_DATA
+        (
+        REG_DATE
+        ,MEAS_TIME
+        ,M_CODE
+        ,LMT_ITEM_CODE
+        ,SEQ
+        ,MEAS_VAL
+        ,GATHER_YN
+        ,L_CODE
+        )
+        VALUES
+        (
+        #{regDate}
+        ,#{measTime}
+        ,#{mCode}
+        ,#{lmtItemCode}
+        ,#{seq}
+        <choose>
+            <when test="lmtItemCode == '01'">,#{temperMeasVal}</when>
+            <when test="lmtItemCode == '02'">,#{speedMeasVal}</when>
+            <when test="lmtItemCode == '03'">,#{pressureMeasVal}</when>
+            <when test="lmtItemCode == '04'">,#{mdYnMeasVal}</when>
+        </choose>
+        ,'N'
+        ,#{lCode}
+        )
+    </insert>
+
+    <select id="selectRawDataMaxSeq" parameterType="map" resultType="camelMap">
+        /* [CCP 데이터 축적 - 금일 설비에 등록된 시퀀스의 max + 1값을 조회 ] rawdata.selectRawDataMaxSeq */
+        SELECT COALESCE (MAX(SEQ) + 1, 1) seq
+        FROM SHC_CCP_RAW_DATA
+        WHERE REG_DATE = #{regDate}
+          AND M_CODE = #{mCode}
+    </select>
+
+    <update id="updateGatherYn" parameterType="map">
+        /* [CCP 데이터 축적 - 수집된 데이터는 수집 완료 여부 컬럼값을 Y로 변경 ] rawdata.updateGatherYn */
+        UPDATE SHC_CCP_RAW_DATA
+        SET GATHER_YN = 'Y'
+        WHERE REG_DATE = #{regDate}
+          AND M_CODE = #{mCode}
+          AND SEQ = #{seq}
+    </update>
+
+    <update id="updateRawDataPrcTime" parameterType="map">
+        /* [CCP 데이터 축적 - 남은 공정시간과 이벤트여부 값을 업데이트 ] rawdata.updateRawDataPrcTime */
+        UPDATE SHC_CCP_RAW_DATA
+        SET PRC_TIME = #{updatePrcTime}
+          ,EVENT_YN = #{eventYn}
+        WHERE REG_DATE = #{regDate}
+          AND M_CODE = #{mCode}
+          AND SEQ = #{seq}
+          AND LMT_ITEM_CODE = #{lmtItemCode}
+    </update>
+
+    <select id="getRecDescPrcTime" parameterType="map" resultType="camelMap">
+        /* [CCP 데이터 축적 - 설비에서 수신하여 입력된 마지막 값의 공정시간을 조회 ] rawdata.getRecDescPrcTime */
+        SELECT PRC_TIME, STR_TO_DATE(MEAS_TIME, '%Y-%m-%d %H:%i:%s') MEAS_TIME
+        FROM SHC_CCP_RAW_DATA
+        WHERE REG_DATE = #{regDate}
+          AND M_CODE = #{mCode}
+          AND SEQ = #{seq} - 1
+          AND LMT_ITEM_CODE = #{lmtItemCode}
+    </select>
+
+    <select id="ccpcleBreakYn" parameterType="map" resultType="camelMap">
+        /* [CCP 데이터 축적 - 이탈회복시간내의 이탈여부를 조회 ] rawdata.ccpcleBreakYn */
+        SELECT CASE WHEN (IM.REG_DATE IS NOT NULL AND IM.M_CODE IS NOT NULL AND IM.SEQ IS NOT NULL) THEN 1 ELSE 0 END BREAK_YN
+        FROM SHC_CCP_RAW_DATA DA
+                 LEFT JOIN SHC_REC_CCP_IMPRV IM
+                           ON DA.REG_DATE = IM.REG_DATE
+                               AND DA.M_CODE = IM.M_CODE
+                               AND DA.SEQ = IM.SEQ
+        WHERE DA.M_CODE = #{mCode}
+          AND DA.REG_DATE = #{regDate}
+          AND DA.SEQ != #{seq}
+          AND STR_TO_DATE(MEAS_TIME, '%Y-%m-%d %H:%i') > DATE_SUB(NOW(), INTERVAL #{breakRcvTime} MINUTE)
+    </select>
+</mapper>

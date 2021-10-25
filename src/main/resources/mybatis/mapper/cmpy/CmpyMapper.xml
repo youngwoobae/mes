@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.cmpy.mapper.CmpyMapper">
+    <insert id="appendCmpyInfo" parameterType="map">
+        insert into cmpy_info(
+              cmpy_no
+            , cmpy_n
+            , cmpy_tp
+            , mngr_gbn_cd
+            , tel_no
+            , fax_no
+            , hp
+            , reg_id
+            , reg_ip
+            , reg_dt
+            , mod_id
+            , mod_ip
+            , mod_dt
+        ) values (
+              #{cmpyNo}
+            , #{cmpyNm}
+            , #{cmpyTp}
+            , #{mngrGbnCd}
+            , #{telNo}
+            , #{faxNo}
+            , #{hp}
+            , #{regId}
+            , #{ipaddr}
+            , now()
+            , #{modId}
+            , #{ipaddr}
+            , now()
+        )
+    </insert>
+
+    <select id="getCmpyList" parameterType="map"  resultType="camelMap">
+         /* 거래처목록 (cmpyMapper.getCmpyList) */
+         select   a.cmpy_no --거래처관리번호
+                , case when coalesce(x.prod_cnt,0) = 0 then 'N' else 'Y' end as oem_cmpy_yn --OEM업체여부
+                , a.cmpy_nm --거래처명
+                , a.cman_nm --대표자명
+                , a.saup_no --사업자번호
+                , a.tel_no --대표전화
+                , a.hp --홈페이지
+                , a.fax_no --팩스번호
+                , a.mngr_gbn_cd --매입,매출구분
+                , a.cmpy_tp --개인,법인구분
+                , a.cman_cell_no --개인,법인구분
+                , a.file_no
+                , a.repr_mail_addr as mail_addr
+                , COALESCE(e.matr_qty,0) as matr_qty
+                , d.acc_url    as img_url
+                , z.code_nm as cmpy_tp_nm  --매출/매입구분
+                , y.code_nm as mngr_gbn_nm --개인/법인구분
+        from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
+                         join code_info y on a.mngr_gbn_cd  = y.code_no
+                         left join (select cmpy_no,count(prod_no) as prod_cnt
+                                   from  prod_info
+                                   where used_yn = 'Y'
+                                   and cmpy_no is not null
+                                   group by cmpy_no
+                                  ) x on a.cmpy_no = x.cmpy_no
+                        left join file_info d on a.file_no = d.file_no
+                        left join (select cmpy_no, count(matr_no) as matr_qty from matr_cmpy where used_yn = 'Y' group by cmpy_no) e on a.cmpy_no = e.cmpy_no
+         where a.used_yn = 'Y'
+            <if test="cmpyTpCd != null and cmpyTpCd != ''">
+                AND a.cmpy_tp = #{cmpyTpCd}
+            </if>
+
+            <if test="mngrGbnCd != null and mngrGbnCd != ''">
+                AND a.mngr_gbn_cd = #{mngrGbnCd}
+            </if>
+            <if test="findSz != null and findSz != ''">
+                AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+            </if>
+            <if test="matrNo != null and matrNo !=  ''">
+                and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
+            </if>
+            order by cmpy_nm
+            limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getCmpyExcelList" parameterType="map"  resultType="camelMap">
+        select a.cmpy_no as 거래처관리번호
+             , a.cmpy_nm as 거래처명
+             , a.cman_nm as 대표자명
+             , a.saup_no as 사업자번호
+             , a.tel_no as 대표전화
+             , a.hp as 홈페이지
+             , a.fax_no as 팩스번호
+             , a.mngr_gbn_cd as 매입매출구분번호
+             , a.cmpy_tp as 개인법인구분번호
+             , a.file_no as 파일번호
+             , a.cman_cell_no as 담당자번호
+             , COALESCE(e.matr_qty,0) as 자재수량
+             , d.acc_url as 이미지URL
+             , z.code_nm as 개인법인구분명
+             , y.code_nm as 매출매입구분명
+        from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
+                         join code_info y on a.mngr_gbn_cd  = y.code_no
+                    left join file_info d on a.file_no = d.file_no
+                    left join (select cmpy_no, count(matr_no) as matr_qty from matr_cmpy where used_yn = 'Y' group by cmpy_no) e on a.cmpy_no = e.cmpy_no
+        where a.used_yn = 'Y'
+        <if test="cmpyTpCd != null and cmpyTpCd != ''">
+            AND a.cmpy_tp = #{cmpyTpCd}
+        </if>
+
+        <if test="mngrGbnCd != null and mngrGbnCd != ''">
+            AND a.mngr_gbn_cd = #{mngrGbnCd}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+        </if>
+        <if test="matrNo != null and matrNo !=  ''">
+            and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
+        </if>
+        order by cmpy_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getCmpyListCount" parameterType="map"  resultType="int">
+        select   count(a.cmpy_no)
+        from (select a.cmpy_no
+              from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
+                               join code_info y on a.mngr_gbn_cd  = y.code_no
+                          left join file_info d on a.file_no = d.file_no
+                         left join (select cmpy_no, count(matr_no) as matr_qty from matr_cmpy where used_yn = 'Y' group by cmpy_no) e on a.cmpy_no = e.cmpy_no
+            where a.used_yn = 'Y'
+            <if test="cmpyTpCd != null and cmpyTpCd != ''">
+                AND a.cmpy_tp = #{cmpyTpCd}
+            </if>
+            <if test="mngrGbnCd != null and mngrGbnCd != ''">
+                AND a.mngr_gbn_cd = #{mngrGbnCd}
+            </if>
+            <if test="findSz != null and findSz != ''">
+                AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+            </if>
+            <if test="matrNo != null and matrNo != ''">
+                and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo})
+            </if>
+        ) a
+    </select>
+
+    <update id="setUnusedCmpy" parameterType="map"  >
+        update cmpy_info set used_yn = 'N'
+                           , mod_id  = #{userId}
+                           , mod_ip = #{ipaddr}
+                           , mod_dt = now()
+         where cmpy_no = #{cmpyNo}
+    </update>
+
+    <select id="getCmpyDlvPlcList" parameterType="map"  resultType="camelMap">
+        select a.plc_no
+             , a.plc_nm
+             , a.plc_addr
+             , a.base_plc_yn
+        from cmpy_dlv_plc a
+        where  a.used_yn = 'Y'
+        <if test="cmpyNo != null and cmpyNo != ''">
+            AND a.cmpy_no = #{cmpyNo}
+        </if>
+        order by plc_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getCmpyDlvPlcListCount" parameterType="map"  resultType="int">
+        select count(a.plc_no)
+        from (  select a.plc_no
+                from cmpy_dlv_plc a
+                where a.used_yn = 'Y'
+                <if test="cmpyNo != null and cmpyNo != ''">
+                    AND a.cmpy_no = #{cmpyNo}
+                </if>
+                order by plc_nm
+          ) a
+    </select>
+
+    <update id="deleteCmpyDlvPlc" parameterType="map"  >
+        update cmpy_dlv_plc set used_yn = 'N'
+                              , mod_id = #{modId}
+                              , mod_ip = #{ipaddr}
+                              , mod_dt = now()
+         where plc_no = #{plcNo}
+    </update>
+
+    <update id="initBasePlcYn" parameterType="map"  >
+        update cmpy_dlv_plc set base_plc_yn = 'N' where cmpy_no = #{cmpyNo}
+    </update>
+
+    <select id="getCmpyPursInfo" parameterType="map"  resultType="camelMap">
+        select a.purs_no --구매번호
+             , to_char(a.purs_dt,'YYYY-MM-DD') as purs_dt --구매일자
+             , to_char(a.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --납품요청일자
+             , to_char(a.dlv_dt,'YYYY-MM-DD') as dlv_dt --입고일자
+        from purs_info a
+        where  a.purs_no = #{pursNo}
+    </select>
+
+    <select id="getCmpyPursMatrList" parameterType="map"  resultType="camelMap">
+        select  a.matr_no --자재번호
+             , b.matr_nm --자재명
+             , coalesce (d.purs_qty,0) as purs_qty --구매수량
+             , coalesce (f.code_nm,'') as purs_unit_nm --구매단위명
+             , coalesce(e.purs_no,0) as purs_no --구매자재관리번호
+             , coalesce(d.purs_matr_no,0) as purs_matr_no --구매자재관리번호
+             , coalesce (d.purs_unit,b.purs_unit)  as purs_unit --구매단위
+             , h.wh_nm --적재창고
+             , case when d.matr_no is not null then 'Y' else 'N' end as purs_yn
+        from matr_cmpy a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                         left join purs_info e on a.cmpy_no  = e.cmpy_no
+                         left join purs_matr d on e.purs_no = d.purs_no and a.matr_no = d.matr_no and d.used_yn = 'Y'
+                         left join code_info f on coalesce (d.purs_unit,b.purs_unit) = f.code_no
+                         left join (select matr_no, max(wh_no) as wh_no from matr_pos where used_yn = 'Y' group by matr_no) g on d.matr_no = g.matr_no
+                         left join wh_info h on g.wh_no = h.wh_no
+        where e.purs_no = #{pursNo}
+        order by purs_yn desc, b.matr_nm
+    </select>
+
+    <select id="getCmpyIpList" parameterType="map"  resultType="camelMap">
+        select
+            a.device_ip,
+            a.device_port,
+            a.data_len,
+            b.equip_nm,
+            a.equip_no,
+            a.sys_menu_no,
+            c.sys_menu_nm
+        from mobile_info a  join equip_info b on a.equip_no = b.equip_no
+                            join sys_menu c on a.sys_menu_no = c.sys_menu_no
+        where a.used_yn = 'Y'  <if test="findSz != null and findSz != ''">
+        <if test="findTp != null and findTp == 'device_ip'">
+            AND upper(replace(a.device_ip,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+        </if>
+        <if test="findTp != null and findTp == 'sys_menu_nm'">
+            AND upper(replace(c.sys_menu_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+        </if>
+        <if test="findTp != null and findTp == 'equip_nm'">
+            AND upper(replace(b.equip_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+        </if>
+    </if> limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getCmpyIpListCount" parameterType="int"  resultType="int">
+        select
+            count(*)
+        from mobile_info a  join equip_info b on a.equip_no = b.equip_no
+                            join sys_menu c on a.sys_menu_no = c.sys_menu_no
+    </select>
+
+    <select id="getEqOption" parameterType="map"  resultType="camelMap">
+        select
+            equip_nm,
+            equip_no
+        from equip_info
+        where used_yn = 'Y'
+    </select>
+
+    <select id="getSysOption" parameterType="map"  resultType="camelMap">
+        select *
+        from sys_menu
+        where used_yn = 'Y' and par_sys_menu_no = 99
+    </select>
+
+    <select id="getMatrCmpyList" parameterType="map" resultType="camelMap">
+        select distinct a.cmpy_no
+                      , b.cmpy_nm
+        from matr_cmpy a join cmpy_info b on a.cmpy_no = b.cmpy_no
+        where a.used_yn = 'Y'
+        and a.matr_no = #{matrNo}
+    </select>
+</mapper>

@@ -1,0 +1,361 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.modbus.mapper.ModbusMapper">
+    <select id="getTabletList" parameterType="map"  resultType="camelMap">
+        SELECT a.mobl_no   --테블릿 관리번호
+             , a.spot_equip_no --작업장별설비유형관리번호
+             , a.device_ip --장치IP
+             , a.device_port --장치PORT
+             , a.device_no --장치번호
+             , a.protocol --통신프로토콜코드
+             , a.fr_addr --Reading 시작주소 (ByTCP인 경우만 해당됨)
+             , a.data_len --수신데이터길이(ByTCP인 경우만 해당됨)
+             , a.sys_menu_no --연동메뉴번호
+             , a.disp_yn --표기여부
+             , b.spot_no --설치장소번호
+             , b.equip_no --감지장치번호
+             , c.spot_nm --설치작업장명
+             , d.equip_nm  --설비유혐명
+             , e.code_nm AS protocol_nm --통신프로토콜명
+             , f.sys_menu_nm --연관메뉴명
+        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+                           JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
+                           JOIN equip_info d ON b.equip_no = d.equip_no
+                      LEFT JOIN code_info e ON a.protocol = e.code_no
+                      LEFT JOIN sys_menu f ON a.sys_menu_no = f.sys_menu_no
+        WHERE a.used_yn = 'Y'
+        <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
+        <if test="equipNo != null and equipNo != ''"> and b.equip_no = #{equipNo} </if>
+        order by spot_nm
+        limit #{pageSz} offset #{pageNo}
+
+    </select>
+
+    <select id="getTabletListCount" parameterType="map"  resultType="int">
+        select count(a.mobl_no)
+        from (
+            SELECT a.mobl_no   --테블릿 관리번호
+            FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+                               JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
+                               JOIN equip_info d ON b.equip_no = d.equip_no
+                          LEFT JOIN code_info e ON a.protocol = e.code_no
+                          LEFT JOIN sys_menu f ON a.sys_menu_no = f.sys_menu_no
+            WHERE a.used_yn = 'Y'
+            <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
+            <if test="equipNo != null and equipNo != ''"> and b.equip_no = #{equipNo} </if>
+        ) a
+    </select>
+
+    <select id="getTabletInfo" parameterType="map"  resultType="camelMap">
+        SELECT a.mobl_no   --테블릿 관리번호
+             ,a.spot_equip_no --작업장별설비유형관리번호
+             ,a.device_ip --장치IP
+             ,a.device_port --장치PORT
+             ,a.device_no --장치번호
+             ,a.protocol --통신프로토콜코드
+             ,a.fr_addr --Reading 시작주소 (ByTCP인 경우만 해당됨)
+             ,a.sys_menu_no --연동메뉴번호
+             ,a.disp_yn --표기여부
+             ,c.spot_nm --설치작업장명
+             ,d.equip_nm  --설비유혐명
+             ,e.code_nm AS protocol_nm --통신프로토콜명
+        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+                           JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
+                           JOIN equip_info d ON b.equip_no = d.equip_no
+                           LEFT JOIN code_info e ON a.protocol = e.code_no
+        where a.mobl_no = #{moblNo}
+    </select>
+
+    <select id="getComboSpot" parameterType="map"  resultType="camelMap">
+        select   0    as seq
+             ,  0    as value
+              , '작업장선택' as text
+        union
+        select  1
+             , spot_no
+             , spot_nm
+        from spot_info
+        where cust_no = #{custNo}
+          and used_yn = 'Y'
+          and svc_tp = 'DIRECT_RECV'
+        order by seq, text
+    </select>
+
+    <select id="getComboEquip" parameterType="map"  resultType="camelMap">
+        select  0   as seq
+             , 0   as value
+             , '김지유형선택'  as text
+        union
+        select 1  as seq
+             ,  equip_no
+             , equip_nm
+        from equip_info
+        where used_yn = 'Y'
+        order by seq, text
+    </select>
+    <select id="getComboTabletMenuList" parameterType="map"  resultType="camelMap">
+        select 0 as ord
+             , 0 as value
+             , '메뉴선택' as text
+        union
+        select 1
+             , sys_menu_no
+             , sys_menu_nm
+        from sys_menu
+        where mobl_yn = 'Y'
+          and used_yn ='Y'
+        order by ord, value
+    </select>
+
+    <select id="getTabletInfoBySysMenu" parameterType="map"  resultType="camelMap">
+        SELECT a.mobl_no   --테블릿 관리번호
+             ,a.spot_equip_no --작업장별설비유형관리번호
+             ,a.device_ip --장치IP
+             ,a.device_port --장치PORT
+             ,a.device_no --장치번호
+             ,a.protocol --통신프로토콜코드
+             ,e.code_nm AS protocol_nm --통신프로토콜명
+             ,a.fr_addr --Reading 시작주소 (ByTCP인 경우만 해당됨)
+             ,a.data_len --유효 Data 길이 (ByTCP인 경우만 해당됨)
+             ,a.sys_menu_no --연동메뉴번호
+             ,a.disp_yn --표기여부
+             ,coalesce (b.max_nor_val ,0) as  max_nor_val --최대정상인정값
+             ,coalesce (b.min_nor_val ,0) as  min_nor_val --최소정상인정값
+             ,coalesce (b.max_lmt_val ,0) as  max_lmt_val --최대허용측정값
+             ,coalesce (b.min_lmt_val ,0) as  min_lmt_val --최소허용측정값
+             ,b.meas_unit --측정단위
+             ,c.spot_nm --설치작업장명
+             ,d.equip_no --장치관리번호
+             ,d.equip_nm  --장치유혐명
+        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+                           JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
+                           JOIN equip_info d ON b.equip_no = d.equip_no
+                           join code_info f on b.meas_unit = f.code_no
+                           LEFT JOIN code_info e ON a.protocol = e.code_no
+        where a.used_yn = 'Y'
+          and a.sys_menu_no = #{sysMenuNo}
+    </select>
+
+
+    <delete id="initOperMoniter" parameterType="map" >
+        DELETE FROM oper_mast WHERE oper_no NOT IN (SELECT MAX(oper_no) FROM oper_mast where spot_equip_no = #{spotEquipNo})
+    </delete>
+    <select id="getInitialProdList" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             , a.prod_nm --품명
+             , coalesce (a.mess,1) as mess --단품중량
+             , coalesce (a.qty_per_pkg,1) as qty_per_pkg --세트수량
+             , a.sz --규격
+             , b.code_nm as sale_unit_nm --판매단위명
+             , #{baseUrl} ||'prod/' || a.prod_no::varchar || '.png' as bar_code_url
+             , c.indc_no
+        from prod_info a join code_info b on a.sale_unit = b.code_no
+                         left join make_indc c on a.prod_no = c.prod_no and c.par_indc_no = 0  and c.indc_sts = 2403
+        WHERE a.used_yn = 'Y'
+        <choose>
+            <when test="findTp != null and findTp == 'en'">
+                and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
+            </when>
+            <when test="findTp != null and findTp == 'no'">
+                and a.prod_nm like '%' || #{findSz} || '%'
+            </when>
+            <otherwise>
+                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
+                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                else                                'ㅎ'
+                end = #{findSz}
+            </otherwise>
+        </choose>
+        order by c.indc_no, a.prod_nm
+    </select>
+
+    <select id="getTrkList" parameterType="map" resultType="camelMap">
+        select code_no, code_alais, code_seq
+        from code_info
+        where par_code_no = #{parCodeNo}
+    </select>
+
+    <select id="getTrkListCount" parameterType="map" resultType="int">
+        select count(code_no)
+        from code_info
+        where par_code_no = #{parCodeNo}
+    </select>
+
+    <!--하담푸드 포장기 카운터 리스트 -->
+    <select id="getSoptEquipValHist" parameterType="map" resultType="camelMap">
+        select a.spot_equip_no --점소별설비관리번호
+             , a.oper_no --작동관리번호
+             , c.spot_nm --설치장소
+             , e.equip_nm --설비유형명
+             , max(a.meas_val) as meas_val --측정값
+             , to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI') as date_fr
+             , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI')      as chk_dt
+             , to_char(to_timestamp(d.to_unix_hms),'YYYY-MM-DD HH24:MI') as date_to
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                                join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
+                                <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
+                                join equip_info e on b.equip_no = e.equip_no
+                                join oper_mast d on a.oper_no  = d.oper_no
+        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+        and   to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI')  is not null
+        group by a.spot_equip_no
+               , a.oper_no
+               , c.spot_nm
+               , e.equip_nm
+               , to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI')
+               , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI')
+               , to_char(to_timestamp(d.to_unix_hms),'YYYY-MM-DD HH24:MI')
+        order by chk_dt desc
+    </select>
+
+    <select id="getSoptEquipValHistCount" parameterType="map" resultType="int">
+        select count(a.spot_equip_no)
+        from (
+            select a.spot_equip_no
+            from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                                    join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
+                                    <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
+                                    join equip_info e on b.equip_no = e.equip_no
+                                    join oper_mast d on a.oper_no  = d.oper_no
+            where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+            and   to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI')  is not null
+            group by a.spot_equip_no
+                   , a.oper_no
+                   , c.spot_nm
+                   , e.equip_nm
+                   , to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI')
+                   , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI')
+                   , to_char(to_timestamp(d.to_unix_hms),'YYYY-MM-DD HH24:MI')
+        ) a
+    </select>
+
+    <select id="getTmprHstrList" parameterType="map" resultType="camelMap">
+        select a.spot_equip_no --점소별설비관리번호
+        , c.spot_nm --설치장소
+        , e.equip_nm --설비유형명
+        , max(round(a.meas_val::numeric,1)) as meas_val --측정값
+        , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24:MI')      as chk_dt
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.spot_equip_no  = #{spotEquipNo}
+        join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
+        join equip_info e on b.equip_no = e.equip_no
+        where 1 = 1
+        and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+        <if test="maxYn != null and maxYn != ''">
+            and a.mngr_hstr_no = (select max(mngr_hstr_no) from equip_mngr_hstr where spot_equip_no = #{spotEquipNo})
+        </if>
+        group by a.spot_equip_no
+        , a.oper_no
+        , c.spot_nm
+        , e.equip_nm
+        , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI')
+        order by chk_dt desc
+    </select>
+
+    <select id="getTmprHstrListCount" parameterType="map" resultType="int">
+        select count(a.spot_equip_no)
+        from (
+        select a.spot_equip_no --점소별설비관리번호
+        , a.oper_no --작동관리번호
+        , c.spot_nm --설치장소
+        , e.equip_nm --설비유형명
+        , max(round(a.meas_val::numeric,1)) as meas_val --측정값
+        , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24:MI')      as chk_dt
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.spot_equip_no  = #{spotEquipNo}
+        join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
+        join equip_info e on b.equip_no = e.equip_no
+        where 1 = 1
+        and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+        <if test="maxYn != null and maxYn != ''">
+            and a.mngr_hstr_no = (select max(mngr_hstr_no) from equip_mngr_hstr where spot_equip_no = #{spotEquipNo})
+        </if>
+        group by a.spot_equip_no
+        , a.oper_no
+        , c.spot_nm
+        , e.equip_nm
+        , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI')
+        ) a
+    </select>
+
+
+    <update id="updateEquipMngrHstr" parameterType="map" >
+        update equip_mngr_hstr
+        set oper_no = #{operNo}
+        where spot_equip_no = #{spotEquipNo}
+          and to_char(to_timestamp(unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
+          and mngr_hstr_no = ( select max(emh2.mngr_hstr_no)
+                               from equip_mngr_hstr emh2
+                               where spot_equip_no = #{spotEquipNo}
+                                 and to_char(to_timestamp(unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD'))
+    </update>
+
+    <update id="stopEquipMngrHstr" parameterType="map">
+        update equip_mngr_hstr
+        set oper_no = #{operNo}
+        where mngr_hstr_no in (select max(mngr_hstr_no)
+                               from equip_mngr_hstr a
+                               where spot_equip_no = #{spotEquipNo}
+                                 and mngr_hstr_no between (select mngr_hstr_no
+                                                           from equip_mngr_hstr
+                                                           where oper_no = #{operNo}
+                                                           and used_yn = 'Y')
+                                   and
+                                   (select max(a.mngr_hstr_no) as mngr_hstr_no
+                                    from equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no
+                                    where a.spot_equip_no = #{spotEquipNo}
+                                      and to_char(to_timestamp(a.unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
+                                   )
+        )
+    </update>
+
+    <select id="getSterTime" parameterType="map" resultType="camelMap">
+        select (to_unix_hms - fr_unix_hms) as sterTime
+        from oper_mast
+        where oper_no = #{operNo}
+          and indc_no = #{indcNo}
+    </select>
+
+    <update id="updateOperMast" parameterType="map">
+        update oper_mast
+        set (to_unix_hms, to_qty, weight_qty, metal_qty)  = ( #{toUnixHms} , #{passQty}, #{weightQty}, #{metalQty} )
+        where oper_no = #{operNo}
+    </update>
+
+
+    <select id="getLastEquipHistory" parameterType="map" resultType="camelMap">
+        select  oper_no
+             , meas_val
+             , unix_hms
+             , spot_equip_no
+        from equip_mngr_hstr
+        where oper_no = #{operNo}
+          and mngr_hstr_no = ( select max(mngr_hstr_no) from equip_mngr_hstr where oper_no = #{operNo} )
+    </select>
+
+    <update id="updateOperMastToQty" parameterType="map">
+        update oper_mast
+        set fr_qty = #{frQty}::numeric
+          , to_qty = #{toQty}::numeric
+          , weight_qty = #{weightQty}::numeric
+          , metal_qty = #{metalQty}::numeric
+          , pass_qty = #{passQty}::numeric
+          , adj_qty = #{adjQty}::numeric
+          , to_unix_hms = #{toUnixHms}
+        where oper_no = #{operNo}
+    </update>
+
+</mapper>

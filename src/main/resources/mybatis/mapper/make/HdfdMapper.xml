@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.make.mapper.hdfd.HdfdMapper">
+    <select id="getHdfdIndcList" parameterType="map" resultType="camelMap">
+        select  a.par_indc_no --부모지시번호
+             , a.indc_no  --지시번호
+             , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일
+             , a.prod_no --품번
+             , concat(coalesce(e.erp_prod_nm,e.prod_nm), ' [', d.code_nm , ']' ) as prod_nm --품명
+             , e.vol --단위중량
+             , a.make_unit --생산단위
+             , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt
+             , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt
+             , a.indc_wgt   --(지시중량)
+             , a.indc_qty   --(지시수량)
+             , f.code_nm as unit_nm --생산단위
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+                        <if test="brnchNo != null and brnchNo != ''">
+                            and e.brnch_no = #{brnchNo}
+                        </if>
+                         join proc_info c on a.proc_cd = c.proc_cd and c.matr_req_able_yn = 'Y'
+                         join code_info d on c.proc_cd = d.code_no
+                         join code_info f on c.proc_unit = f.code_no
+        where a.used_yn = 'Y'
+          and (    to_char(a.make_fr_dt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
+                or to_char(a.make_to_dt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
+              )
+        order by prod_nm
+    </select>
+</mapper>

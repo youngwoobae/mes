@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.common.datamgr.errdata.ErrDataMapper">
+
+    <!--     <select id="selectShcCcpMngInfo" parameterType="map" resultType="camelMap"> -->
+    <!--     /* [CCP 이탈검증 - 설비 정보 조회 ] errdata.selectShcCcpMngInfo */ -->
+    <!--     	SELECT CCP.L_CODE  -->
+    <!-- 			 , CCP.M_CODE -->
+    <!-- 			 , CCP.EVENT_YN -->
+    <!-- 			 , (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE = CCP.M_CODE) M_CODE_NM -->
+    <!-- 			 , STD.VERF_TYPE_CODE -->
+    <!-- 			 , (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE_KIND = 'VERFCD' AND CODE = STD.VERF_TYPE_CODE) VERF_TYPE_CODE_NM -->
+    <!-- 			 , STD.LMT_STD_CODE -->
+    <!-- 			 , STD.PRC_TIME -->
+    <!-- 			 , (SELECT ITEM.LMT_MIN_VAL FROM SHC_CCP_LMT_ITEM ITEM WHERE ITEM.LMT_STD_CODE = STD.LMT_STD_CODE AND ITEM.LMT_ITEM_CODE = '01') TEMP_MIN_VAL -->
+    <!-- 		 FROM SHC_REC_CCP CCP -->
+    <!-- 		    , SHC_CCP_LMT_STD STD -->
+    <!-- 		WHERE CCP.LMT_STD_CODE = STD.LMT_STD_CODE -->
+    <!-- 		  AND CCP.M_CODE = #{mCode} -->
+    <!-- 		  LIMIT 1 -->
+    <!--     </select> -->
+
+    <!--     <select id="selectlmtInfo" parameterType="param" resultType="camelListMap"> -->
+    <!--     /* [CCP 이탈검증 - 설비에 등록된 한계기준 정보 조회 ] errdata.selectlmtInfo */ -->
+    <!--     	SELECT CCP.EVENT_YN, CCP.LMT_STD_CODE, ITEM.LMT_MIN_VAL, ITEM.LMT_MAX_VAL, STD.PRC_TIME, STD.BREAK_RCV_TIME -->
+    <!--   		  FROM SHC_REC_CCP CCP -->
+    <!--       		  ,SHC_CCP_LMT_STD STD -->
+    <!--       		  ,SHC_CCP_LMT_ITEM ITEM -->
+    <!--  	   	 WHERE CCP.LMT_STD_CODE = STD.LMT_STD_CODE -->
+    <!--    		   AND STD.LMT_STD_CODE = ITEM.LMT_STD_CODE -->
+    <!--    		   AND CCP.M_CODE = #{mCode} -->
+    <!--    		   AND ITEM.LMT_ITEM_CODE = #{lmtItemCode} -->
+    <!--     </select> -->
+
+    <insert id="insertShcRecCcpDesc" parameterType="map">
+        /* [CCP 이탈검증 - 수집 데이터 정보 등록 ] errdata.insertShcRecCcpDesc */
+        INSERT INTO SHC_REC_CCP_DESC
+        (
+            REG_DATE
+        ,L_CODE
+        ,M_CODE
+        ,SEQ
+        ,LMT_STD_CODE
+        ,USER_INPUT_YN
+        ,PRC_TIME
+        ,RMK
+        ,CREATE_ID
+        ,CREATE_DT
+        ,MODIFY_ID
+        ,MODIFY_DT
+        )
+        VALUES
+            (
+                #{regDate}
+            ,#{lCode}
+            ,#{mCode}
+            ,#{seq}
+            ,#{lmtStdCode}
+            ,#{userInputYn}
+            ,#{insertPrcTime}
+            ,#{rmk}
+            ,'SYSTEM'
+            ,NOW()
+            ,'SYSTEM'
+            ,NOW()
+            )
+    </insert>
+
+    <insert id="insertShcSensorData" parameterType="map">
+        /* [CCP 이탈검증 - 수집 데이터 상세 정보 등록 ] errdata.insertShcSensorData */
+        INSERT INTO SHC_REC_CCP_DATA
+        (
+        REG_DATE
+        ,L_CODE
+        ,M_CODE
+        ,SEQ
+        ,LMT_ITEM_CODE
+        ,MEAS_VAL
+        ,MEAS_TIME
+        ,EVENT_YN
+        ,EVENT_SEQ
+        ,BREAK_YN
+        ,RMK
+        ,CREATE_ID
+        ,CREATE_DT
+        ,MODIFY_ID
+        ,MODIFY_DT
+        )
+        VALUES
+        (
+        #{regDate}
+        ,#{lCode}
+        ,#{mCode}
+        ,#{seq}
+        ,#{lmtItemCode}
+        <choose>
+            <when test="lmtItemCode == '01'">,#{temperMeasVal}</when>
+            <when test="lmtItemCode == '02'">,#{speedMeasVal}</when>
+            <when test="lmtItemCode == '03'">,#{pressureMeasVal}</when>
+            <otherwise>,#{mdYnMeasVal}</otherwise>
+        </choose>
+        ,#{measTime}
+        ,#{eventYn}
+        <choose>
+            <when test='eventYn == "Y"'>,#{eventSeq}</when>
+            <when test='eventYn != "Y"'>,null</when>
+        </choose>
+        ,#{breakYn}
+        ,#{rmk}
+        ,'SYSTEM'
+        ,NOW()
+        ,'SYSTEM'
+        ,NOW()
+        )
+    </insert>
+
+    <insert id="insertShcRecCcpImprv" parameterType="map">
+        /* [CCP 이탈검증 - 이탈 데이터 개선조치 테이블 등록 ] errdata.insertShcRecCcpImprv */
+        INSERT INTO SHC_REC_CCP_IMPRV
+        (
+            REG_DATE
+        ,L_CODE
+        ,M_CODE
+        ,LMT_ITEM_CODE
+        ,SEQ
+        ,BREAK_TYPE_CODE
+        ,BREAK_TYPE_NM
+        ,BREAK_REASON
+        ,IMPRV_YN
+        ,IMPRV
+        ,RMK
+        ,CREATE_ID
+        ,CREATE_DT
+        ,MODIFY_ID
+        ,MODIFY_DT
+        )
+        VALUES(
+                  #{regDate}
+              ,#{lCode}
+              ,#{mCode}
+              ,#{lmtItemCode}
+              ,#{seq}
+              ,#{breakTypeCode}
+              ,#{breakTypeNm}
+              ,#{breakReason}
+              ,'N'
+              ,null
+              ,'비고'
+              ,'SYSTEM'
+              ,NOW()
+              ,'SYSTEM'
+              ,NOW()
+              )
+    </insert>
+
+    <insert id="insertShcRecCcpAlarm" useGeneratedKeys="true" keyProperty="araram_id" parameterType="map">
+        /* [CCP 이탈검증 - 이탈 데이터 알림 테이블 등록 ] errdata.insertShcRecCcpAlarm */
+        INSERT INTO SHC_REC_CCP_ALARM
+        (
+            OCCR_DATE
+        , BREAK_TYPE
+        , M_CODE_NM
+        , VERF_TYPE_NM
+        )
+        VALUES
+            (
+                #{measTime}
+            ,#{breakTypeNm}
+            ,#{mCodeNm}
+            ,#{verfTypeCodeNm}
+            )
+    </insert>
+
+    <update id="updateAlramIdShcRecCcpImprv" parameterType="map">
+        /* [CCP 이탈검증 - 개선조치 테이블에 알림 ID 업데이트 ] errdata.updateAlramIdShcRecCcpImprv */
+        UPDATE SHC_REC_CCP_IMPRV
+        SET ARARM_ID = #{araramId}
+        WHERE REG_DATE = CURDATE()
+          AND M_CODE = #{mCode}
+          AND LMT_ITEM_CODE = #{lmtItemCode}
+          AND SEQ = #{seq}
+    </update>
+
+    <select id="getEventSeq" parameterType="map" resultType="camelMap">
+        /* [CCP 이탈검증 - 금속검출 테스트(04) 데이터 eventSeq 조회 ] errdata.getEventSeq */
+        SELECT
+        <choose>
+            <when test='mdEventStartFlag == "Y"'>
+                COALESCE (MAX(EVENT_SEQ)+1,1) EVENT_SEQ
+            </when>
+            <when test='mdEventStartFlag != "Y"'>
+                COALESCE (MAX(EVENT_SEQ),1) EVENT_SEQ
+            </when>
+        </choose>
+        FROM SHC_REC_CCP_DATA
+        WHERE M_CODE = #{mCode}
+    </select>
+
+    <select id="getEventSeqMdTest" parameterType="map" resultType="camelMap">
+        /* [CCP 이탈검증 - 금속검출 테스트(05) 데이터 eventSeq 조회 ] errdata.getEventSeqMdTest */
+        SELECT
+            CASE WHEN EXISTS (
+                              SELECT * FROM SHC_REC_CCP_DATA
+                              WHERE M_CODE = #{mCode}
+                                AND LMT_ITEM_CODE = #{lmtItemCode}
+                                AND EVENT_SEQ = (SELECT MAX(EVENT_SEQ) FROM SHC_REC_CCP_DATA WHERE M_CODE = #{mCode})
+                          ) = 1
+                     THEN COALESCE (MAX(EVENT_SEQ)+1,1)
+                 ELSE COALESCE (MAX(EVENT_SEQ),1)
+                END AS EVENT_SEQ
+        FROM SHC_REC_CCP_DATA
+        WHERE M_CODE = #{mCode}
+
+    </select>
+
+    <select id="getRecCcpEventYn" parameterType="map" resultType="camelMap">
+        /* [CCP 이탈검증 - 설비 이벤트 동작 중 여부 조회 ] errdata.getRecCcpEventYn */
+        SELECT EVENT_YN
+        FROM SHC_REC_CCP
+        WHERE M_CODE = #{mCode}
+    </select>
+
+    <update id="updateRecCCpEventFlag" parameterType="map">
+        /* [CCP 이탈검증 - 상황에 따른 이벤트 여부 업데이트 ] errdata.updateRecCCpEventFlag */
+        UPDATE SHC_REC_CCP
+        SET EVENT_YN = #{eventYn}
+        WHERE M_CODE = #{mCode}
+    </update>
+
+    <select id="selectShcRecCcpImprv" parameterType="map" resultType="camelMap">
+        /* [CCP 이탈검증 - 이탈 코드 및 아이템 코드 정보 조회 ] errdata.selectShcRecCcpImprv */
+        SELECT LMT_ITEM_CODE_KIND, BREAK_TYPE_CODE
+        FROM SHC_REC_CCP_IMPRV
+        WHERE REG_DATE = #{regDate}
+          AND M_CODE = #{mCode}
+          AND LMT_ITEM_CODE = #{lmtItemCode}
+          AND SEQ = #{seq}
+            LIMIT 1
+    </select>
+
+</mapper>

@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.sysmenu.mapper.SysMenuMapper">
+    <insert id="appendSysMenu" parameterType="map"  >
+        insert into sys_menu (
+           par_sys_menu_no
+         , sys_menu_no
+         , sys_menu_nm
+         , disp_yn
+         , used_yn
+         , reg_id
+         , reg_ip
+         , reg_dt
+         , mod_id
+         , mod_ip
+         , mod_dt
+         ) values (
+           #{parSysMenuNo}
+         , #{sysMenuNo}
+         , #{sysMenuNm}
+         , #{dispYn}
+         , #{usedYn}
+         , #{userId}
+         , #{ipaddr}
+         , now()
+         , #{userId}
+         , #{ipaddr}
+         , now()
+         )
+    </insert>
+  <select id="getSysMenuList" parameterType="map"  resultType="camelMap">
+   WITH recursive cte (
+                    par_sys_menu_no
+                  , sys_menu_no
+                  , sys_menu_nm
+                  , sys_menu_path
+                  , sys_menu_ip
+                  , sys_menu_port
+                  , level
+                  , prt_seq
+                  , path
+                  , leaf_yn
+                  , disp_yn
+                  , used_yn
+      ) AS ( SELECT a.par_sys_menu_no
+                  , a.sys_menu_no
+                  , a.sys_menu_nm
+                  , a.sys_menu_path
+                  , a.sys_menu_ip
+                  , a.sys_menu_port
+                  , 1 AS level
+                  , a.prt_seq
+                  , lpad(a.prt_seq::text,5,'0')
+                  , case when length(a.sys_menu_path) = 0  then 'N' else 'Y' end as leaf_yn
+                  , a.disp_yn
+				  , a.used_yn
+             FROM  sys_menu a
+            WHERE a.par_sys_menu_no = 0
+            UNION ALL
+            SELECT  b.par_sys_menu_no
+                    , b.sys_menu_no
+                    , b.sys_menu_nm
+                    , b.sys_menu_path
+                    , b.sys_menu_ip
+                    , b.sys_menu_port
+                    , c.level+1 AS level
+                    , b.prt_seq
+                    , path ||lpad(b.prt_seq::text,5,'0')
+                    , case when length(b.sys_menu_path) = 0  then 'N' else 'Y' end as leaf_yn
+                    , b.disp_yn
+				    , b.used_yn
+             FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+        )
+        select * from cte
+        where used_yn = 'Y'
+        and disp_yn = 'Y'
+        <if test='authYn != null and authYn == "Y"'>
+          and sys_menu_no in ( select sys_menu_no
+                               from auth_sys_menu
+                               where auth_cd in (select distinct a.auth_cd from user_info a
+                                                    join auth_user b on a.user_id = b.user_id
+                                                    where a.user_id = #{userId}
+                                                )
+                             )
+        </if>
+        <if test="level != null and level != ''">
+            AND level = #{level}
+        </if>
+        <if test="parSysMenuNo != null and parSysMenuNo != ''">
+            AND par_sys_menu_no = #{parSysMenuNo}
+        </if>
+        order by path,prt_seq
+    </select>
+
+   <select id="getSysMenuListCount" parameterType="map"  resultType="int">
+        select count(a.sys_menu_no)
+        from (
+                 WITH recursive cte (
+                      par_sys_menu_no
+                    , sys_menu_no
+                    , sys_menu_nm
+                    , sys_menu_path
+                    , sys_menu_ip
+                    , sys_menu_port
+                    , level
+                    , prt_seq
+                    , path
+                    , disp_yn
+                    , used_yn
+                 ) AS (SELECT a.par_sys_menu_no
+                            , a.sys_menu_no
+                            , a.sys_menu_nm
+                            , a.sys_menu_path
+                            , a.sys_menu_ip
+                            , a.sys_menu_port
+                            , 1 AS level
+                            , a.prt_seq
+                            , lpad(a.prt_seq::text,5,'0')
+                            , a.disp_yn
+                            , a.used_yn
+                       FROM  sys_menu a
+                       WHERE a.par_sys_menu_no = 0
+                       UNION ALL
+                       SELECT b.par_sys_menu_no
+                            , b.sys_menu_no
+                            , b.sys_menu_nm
+                            , b.sys_menu_path
+                            , b.sys_menu_ip
+                            , b.sys_menu_port
+                            , c.level+1 AS level
+                            , b.prt_seq
+                            , path ||lpad(b.prt_seq::text,5,'0')
+                            , b.disp_yn
+                            , b.used_yn
+                            FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+                )
+                select * from cte
+                where used_yn = 'Y'
+                and disp_yn = 'Y'
+               <if test='authYn != null and authYn == "Y"'>
+                   and sys_menu_no in ( select sys_menu_no
+                                           from auth_sys_menu
+                                           where auth_cd in (select distinct a.auth_cd from user_info a
+                                                                join auth_user b on a.user_id = b.user_id
+                                                                where a.user_id = #{userId}
+                                                            )
+                                      )
+               </if>
+                <if test="level != null and level != ''">
+                    AND level = #{level}
+                </if>
+                <if test="parSysMenuNo != null and parSysMenuNo != ''">
+                    AND par_sys_menu_no = #{parSysMenuNo}
+                </if>
+        ) a
+   </select>
+
+    <select id="getHotMenuCounter" parameterType="map" resultType="int">
+        select count(a.mngr_no)
+          from sys_menu_hot a
+         where a.used_yn = 'Y'
+    </select>
+
+   <select id="getSysMenuTree" parameterType="map"  resultType="java.util.LinkedHashMap">
+        WITH recursive cte (
+                        par_sys_menu_no
+                      , sys_menu_no
+                      , sys_menu_nm
+                      , sys_menu_path
+                      , level
+                      , prt_seq
+                      , path
+                      , disp_yn
+                      , used_yn
+        ) AS ( SELECT  a.par_sys_menu_no
+                     , a.sys_menu_no
+                     , a.sys_menu_nm
+                     , a.sys_menu_path
+                     , 0 AS level
+                     , a.prt_seq
+                     , lpad(a.sys_menu_no::text,5,'0')
+                    , a.disp_yn
+                     , a.used_yn
+        FROM  sys_menu a
+        WHERE a.par_sys_menu_no = 0
+        UNION ALL
+        SELECT  b.par_sys_menu_no
+              , b.sys_menu_no
+              , b.sys_menu_nm
+              , c.sys_menu_path
+              , c.level+1 AS level
+              , b.prt_seq
+              , path ||lpad(b.sys_menu_no::text,5,'0')
+              , b.disp_yn
+              , b.used_yn
+        FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+        where 1 = 1
+        <if test="authCd != null and authCd != ''">
+            and b.sys_menu_no in (select sys_menu_no from auth_sys_menu where auth_cd = #{authCd})
+        </if>
+        )
+        select par_sys_menu_no
+              , sys_menu_no
+              , sys_menu_nm
+              , path
+              , level
+              , prt_seq
+              , case when level = 2 then 'Y' else 'N' end as leaf_yn
+        from cte
+        where used_yn = 'Y'
+        and disp_yn = 'Y'
+        order by path,prt_seq
+    </select>
+
+   <select id="getSysMenuTreeDepth" parameterType="map"  resultType="int">
+        select max(a.level) as menu_depth
+        from (
+            WITH recursive cte (
+                  par_sys_menu_no
+                , sys_menu_no
+                , level
+                , path
+                , disp_yn
+                , used_yn
+            ) AS ( SELECT a.par_sys_menu_no
+                        , a.sys_menu_no
+                        , 0 AS level
+                        , lpad(a.sys_menu_no::text,5,'0')
+                        , a.disp_yn
+                        , a.used_yn
+                   FROM  sys_menu a
+                   WHERE a.par_sys_menu_no = 0
+                   UNION ALL
+                   SELECT b.par_sys_menu_no
+                        , b.sys_menu_no
+                        , c.level+1 AS level
+                        , path ||lpad(b.sys_menu_no::text,5,'0')
+                        , b.disp_yn
+                        , b.used_yn
+                        FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+                        where 1 = 1
+                        <if test="authCd != null and authCd != ''">
+                            and b.sys_menu_no in (select sys_menu_no from auth_sys_menu where auth_cd = #{authCd})
+                        </if>
+                   )
+                   select par_sys_menu_no
+                        , sys_menu_no
+                        , level
+                        , path
+                        from cte
+                        where used_yn = 'Y'
+                        and disp_yn = 'Y'
+        ) a
+    </select>
+
+    <select id="getActMenuList"  resultType="camelMap">
+    WITH recursive cte (
+          sys_menu_no
+        , sys_menu_nm
+        , level
+        , prt_seq
+        , path
+        , sys_menu_path
+        , used_yn
+    ) AS ( SELECT a.sys_menu_no
+                , a.sys_menu_nm
+                , 1 AS level
+                , a.prt_seq
+                , a.sys_menu_no::text
+                , a.sys_menu_path
+                , a.used_yn
+    FROM  sys_menu a
+    WHERE a.par_sys_menu_no = 0
+    UNION
+    SELECT b.sys_menu_no
+         , b.sys_menu_nm
+         , c.level+1 AS level
+         , b.prt_seq
+         , path ||b.sys_menu_no::text
+         , b.sys_menu_path
+         , b.used_yn
+      FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+    )
+    select  sys_menu_nm   as path
+          , sys_menu_nm   as name
+          , 'requireAuth' as beforeEnter
+          , sys_menu_path as full_path
+    from cte
+    where used_yn = 'Y'
+
+    order by path
+    limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getHotMenuCount"  parameterType="map"  resultType="int">
+        select count(sys_menu_no) from sys_menu_hot where user_id = #{userId}
+    </select>
+    <select id="getHotMenuList"  parameterType="map"  resultType="camelMap">
+        select * from ( select max(a.disp_seq) as disp_seq
+                              , b.sys_menu_no
+                              , b.sys_menu_nm
+                          from sys_menu_hot a join sys_menu b on a.sys_menu_no = b.sys_menu_no
+                         where a.user_id = #{userId}
+                         group by b.sys_menu_no,b.sys_menu_nm
+                         order by disp_seq  desc
+                         limit #{ableHotMenuCount}
+        ) a order by a.disp_seq
+    </select>
+    <select id="getMenuList" parameterType="map" resultType="camelMap">
+        select    sys_menu_no
+                , par_sys_menu_no
+                , sys_menu_nm -- 메뉴명
+                , sys_menu_path -- 메뉴경로
+                , level -- 레벨
+                , prt_seq -- 출력순서
+                , disp_yn -- 표시여부
+                , used_yn -- 사용여부
+        from    sys_menu
+        where   sys_menu_no = #{sysMenuNo} or par_sys_menu_no = #{sysMenuNo}
+                and used_yn = 'Y'
+        order by sys_menu_path, prt_seq
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getMenuListCount" parameterType="map" resultType="int">
+        select count(sys_menu_no) from sys_menu
+        where   sys_menu_no = #{sysMenuNo} or par_sys_menu_no = #{sysMenuNo}
+                and used_yn = 'Y'
+    </select>
+
+    <select id="getParSysMenus" parameterType="map"  resultType="int">
+        select par_sys_menu_no from sys_menu where used_yn = 'Y'
+    </select>
+
+    <select id="getAuthMenuList" parameterType="map" resultType="camelMap">
+        select distinct a.code_no --코드번호
+                      , a.code_nm --코드명
+                      , d.user_id --사용자번호
+                      , case when d.auth_cd = a.code_no then 'Y' else 'N' end as auth_yn -- 권한체크
+        from code_info a join auth_sys_menu b on a.code_no = b.auth_cd
+                         left join auth_user c on b.auth_cd = c.auth_cd
+                         left join user_info d on c.user_id = d.user_id
+        where a.used_yn = 'Y'
+          and a.par_code_no = #{parCodeNo}
+          and d.user_id = #{userId}
+    </select>
+    <select id="getMenuPosList" parameterType="map" resultType="str">
+        select  get_menu_str( #{sysMenuNo} )
+    </select>
+
+    <select id="routerList" parameterType="map" resultType="camelMap">
+        select *
+        from sys_menu a
+        where a.used_yn = 'Y'
+        and sys_menu_path is not null
+        and base_path is not null
+        and par_sys_menu_no not in (0,1,10)
+        order by sys_menu_no
+    </select>
+
+    <select id="getCircleMenuList" parameterType="map" resultType="camelMap">
+        select sys_menu_no as id
+             , brf_menu_nm as title
+             , sys_menu_nm as menu_nm
+             , sys_menu_no::varchar as icon
+             , sys_menu_path as routh_path
+        from sys_menu
+        where par_sys_menu_no = (select par_sys_menu_no from sys_menu where sys_menu_no = #{sysMenuNo})
+        and   used_yn = 'Y'
+        and   disp_yn = 'Y'
+        limit 5 offset #{pageNo}
+    </select>
+    <select id="getCircleMenuListCount" parameterType="map" resultType="int">
+        select count(a.id)
+        from (
+                 select sys_menu_no as id
+                 from sys_menu
+                 where par_sys_menu_no = (select par_sys_menu_no from sys_menu where sys_menu_no = #{sysMenuNo})
+                   and used_yn = 'Y'
+                   and disp_yn = 'Y'
+             ) a
+    </select>
+
+</mapper>

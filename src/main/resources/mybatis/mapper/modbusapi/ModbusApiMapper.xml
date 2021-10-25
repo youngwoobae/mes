@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.modbus.mapper.ModbusApiMapper">
+
+    <delete id="initOperMoniter" parameterType="map" >
+        DELETE FROM oper_mast WHERE oper_no NOT IN (SELECT MAX(oper_no) FROM oper_mast where spot_equip_no = #{spotEquipNo})
+    </delete>
+</mapper>

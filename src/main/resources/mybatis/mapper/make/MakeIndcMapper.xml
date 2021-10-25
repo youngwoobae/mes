@@ -1,0 +1,2256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.make.mapper.MakeIndcMapper">
+    <select id="getComboProcList" parameterType="map"  resultType="camelMap">
+        select    0    as prt_seq
+             , 0   as value
+		         ,'선택'::varchar as text
+		         , 0  as code_seq
+        union
+        select   1 as prt_seq
+             , code_no  as value
+				, code_nm as text
+				, code_seq
+        from code_info
+        where par_code_no = #{parCodeNo}
+          and used_yn = 'Y'
+          and code_no in (select proc_cd from proc_info where matr_req_able_yn = 'N')
+        order by prt_seq,code_seq
+    </select>
+
+    <select id="getMakeIndcList" parameterType="map"  resultType="camelMap">
+        select  a.par_indc_no --부모지시번호
+              , a.ord_no
+              , a.indc_no  --지시번호
+              , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+              , a.prod_no --품번
+              , e.prod_nm --품명
+              , e.brnch_no --제조공정번
+              , e.mess --단위중량 (규격)
+              , d.proc_cd --제조공정코드
+              , y.code_nm as proc_nm --제조공정명
+              , to_char(a.matr_req_dt,'YYYY-MM-DD') as matr_req_dt --자재출고요청일
+              , a.make_unit --생산단위
+              , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업시작일
+              , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt --작업종료일
+              , to_char(g.make_to_dt,'YYYY-MM-DD') as tostk_dt --생산완료일(상품창고 입고처리 대상으로 변경된 생산완료일을 의미함.)
+              , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
+              , a.indc_wgt --지시중량
+              , coalesce(a.indc_qty / e.qty_per_pkg ,0) as indc_qty --지시량
+              , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
+              , case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
+                     when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
+                     when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_qty,0)
+                     when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_qty,0)
+                 end as wgt_or_qty -- 공정단위와 조정생산량에 따라 다르게 표시하기 위해 사용.
+              , h.make_dt --최종생산일자
+              , h.ctl_fill_yield --조정충진수율 합계
+              , d.proc_unit --공정처리단위
+              , w.code_nm as proc_unit_nm --공정처리단위명
+              , ( coalesce (a.fill_yield,0) / 100.0)  * a.indc_wgt as weighing --충진을위한 칭량중량
+              , a.real_yield --운영수율
+              , a.oper_rt --가동율
+              , a.fault_rt --불량율
+              , coalesce (c.used_mp,0)  as  used_mp     --투입인원수
+              , coalesce (c.used_tm,0)  as  used_tm     --투입시간
+              , a.indc_sts --지시상태
+              , e.mngr_unit -- 단위중량 단위
+              , ci.code_nm as mngr_unit_nm --단위중량 단위명
+              , coalesce (e.qty_per_pkg ,0) as qty_per_pkg --포장당 수량
+              , z.code_nm as indc_sts_nm --지시상태명
+              , ab.code_nm as brnch_nm -- 공정
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+                         join proc_info d on a.proc_cd = d.proc_cd
+                         join code_info y on d.proc_cd = y.code_no
+                         join proc_brnch x on x.brnch_no = e.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'
+                         join code_info w on d.proc_unit = w.code_no
+                         join code_info z on a.indc_sts = z.code_no
+                         join code_info ab on e.brnch_no = ab.code_no
+                    left join code_info ci on e.mngr_unit = ci.code_no
+                    left join (select count(mo.matr_no) as mo_matr_cnt
+                                      ,mo.indc_no
+                                from matr_owh mo
+                                where mo.used_yn = 'Y'
+                                group by mo.indc_no
+                              ) mo on mo.indc_no = a.indc_no
+        <choose>
+            <when test="parIndcNo == 0">
+                         join (select count(mi.matr_no) as mi_matr_cnt
+                                     , mi.indc_no
+                                from make_indc_matr mi
+                                where mi.used_yn = 'Y'
+                                group by mi.indc_no
+                               ) mi on mi.indc_no = a.indc_no
+            </when>
+
+            <otherwise>
+                    left join (select count(mi.matr_no) as mi_matr_cnt
+                                    , mi.indc_no
+                                from make_indc_matr mi
+                                where mi.used_yn = 'Y'
+                                group by mi.indc_no
+                               ) mi on mi.indc_no = a.indc_no
+            </otherwise>
+        </choose>
+                    left join (select par_indc_no
+                                    , make_to_dt
+                                from make_indc
+                                where used_yn = 'Y' and proc_cd = 999
+                                ) g on a.indc_no = g.par_indc_no
+                    left join ( select mir.indc_no
+                                       , sum(mir.make_qty) as make_qty
+                                       , sum(mir.make_wgt) as make_wgt
+                                       , sum(mir.adj_make_qty) as adj_make_qty
+                                       , sum(mir.adj_make_wgt) as adj_make_wgt
+                                       , to_char(max(mir.make_dt), 'YYYY-MM-DD') as make_dt
+                                       , sum(mir.ctl_fill_yield) / count(mir.ctl_fill_yield) as ctl_fill_yield
+                                       , sum(mir.real_yield) / count(mir.real_yield) as real_yield
+                                from make_indc_rslt mir join make_indc mi on mir.indc_no = mi.indc_no and mi.used_yn = 'Y'
+                                where mir.used_yn='Y'
+                                group by mir.indc_no
+                                ) h on a.indc_no = h.indc_no
+                    left join ( select indc_no
+                                     , count(user_id)   as used_mp
+                                     , sum(tot_work_hm) as used_tm
+                                from make_indc_mp
+                                where used_yn = 'Y'
+                                group by indc_no
+                                ) c on h.indc_no = c.indc_no
+        where a.used_yn = 'Y'
+       -- and coalesce(a.indc_sts , 0) not in (2404)
+        <if test="parIndcNo != null and parIndcNo != ''">
+            and a.par_indc_no = #{parIndcNo}
+        </if>
+        <if test="indcTp != null and indcTp != 0">
+            and a.indc_tp = #{indcTp}
+        </if>
+        <if test="indcSts != null and indcSts != ''">
+            and a.indc_sts = #{indcSts}
+        </if>
+        <if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+            and to_char(a.indc_dt,'YYYY-MM-DD') between to_char(#{dateFr}::date, 'YYYY-MM-DD') and to_char(#{dateTo}::date, 'YYYY-MM-DD')
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        </if>
+        order by  a.indc_dt desc, y.code_seq, a.reg_dt desc, prod_no
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakeIndcListCount" parameterType="map"  resultType="int">
+        select count(a.indc_no)
+          from (select  a.par_indc_no --부모지시번호
+                     , a.ord_no
+                     , a.indc_no  --지시번호
+                     , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+                     , a.prod_no --품번
+                     , e.prod_nm --품명
+                     , e.brnch_no --제조공정번
+                     , e.mess --단위중량 (규격)
+                     , d.proc_cd --제조공정코드
+                     , y.code_nm as proc_nm --제조공정명
+                     , to_char(a.matr_req_dt,'YYYY-MM-DD') as matr_req_dt --자재출고요청일
+                     , a.make_unit --생산단위
+                     , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업시작일
+                     , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt --작업종료일
+                     , to_char(g.make_to_dt,'YYYY-MM-DD') as tostk_dt --생산완료일(상품창고 입고처리 대상으로 변경된 생산완료일을 의미함.)
+                     , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
+                     , a.indc_wgt --지시중량
+                     , coalesce(a.indc_qty / e.qty_per_pkg ,0) as indc_qty --지시량
+                     , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
+                     , case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
+                            when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
+                            when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_qty,0)
+                            when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_qty,0)
+                        end as wgt_or_qty -- 공정단위와 조정생산량에 따라 다르게 표시하기 위해 사용.
+                     , h.make_dt --최종생산일자
+                     , h.ctl_fill_yield --조정충진수율 합계
+                     , d.proc_unit --공정처리단위
+                     , w.code_nm as proc_unit_nm --공정처리단위명
+                     , ( coalesce (a.fill_yield,0) / 100.0)  * a.indc_wgt as weighing --충진을위한 칭량중량
+                     , a.real_yield --운영수율
+                     , a.oper_rt --가동율
+                     , a.fault_rt --불량율
+                     , coalesce (c.used_mp,0)  as  used_mp     --투입인원수
+                     , coalesce (c.used_tm,0)  as  used_tm     --투입시간
+                     , a.indc_sts --지시상태
+                     , e.mngr_unit -- 단위중량 단위
+                     , ci.code_nm as mngr_unit_nm --단위중량 단위명
+                     , coalesce (e.qty_per_pkg ,0) as qty_per_pkg --포장당 수량
+                     , z.code_nm as indc_sts_nm --지시상태명
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+                         join proc_info d on a.proc_cd = d.proc_cd
+                         join code_info y on d.proc_cd = y.code_no
+                         join proc_brnch x on x.brnch_no = e.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'
+                         join code_info w on d.proc_unit = w.code_no
+                         join code_info z on a.indc_sts = z.code_no
+                         join code_info ab on e.brnch_no = ab.code_no
+                    left join code_info ci on e.mngr_unit = ci.code_no
+                    left join (select count(mo.matr_no) as mo_matr_cnt
+                                     ,mo.indc_no
+                                 from matr_owh mo
+                                where mo.used_yn = 'Y'
+                                group by mo.indc_no
+                              ) mo on mo.indc_no = a.indc_no
+            <choose>
+                <when test="parIndcNo == 0">
+                    join (select count(mi.matr_no) as mi_matr_cnt
+                               , mi.indc_no
+                            from make_indc_matr mi
+                            where mi.used_yn = 'Y'
+                            group by mi.indc_no
+                         ) mi on mi.indc_no = a.indc_no
+                </when>
+                <otherwise>
+                    left join (select count(mi.matr_no) as mi_matr_cnt
+                                    , mi.indc_no
+                                from make_indc_matr mi
+                                where mi.used_yn = 'Y'
+                                group by mi.indc_no
+                              ) mi on mi.indc_no = a.indc_no
+                </otherwise>
+            </choose>
+                    left join (select par_indc_no
+                                    , make_to_dt
+                                from make_indc
+                                where used_yn = 'Y' and proc_cd = 999
+                              ) g on a.indc_no = g.par_indc_no
+                    left join ( select mir.indc_no
+                                     , sum(mir.make_qty) as make_qty
+                                     , sum(mir.make_wgt) as make_wgt
+                                     , sum(mir.adj_make_qty) as adj_make_qty
+                                     , sum(mir.adj_make_wgt) as adj_make_wgt
+                                     , to_char(max(mir.make_dt), 'YYYY-MM-DD') as make_dt
+                                     , sum(mir.ctl_fill_yield) / count(mir.ctl_fill_yield) as ctl_fill_yield
+                                     , sum(mir.real_yield) / count(mir.real_yield) as real_yield
+                                from make_indc_rslt mir join make_indc mi on mir.indc_no = mi.indc_no and mi.used_yn = 'Y'
+                                where mir.used_yn='Y'
+                                group by mir.indc_no
+                             ) h on a.indc_no = h.indc_no
+                    left join ( select indc_no
+                                     , count(user_id)   as used_mp
+                                     , sum(tot_work_hm) as used_tm
+                                  from make_indc_mp
+                                where used_yn = 'Y'
+                                group by indc_no
+                              ) c on h.indc_no = c.indc_no
+            where a.used_yn = 'Y'
+            -- and coalesce(a.indc_sts , 0) not in (2404)
+            <if test="parIndcNo != null and parIndcNo != ''">
+                and a.par_indc_no = #{parIndcNo}
+            </if>
+            <if test="indcTp != null and indcTp != 0">
+                and a.indc_tp = #{indcTp}
+            </if>
+            <if test="indcSts != null and indcSts != ''">
+                and a.indc_sts = #{indcSts}
+            </if>
+            <if test="dateFr != null and dateFr != '' and dateTo != null and dateTo != ''">
+                and to_char(a.indc_dt,'YYYY-MM-DD') between to_char(#{dateFr}::date, 'YYYY-MM-DD') and to_char(#{dateTo}::date, 'YYYY-MM-DD')
+            </if>
+            <if test="findSz != null and findSz != ''">
+                and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        ) a
+    </select>
+
+
+    <select id="getMakeIndcInfo" parameterType="map"  resultType="camelMap">
+        select a.par_indc_no --부모관리번호
+             , a.indc_no --관리번호
+             , to_char(a.indc_dt,'YYYY-MM-DD' ) as indc_dt --지시일자
+             , a.prod_no --품목
+             , b.prod_nm --품목명
+             , b.sz     --규격
+             , a.indc_wgt --지시중량
+             , a.indc_qty --지시수량
+             , a.make_unit --생산단위
+             , a.proc_cd --공정코드
+             , c.matr_req_able_yn --bom기반 자재요청 가능여부 (최초공정인경우에 설정됨)
+             , d.code_nm as proc_nm --공정명
+             , a.max_make_qty --공정별최대생산수량
+             , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --생산시작일
+             , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt --생산종료일
+             , a.fill_yield --충진수율
+             , a.ctl_fill_yield --관리자조정수율
+             , a.real_yield --운영수율
+             , (a.fill_yield * 0.01) * a.indc_wgt as weighing --충진중량
+             , a.fault_rt --불량율
+             , a.indc_cont --지시내용
+             , coalesce (a.ord_no,0) as ord_no --연관주문번호
+             , e.mpCount --공정별 투입인력
+             , a.indc_sts --지시상태
+        from make_indc a join proc_info c on a.proc_cd = c.proc_cd
+                         left join code_info d on c.proc_cd = d.code_no
+                         left join prod_info b on a.prod_no = b.prod_no
+                         left join ( select count(proc_cd) as mpCount
+                                          , mi.proc_cd
+                                     from make_indc mi join make_indc_mp mim on mi.indc_no = mim.indc_no group by proc_cd
+        ) e on a.proc_cd = e.proc_cd
+        where a.indc_no = #{indcNo}
+        --and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no) //실행시키지말것 오류 엄청 발생함.
+    </select>
+
+    <select id="getMakeStatusReport" parameterType="map"  resultType="camelMap">
+        /* 모니터링 > 작업현황 (makeIndcMapper.getMakeStatusReport) */
+        select a.indc_no --지시번호
+             , b.indc_rslt_no --결과번호
+             , a.prod_no --품번
+             , c.prod_nm --품명
+             , c.mess --규격(단위중량)
+             , y.code_nm  as brnch_nm --제조공정
+             , z.code_nm as proc_nm --작업명
+             , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+             , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업개시일
+             , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt --작업종료일
+             , ((a.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
+             , to_char(b.make_dt,'YYYY-MM-DD') as make_dt --생산일자
+             , a.indc_wgt --지시중량
+             , b.make_wgt
+             , a.fill_yield --
+             , a.ctl_fill_yield --관리지조정수율
+             , a.real_yield --운영수율
+             , a.fault_rt
+        from make_indc a join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y' and a.cust_no =#{custNo}
+                         join proc_brnch x on x.brnch_no = c.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'  and x.cust_no =#{custNo}
+                         join code_info y on x.brnch_no  = y.code_no  and y.cust_no =#{custNo}
+                         join code_info z on x.proc_cd  = z.code_no   and z.cust_no =#{custNo}
+                         join proc_info h on a.proc_cd = h.proc_cd    and h.cust_no =#{custNo}
+                    left join make_indc_rslt b on a.indc_no = b.indc_no and b.used_yn = 'Y'  and b.cust_no =#{custNo}
+        where a.used_yn = 'Y'
+        and a.cust_no =#{custNo}
+        and a.par_indc_no IN ( SELECT indc_no
+                               FROM make_indc
+                               WHERE used_yn = 'Y'
+                                 and cust_no =#{custNo}
+                                 AND indc_no = a.par_indc_no
+                              )
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <choose>
+            <when test="date_tp != null and date_tp == 'made'">
+                and to_char(b.make_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+            </when>
+            <when test="date_tp != null and date_tp == 'indc'">
+                and  to_char(now(),'YYYY-MM-DD') between  to_char(a.make_fr_dt,'YYYY-MM-DD') and  to_char(a.make_to_dt,'YYYY-MM-DD')
+            </when>
+            <otherwise>
+                and  to_char(a.make_fr_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+            </otherwise>
+        </choose>
+        order by make_dt is not null desc, indc_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakeStatusReportCount" parameterType="map"  resultType="int">
+        select count(a.indc_no)
+        from( select a.indc_no
+                from make_indc a join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y'  and c.cust_no =#{custNo}
+                                 join proc_brnch x on x.brnch_no = c.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'  and x.cust_no =#{custNo}
+                                 join code_info y on x.brnch_no  = y.code_no  and y.cust_no =#{custNo}
+                                 join code_info z on x.proc_cd  = z.code_no  and z.cust_no =#{custNo}
+                                 join proc_info h on a.proc_cd = h.proc_cd  and h.cust_no =#{custNo}
+                            left join make_indc_rslt b on a.indc_no = b.indc_no and b.used_yn = 'Y'  and b.cust_no =#{custNo}
+        where a.used_yn = 'Y'
+          and a.cust_no =#{custNo}
+        and a.par_indc_no IN ( SELECT indc_no
+                               FROM make_indc
+                               WHERE used_yn = 'Y'
+                                 and cust_no =#{custNo}
+                                AND indc_no = a.par_indc_no
+                               )
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(c.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <choose>
+            <when test="date_tp != null and date_tp == 'made'">
+                and to_char(b.make_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+            </when>
+            <when test="date_tp != null and date_tp == 'indc'">
+                and  to_char(now(),'YYYY-MM-DD') between  to_char(a.make_fr_dt,'YYYY-MM-DD') and  to_char(a.make_to_dt,'YYYY-MM-DD')
+            </when>
+            <otherwise>
+                and  to_char(a.make_fr_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+            </otherwise>
+        </choose>
+        order by make_dt is not null desc, indc_dt desc ) a
+    </select>
+
+    <select  id="getMaxMakeCapacity" parameterType="map"  resultType="camelMap">
+        select a.proc_cd
+             , b.code_nm as proc_nm
+             , a.max_make_qty / 1000 as max_make_qty --공정별 하루 최대 생산량(작업지시 단위는 무조건 KG 으로 설저되어 있어야 함)
+             , a.matr_req_able_yn --공정별 자재요청 가능 여부
+        from proc_info a join code_info b on a.proc_cd = b.code_no
+        where proc_cd = #{procCd}
+    </select>
+
+    <select  id="getMaxMakeCapacityPerDay" parameterType="map"  resultType="int">
+        select  coalesce ( round( coalesce ( case when coalesce (a.max_make_wgt,0) = 0 then 0
+                                                  else   (    coalesce (a.indc_wgt,0)::numeric  / ((a.make_to_dt::date - a.make_fr_dt::date) + 1 ) )
+                                                      / ( coalesce (a.max_make_wgt,0)::numeric * ((a.make_to_dt::date - a.make_fr_dt::date) + 1 ) )
+                                                 end * 100,0),2
+                               ),0
+                    ) as oper_rt
+        from make_indc a
+        where a.indc_no = #{indcNo}
+          and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+    </select>
+
+
+    <update id="dropMakeIndc" parameterType="map"  >
+        update make_indc set used_yn = 'N'
+        where indc_no IN (SELECT indc_no
+                          FROM make_indc
+                          WHERE used_yn = 'Y' AND par_indc_no = #{indcNo} or indc_no = #{indcNo}
+        )
+    </update>
+
+    <update id="dropIndcRslt" parameterType="map"  >
+        update make_indc_rslt set used_yn = 'N' where indc_rslt_no = #{indcRsltNo}
+    </update>
+
+    <select id="getMakeIndcMpList" parameterType="map"  resultType="camelMap">
+        select a.indc_mp_no
+        , a.indc_no
+        , to_char(a.mp_used_dt,'YYYY-MM-DD') as mp_used_dt
+        , a.fr_hm
+        , a.to_hm
+        , c.user_nm --작업자
+        , d.code_nm as proc_nm -- 작업명
+        , get_time_str(coalesce(a.regul_work_hm,0)::int)  as norm_work_hm
+        , get_time_str(coalesce(a.over_work_hm,0)::int)   as over_work_hm
+        , get_time_str(coalesce(a.exchg_work_hm,0)::int)  as exch_work_hm
+        , get_time_str(coalesce(a.tot_work_hm,0)::int)    as full_work_hm
+        from make_indc_mp a join user_info c on a.user_id = c.user_id
+        join make_indc b on a.indc_no  = b.indc_no
+        join code_info d on b.proc_cd = d.code_no
+        where a.used_yn = 'Y'
+        <if test="procCd != null and procCd != ''">
+            and d.proc_cd = #{procCd}
+        </if>
+        <if test="worker != null and worker != ''">
+            and upper(replace(c.user_nm,' ','')) like  '%' || upper(replace(#{worker},' ','')) || '%'
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and b.indc_no = #{indcNo}
+        </if>
+        <if test="ocpnKind != null and ocpnKind != ''">
+            and c.ocpn_kind = #{ocpnKind}
+        </if>
+    </select>
+    <select id="getMakeIndcMpListCount" parameterType="map"  resultType="int">
+        select count(a.indc_no)
+        from (  select a.indc_no
+        from make_indc_mp a join user_info c on a.user_id = c.user_id
+        join make_indc b on a.indc_no  = b.indc_no
+        join code_info d on b.proc_cd = d.code_no
+        where a.used_yn = 'Y'
+        <if test="procCd != null and procCd != ''">
+            and d.proc_cd = #{procCd}
+        </if>
+        <if test="worker != null and worker != ''">
+            and upper(replace(c.user_nm,' ','')) like  '%' || upper(replace(#{worker},' ','')) || '%'
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and b.indc_no = #{indcNo}
+        </if>
+        <if test="ocpnKind != null and ocpnKind != ''">
+            and c.ocpn_kind = #{ocpnKind}
+        </if>
+        ) a
+    </select>
+
+    <select id="getMakeIndcMp" parameterType="map"  resultType="camelMap">
+        select  a.indc_no
+             , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt
+             , to_char(d.mp_used_dt,'YYYY-MM-DD') as mp_used_dt
+             , d.fr_hm
+             , d.to_hm
+             , c.code_nm as proc_nm --공정명
+             , get_time_str(d.over_work_hm)  as over_work_hm
+             , get_time_str(d.tot_work_hm)  as tot_work_hm
+        from make_indc a join proc_info b on a.proc_cd  = b.proc_cd
+                         join code_info c on b.proc_cd = c.code_no
+                         left join make_indc_mp d on a.indc_no = d.indc_no
+        where to_char(a.make_fr_dt, 'YYYY-MM-DD') = #{indcDt} and c.code_nm = #{indcCd}
+
+    </select>
+
+    <select id="getMakeIndcMpInfo" parameterType="map"  resultType="camelMap">
+        select  a.indc_mp_no --근무이력관리번호
+             , a.indc_no --지시번호
+             ,  b.user_id --근무자id
+             , b.user_nm --근무자명
+             , f.prod_nm --생산제품
+             , to_char(c.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+             , to_char(a.mp_used_dt,'YYYY-MM-DD') as mp_used_dt --작업일자
+             , substring(a.fr_hm,1,2) as fr_hh
+             , substring(a.fr_hm,3,2) as fr_mm
+             , substring(a.to_hm,1,2) as to_hh
+             , substring(a.to_hm,3,2) as to_mm
+             , a.fr_hm --작업시작시간
+             , a.to_hm --작업종료시간
+             , get_time_str(coalesce(a.regul_work_hm,0))  as nterm_nm --정규근무시간
+             , get_time_str(coalesce(a.over_work_hm ,0))  as eterm_nm --초과근무시간
+             , get_time_str(coalesce(a.exchg_work_hm ,0)) as cterm_nm --환산근무시간
+             , get_time_str(coalesce(a.tot_work_hm ,0))   as aterm_nm --총근무시간
+             , d.proc_cd --공정코드
+             , e.code_nm as proc_nm --공정
+        from make_indc_mp a join user_info b on a.user_id = b.user_id
+                            join make_indc c on a.indc_no = c.indc_no
+                            join proc_info d on c.proc_cd = d.proc_cd
+                            join code_info e on d.proc_cd = e.code_no
+                            join prod_info f on c.prod_no = f.prod_no
+        where a.indc_mp_no = #{indcMpNo}
+    </select>
+    <!--출하계획-->
+    <select id="getExportPlanList" parameterType="map"  resultType="camelMap">
+        select to_char(oi.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt--납품요청
+        , pi.prod_nm --품명
+        , pi.prod_no --제품번호
+        , ci.cmpy_nm --주문거래처
+        , oi.ord_no --주문번호
+        , oi.ord_tp --주문유형
+        from ord_info oi  join cmpy_info ci on oi.cmpy_no = ci.cmpy_no and ci.used_yn = 'Y'
+        join ord_prod op on oi.ord_no = op.ord_no and op.used_yn = 'Y'
+        join prod_info pi on op.prod_no = pi.prod_no and pi.used_yn = 'Y'
+        join prod_stk p on op.prod_no = p.prod_no
+        left join prod_owh f on pi.prod_no = f.prod_no and f.ord_no = op.ord_no
+        where to_char(oi.dlv_req_dt,'YYYY-MM') = #{procYm}
+        and coalesce(f.owh_qty , 0) <![CDATA[ < ]]>  op.ord_qty
+        and oi.used_yn = 'Y'
+        <if test="ordSts != null and ordSts != ''">
+            and oi.ord_sts  = #{ordSts}
+        </if>
+        and p.stk_qty <![CDATA[ > ]]> 0
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prod'">
+                AND upper(replace(pi.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'cmpy'">
+                AND upper(replace(ci.cmpy_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+    </select>
+
+    <select id="getOrdProdInfo" parameterType="map" resultType="camelMap">
+        select a.ord_no
+             , a.prod_no
+             , a.sale_unit as make_unit
+             , round((a.ord_qty * b.mess )/1000) as indc_wgt
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no
+        where a.ord_no = #{ordNo}
+          and a.prod_no = #{prodNo}
+          and a.used_yn = 'Y'
+    </select>
+
+    <!--생산계획-->
+    <select id="getMakePlanList" parameterType="map"  resultType="camelMap">
+        select a.ord_no --주문번호
+        , b.cmpy_no --주문거래처번호
+        , b.cmpy_nm --주문거래처명
+        , to_char(a.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+        , to_char(a.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --납품요청일
+        , e.prod_no --주문상품번호
+        , case when d.prod_code is not null
+        then d.prod_nm || '(' || d.prod_code || ')'
+        else d.prod_nm end as plan_nm --제품명
+        --              , case when c.ord_cnt <![CDATA[ > ]]> 0 then d.prod_nm || '외' || c.ord_cnt || '개 상품' else d.prod_nm end  as plan_nm --주문명
+        from ord_info a left join cmpy_info b on a.cmpy_no  = b.cmpy_no
+        --                         join (select max(d.prod_no) as prod_no
+        --                                    , count(d.prod_no) -1 as ord_cnt
+        --                                    , d.ord_no
+        --                                 from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+        --                                where d.used_yn = 'Y'
+        --                                group by d.ord_no
+        --                              ) c on a.ord_no = c.ord_no
+        join ord_prod e on a.ord_no = e.ord_no and e.used_yn = 'Y'
+        join prod_info d on e.prod_no = d.prod_no
+        where a.used_yn = 'Y'
+        <if test="indcTp != null and indcTp != 0">
+            and a.ord_no in (select ord_no from make_indc where used_yn = 'Y' and coalesce (indc_tp,2802) =  #{indcTp})
+        </if>
+        <choose>
+            <when test="findTp != null and findTp == 'indc'">
+                and a.ord_no in (select ord_no from make_indc where used_yn = 'Y' and ord_no is not null)
+                and d.prod_no in (select a.prod_no from make_indc a join ord_info b on a.ord_no = b.ord_no
+                where  a.par_indc_no = 0 )
+            </when>
+            <when test="findTp != null and findTp == 'plan'">
+                and e.prod_no not in (select prod_no from make_indc where used_yn = 'Y' and par_indc_no = 0 and ord_no = a.ord_no)
+            </when>
+        </choose>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findSubTp != null and findSubTp == 'prod'">
+                AND upper(replace(d.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findSubTp != null and findSubTp == 'cmpy'">
+                AND upper(replace(b.cmpy_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="cmpyNos != null and cmpyNos != '' and cmpyNos.size != 0 ">
+            and b.cmpy_no in <foreach collection="cmpyNos" item="cmpyNos" index="index" open="(" close=")" separator=",">   #{cmpyNos}   </foreach>
+        </if>
+        <if test="ordNo != null and ordNo != ''">
+            and a.ord_no = #{ordNo}
+        </if>
+        <if test="dlvReqYm != null and dlvReqYm != ''">
+            and to_char(a.dlv_req_dt,'YYYY-MM') = #{dlvReqYm}
+        </if>
+
+    </select>
+
+    <!--생산계획상세정보-->
+    <select id="getMakePlanProdList" parameterType="map"  resultType="camelMap">
+        /* 생산계획상세정보 (makeIndcMapper.getMakePlanProdList)*/
+        select a.ord_prod_no --주문제품관리번호
+             , a.ord_no --주문번호
+             , a.prod_no --품번
+             , b.prod_nm --품명
+             , coalesce(a.purs_no,0) as purs_no --구매번호
+             --, a.ord_qty Remarked By KMJ AT 2021.08.29 10:52
+             , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty --AddOn By KMJ AT 2021.08.29 10:52
+             , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
+             , case when b.prod_tp = 36 then coalesce(e.cmpy_nm,'계획생산') else j.cmpy_nm end as cmpy_nm --거래처명
+             , c.ord_dt
+             , a.make_able_yn -- 생산가능여부
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no
+                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y'
+                   left join cmpy_info e on c.cmpy_no = e.cmpy_no
+                   left join cmpy_info j on b.cmpy_no = j.cmpy_no
+        where a.used_yn = 'Y'
+          and a.ord_no = #{ordNo}
+          and a.prod_no not in (select prod_no from make_indc where used_yn = 'Y' and par_indc_no = 0 and ord_no = c.ord_no)
+            limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakePlanProdListCount" parameterType="map"  resultType="int">
+        select count(a.ord_prod_no)
+        from (
+                 select a.ord_prod_no --주문제품관리번호
+                 from ord_prod a join prod_info b on a.prod_no = b.prod_no
+                                 join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y'
+                            left join cmpy_info e on c.cmpy_no = e.cmpy_no
+                            left join cmpy_info j on b.cmpy_no = j.cmpy_no
+                 where a.used_yn = 'Y'
+                   and a.ord_no = #{ordNo}
+                   and a.prod_no not in (select prod_no from make_indc where used_yn = 'Y' and par_indc_no = 0 and ord_no = c.ord_no)
+        ) a
+    </select>
+
+    <select id="getComboProdProcList" parameterType="map"  resultType="camelMap">
+        select proc_cd as value
+             , c.code_nm as text
+        from proc_brnch a join prod_info b on a.brnch_no = b.brnch_no and b.prod_no = #{prodNo}
+            join code_info c on a.proc_cd = c.code_no
+        order by a.proc_seq
+    </select>
+
+    <select id="getProdProcList" parameterType="map"  resultType="camelMap">
+        select proc_cd as value
+             , c.code_nm as text
+             , a.brnch_no as brnchNo
+        from proc_brnch a join prod_info b on a.brnch_no = b.brnch_no and b.prod_no = #{prodNo}
+            join code_info c on a.proc_cd = c.code_no
+        where a.used_yn = 'Y'
+        order by c.code_seq
+    </select>
+
+
+    <select id="getTimeString" parameterType="map"  resultType="camelMap">
+        select  get_time_str(#{wterm}) as nterm_nm --근무시간
+             , get_time_str(#{eterm}) as eterm_nm --초과근무시간
+             , get_time_str(#{cterm}) as cterm_nm --환산초과근무시간
+             , get_time_str(#{aterm}) as aterm_nm --정상근무시간 + 환산초과근무시간
+    </select>
+
+    <select id="chkReqPurs" parameterType="map"  resultType="camelMap">
+        select a.matr_no --자재번호
+             , d.matr_nm --자재명
+             , d.purs_unit --구매단위
+             , coalesce (max(d.mess),1) as mess --자재별단위용량(mess값이 없는 경우 프로세스 오류 발생함)
+             , sum(a.need_qty)  as indc_wgt --생산지시중량
+             , max(coalesce (f.stk_qty,0)) as stk_qty --현재고수량
+             , ceil(sum(a.need_qty) - max(coalesce (f.stk_qty,0)))  as req_purs_qty --구매필요중량
+        from make_indc_matr a join matr_info d on a.matr_no = d.matr_no and d.used_yn = 'Y'
+                              left join matr_stk f on a.matr_no = f.matr_no
+        where a.used_yn = 'Y'
+          and   a.indc_no = #{indcNo}
+        group by a.matr_no, d.matr_nm, d.purs_unit
+        having  ceil(sum(a.need_qty) - max(coalesce (f.stk_qty,0)))  <![CDATA[ > ]]>  0
+    </select>
+
+    <!--작업지시 기반 소요자재 리스트-->
+    <select id="getReqMatrList" parameterType="map"  resultType="camelMap">
+        select  a.indc_matr_no  --상세지시번호
+        , a.indc_no   --지시번
+        , a.matr_no  --자재번호
+        , c.prod_no --품번
+        , c.prod_nm --품명
+        , d.matr_nm --자재
+        , b.make_unit  --생산투입단위
+        , g.code_nm as make_unit_nm --생산투입단위명
+        , round(h.consist_rt::numeric,2) as consist_rt --투입비
+        , b.stat_cd  --작업상태
+        , e.code_nm as stat_nm --작업상태명
+        , round(a.need_qty::numeric,3) as need_qty  --소요수량
+        , coalesce (f.stk_qty,0) as stk_qty -- 재고수량
+        from make_indc_matr a join make_indc b on a.indc_no  = b.indc_no and b.par_indc_no = 0
+        join prod_info c on b.prod_no = c.prod_no
+        join matr_info d on a.matr_no = d.matr_no
+        join prod_bom h on c.prod_no = h.prod_no and d.matr_no = h.matr_no
+        left join code_info e on b.stat_cd = e.code_no
+        left join code_info g on b.make_unit = g.code_no
+        left join matr_stk f on a.matr_no = f.matr_no
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+
+        <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
+        <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo}</if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <!--작업지시 기반 소요자재 리스트-->
+    <select id="getStkMatrList" parameterType="map"  resultType="camelMap">
+        select  a.indc_matr_no  --상세지시번호
+        , a.indc_no   --지시번
+        , a.matr_no  --자재번호
+        , c.prod_no --품번
+        , c.prod_nm --품명
+        , d.matr_nm --자재
+        , b.make_unit  --생산투입단위
+        , g.code_nm as make_unit_nm --생산투입단위명
+        , round(h.consist_rt::numeric,2) as consist_rt --투입비
+        , b.stat_cd  --작업상태
+        , e.code_nm as stat_nm --작업상태명
+        , round(a.need_qty::numeric,3) as need_qty  --소요수량
+        , coalesce (f.stk_qty,0) as stk_qty -- 재고수량
+        , f.matr_stk_no as matr_stk_no -- stkNo
+        , o.iwh_qty -- 잆고수량
+        from make_indc_matr a join make_indc b on a.indc_no  = b.indc_no and b.par_indc_no = 0
+        join prod_info c on b.prod_no = c.prod_no
+        join matr_info d on a.matr_no = d.matr_no
+        join prod_bom h on c.prod_no = h.prod_no and d.matr_no = h.matr_no
+        left join code_info e on b.stat_cd = e.code_no
+        left join code_info g on b.make_unit = g.code_no
+        left join matr_stk f on a.matr_no = f.matr_no
+        left join matr_iwh o on a.matr_no = o.matr_no
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+
+        <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
+        <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo}</if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getReqMatrListCount" parameterType="map"  resultType="int">
+        select count(a.indc_matr_no)
+        from ( select a.indc_matr_no  --상세지시번호
+        from make_indc_matr a join make_indc b on a.indc_no  = b.indc_no and b.par_indc_no = 0
+        join prod_info c on b.prod_no = c.prod_no
+        join matr_info d on a.matr_no = d.matr_no
+        join prod_bom h on c.prod_no = h.prod_no and d.matr_no = h.matr_no
+        left join code_info e on b.stat_cd = e.code_no
+        left join code_info g on b.make_unit = g.code_no
+        left join matr_stk f on a.matr_no = f.matr_no
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
+        <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo}</if>
+        ) a
+    </select>
+
+    <select id="getMakeIndcRsltInfo" parameterType="map"  resultType="camelMap">
+        select b.indc_no --생산지시상세정보
+             , b.par_indc_no --생산지시부모정보
+             , b.ord_no --주문번호
+             , b.proc_cd
+             , to_char(b.indc_dt, 'YYYY-MM-DD') as indc_dt
+             , e.code_nm as proc_nm --작업명
+             , c.prod_no --품번
+             , c.prod_nm --품명
+             , c.mess --단위중
+             , f.code_nm as proc_unit_nm
+             , g.ccp_tp --CCP관리공정
+             , coalesce(h.make_qty,0) as make_qty -- 생산수량 합계
+             , coalesce(h.make_wgt,0) as make_wgt -- 생산중량 합계
+             , coalesce(h.metal_qty,0) as metal_qty -- 금속검출수량 합계
+             , coalesce(h.wgt_qty,0) as wgt_qty -- 중량미달수량 합계
+             , coalesce(h.pack_qty,0) as pack_qty -- 포장불량수량 합계
+             , coalesce(h.ster_time,0) as ster_time --살균시간 합계
+             , coalesce(h.ster_tmpr,0) as ster_tmpr --최대 살균온도
+             , coalesce(h.adj_make_qty_or_wgt) as adj_make_qty_or_wgt --조정생산량 또는 조정생산중량의 합계
+             , h.ctl_fill_yield
+             , b.clos_yn --AddOn by KMJ At 21.08.15 23:00 --생산완료 여부 추가 (분할 생산 적용)
+             , to_char(b.make_fr_dt, 'YYYY-MM-DD') as make_fr_dt --작업시작일자
+             , to_char(b.make_to_dt, 'YYYY-MM-DD') as make_to_dt --작업종료일자
+        from make_indc b join prod_info c on b.prod_no = c.prod_no
+                         join proc_info d on b.proc_cd = d.proc_cd
+                         join code_info e on d.proc_cd = e.code_no
+                         join code_info f on f.code_no = d.proc_unit
+                         join code_info g on g.code_no = d.proc_cd
+                         left join ( select mir.indc_no
+                                          , sum(mir.make_qty) as make_qty
+                                          , sum(mir.make_wgt) as make_wgt
+                                          , sum(mir.szn_qty) as szn_qty
+                                          , sum(mir.metal_qty) as metal_qty
+                                          , sum(mir.wgt_qty) as wgt_qty
+                                          , sum(mir.pack_qty) as pack_qty
+                                          , sum(mir.ster_time) as ster_time
+                                          , max(mir.ster_tmpr) as ster_tmpr
+                                          , case when mi.make_unit = 81
+                                                     then sum(mir.adj_make_qty)
+                                                 else sum(mir.adj_make_wgt)
+                end as adj_make_qty_or_wgt
+                                          , case when count(mir.ctl_fill_yield) = 0
+                                                     then sum( coalesce (mir.ctl_fill_yield, 0)) / 1
+                                                 else sum( coalesce (mir.ctl_fill_yield, 0)) /  count(mir.ctl_fill_yield)
+                end as ctl_fill_yield
+                                     from make_indc_rslt mir join make_indc mi on mir.indc_no = mi.indc_no and mi.used_yn = 'Y'
+                                     where mi.indc_no = #{indcNo}
+                                     group by mir.indc_no, mi.make_unit
+        ) h on b.indc_no = h.indc_no
+        where b.indc_no = #{indcNo}
+    </select>
+
+    <select id="getMakeIndcRsltList" parameterType="map"  resultType="camelMap">
+        select a.indc_no --생산지시상세정보
+             , to_char(c.make_dt,'YYYY-MM-DD')    as make_dt --생산일자
+             , b.proc_cd --공정코드
+             , d.code_nm as proc_nm --공정
+             , c.make_qty --생산수량
+             , c.metal_qty -- 이물질검출
+             , c.szn_qty -- 배합불량
+             , c.pack_qty -- 포장불량
+             , c.wgt_qty -- 질량미달
+             , b.make_fr_dt -- 시작시간
+             , b.make_to_dt -- 종료시간
+--              , c.fail_qty --오류수량
+             , case when EXTRACT( day FROM age( to_char(b.make_to_dt,'YYYYMMDD')::date ,to_char(b.make_fr_dt,'YYYYMMDD')::date) ) = 0
+                        then 0
+                    else   EXTRACT( day FROM age(to_char(b.make_to_dt,'YYYYMMDD')::date ,CURRENT_DATE) )
+                               /  EXTRACT( day FROM age(to_char(b.make_to_dt,'YYYYMMDD')::date ,to_char(b.make_to_dt,'YYYYMMDD')::date) ) * 100
+            end as tark_term --목표진행
+             , round(case when b.indc_wgt = 0 then 0 else ( c.make_wgt / b.indc_wgt) * 100 end ,3) as make_rt --실제진행
+             , b.make_unit --생산단위
+        from make_indc_mp a join make_indc b on a.indc_no = b.indc_no
+                            join code_info d on b.proc_cd = d.code_no
+                            join make_indc_rslt c on a.indc_no = c.indc_no
+        where a.used_yn = 'Y'
+          and a.indc_no = #{indcNo}
+            limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakeIndcRsltListCount" parameterType="map"  resultType="int">
+        select count(a.indc_no)
+        from ( select a.indc_no
+               from make_indc_mp a join make_indc b on a.indc_no = b.indc_no
+                                   join code_info d on b.proc_cd = d.code_no
+                                   join make_indc_rslt c on a.indc_no = c.indc_no
+               where a.used_yn = 'Y'
+                 and a.indc_no = #{indcNo}
+             ) a
+    </select>
+    <select id="getWorkerList" parameterType="map" resultType="camelMap">
+        select a.user_id
+        , a.user_nm
+        , a.cell_no
+        , a.cell_id
+        , a.user_tp
+        , a.ocpn_kind
+        , a.empl_kind
+        , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
+        , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
+        , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
+        , b.dept_nm --소속 / 부서명
+        , b.par_dept_no
+        , b.prt_seq
+        from user_info a join code_info z on a.ocpn_kind = z.code_no
+        left join code_info y on a.empl_kind = y.code_no
+        left join dept_info b on a.dept_no = b.dept_no
+        where 1 = 1
+        and a.used_yn = 'Y'
+        <if test="ocpnKind != null and ocpnKind != ''">
+            and a.ocpn_kind = #{ocpnKind}
+        </if>
+
+        <if test="emplKind != null and emplKind != ''">
+            and a.empl_kind = #{emplKind}
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+
+            <if test="findTp != null and findTp == 'deptNm'">
+                and upper(replace(b.dept_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="deptList != null and deptList !='' and deptList.size != 0 ">
+            and a.dept_no::varchar in <foreach collection="deptList" item="deptList" index="index" open="(" close=")" separator=",">   #{deptList}   </foreach>
+        </if>
+        order by b.dept_no, a.user_nm
+    </select>
+
+    <select id="getMpUsedList" parameterType="map"  resultType="camelMap">
+        select a.indc_no --작업상세지시번호
+             , to_char(b.mp_used_dt,'YYYY-MM-DD') as mp_used_dt --작업투입일자
+             , b.fr_hm   --작업투입시작시분
+             , b.to_hm   --작업투입종료시분
+             , c.user_nm --작업자명
+             , z.code_nm as empl_kind_nm --채용구분
+             , get_time_str(coalesce(b.regul_work_hm,0)::int)  as norm_work_hm
+             , get_time_str(coalesce(b.over_work_hm,0)::int)   as over_work_hm
+             , get_time_str(coalesce(b.exchg_work_hm,0)::int)  as exch_work_hm
+             , get_time_str(coalesce(b.tot_work_hm,0)::int)    as full_work_hm
+        from make_indc a join make_indc_mp b on a.indc_no = b.indc_no and b.used_yn = 'Y'
+                         join user_info c on b.user_id = c.user_id
+                         join code_info z on c.empl_kind  = z.code_no
+        where a.used_yn = 'Y'
+          and c.ocpn_kind = #{ocpnKind}
+          and a.indc_no = #{indcNo}
+    </select>
+
+
+    <select id="getUsedManPowerList" parameterType="map"  resultType="camelMap">
+        select a.user_id --id
+             , a.user_nm --성명
+             , lpad(to_char(coalesce (b.fr_hh,0) ,'FM9') ,2, '0') || ':' || lpad(to_char(coalesce (b.fr_mm,0) ,'FM9') ,2, '0') as fr_hm명 --시작시분
+             , lpad(to_char(coalesce (b.to_hh,0) ,'FM9') ,2, '0') || ':' || lpad(to_char(coalesce (b.to_mm,0) ,'FM9') ,2, '0') as to_hm  --종료시분
+--          , lpad(to_char(coalesce (b.over_fr_hh,0) ,'FM9') ,2, '0') || ':' || lpad(to_char(coalesce (b.over_fr_mm,0) ,'FM9') ,2, '0') as over_fr_hm --초시시작시분
+--          , lpad(to_char(coalesce (b.over_to_hh,0) ,'FM9') ,2, '0') || ':' || lpad(to_char(coalesce (b.over_to_mm,0) ,'FM9') ,2, '0') as over_to_hm --초과종료시분
+             ,get_time_str(coalesce (b.to_hh,0) * 60 + coalesce (b.to_mm,0)  - coalesce (b.fr_hh,0) * 60 + coalesce (b.fr_mm,0) ) as work_tm --투입시간
+        from user_info a left join make_indc_mp b on a.user_id  = b.user_id
+        where a.used_yn  = 'Y'
+          and a.ocpn_kind = #{ocpnKind}
+    </select>
+
+    <select id="getUsedManPowerListCount" parameterType="map"  resultType="camelMap">
+        select count(a.user_id)
+        from ( select a.user_id --id
+               from user_info a left join make_indc_mp b on a.user_id  = b.user_id
+               where a.used_yn  = 'Y'
+                 and a.ocpn_kind = #{ocpnKind}
+             )
+    </select>
+
+    <select id="getMpInfo" parameterType="map"  resultType="camelMap">
+        select  b.indc_mp_no --근무이력관리번호
+             , to_char(b.mp_used_dt,'YYYY-MM-DD') as mp_used_dt --투입일자
+             , a.user_nm --작업자명
+             , b.fr_hm --작업시작시간
+             , b.to_hm --작업종료시간
+             , b.over_fr_hm --초과근무시작시간
+             , b.over_to_hm --초과근무종료시간
+             , get_time_str(coalesce(b.regul_work_hm,0))as regul_work_nm --정규근무시간
+             , get_time_str(coalesce(b.over_work_hm ,0)) as over_work_nm --
+             , get_time_str(coalesce(b.exchg_work_hm ,0)) as exchg_work_nm --환산근무시간
+             , get_time_str(coalesce(b.tot_work_hm ,0)) as tot_work_nm --총근무시간
+        from user_info a join code_info z on a.empl_kind  = z.code_no
+                         join make_indc_mp b on a.user_id = b.user_id
+        where b.indc_mp_no = #{indcMpNo}
+    </select>
+
+    <update id="getMpDropInfo" parameterType="map">
+        update make_indc_mp set used_yn = 'N' where indc_mp_no = #{indcMpNo}
+    </update>
+
+    <!--생산현황-->
+    <select id="getMakeStatList" parameterType="map"  resultType="camelMap">
+        select a.indc_no --지시번호
+            , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+            , b.prod_nm --품명
+            , d.code_nm as proc_nm --공정
+            , to_char(e.make_dt,'YYYY-MM-DD') as make_dt --생상일자
+            , b.sz  --규격
+            , b.mess --단위중량
+            , coalesce (b.qty_per_pkg,1) as qty_per_pkg --세트수
+            , a.indc_wgt  --지시량(Kg)
+            , e.make_qty  --생산수량
+            , e.make_wgt  --생산중량
+            , coalesce(e.pack_qty,0) AS pack_qty--포장불량
+            , coalesce(e.wgt_qty,0) AS wgt_qty--중량미달
+            , coalesce(e.szn_qty,0) AS szn_qty--배합불량
+            , coalesce(e.metal_qty,0) AS metal_qty--이물질검출
+            , coalesce (ys.stk_qty,0)  as bef_stk_qty--전일재고
+            , coalesce (cs.stk_qty,0)  as cur_stk_qty --현재고
+            , a.fill_yield    -- 충진수율
+            , a.ctl_fill_yield --관리자조정수율(생산수율)
+            , a.fill_yield * a.indc_wgt as weighing --충진을 위한 칭량중량
+            , a.real_yield --운영수율
+            , a.oper_rt --가동율
+            , to_char(e.make_dt, 'YYYY-MM-DD') as make_dt -- 생산완료일자
+            , to_char(a.make_fr_dt, 'YYYY-MM-DD') as make_fr_dt --생산시작일자
+            , to_char(a.make_to_dt, 'YYYY-MM-DD') as make_to_dt --생산종료일자
+            ,coalesce (ab.owh_qty ,0)as owh_qty
+        from make_indc a join prod_info b on a.prod_no = b .prod_no  and b.used_yn = 'Y'
+                         join proc_info c on a.proc_cd = c.proc_cd and c.used_yn = 'Y'
+                         join code_info d on c.proc_cd  = d.code_no and d.used_yn = 'Y'
+                         --join proc_info h on a.proc_cd = h.proc_cd and h.used_yn = 'Y'
+                         --join ( select indc_no, indc_wgt from make_indc where par_indc_no = 0  ) f on a.par_indc_no = f.indc_no
+                    left join make_indc_rslt e on a.indc_no = e.indc_no
+                    left join ( select prod_no, sum(stk_qty) as stk_qty
+                                from prod_stk_clos
+                                where used_yn = 'Y'
+                                and to_char(clos_dt,'YYYY-MM-dd' ) =  to_char(now() - interval '1 day','YYYY-MM-DD')
+                                group by prod_no
+                              ) ys  on a.prod_no = ys.prod_no
+                    left join ( select prod_no, sum(stk_qty) as stk_qty
+                                from prod_stk cs
+                                where cs.used_yn = 'Y'
+                                group by prod_no
+                                ) cs on a.prod_no = cs.prod_no
+                   left join ( select ab.prod_no
+                                    --, to_char(ab.owh_dt,'YYYY-MM-dd' ) as owh_dt
+                                    , sum(ab.owh_qty) as owh_qty
+                               from prod_owh ab
+                               where used_yn = 'Y'
+                              group by prod_no--,owh_dt
+                             ) ab on a.prod_no = ab.prod_no --and owh_dt = to_char(e.make_dt,'YYYY-MM-dd')
+        where a.used_yn  = 'Y'
+        and a.proc_cd = 999
+        --and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+        <if test="procCd != null and procCd != ''">
+            and a.proc_cd = #{procCd}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="cnvDateFr != null and cnvDateFr != '' and cnvDateTo != null and cnvDateTo != ''">
+            and to_char(a.indc_dt,'YYYY-MM-DD') between substring(#{cnvDateFr},1,10) and substring(#{cnvDateTo},1,10)
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by e.make_dt--, d.code_no
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakeStatListCount" parameterType="map"  resultType="int">
+        select count(a.indc_no)
+        from ( select a.indc_no --지시번호
+               from make_indc a join prod_info b on a.prod_no = b.prod_no
+                                join proc_info c on a.proc_cd = c.proc_cd
+                                join code_info d on c.proc_cd  = d.code_no
+                              --join proc_info h on a.proc_cd = h.proc_cd
+                              --join (select indc_no, indc_wgt from make_indc where par_indc_no = 0  ) f on a.par_indc_no = f.indc_no
+                          left join make_indc_rslt e on a.indc_no = e.indc_no and e.used_yn = 'Y'
+                          left join ( select prod_no, sum(stk_qty) as stk_qty
+                                      from prod_stk_clos
+                                      where used_yn = 'Y'
+                                      and to_char(clos_dt,'YYYY-MM-dd' ) =  to_char(now() - interval '1 day','YYYY-MM-DD')
+                                      group by prod_no
+                                  ) ys  on a.prod_no = ys.prod_no
+                         left join ( select prod_no, sum(stk_qty) as stk_qty
+                                     from prod_stk cs
+                                     where cs.used_yn = 'Y'
+                                     group by prod_no
+                                   ) cs on a.prod_no = cs.prod_no
+                         left join (  select ab.prod_no
+                                        --, to_char(owh_dt,'YYYY-MM-dd' ) as owh_dt
+                                        , sum(ab.owh_qty) as owh_qty
+                                        from prod_owh ab
+                                        where used_yn = 'Y'
+                                        group by prod_no--,owh_dt
+                                   ) ab on a.prod_no = ab.prod_no --and owh_dt = to_char(e.make_dt,'YYYY-MM-dd')
+        where a.used_yn  = 'Y'
+        and a.proc_cd = 999
+        --and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+        <if test="procCd != null and procCd != ''">
+            and a.proc_cd = #{procCd}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="cnvDateFr != null and cnvDateFr != '' and cnvDateTo != null and cnvDateTo != ''">
+            and to_char(a.indc_dt,'YYYY-MM-DD') between substring(#{cnvDateFr},1,10) and substring(#{cnvDateTo},1,10)
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+
+    <!--생산일보-->
+    <select id="getMakeDailyReportList" parameterType="map"  resultType="camelMap">
+        select a.indc_no --지시번호
+        , e.indc_rslt_no --작업결과번호
+        , to_char(e.make_dt, 'YYYY-MM-DD') as make_dt --생산일자
+        , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+        , h.code_nm as proc_nm --제조공정명
+        , b.prod_nm --품명
+        , a.indc_wgt  --지시중량
+        , b.mess --규격(단위중량)
+        , c.proc_unit
+        , f.indc_wgt --지시량
+        , e.make_qty  --생산수량
+        , e.make_wgt --생산중
+        , coalesce(e.metal_qty,0) as metal_qty --금속검출
+        , coalesce(e.pack_qty,0)  as pack_qty --포장불량
+        , coalesce(e.szn_qty,0)   as szn_qty --배합불량
+        , coalesce(e.wgt_qty,0)   as wgt_qty --중량미달
+        ,  round( coalesce ( case when coalesce (a.max_make_qty,0) = 0 then 0
+        else coalesce (a.indc_qty,0)::numeric / ( coalesce (a.max_make_qty,0) *((a.make_to_dt::date - a.make_fr_dt::date)::numeric + 1 ) )
+        end * 100,0),2
+        ) as oper_rt --가동률(최대캐퍼대비생산량)--사용중지
+        , round( coalesce ( case when coalesce (a.indc_qty,0) = 0 then 0
+        else coalesce (e.make_qty,0)  / a.indc_qty
+        end * 100,0),2
+        )  as yield_rt --수율(지시량대비생산량:염지등과 관련된 문제 고려)
+        from make_indc a join prod_info b on a.prod_no = b .prod_no
+        join proc_info c on a.proc_cd = c.proc_cd
+        join code_info d on c.proc_cd  = d.code_no
+        join code_info h on a.proc_cd = h.code_no
+        join (select indc_no, indc_wgt from make_indc where par_indc_no = 0  ) f on a.par_indc_no = f.indc_no
+        left join make_indc_rslt e on a.indc_no = e.indc_no
+        where a.used_yn  = 'Y'
+        and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+        and a.proc_cd = #{procCd}
+        <choose>
+            <when test="dateTp != null and dateTp == 'make'">
+                and to_char(e.make_dt,'YYYY-MM-DD') between  #{dateFr} and  #{dateTo}
+            </when>
+            <when test="dateTp != null and dateTp == 'indc'">
+                and to_char(a.indc_dt,'YYYY-MM-DD') between  #{dateFr} and  #{dateTo}
+            </when>
+        </choose>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by e.make_dt desc, d.code_no
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakeDailyReportListCount" parameterType="map"  resultType="int">
+        select count(a.indc_no)
+        from ( select a.indc_no
+        from make_indc a join prod_info b on a.prod_no = b .prod_no
+        join proc_info c on a.proc_cd = c.proc_cd
+        join code_info d on c.proc_cd  = d.code_no
+        join code_info h on a.proc_cd = h.code_no
+        join (select indc_no, indc_wgt from make_indc where par_indc_no = 0  ) f on a.par_indc_no = f.indc_no
+        left join make_indc_rslt e on a.indc_no = e.indc_no
+        where a.used_yn  = 'Y'
+        and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+        and a.proc_cd = #{procCd}
+        <choose>
+            <when test="dateTp != null and dateTp == 'make'">
+                and to_char(e.make_dt,'YYYY-MM-DD') between  #{dateFr} and  #{dateTo}
+            </when>
+            <when test="dateTp != null and dateTp == 'indc'">
+                and to_char(a.indc_dt,'YYYY-MM-DD') between  #{dateFr} and  #{dateTo}
+            </when>
+        </choose>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+
+    <select id="getMakeIndcStatus" parameterType="map"  resultType="long">
+        select case when to_char(now(),'YYYY-MM-DD') <![CDATA[ < ]]> #{makeFrDt} then 501 --작업대기
+                    when to_char(now(),'YYYY-MM-DD') <![CDATA[ > ]]>  #{makeToDt} then 504 --작업종료
+                    else 502 --진행중
+                   end
+    </select>
+
+    <select id="getOperProdList" parameterType="map"  resultType="camelMap">
+        select a.indc_no --지시번호
+        , a.prod_no --품번
+        , b.prod_nm --품명
+        , #{baseUrl} || '/prod/' || b.prod_no::varchar || '.png' as bar_code_url
+        from make_indc a join prod_info b on a.prod_no = b.prod_no
+        where to_char(now() ,'YYYY-MM-DD') between to_char(a.make_fr_dt,'YYYY-MM-DD') and  to_char(a.make_to_dt,'YYYY-MM-DD')
+        and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+        <if test="prodCd != null and prodCd != ''">
+            and a.prod_cd = #{procCd}
+        </if>
+
+    </select>
+    <!--작업현황-->
+    <select id="getMakeStatusList" parameterType="map"  resultType="camelMap">
+        select a.code_no as proc_cd --공정코드
+        , a.code_nm as proc_nm --공정명
+        , b.indc_no --지시번호
+        , f.mess --단위중량
+        , substring( to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD'),1,2) || ':' || substring(to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD'),  3,2) as fr_hm --시작시간
+        , substring(to_char(to_timestamp(d.to_unix_hms),'YYYY-MM-DD'),1,2) || ':' || substring(to_char(to_timestamp(d.to_unix_hms),'YYYY-MM-DD'),3,2) as to_hm --종료시간
+        , e.prod_nm --품명
+        , b.indc_wgt --지시수량
+        , b.fill_yield --충진수율
+        , b.ctl_fill_yield --관리자조정수율
+        , b.real_yield --운영수율
+        , b.fault_rt --불량율
+        , b.indc_wgt * b.fill_yield as weighing --충진을 위한 칭량중량
+        , c.make_wgt  --생산중량
+        , c.make_qty  --생산수량
+        , to_char(c.make_dt, 'YYYY-MM-DD') as make_dt -- 생산일자
+
+        , coalesce(c.metal_qty,0) as metal_qty --금속검출
+        , coalesce(c.pack_qty,0)  as pack_qty --포장불량
+        , coalesce(c.szn_qty,0)   as szn_qty --배합불량
+        , coalesce(c.wgt_qty,0)   as wgt_qty --중량미달
+        , coalesce (c.used_mp,0)  as used_mp --투입인력
+        , coalesce (c.used_pwr,0)  as used_pwr --사용전력
+        , coalesce (c.used_flux,0)  as used_flux --사용유량
+        from code_info a  left join make_indc b on a.code_no = b.proc_cd join prod_info e on b.prod_no = e.prod_no
+        and b.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = b.par_indc_no)
+        left join proc_info e on b.proc_cd = e.proc_cd
+        left join make_indc_rslt c on b.indc_no = c.indc_no
+        left join oper_mast d on b.indc_no = d.indc_no
+        join prod_info f on f.prod_no = b.prod_no
+        <if test="makeDt != null and makeDt != ''">
+            and to_char(c.make_dt,'YYYY-MM-DD') = substring(#{makeDt}::varchar,1,10)
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="baseProcNo != null and baseProcNo != ''">
+            and  b.par_code_no  = #{baseProcNo}
+        </if>
+        order by a.code_seq
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <!--작업현황-->
+    <select id="getMakeStatusListCount" parameterType="map"  resultType="int">
+        select count(a.proc_cd)
+        from (  select a.code_no as proc_cd --공정코드
+        from code_info a  left join make_indc b on a.code_no = b.proc_cd join prod_info e on b.prod_no = e.prod_no
+        and b.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = b.par_indc_no)
+        left join make_indc_rslt c on b.indc_no = c.indc_no
+        left join oper_mast d on b.indc_no = d.indc_no
+        join prod_info f on f.prod_no = b.prod_no
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="baseProcNo != null and baseProcNo != ''">
+            and  b.par_code_no  = #{baseProcNo}
+        </if>
+        <if test="makeDt != null and makeDt != ''">
+            and to_char(c.make_dt,'YYYY-MM-DD') = #{makeDt}
+        </if>
+        ) a
+    </select>
+    <select id="resetMakeTermByDragDrop" parameterType="map" >
+        update make_indc set make_fr_dt = to_date(#{makeFrDt},'YYYY-MM-DD')
+                           , make_to_dt = to_date(#{makeToDt},'YYYY-MM-DD')
+        where indc_no = #{indcNo}
+    </select>
+
+    <select id="getStartProc" resultType="camelMap">
+        select a.proc_cd --최초 공정코
+             , c.code_nm as proc_nm --최초공정명
+        from proc_info  a join (select min(proc_cd) as proc_cd from proc_info where used_yn ='Y') b on a.proc_cd = b.proc_cd
+                          join code_info c on a.proc_cd = c.code_no and a.used_yn = 'Y'
+    </select>
+
+    <select id="getFaultList" resultType="camelMap">
+        select
+        c.prod_no,
+        c.prod_nm,
+        a.make_dt,
+        a.make_qty,
+        a.metal_qty,
+        a.pack_qty,
+        a.wgt_qty,
+        a.szn_qty
+        from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no
+        join prod_info c on b.prod_no = c.prod_no
+        where a.used_yn = 'Y'
+        <if test="dateFr != null and dateFr != ''">
+            and to_char(a.make_dt,'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+        </if>
+        <if test="prodNo != null and prodNo != ''">
+            and a.prod_no = #{prodNo}
+        </if>
+        order by make_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getFaultListCount"  parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from (
+        select
+        c.prod_no
+        from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no
+        join prod_info c on b.prod_no = c.prod_no
+        where a.used_yn = 'Y'
+        <if test="dateFr != null and dateFr != ''">
+            and to_char(a.make_dt,'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+        </if>
+        <if test="prodNo != null and prodNo != ''">
+            and a.prod_no = #{prodNo}
+        </if>
+        ) a
+    </select>
+
+
+    <delete id="initPursMatr" parameterType="map">
+        delete from purs_matr where purs_no in (select purs_no from purs_info where indc_no = #{indcNo})
+    </delete>
+
+    <delete id="initPursInfo" parameterType="map">
+        delete from purs_info where indc_no = #{indcNo}
+    </delete>
+
+    <delete id="initTempMatrPos" parameterType="map"  >
+        delete from matr_pos
+        where row_idx = 0 and col_idx = 0 and stair_idx = 0 and wh_no = 0
+
+    </delete>
+
+    <select id="getPosCount" parameterType="map"  resultType="int">
+        select count(a.matr_pos_no) + 1
+        from matr_pos a
+        where wh_no = 0 and matr_no = #{matrNo} and stair_idx = 0 and col_idx = 0 and row_idx = 0 and used_yn = 'Y'
+    </select>
+
+    <select id="getMakeMainProc" parameterType="map"  resultType="camelMap">
+        select a.code_no as proc_cd
+             , a.code_nm as proc_nm
+        from code_info a join ( select min(proc_cd) as proc_cd from proc_brnch where brnch_no = #{brnchNo} )  b on a.code_no = b.proc_cd
+    </select>
+
+    <select id="getMakeExtraProc" parameterType="map"  resultType="camelMap">
+        select a.proc_cd as value
+             , b.code_nm as text
+        from proc_info a join code_info b on a.proc_cd  = b.code_no and b.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.proc_cd not in (select proc_cd from proc_brnch where brnch_no = #{brnchNo} and used_yn = 'Y' group by proc_cd)
+        order by proc_cd
+    </select>
+
+    <select id="getMakeProcList" parameterType="map"  resultType="camelMap">
+        select a.proc_cd as value
+             , b.code_nm as text
+        from proc_info a join code_info b on a.proc_cd  = b.code_no and b.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        order by proc_cd
+    </select>
+
+    <select id="getMoniterItemList" parameterType="map"  resultType="camelMap">
+        select to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+             , a.make_fr_dt::date - b.make_to_dt::date as work_tm --작업기간
+            , c.prod_nm  --품명--
+             , d.man_pwr   --투임인원
+             , g.proc_rt -- --가동율
+             , a.fill_yield --충진수율
+             , a.ctl_fill_yield --관리자조정수율
+             , round(a.real_yield,2) as real_yield --실제수율
+             , a.fill_yield * a.indc_wgt as weighing --충진을 위한 칭량중량
+             , round(a.fault_rt::numeric,2)  as fault_rt --불량율
+        from make_indc a join ( select par_indc_no, max(make_to_dt) as make_to_dt from make_indc where used_yn = 'Y' group by par_indc_no ) b on a.indc_no  = b.par_indc_no
+                         join prod_info c on a.prod_no = c.prod_no
+                         join (select b.par_indc_no,count(a.user_id) as man_pwr
+                               from make_indc_mp a join make_indc b on a.indc_no = b.indc_no group by b.par_indc_no
+        ) d on a.indc_no = d.par_indc_no
+                         join (select par_indc_no, max(indc_no) as indc_no from make_indc a group by par_indc_no) e on a.indc_no =e.par_indc_no
+                         join make_indc f on e.indc_no = f.indc_no
+                         join proc_info h on f.proc_cd = h.proc_cd
+                         join proc_brnch g on c.brnch_no  = g.brnch_no
+                         join make_indc_rslt h on f.indc_no  = h.indc_no
+        where 1 = 1
+          and a.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = a.par_indc_no)
+    </select>
+    <!--일자별공정별투입인력현황-->
+    <select id="getManPowerSummaryList" parameterType="map"  resultType="camelMap">
+        select distinct a.brnch_no
+                      , b.code_nm as brnch_nm
+        from proc_brnch a join code_info b on a.brnch_no = b.code_no and b.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        </if>
+        order by b.code_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getManPowerSummaryListCount" parameterType="map"  resultType="int">
+        select count(a.brnch_no)
+        from (
+                select distinct a.brnch_no
+                     , b.code_nm as brnch_nm
+                from proc_brnch a join code_info b on a.brnch_no = b.code_no and b.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                <if test="findSz != null and findSz != ''">
+                    and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+                order by b.code_nm
+             ) a
+    </select>
+
+    <select id="getManPowerList" parameterType="map"  resultType="camelMap">
+        select distinct  to_char(d.indc_dt,'YYYY-MM-DD')    as indc_dt --지시일
+             , to_char(a.mp_used_dt,'YYYY-MM-DD') as mp_used_dt --투입일
+             , e.user_id --작업자id
+             , e.user_nm --작업자명
+             , to_char(to_timestamp(a.fr_hm, 'YYYY'),'YYYY') as fr_hm
+             , to_char(to_timestamp(a.to_hm, 'YYYY'),'YYYY') as to_hm --종료시간
+             , to_char(to_timestamp(a.over_fr_hm, 'YYYY'),'YYYY') as over_fr_hm --초과시작시간
+             , to_char(to_timestamp(a.over_to_hm, 'YYYY'),'YYYY') as over_to_hm--초과종료시간
+             , c.code_nm as proc_nm --공정명
+             , get_time_str(a.over_work_hm)  as over_work_hm --초과근무시
+             , get_time_str(a.tot_work_hm)  as tot_work_hm --토합근무시간
+        from make_indc_mp a join make_indc d on a.indc_no = d.indc_no
+                            join proc_info b on d.proc_cd  = b.proc_cd
+                            join code_info c on b.proc_cd = c.code_no
+                            join user_info e on a.user_id = e.user_id
+                            join proc_brnch f on b.proc_cd = f.proc_cd
+        where a.used_yn = 'Y'
+        and d.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = d.par_indc_no)
+        and f.brnch_no = #{brnchNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(e.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'procNm'">
+                and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
+        <if test="mpUsedDt != null and mpUsedDt != ''">  AND to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(#{mpUsedDt}::date,'YYYY-MM-DD')  </if>
+        order by proc_nm,user_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getManPowerListCount" parameterType="map"  resultType="int">
+        select count(a.user_id)
+        from (
+        select distinct  to_char(d.indc_dt,'YYYY-MM-DD')    as indc_dt --지시일
+                       , to_char(a.mp_used_dt,'YYYY-MM-DD') as mp_used_dt --투입일
+                       , e.user_id --작업자id
+                       , e.user_nm --작업자명
+                        , to_char(to_timestamp(a.fr_hm, 'YYYY'),'YYYY') as fr_hm
+                        , to_char(to_timestamp(a.to_hm, 'YYYY'),'YYYY') as to_hm --종료시간
+                        , to_char(to_timestamp(a.over_fr_hm, 'YYYY'),'YYYY') as over_fr_hm --초과시작시간
+                        , to_char(to_timestamp(a.over_to_hm, 'YYYY'),'YYYY') as over_to_hm--초과종료시간
+                        , c.code_nm as proc_nm --공정명
+                        , get_time_str(a.over_work_hm)  as over_work_hm --초과근무시
+                        , get_time_str(a.tot_work_hm)  as tot_work_hm --토합근무시간
+        from make_indc_mp a join make_indc d on a.indc_no = d.indc_no
+                            join proc_info b on d.proc_cd  = b.proc_cd
+                            join code_info c on b.proc_cd = c.code_no
+                            join user_info e on a.user_id = e.user_id
+                            join proc_brnch f on b.proc_cd = f.proc_cd
+        where a.used_yn = 'Y'
+        and d.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = d.par_indc_no)
+        and f.brnch_no = #{brnchNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(e.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+            <if test="findTp != null and findTp == 'procNm'">
+                and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
+        <if test="mpUsedDt != null and mpUsedDt != ''">  AND to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(#{mpUsedDt}::date,'YYYY-MM-DD')  </if>
+        ) a
+    </select>
+
+    <select id="getWgtchkSummaryList" parameterType="map"  resultType="camelMap">
+        select to_char(a.fr_dt,'YYYY-MM-DD') as proc_dt
+             ,sum(a.pass_qty ) as pass_qty
+             ,sum(a.metal_qty) as metal_qty
+        from wgtchk_diary a left join prod_info b on a.prod_no = b.prod_no
+        where to_char(a.fr_dt,'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+        group by to_char(a.fr_dt,'YYYY-MM-DD')
+        order by proc_dt desc
+    </select>
+    <select id="getWgtchkSummaryListCount" parameterType="map"  resultType="int">
+        select count(a.proc_dt)
+        from (
+                 select to_char(a.fr_dt,'YYYY-MM-DD') as proc_dt
+                 from wgtchk_diary a left join prod_info b on a.prod_no = b.prod_no
+                 where to_char(a.fr_dt,'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+                 group by to_char(a.fr_dt,'YYYY-MM-DD')
+             ) a
+    </select>
+
+    <select id="getWgtchkDiaryList" parameterType="map"  resultType="camelMap">
+        select a.api_no --관리번호
+             , to_char(a.fr_dt,'YYYY-MM-DD') as proc_dt --수신일자
+             ,to_char(a.fr_dt,'hh24:mi:ss') as fr_time --금속검출시작시간
+             ,to_char(a.to_dt,'hh24:mi:ss') as to_time --금속검출종료시간
+             ,case when b.prod_no is null then a.prod_nm else b.prod_nm end as prod_nm
+             ,a.pass_qty
+             ,a.metal_qty
+        from wgtchk_diary a left join prod_info b on a.prod_no = b.prod_no
+        where  to_char(a.fr_dt,'YYYY-MM-DD') = #{procDt}
+        order by a.fr_dt desc
+
+    </select>
+    <select id="getWgtchkDiaryListCount" parameterType="map"  resultType="int">
+        select count(a.api_no)
+        from (  select a.api_no --관리번호
+                from wgtchk_diary a left join prod_info b on a.prod_no = b.prod_no
+                where  to_char(a.fr_dt,'YYYY-MM-DD') = #{procDt}
+             ) a
+    </select>
+
+    <select id="getForMpMakerIndcList" parameterType="map"  resultType="camelMap">
+        select   distinct  a.indc_no, a.proc_cd , '0900' as fr_hm
+                        , '1800' as to_hm
+                        , 540 as regul_work_hm
+                        , 540 as tot_work_hm
+                        , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_dt
+                        , c.user_id
+        from make_indc a join proc_brnch b on a.proc_cd = b.proc_cd and b.used_yn = 'Y'
+                         join proc_mp c on b.proc_grp_cd = c.proc_grp_cd and c.used_yn = 'Y'
+                         join user_info d on c.user_id  = d.user_id and d.used_yn = 'Y'
+        where ( a.par_indc_no = #{indcNo} or indc_no = #{indcNo} )
+    </select>
+
+    <select id="getCurrentProdStock"  parameterType="map"  resultType="float">
+        select  iwh_qty - owh_qty as stk_qty
+        from ( select coalesce (sum(owh_qty),0) as owh_qty from prod_owh where wh_no = #{wh_no} and prod_no= #{prod_no}) as owh_qty
+           , ( select coalesce (sum(iwh_qty),0) as iwh_qty from prod_iwh where wh_no = #{wh_no} and prod_no= #{prod_no}) as iwh_qty
+    </select>
+    <select id="getmakeIndcProc" parameterType="map"  resultType="camelMap">
+        select e.code_nm as proc_nm -- 공정명
+             ,TO_CHAR(b.indc_dt,'YYYY-MM-DD') AS indc_dt -- 지시일자
+             ,b.indc_wgt -- 지시중량
+             ,g.make_wgt --생산중량
+             ,g.make_qty -- 생산수량
+             ,c.prod_nm as prod_nm -- 제폼 명
+             ,b.fill_yield --충진수율
+             ,b.ctl_fill_yield --관리지조정수율
+             ,b.real_yield --운영수율
+             ,b.fault_rt --불량율
+        from purs_info a join make_indc b on a.indc_no  = b.par_indc_no
+                         join prod_info c on b.prod_no = c.prod_no
+                         join proc_info d on b.proc_cd = d.proc_cd
+                         join code_info e on d.proc_cd = e.code_no
+                         join code_info f on d.proc_unit = f.code_no
+                         join make_indc_rslt g on b.indc_no = g.indc_no
+        where b.used_yn = 'Y' and b.indc_no =#{indcNo} or b.par_indc_no = #{indcNo}
+            and b.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = b.par_indc_no)
+        order by b.indc_no
+    </select>
+
+    <select id="getComboOrdrCmpyList" parameterType="map"  resultType="camelMap">
+        select cmpy_no as value
+        , cmpy_nm as text
+        from cmpy_info
+        where 1 =1
+        <if test="cmpyNos != null and cmpyNos != '' and cmpyNos.size != 0 ">
+            and cmpy_no in <foreach collection="cmpyNos" item="cmpyNos" index="index" open="(" close=")" separator=",">   #{cmpyNos}   </foreach>
+        </if>
+    </select>
+
+
+    <select id="getMakeIndcPrintList" parameterType="map" resultType="camelMap">
+        select distinct a.indc_wgt --지시중량
+                      , c.prod_nm --품명
+                      , c.prod_no --품번
+--                       , case when c.mngr_base = 1701 then c.vol else c.mess end as base_unit  --단위중량
+                      , c.mess as base_unit
+                      , h.code_nm as unit_nm
+                      , c.qty_per_pkg --포장당수량
+                      , d.matr_nm --자재명
+                      , f.cmpy_nm --회사명
+                      , b.consist_rt --비율
+                      , a.indc_qty -- 생산수량
+                      , c.spga --비중
+                      , c.brix -- brix
+                      , c.max_ph --ph
+                      , c.min_ph  --ph
+                      , coalesce(r.min_brix,0) as min_brix
+                      , coalesce(r.max_brix,0) as max_brix
+                      , c.max_ph --ph
+                      , c.min_ph --ph
+                      , coalesce(w.min_heat,0) as min_heat
+                      , coalesce(w.max_heat,0) as max_heat
+                      , round(coalesce (a.indc_qty * consist_rt * 0.01 * c.vol, 0)::numeric, 2) as blend_qty --배합량
+                      , g.code_nm as brnch_nm --제품생산공정분류명
+                      , i.code_nm as prod_shape_nm --상품형태
+                      , a.real_yield --수율
+                      , a.fill_yield --충진수율
+                      , a.ctl_fill_yield --관리자조정수율
+                      , a.fill_yield * a.indc_wgt as weighing --충진을 위한 칭량중량
+                      , a.fault_rt --불량율
+                      , coalesce (mir.make_qty,0) as make_qty --생산수량
+                      , c.bom_lvl --BOM 레벨
+                      , c.prod_cont
+        from make_indc a join prod_bom b on a.prod_no = b.prod_no
+                         join prod_info c on b.prod_no = c.prod_no
+                         join matr_info d on b.matr_no = d.matr_no
+                         left join ord_info e on a.ord_no = e.ord_no
+                         left join prod_attr r on c.prod_attr_prod_attr_no = r.prod_attr_no
+                         left join heat_lmt_info w on c.heat_lmt_info_lmt_no = w.lmt_no
+                         join proc_info pc on a.proc_cd = pc.proc_cd
+                         left join cmpy_info f on e.cmpy_no = f.cmpy_no
+                         left join code_info g on c.brnch_no = g.code_no
+                         left join code_info i on c.prod_shape = i.code_no
+                         left join code_info h on c.sale_unit = h.code_no
+                         left join (select par_indc_no from make_indc where used_yn = 'Y' and proc_cd = 999) j on a.indc_no = j.par_indc_no
+                         left join make_indc_rslt mir on j.par_indc_no = mir.indc_no
+        where a.used_yn = 'Y'
+          and a.indc_no = #{indcNo}
+        order by b.consist_rt desc, d.matr_nm
+    </select>
+
+    <select id="getMakeIndcBfPrintList" parameterType="map" resultType="camelMap">
+        select c.matr_nm
+             , a.consist_rt
+             , b.ce_tp
+             , b.prod_cont
+             , b.prod_nm
+        from prod_bom a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y' and b.bom_lvl = #{bomLvl}
+                        join matr_info c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.bom_lvl = #{bomLvl}
+          and b.prod_nm = #{prodNm}
+        order by a.consist_rt desc, c.matr_nm
+    </select>
+
+    <select id="getProcCtntList" parameterType="map" resultType="camelMap">
+        select proc_ctnt from proc_info a
+        where a.used_yn = 'Y'
+          and a.proc_ctnt is not null
+          and a.proc_ctnt <![CDATA[!=]]> ''
+        order by a.proc_cd
+    </select>
+
+    <select id="getBeefIndcList" parameterType="map" resultType="camelMap">
+        select  a.par_indc_no --부모지시번호
+             , a.indc_no  --지시번호
+             , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일
+             , a.prod_no --품번
+             , e.prod_nm --품명
+             , e.mess --단위중량 (규격)
+             , a.make_unit --생산단위
+             , to_char(a.matr_req_dt,'YYYY-MM-DD') as matr_req_dt --자재출고요청일
+             , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt
+             , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt
+             , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
+              , a.indc_wgt   --투입원료(지시중량)
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+                         left join (select par_indc_no, make_to_dt from make_indc where used_yn = 'Y' and proc_cd = 999) g on a.indc_no = g.par_indc_no
+                         left join make_indc_rslt b on a.indc_no = b.indc_no
+        where a.used_yn = 'Y'
+          and e.prod_nm like '%육포%'
+          and to_char(a.indc_dt,'YYYY-MM-DD') between to_char(now() - '1month'::interval, 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
+        order by a.indc_dt
+    </select>
+
+    <select id="getProdIndcNo" parameterType="map" resultType="camelMap">
+        select indc_no
+        from make_indc
+        where ord_no = #{ordNo}
+    </select>
+
+    <select id="getProdNo" parameterType="map" resultType="camelMap">
+        select a.prod_no
+        from prod_info a
+        where erp_prod_nm  = #{erpProdNm}
+    </select>
+
+
+    <update id="resetIndcSts" parameterType="map">
+        update make_indc
+        set indc_sts = #{indcSts}
+        where indc_no = #{indcNo}
+        <if test="ioCheck == 'iwh'">
+            and (  (select coalesce(count(need_qty),0) from make_indc_matr where indc_no = #{indcNo} and used_yn = 'Y')
+            = (select coalesce(count(iwh_qty),0)  from matr_iwh a
+            join make_indc_matr b on a.matr_no = b.matr_no
+            where b.indc_no = #{indcNo} and a.used_yn = 'Y' and a.wh_no  <![CDATA[ > ]]>  0)
+            )
+        </if>
+        <if test="ioCheck == 'owh'">
+            and ((select coalesce (count(matr_no),0) from make_indc_matr where indc_no = #{indcNo} and used_yn = 'Y' and matr_sts = 'Y')
+            = (select coalesce (count(matr_no),0) from make_indc_matr where indc_no = #{indcNo} and used_yn = 'Y')
+            )
+        </if>
+    </update>
+
+    <select id="getMatchIndcList" parameterType="map" resultType="camelMap">
+        select case when sum(a.need_qty) <![CDATA[ <= ]]>  max(coalesce (c.stk_qty,0))
+            or coalesce (b.indc_sts, 0) ::numeric <![CDATA[ != ]]> 2401
+                    then 'Y' else  'N' end as stk_sts
+             , max(d.owh_dt) as matr_iwh_dt
+        from make_indc_matr a join make_indc b on a.indc_no = b.indc_no
+                         left join matr_stk c on a.matr_no = c.matr_no
+                         left join matr_owh d on a.indc_no  = d.indc_no  and a.matr_no = d.matr_no
+        where b.indc_no = #{indcNo}
+        and b.par_indc_no = 0
+        and a.used_yn = 'Y'
+        group by b.indc_sts
+    </select>
+
+    <!-- 재고확인
+        a.ord_qty.단위 = EA
+        b.consist_rt.단위 = %
+        c.vol.단위 = kg
+        f.purs_qty.단위 =  Kg
+    -->
+    <select id="getNeedProdBomList" parameterType="map" resultType="camelMap">
+        /*생산계획에서 원료확인시 사용 (makeIndcMapper.getNeedProdBomList)*/
+        select distinct d.matr_no --자재번호
+             , d.matr_nm --자재명
+             , d.item_cd --자재코드
+             , d.sz      --자재규격
+             , d.purs_unit --자재구매단가
+--              , coalesce (e.stk_qty,0) - coalesce (ab.need_qty,0) as stk_qty --재고
+             , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
+             , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol  ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
+             ,  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol  ) * #{ctlFillYield}  as need_qty --소요량(Kg)
+             --, coalesce ( h.purs_qty,0) as 구매필요
+             --, coalesce (q.purs_qty,0)  as 기구매
+             --, coalesce (e.stk_qty,0)   as 재고
+             , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol
+                           - coalesce (q.purs_qty,0) --주문제품의 BOM에 의거한 구매량 (ord_prod.purs_no > 0 인 자료)
+                           - coalesce ( e.stk_qty,0 )  <![CDATA[ >= ]]>   0
+                     then coalesce (q.purs_qty,0) - coalesce (mi.iwh_qty ,0)
+                     else  coalesce (q.purs_qty,0) - coalesce(q.purs_qty,0)
+               end as wait_iwh_qty --입고대기량(Kg)
+             , coalesce (e.stk_qty,0) as stk_qty --재고량(Kg)
+             , get_matr_stk_sts(  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol  * c.spga )::numeric
+                                 , coalesce ( e.stk_qty,0)::numeric
+                                 , coalesce (q.purs_qty,0)::numeric
+                               ) as purs_need
+        from ord_prod a join ord_info  k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                        join prod_bom  b on a.prod_no = b.prod_no and b.purs_yn = 'Y' and b.prod_no = #{prodNo}
+                        join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y'
+                   left join ( select a.ord_no
+                                    , b.matr_no
+                                    , coalesce ( sum(b.purs_qty),0) as purs_qty
+                                    , a.purs_no
+                                from purs_info a left join purs_matr b on a.purs_no = b.purs_no and b.used_yn = 'Y'
+                               where a.used_yn = 'Y'
+                               and a.purs_sts in (162, 164) --부분(입고)
+                               group by a.ord_no, b.matr_no ,a.purs_no
+                             ) h on a.ord_no = h.ord_no and b.matr_no = h.matr_no
+                  left join matr_iwh mi on h.purs_no = mi.purs_no
+                  left join (select sum(e.stk_qty) as stk_qty
+                                    , e.matr_no
+                              from matr_stk e
+                              where e.used_yn = 'Y'
+                              group by  e.matr_no
+                             ) e on e.matr_no = d.matr_no
+                  left join (select ac.need_qty
+                                   ,ab.ord_no
+                                   ,ac.matr_no
+                               from make_indc ab join make_indc_matr ac on ab.indc_no = ac.indc_no and ac.used_yn = 'Y'
+                                                 join ord_info ad on ab.ord_no = ad.ord_no and ad.used_yn = 'Y'
+                              where ab.used_yn = 'Y'
+                                and ab.prod_no = #{prodNo}
+                            ) ab on ab.matr_no = d.matr_no
+                  left join( select a.ord_no
+                                  , a.purs_no
+                                  , a.prod_no
+                                  , b.matr_no
+                                  , coalesce(b.purs_qty,0) as purs_qty
+                             from ord_prod a join purs_matr b on a.purs_no = b.purs_no and b.used_yn  = 'Y'
+                             where a.ord_no = #{ordNo}
+                             and a.purs_no = #{pursNo}
+                             and a.prod_no = #{prodNo}
+                            ) q on a.ord_no = q.ord_no
+                                and a.purs_no = q.purs_no
+                                and b.prod_no = q.prod_no
+                                and d.matr_no = q.matr_no
+        where a.used_yn = 'Y'
+        <if test="ordNo != null and ordNo != ''">
+            AND a.ord_no = #{ordNo}
+            and a.prod_no = #{prodNo}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+    </select>
+
+
+    <select id="getSfNeedProdBomList" parameterType="map" resultType="camelMap">
+        select d.matr_no --자재번호
+             , d.matr_nm --자재명
+             , d.item_cd --자재코드
+             , d.sz      --자재규격
+             , d.purs_unit --자재구매단가
+             , ceil( (( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.spga))as need_qty --소요량(Kg)
+             , case when ( coalesce ( ( select sum(a.purs_qty)
+                                      from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                                      where b.used_yn ='Y'
+                                      and a.used_yn = 'Y'
+                                      and b.purs_sts in (162, 164)
+                                      and a.matr_no = d.matr_no),0
+                                   ) - coalesce(max(q.purs_qty),0)
+                         )
+                         - coalesce ( ( select sum(ms.stk_qty)
+                                        from matr_stk ms
+                                        where ms.matr_no = d.matr_no
+                                      ),0
+                           ) <![CDATA[ < ]]> 0
+                     then 0 else coalesce ( ( select sum(a.purs_qty)
+                                              from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                                              where b.used_yn ='Y'
+                                              and a.used_yn = 'Y'
+                                              and b.purs_sts in (162, 164)
+                                              and a.matr_no = d.matr_no
+                                            ),0
+                                  )
+                                 - coalesce ( ( select sum(ms.stk_qty)
+                                                from matr_stk ms
+                                                where ms.matr_no = d.matr_no
+                                               ),0
+                                   )
+             end as wait_iwh_qty --입고대기량(Kg)
+           , coalesce ( ( select sum(ms.stk_qty)
+                          from matr_stk ms
+                          where ms.matr_no = d.matr_no
+                        ), 0
+             ) as stk_qty --재고량(Kg)
+          , get_matr_stk_sts(ceil(sum( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0)*0.001*c.vol) * max(c.spga) )
+          , coalesce ( ( select sum(ms.stk_qty)
+                         from matr_stk ms
+                         where ms.matr_no = d.matr_no
+                        ),0
+            )
+          , ( coalesce ( ( select sum(a.purs_qty)
+                           from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                           where b.used_yn ='Y'
+                           and a.used_yn = 'Y'
+                           and b.purs_sts in (162, 164)
+                           and a.matr_no = d.matr_no),0
+              )
+              - coalesce(max(q.purs_qty),0))
+              - coalesce ( ( select sum(ms.stk_qty)
+                             from matr_stk ms
+                             where ms.matr_no = d.matr_no),0
+                           )
+                 ) as purs_need
+        from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                        join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                        join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y'
+                   left join ( select a.indc_no
+                                    , b.purs_no
+                                    , b.matr_no
+                                    , b.purs_qty
+                               from purs_info a join purs_matr b on a.purs_no = b.purs_no
+                                                                and a.used_yn = 'Y'
+                                                                and b.used_yn  = 'Y'
+                                                                and a.purs_sts in ( 162, 164 ) --검수중
+                             ) f on k.purs_no = f.purs_no and b.matr_no = f.matr_no
+                   left join( select c.purs_qty
+                                    , a.ord_no
+                              from ord_info a join purs_info b on a.ord_no = b.ord_no
+                                              join purs_matr c on b.purs_no = c.purs_no
+                                                              and c.used_yn = 'Y'
+                              where a.ord_no = #{ordNo} and a.used_yn = 'Y'
+                             ) q on a.ord_no = q.ord_no
+        where a.used_yn = 'Y'
+        <if test="ordNo != null and ordNo != ''">
+            AND a.ord_no = #{ordNo}
+            and a.prod_no = #{prodNo}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        group by c.mess, d.matr_no , d.matr_nm, d.item_cd, d.sz, d.purs_unit, b.consist_rt,a.ord_qty,c.spga
+    </select>
+    <select id="getHdfdNeedProdBomList" parameterType="map" resultType="camelMap">
+        select d.matr_no --자재번호
+             , d.matr_nm --자재명
+             , d.item_cd --자재코드
+             , d.sz      --자재규격
+             , d.purs_unit --자재구매단가
+             , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
+             , case when max(g.consist_rt) = b.consist_rt
+                    then ceil(max( a.ord_qty * c.sz::numeric / 1000))
+                    else ceil(max(a.ord_qty * c.sz::numeric / 1000 ) * b.consist_rt / max(g.consist_rt))
+                    end as need_qty --소요량(Kg)
+             , case when max(g.consist_rt) = b.consist_rt
+                    then ceil(max( a.ord_qty * c.sz::numeric / 1000))
+                    else ceil(max(a.ord_qty * c.sz::numeric / 1000 ) * b.consist_rt / max(g.consist_rt))
+                    end as purs_qty --소요량(Kg)
+             , case when ( coalesce ( ( select sum(a.purs_qty)
+                                   from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                                   where b.used_yn ='Y'
+                                   and a.used_yn = 'Y'
+                                   and b.purs_sts in (162, 164)
+                                   and a.matr_no = d.matr_no),0
+                                )
+                         - coalesce(max(q.purs_qty),0))
+                         - coalesce ( ( select sum(ms.stk_qty)
+                                        from matr_stk ms
+                                        where ms.matr_no = d.matr_no),0
+                                    ) <![CDATA[ <]]> 0
+                    then 0
+                    else coalesce ( ( select sum(a.purs_qty)
+                                      from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                                      where b.used_yn ='Y'
+                                      and a.used_yn = 'Y'
+                                      and b.purs_sts in (162, 164)
+                                      and a.matr_no = d.matr_no),0
+                                  )
+                       - coalesce ( ( select sum(ms.stk_qty)
+                                      from matr_stk ms
+                                      where ms.matr_no = d.matr_no),0
+                                  )
+                    end as wait_iwh_qty --입고대기량(Kg)
+             , coalesce ( ( select sum(ms.stk_qty)
+                            from matr_stk ms
+                            where ms.matr_no = d.matr_no), 0
+                        ) as stk_qty --재고량(Kg)
+             , get_matr_stk_sts(ceil(max(a.ord_qty * c.sz::numeric / 1000 ) * b.consist_rt / max(g.consist_rt))
+             , coalesce ( ( select sum(ms.stk_qty)
+                            from matr_stk ms
+                            where ms.matr_no = d.matr_no),0)
+             , ( coalesce ( ( select sum(a.purs_qty)
+                              from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                              where b.used_yn ='Y'
+                              and a.used_yn = 'Y'
+                              and b.purs_sts in (162, 164)
+                              and a.matr_no = d.matr_no),0
+                          )
+               - coalesce ( ( select sum(ms.stk_qty)
+                              from matr_stk ms
+                              where ms.matr_no = d.matr_no),0)
+                )) as purs_need
+        from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y'
+                        join prod_bom b on a.prod_no = b.prod_no and b.prod_no = #{prodNo} and b.purs_yn = 'Y'
+                        join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y'
+                        left join ( select a.indc_no
+                                         , b.purs_no
+                                         , b.matr_no
+                                         , b.purs_qty
+                                    from purs_info a join purs_matr b on a.purs_no = b.purs_no
+                                                     and a.used_yn = 'Y'
+                                                     and b.used_yn  = 'Y'
+                                                     and a.purs_sts in ( 162, 164 ) --검수중
+                                  ) f on k.purs_no = f.purs_no and b.matr_no = f.matr_no
+                        left join ( select a.ord_no
+                                        ,  b.consist_rt as consist_rt
+                                    from ord_prod a join prod_bom b on a.prod_no = b.prod_no
+                                                    and b.prod_no =  #{prodNo}
+                                                    and b.purs_yn = 'Y'
+                                                    join prod_info c on b.prod_no = c.prod_no
+                                                    join matr_info d on b.matr_no = d.matr_no
+                                    where d.base_cal_yn = 'Y'
+                                    and a.used_yn = 'Y'
+                                    and a.prod_no =  #{prodNo}
+                                    and a.ord_no = #{ordNo}
+                        ) g on 1 = 1
+                        left join( select a.ord_no
+                                        , a.purs_no
+                                        , a.prod_no
+                                        , b.matr_no
+                                        , coalesce(b.purs_qty,0) as purs_qty
+                                   from ord_prod a join purs_matr b on a.purs_no = b.purs_no and b.used_yn  = 'Y'
+                                   where a.ord_no = #{ordNo}
+                                    and a.purs_no = #{pursNo}
+                                    and a.prod_no = #{prodNo}
+                        ) q on a.ord_no = q.ord_no
+                            and a.purs_no = q.purs_no
+                            and b.prod_no = q.prod_no
+                            and d.matr_no = q.matr_no
+        where a.used_yn = 'Y'
+        <if test="ordNo != null and ordNo != ''">
+            AND a.ord_no = #{ordNo}
+            and a.prod_no = #{prodNo}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(d.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        group by c.mess, d.matr_no , d.matr_nm, d.item_cd, d.sz, d.purs_unit,b.consist_rt
+    </select>
+
+
+    <update id="updateMatrSts" parameterType="map">
+        update make_indc_matr
+        set matr_sts = 'Y'
+        where indc_no = #{indcNo} and matr_no = #{matrNo} and used_yn = 'Y'
+          and (select sum(coalesce (owh_qty,0)) from matr_owh where used_yn = 'Y' and matr_no = #{matrNo} and indc_no = #{indcNo} )
+            = (select need_qty from make_indc_matr where used_yn = 'Y' and matr_no = #{matrNo} and indc_no = #{indcNo})
+    </update>
+
+    <select id="getMakeIndcRsltListByTablet" parameterType="map"  resultType="camelMap">
+        select a.indc_rslt_no
+        from make_indc_rslt a
+        where a.used_yn = 'Y'
+          and a.indc_no = #{indcNo}
+    </select>
+
+    <update id="updateIndcRsltByOper" parameterType="map">
+        update make_indc_rslt
+        set make_qty = #{makeQty}
+          , make_wgt = #{makeWgt}
+          , metal_qty = #{metalQty}
+          , wgt_qty = #{weightQty}
+          , ster_time = #{sterTime}
+          , ster_tmpr = #{sterTmpr}
+        where indc_no = (select indc_no from oper_mast where indc_no = #{indcNo})
+    </update>
+
+    <select id="getIndcListByProc" parameterType="map" resultType="camelMap">
+        select a.indc_rslt_no
+             , case when e.make_unit = 81
+                        then a.make_qty
+                    else a.make_wgt end as make_qty_or_wgt
+             , case when e.make_unit = 81
+                        then a.adj_make_qty
+                    else a.adj_make_wgt end as adj_make_qty_or_wgt
+             , d.spot_nm
+             , a.wgt_qty
+             , a.metal_qty
+             , a.pack_qty
+             , c.spot_equip_no
+        from make_indc_rslt a left join oper_mast b on a.indc_no = b.indc_no
+                              left join spot_equip c on b.spot_equip_no = c.spot_equip_no
+                              left join spot_info d on c.spot_no = d.spot_no
+                              join make_indc e on a.indc_no = e.indc_no
+        where a.used_yn = 'Y'
+          and a.indc_no =  #{indcNo}
+    </select>
+
+    <update id="dropMatrOwh" parameterType="map"  >
+
+        update matr_owh set used_yn = 'N' where indc_no = #{indcNo}
+
+    </update>
+
+    <select id="dropSumMatrOwh" parameterType="map" resultType="camelMap">
+        select indc_no
+             ,owh_no
+             , used_yn
+             , matr_no
+             , owh_qty
+        from matr_owh mo where indc_no = #{indc_no}
+    </select>
+
+
+    <select id="chkStkByIndc" parameterType="map"  resultType="camelMap">
+        select a.matr_no --자재번호
+             , d.matr_nm --자재명
+             , d.purs_unit --구매단위
+             , coalesce (max(d.mess),1) as mess --자재별단위용량(mess값이 없는 경우 프로세스 오류 발생함)
+             , sum(a.need_qty)  as indc_wgt --생산지시중량
+             , max(coalesce (f.stk_qty,0)) as stk_qty --현재고수량
+             , max(coalesce (f.stk_qty,0))  - ceil(sum(a.need_qty))as req_purs_qty --구매필요중량
+        from make_indc_matr a join matr_info d on a.matr_no = d.matr_no
+                              left join matr_stk f on a.matr_no = f.matr_no
+        where a.used_yn = 'Y'
+          and   a.indc_no = #{indcNo}
+        group by a.matr_no, d.matr_nm, d.purs_unit
+
+    </select>
+
+    <select id="getIndcRsltHstrSumQty" parameterType="map"  resultType="float">
+        select coalesce (sum(make_qty),0) from make_indc_rslt_hstr where indc_no = #{indcNo} and used_yn = 'Y'
+    </select>
+
+    <select id="getIndcSaltList" parameterType="map" resultType="camelMap">
+        select a.indc_no  --지시번호
+        , a.par_indc_no --부모지시번호
+        , a.prod_no --품번
+        , e.prod_nm --품명
+        , d.proc_cd --제조공정코드
+        , y.code_nm as proc_nm --제조공정명
+        , a.indc_wgt --지시중량
+        , a.indc_qty --지시량
+        , d.proc_unit --공정처리단위
+        , w.code_nm as proc_unit_nm --공정처리단위명
+        , e.mngr_unit -- 단위중량 단위
+        , ci.code_nm as mngr_unit_nm --단위중량 단위명
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+        join proc_info d on a.proc_cd = d.proc_cd
+        join code_info y on d.proc_cd = y.code_no
+        join proc_brnch x on x.brnch_no = e.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'
+        join code_info w on d.proc_unit = w.code_no
+        left join code_info ci on e.mngr_unit = ci.code_no
+        left join (select count(mo.matr_no) as mo_matr_cnt
+        , mo.indc_no
+        from matr_owh mo
+        where mo.used_yn = 'Y'
+        group by mo.indc_no) mo on mo.indc_no = a.indc_no
+        left join (select par_indc_no
+        , make_to_dt
+        from make_indc
+        where used_yn = 'Y' and proc_cd = 999) g on a.indc_no = g.par_indc_no
+        where a.used_yn = 'Y'
+        and coalesce(a.indc_sts , 0) not in (2404)
+        and a.par_indc_no = 0
+        <choose>
+            <when test="findTp != null and findTp == 'en'">
+                and upper(e.prod_nm) like '%' || upper(#{findSz}) || '%'
+            </when>
+            <when test="findTp != null and findTp == 'no'">
+                and e.prod_nm like '%' || #{findSz} || '%'
+            </when>
+            <otherwise>
+                AND case when e.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(e.prod_nm, 1, 1)
+                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(e.prod_nm) and  ascii(e.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                when e.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                when e.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                when e.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                when e.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                when e.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                when e.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                when e.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                when e.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                when e.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                when e.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                when e.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                when e.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                when e.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                else                                'ㅎ'
+                end = #{findSz}
+            </otherwise>
+        </choose>
+        order by indc_dt desc, prod_no, y.code_seq
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getIndcSaltListCount" parameterType="map" resultType="int">
+        select count(a.indc_no)
+        from ( select a.indc_no  --지시번호
+        , a.prod_no --품번
+        , e.prod_nm --품명
+        , d.proc_cd --제조공정코드
+        , y.code_nm as proc_nm --제조공정명
+        , a.indc_wgt --지시중량
+        , a.indc_qty --지시량
+        , d.proc_unit --공정처리단위
+        , w.code_nm as proc_unit_nm --공정처리단위명
+        , e.mngr_unit -- 단위중량 단위
+        , ci.code_nm as mngr_unit_nm --단위중량 단위명
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+        join proc_info d on a.proc_cd = d.proc_cd
+        join code_info y on d.proc_cd = y.code_no
+        join proc_brnch x on x.brnch_no = e.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'
+        join code_info w on d.proc_unit = w.code_no
+        left join code_info ci on e.mngr_unit = ci.code_no
+        left join (select count(mo.matr_no) as mo_matr_cnt
+        , mo.indc_no
+        from matr_owh mo
+        where mo.used_yn = 'Y'
+        group by mo.indc_no) mo on mo.indc_no = a.indc_no
+        left join (select par_indc_no
+        , make_to_dt
+        from make_indc
+        where used_yn = 'Y' and proc_cd = 999) g on a.indc_no = g.par_indc_no
+        where a.used_yn = 'Y'
+        and coalesce(a.indc_sts , 0) not in (2404)
+        and a.par_indc_no = 0
+        <choose>
+            <when test="findTp != null and findTp == 'en'">
+                and upper(e.prod_nm) like '%' || upper(#{findSz}) || '%'
+            </when>
+            <when test="findTp != null and findTp == 'no'">
+                and e.prod_nm like '%' || #{findSz} || '%'
+            </when>
+            <otherwise>
+                AND case when e.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(e.prod_nm, 1, 1)
+                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(e.prod_nm) and  ascii(e.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
+                when e.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
+                when e.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
+                when e.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
+                when e.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
+                when e.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
+                when e.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
+                when e.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
+                when e.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
+                when e.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
+                when e.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
+                when e.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
+                when e.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
+                when e.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
+                else                                'ㅎ'
+                end = #{findSz}
+            </otherwise>
+        </choose>
+        ) a
+    </select>
+
+    <select id="getIndcListBySalt" parameterType="map" resultType="camelMap">
+        select a.indc_no  --지시번호
+             , a.par_indc_no -- 부모지시번호
+        from make_indc a join prod_info e on a.prod_no = e.prod_no
+                         join proc_brnch x on x.brnch_no = e.brnch_no and x.proc_cd = a.proc_cd and x.used_yn  = 'Y'
+        where a.used_yn = 'Y'
+          and a.proc_cd = #{procCd}
+          and a.indc_no = #{indcNo}
+    </select>
+
+    <update id="dropMakeIndcMatr" parameterType="map">
+        update make_indc_matr
+        set used_yn = 'N'
+        where indc_no = #{indcNo}
+    </update>
+
+    <update id="dropPursMatr" parameterType="map">
+        update purs_matr
+        set used_yn = 'N'
+        where purs_no = #{pursNo}
+    </update>
+
+    <update id="dropIwhList" parameterType="map">
+        update matr_iwh
+        set used_yn = 'N'
+        where purs_no = #{pursNo}
+    </update>
+
+    <select id="getDropMatrIwhList" parameterType="map" resultType="camelMap">
+        select iwh_qty
+             , matr_no
+             , wh_no
+        from matr_iwh
+        where used_yn = 'Y'
+          and purs_no = #{pursNo}
+    </select>
+
+    <select id="findByCustNoAndOrdNo" parameterType="map" resultType="camelMap">
+        /*주문정보 (ordMapper.findByCustNoAndOrdNoAndUsedYn) */
+        select a.*
+        from ord_info a
+        where cust_no = #{custNo}
+          and ord_no  = #{ordNo}
+          and used_yn ='Y'
+    </select>
+
+</mapper>

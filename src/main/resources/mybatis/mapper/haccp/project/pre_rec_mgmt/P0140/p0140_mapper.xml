@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.pre_rec_mgmt.P0140">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [원부재료입출고관리기록 - 그리드 페이징 카운트] pre_rec_mgmt.p0120.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_PRE_LIST
+        WHERE 1=1
+          AND L_CODE = #{recLargeCode}
+          AND CREATE_DT BETWEEN STR_TO_DATE(#{thisYearFirst},'%Y-%m-%d') AND STR_TO_DATE(CONCAT(#{thisYearLast},' 23:59:59'), '%Y-%m-%d %H:%i:%s')
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [원부재료입출고관리기록 - 그리드 페이징] pre_rec_mgmt.p0120.gridPaging */
+        SELECT
+            REC_NO,
+            L_CODE_NM,
+            ITEM_CODE_NM
+                                                                                                                      REG_DATE,
+            IMPRV_COMM,
+            CREATE_DT,
+            CREATE_ID,
+            (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE SUBSTR(B.CODE_KIND,1,3)='APP' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+            (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE SUBSTR(B.CODE_KIND,1,3)='APP' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS
+        FROM (
+                 SELECT
+                     A.REC_NO,
+                     (SELECT L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+                     (SELECT C.CODE_NM FROM SHC_COMM_CODE C WHERE C.CODE_KIND='PR0120' AND C.CODE = B.ITEM_CODE) AS ITEM_CODE_NM,
+                     A.REG_DATE,
+                     (SELECT IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = A.REC_NO) AS IMPRV_COMM,
+                     A.CREATE_DT,
+                     A.CREATE_ID,
+                     (SELECT B.REVW_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS REVW_STATUS,
+                     (SELECT B.APPR_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS APPR_STATUS
+                 FROM SHC_REC_PRE_LIST A, SHC_REC_PRE_COMM B
+                 WHERE A.REC_NO = B.REC_NO
+                   AND L_CODE = #{recLargeCode}
+                   AND A.CREATE_DT BETWEEN STR_TO_DATE(#{thisYearFirst},'%Y-%m-%d') AND STR_TO_DATE(CONCAT(#{thisYearLast},' 23:59:59'), '%Y-%m-%d %H:%i:%s')
+             ) A
+        ORDER BY A.CREATE_DT DESC
+            LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [원부재료입출고관리기록 - 인증원으로 보낼 체크 리스트 가져오기] pre_rec_mgmt.p0140.selectFinalCheckList */
+        SELECT  #{lcnsNo} AS LCNS_NO,
+                #{companyNm} AS COMPANY_NM,
+                DATE_FORMAT(A.CREATE_DT, '%Y-%m-%d') AS CREATE_DATE,
+                DATE_FORMAT(A.CREATE_DT, '%H:%i:%s') AS CREATE_TIME,
+                'Y' AS APPR_YN,
+                #{lCode} AS REC_CODE,
+                #{lCodeNm} AS REC_NM,
+                B.SEQ AS SEQ,
+                (SELECT C.CODE_NM FROM SHC_COMM_CODE C WHERE C.CODE_KIND = B.ITEM_CODE_KIND AND C.CODE = B.ITEM_CODE) AS REC_TYPE,
+                CONCAT(#{lcnsNo},'_',DATE_FORMAT(A.CREATE_DT, '%Y%m%d'),'_',#{lCodeNm},'_',(SELECT C.CODE_NM FROM SHC_COMM_CODE C WHERE C.CODE_KIND = B.ITEM_CODE_KIND AND C.CODE = B.ITEM_CODE),(SELECT substr(FF.ORG_FILE_NM,instr(FF.org_file_nm,'.')) FROM SHC_COMM_FILES FF WHERE FF.FILE_KEY = B.FILE_KEY)) AS FILE_NM,
+                A.REC_NO,
+                A.RMK
+        FROM SHC_REC_PRE_LIST A, SHC_REC_PRE_COMM B
+        WHERE A.REC_NO=B.REC_NO
+          AND A.REC_NO = #{recNo}
+    </select>
+
+    <select id="selectCountRecSeq" parameterType="map" resultType="camelMap">
+        /* [원부재료입출고관리기록 - 인증원에서 받을 일자별 순번] pre_rec_mgmt.p0140.selectCountRecSeq */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_PRE_COMM A
+                 INNER JOIN
+             SHC_APPR_LIST B
+             ON A.REC_NO = B.REC_NO
+        WHERE 1=1
+          AND B.NOW_APPR_STATUS = '200'
+          AND A.ITEM_CODE_KIND = (SELECT B.REF_COMM_CODE FROM SHC_REC_MAIN B WHERE B.L_CODE = #{recLargeCode})
+          AND DATE_FORMAT(A.CREATE_DT, '%Y-%m-%d') = #{todayString}
+    </select>
+</mapper>

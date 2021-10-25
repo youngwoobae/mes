@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.mgmt.calendar">
+
+    <select id="select_calendar_info" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - 모든 일정 정보 가져온다] mgmt.calendar.select_calendar_info */
+        SELECT A.*, (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.ITEM_CODE_KIND AND B.CODE = A.ITEM_CODE) AS ITEM_CODE_NM
+        FROM (
+                 SELECT SEQ, L_CODE,
+                        (SELECT B.USE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS MAIN_USE_YN,
+                        (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+                        (SELECT B.REF_COMM_CODE FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS ITEM_CODE_KIND,
+                        ITEM_CODE, USE_YN, START_DATE, LST_UPD_DATE, CYCLE_TYPE, DD_CYCLE, WK_CYCLE, MON_CYCLE, RMK
+                 FROM SHC_CYCLE A
+                 WHERE 1=1
+                   AND USE_YN = 'Y'
+                   AND LST_UPD_DATE <![CDATA[ <= ]]> STR_TO_DATE(CONCAT(#{nextMonthLast}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+             ) A
+        WHERE 1=1
+          AND A.MAIN_USE_YN = 'Y'
+        ORDER BY LST_UPD_DATE ASC
+    </select>
+
+    <select id="select_calendar_info_for_schdular" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - 모든 일정 정보 가져온다] mgmt.calendar.select_calendar_info */
+        SELECT A.*, (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.ITEM_CODE_KIND AND B.CODE = A.ITEM_CODE) AS ITEM_CODE_NM
+        FROM (
+                 SELECT SEQ, L_CODE,
+                        (SELECT B.USE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS MAIN_USE_YN,
+                        (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+                        (SELECT B.REF_COMM_CODE FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS ITEM_CODE_KIND,
+                        ITEM_CODE, USE_YN, START_DATE, LST_UPD_DATE, CYCLE_TYPE, DD_CYCLE, WK_CYCLE, MON_CYCLE, RMK
+                 FROM SHC_CYCLE A
+                 WHERE 1=1
+                   AND USE_YN = 'Y'
+                   AND LST_UPD_DATE <![CDATA[ <= ]]> STR_TO_DATE(CONCAT(#{today}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+             ) A
+        WHERE 1=1
+          AND A.MAIN_USE_YN = 'Y'
+        ORDER BY LST_UPD_DATE ASC, L_CODE ASC
+    </select>
+
+    <select id="selectCcpAutoList" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - 모든 일정 정보 가져온다] mgmt.calendar.selectCcpAutoList */
+        SELECT L_CODE, L_CODE_NM
+        FROM SHC_REC_MAIN
+        WHERE 1=1
+          AND L_CODE LIKE 'C%'
+          AND USE_YN = 'Y'
+          AND CYCLE_YN = 'Y'
+    </select>
+
+    <select id="selectCheckDupCCP" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - CCP 자동 생성 전 중복 체크] mgmt.calendar.selectCheckDupCCP */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_CCP_LIST
+        WHERE 1=1
+          AND REG_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+          AND L_CODE = #{lCode}
+    </select>
+
+    <select id="selectCheckDupPRE" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - PRE 자동 생성 전 중복 체크] mgmt.calendar.selectCheckDupPRE */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_PRE_LIST A
+        INNER JOIN
+        SHC_REC_PRE_COMM B
+        ON A.REC_NO = B.REC_NO
+        WHERE 1=1
+        AND A.REG_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        AND A.L_CODE = #{lCode}
+        <if test="itemCode != null">
+            AND B.ITEM_CODE = #{itemCode}
+        </if>
+    </select>
+
+    <insert id="insertEmptyPre" parameterType="map">
+        /* [달력 일정 - 사이클 정보 가지고 오기] mgmt.calendar."insertEmptyPre" */
+        INSERT INTO SHC_REC_PRE_LIST
+        (	REC_NO,
+             REG_DATE,
+             L_CODE,
+             CREATE_ID,
+             CREATE_DT)
+        VALUES (
+                   CONCAT(#{lCode}, strftime('%Y%m%d%H%M%S', STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'))),
+                   STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'),
+                   #{lCode},
+                   'SYSTEM',
+                   STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'))
+    </insert>
+
+    <select id="selectLatestRecPre" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - 최근 등록한 일지의 레코드 키 가져오기] mgmt.calendar.selectLatestRecPre */
+        SELECT REC_NO
+        FROM SHC_REC_PRE_LIST
+        WHERE 1=1
+          AND L_CODE = #{lCode}
+          AND REG_DATE = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        ORDER BY CREATE_DT DESC
+            LIMIT 1
+    </select>
+
+    <insert id="insertEmptyPreComm" parameterType="map">
+        /* [달력 일정 - 사이클 정보 가지고 오기] mgmt.calendar.insertEmptyPreComm */
+        INSERT INTO SHC_REC_PRE_COMM
+        (	REC_NO,
+             SEQ,
+             ITEM_CODE_KIND,
+             ITEM_CODE,
+             CREATE_ID,
+             CREATE_DT)
+        VALUES (
+                   #{newRecNo},
+                   #{recSeq},
+                   #{itemCodeKind},
+                   #{itemCode},
+                   'SYSTEM',
+                   STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'))
+    </insert>
+
+    <select id="checkCycleInfo" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - 사이클 정보 가지고 오기] mgmt.calendar.checkCycleInfo */
+        SELECT COUNT(*) AS CNT, SEQ
+        FROM SHC_CYCLE
+        WHERE 1=1
+          AND L_CODE = #{lCode}
+    </select>
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [달력 일정 - 그리드 페이징 카운트] mgmt.calendar.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM (
+        SELECT '0000' AS REC_NO
+        , A.L_CODE
+        , CONCAT(L_CODE_NM, item_nm) AS CODE_NM
+        , '미작성' AS STATUS
+        , STR_TO_DATE(EDAY, '%Y-%m-%d') AS EDAY
+        FROM (
+        SELECT  SC.L_CODE,
+        SRM.L_CODE_NM,
+        COALESCE ((select CONCAT('-', CODE_NM) from SHC_COMM_CODE A where A.CODE_KIND = SC.REF_COMM_CODE and A.CODE = SC.ITEM_CODE),'') AS ITEM_NM,
+        SC.LST_UPD_DATE ,
+        case when CYCLE_TYPE = 'DD' then DATE_ADD(SC.lst_upd_date, INTERVAL SC.DD_CYCLE DAY)
+        when CYCLE_TYPE = 'WK' then DATE_ADD(SC.lst_upd_date, INTERVAL CAST(SC.WK_CYCLE AS SIGNED) * 7 DAY)
+        when CYCLE_TYPE = 'MN' then DATE_ADD(SC.lst_upd_date, INTERVAL SC.MON_CYCLE MONTH)
+        END EDAY
+        from SHC_CYCLE SC
+        INNER JOIN SHC_REC_MAIN SRM
+        ON SC.l_code = SRM.L_CODE
+        AND SRM.USE_YN = 'Y'
+        AND SRM.CYCLE_YN = 'Y'
+        AND NOT EXISTS (SELECT 1 FROM SHC_APPR_LIST SAL WHERE SUBSTR(SAL.REC_NO,1,5)=SC.L_CODE AND SUBSTR(SAL.MAKE_DATE,1,10)=STR_TO_DATE(NOW(), '%Y-%m-%d')) --  당일 작성건은 제외
+        ) A
+        WHERE A.eday <![CDATA[ <= ]]> STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        UNION ALL
+
+        -- CCP 미작성건, 당일 작성 된 것은 제외
+        SELECT '0000' AS REC_NO
+        , L_CODE
+        , L_CODE_NM CODE_NM
+        , '미작성' AS STATUS
+        , STR_TO_DATE(NOW(), '%Y-%m-%d') AS EDAY
+        FROM SHC_REC_MAIN T1
+        WHERE L_CODE in ('C0010','C0020','C0030')
+        AND USE_YN = 'Y'
+        AND CYCLE_YN = 'Y'
+        AND NOT EXISTS (
+        SELECT 1 FROM SHC_REC_CCP_LIST T2
+        WHERE T2.L_CODE=T1.L_CODE
+        AND T2.REG_DATE=STR_TO_DATE(NOW(), '%Y-%m-%d')
+        )
+        UNION ALL
+
+        -- 보건증 유효기간 만료 1달전
+        SELECT HLTH_CARD_NO AS REC_NO
+        , L_CODE
+        , L_CODE_NM CODE_NM
+        , CONCAT(USER_NAME,'(만료',CASE WHEN EXP_DAY>0 THEN CONCAT(' ', EXP_DAY, '일 전)') WHEN EXP_DAY=0 THEN CONCAT(EXP_DAY, '일') ELSE CONCAT(' ', ABS(EXP_DAY), '일 초과!!)') END)  AS STATUS
+        , EXP_DATE
+        FROM (
+        SELECT SHC.L_CODE
+        , L_CODE_NM
+        , cdt
+        , DATE_ADD(exp_date, INTERVAL -1 MONTH) AS eday
+        , DATEDIFF(EXP_DATE, NOW()) EXP_DAY
+        , EXP_DATE
+        , USER_NAME
+        , HLTH_CARD_NO
+        FROM (
+        SELECT 'P0021' AS L_CODE, '보건증관리' L_CODE_NM, A.USER_ID, MAX(A.HLTH_CARD_EXP_DATE) AS EXP_DATE, MAX(A.CREATE_DT) AS CDT
+        , B.USER_NAME, MAX(A.HLTH_CARD_NO) AS HLTH_CARD_NO
+        FROM SHC_HEALTH_CARD A, SHC_USERS B
+        WHERE 1=1
+        AND A.USER_ID=B.USER_ID
+        <if test="authCode == '01'">
+            AND A.USER_ID = #{userId}
+        </if>
+        GROUP BY A.USER_ID, B.USER_NAME
+        ) SHC
+        ) A
+        WHERE EDAY <![CDATA[ <= ]]> STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        UNION ALL
+
+        -- 작성된 일지 조회
+        SELECT
+        TA.REC_NO
+        , TA.L_CODE
+        , (SELECT L_CODE_NM FROM SHC_REC_MAIN A WHERE A.L_CODE = TA.L_CODE) AS CODE_NM
+        , (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE_KIND='APPSTT' AND CODE = TA.NOW_APPR_STATUS) AS STATUS
+        , STR_TO_DATE(MAKE_DATE, '%Y-%m-%d') AS eday
+        FROM (
+        SELECT SUBSTR(SAL.REC_NO,1,5) AS L_CODE,  SAL.*
+        FROM SHC_APPR_LIST SAL
+        WHERE 1=1
+        AND ( (    SAL.MAKE= #{userId} -- -- 접속ID 파라메타로 수정!!
+        AND SUBSTR(SAL.MAKE_DATE,1,10) = STR_TO_DATE(NOW(), '%Y-%m-%d') -- 작성자가 당일 작성한 일지
+        )
+        OR (
+        SAL.MAKE= #{userId} -- -- 접속ID 파라메타로 수정!!
+        AND NOW_APPR_STATUS IN ('030','300')
+        AND SUBSTR(SAL.MAKE_DATE,1,10) != STR_TO_DATE(NOW(), '%Y-%m-%d') -- 당일 작성한 일지 제외(검토 반려, 승인 반려 재작성 대상)
+        )
+        OR (
+        NOW_APPR_STATUS = '010'
+        AND SUBSTR(SAL.MAKE_DATE,1,10) != STR_TO_DATE(NOW(), '%Y-%m-%d') -- 당일 작성한 일지 제외(검토자 검토 확인용)
+        AND EXISTS (SELECT 1 FROM SHC_APPROVE SA WHERE SA.L_CODE=SUBSTR(SAL.REC_NO,1,5) AND SA.REVW=#{userId} AND SA.USE_YN='Y'))
+        OR (
+        NOW_APPR_STATUS = '100'
+        AND SUBSTR(SAL.MAKE_DATE,1,10) != STR_TO_DATE(NOW(), '%Y-%m-%d') -- 당일 작성한 일지 제외(승인자 승인 확인용)
+        AND EXISTS (SELECT 1 FROM SHC_APPROVE SA WHERE SA.L_CODE=SUBSTR(SAL.REC_NO,1,5) AND SA.APPR=#{userId} AND SA.USE_YN='Y'))
+        )
+        ) TA
+        ORDER BY REC_NO
+        ) A
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [달력 일정- 그리드 페이징] mgmt.calendar.gridPaging */
+        SELECT A.*
+        FROM (
+        SELECT '0000' AS REC_NO
+        , A.L_CODE
+        , CONCAT(L_CODE_NM, item_nm) AS CODE_NM
+        , '미작성' AS STATUS
+        , STR_TO_DATE(EDAY, '%Y-%m-%d') AS EDAY
+        FROM (
+        SELECT  SC.L_CODE,
+        SRM.L_CODE_NM,
+        COALESCE ((select CONCAT('-', CODE_NM) from SHC_COMM_CODE A where A.CODE_KIND = SC.REF_COMM_CODE and A.CODE = SC.ITEM_CODE),'') AS ITEM_NM,
+        SC.LST_UPD_DATE ,
+        case when CYCLE_TYPE = 'DD' then DATE_ADD(SC.lst_upd_date, INTERVAL SC.DD_CYCLE DAY)
+        when CYCLE_TYPE = 'WK' then DATE_ADD(SC.lst_upd_date, INTERVAL CAST(SC.WK_CYCLE AS SIGNED) * 7 DAY)
+        when CYCLE_TYPE = 'MN' then DATE_ADD(SC.lst_upd_date, INTERVAL SC.MON_CYCLE MONTH)
+        END EDAY
+        from SHC_CYCLE SC
+        INNER JOIN SHC_REC_MAIN SRM
+        ON SC.l_code = SRM.L_CODE
+        AND SRM.USE_YN = 'Y'
+        AND SRM.CYCLE_YN = 'Y'
+        AND NOT EXISTS (SELECT 1 FROM SHC_APPR_LIST SAL WHERE SUBSTR(SAL.REC_NO,1,5)=SC.L_CODE AND SUBSTR(SAL.MAKE_DATE,1,10)=STR_TO_DATE(NOW(), '%Y-%m-%d')) --  당일 작성건은 제외
+        ) A
+        WHERE A.eday <![CDATA[ <= ]]> STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        UNION ALL
+
+        -- CCP 미작성건, 당일 작성 된 것은 제외
+        SELECT '0000' AS REC_NO
+        , L_CODE
+        , L_CODE_NM CODE_NM
+        , '미작성' AS STATUS
+        , STR_TO_DATE(NOW(), '%Y-%m-%d') AS EDAY
+        FROM SHC_REC_MAIN T1
+        WHERE L_CODE in ('C0010','C0020','C0030')
+        AND USE_YN = 'Y'
+        AND CYCLE_YN = 'Y'
+        AND NOT EXISTS (
+        SELECT 1 FROM SHC_REC_CCP_LIST T2
+        WHERE T2.L_CODE=T1.L_CODE
+        AND T2.REG_DATE=STR_TO_DATE(NOW(), '%Y-%m-%d')
+        )
+        UNION ALL
+
+        -- 보건증 유효기간 만료 1달전
+        SELECT HLTH_CARD_NO AS REC_NO
+        , L_CODE
+        , L_CODE_NM CODE_NM
+        , CONCAT(USER_NAME,'(만료',CASE WHEN EXP_DAY>0 THEN CONCAT(' ', EXP_DAY, '일 전)') WHEN EXP_DAY=0 THEN CONCAT(EXP_DAY, '일') ELSE CONCAT(' ', ABS(EXP_DAY), '일 초과!!)') END)  AS STATUS
+        , EXP_DATE
+        FROM (
+        SELECT SHC.L_CODE
+        , L_CODE_NM
+        , cdt
+        , DATE_ADD(exp_date, INTERVAL -1 MONTH) AS eday
+        , DATEDIFF(EXP_DATE, NOW()) EXP_DAY
+        , EXP_DATE
+        , USER_NAME
+        , HLTH_CARD_NO
+        FROM (
+        SELECT 'P0021' AS L_CODE, '보건증관리' L_CODE_NM, A.USER_ID, MAX(A.HLTH_CARD_EXP_DATE) AS EXP_DATE, MAX(A.CREATE_DT) AS CDT
+        , B.USER_NAME, MAX(A.HLTH_CARD_NO) AS HLTH_CARD_NO
+        FROM SHC_HEALTH_CARD A, SHC_USERS B
+        WHERE 1=1
+        AND A.USER_ID=B.USER_ID
+        <if test="authCode == '01'">
+            AND A.USER_ID = #{userId}
+        </if>
+        GROUP BY A.USER_ID, B.USER_NAME
+        ) SHC
+        ) A
+        WHERE EDAY <![CDATA[ <= ]]> STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        UNION ALL
+
+        -- 작성된 일지 조회
+        SELECT
+        TA.REC_NO
+        , TA.L_CODE
+        , (SELECT L_CODE_NM FROM SHC_REC_MAIN A WHERE A.L_CODE = TA.L_CODE) AS CODE_NM
+        , (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE_KIND='APPSTT' AND CODE = TA.NOW_APPR_STATUS) AS STATUS
+        , STR_TO_DATE(MAKE_DATE, '%Y-%m-%d') AS eday
+        FROM (
+        SELECT SUBSTR(SAL.REC_NO,1,5) AS L_CODE,  SAL.*
+        FROM SHC_APPR_LIST SAL
+        WHERE 1=1
+        AND ( (    SAL.MAKE= #{userId} -- -- 접속ID 파라메타로 수정!!
+        AND SUBSTR(SAL.MAKE_DATE,1,10) = STR_TO_DATE(NOW(), '%Y-%m-%d') -- 작성자가 당일 작성한 일지
+        )
+        OR (
+        SAL.MAKE= #{userId} -- -- 접속ID 파라메타로 수정!!
+        AND NOW_APPR_STATUS IN ('030','300')
+        AND SUBSTR(SAL.MAKE_DATE,1,10) != STR_TO_DATE(NOW(), '%Y-%m-%d') -- 당일 작성한 일지 제외(검토 반려, 승인 반려 재작성 대상)
+        )
+        OR (
+        NOW_APPR_STATUS = '010'
+        AND SUBSTR(SAL.MAKE_DATE,1,10) != STR_TO_DATE(NOW(), '%Y-%m-%d') -- 당일 작성한 일지 제외(검토자 검토 확인용)
+        AND EXISTS (SELECT 1 FROM SHC_APPROVE SA WHERE SA.L_CODE=SUBSTR(SAL.REC_NO,1,5) AND SA.REVW=#{userId} AND SA.USE_YN='Y'))
+        OR (
+        NOW_APPR_STATUS = '100'
+        AND SUBSTR(SAL.MAKE_DATE,1,10) != STR_TO_DATE(NOW(), '%Y-%m-%d') -- 당일 작성한 일지 제외(승인자 승인 확인용)
+        AND EXISTS (SELECT 1 FROM SHC_APPROVE SA WHERE SA.L_CODE=SUBSTR(SAL.REC_NO,1,5) AND SA.APPR=#{userId} AND SA.USE_YN='Y'))
+        )
+        ) TA
+        ORDER BY REC_NO
+        ) A
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+</mapper>

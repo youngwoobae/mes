@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.make.mapper.sf.SfMapper">
+    <select id="getDailyIndc" parameterType="map" resultType="camelMap">
+        select to_char(indc_dt, 'YYYY-MM-DD') as indc_dt
+             , indc_rmk
+        from daily_indc di
+        where di.used_yn = 'Y'
+        <choose>
+            <when test="type != null and type != '' and type == 'daily' ">
+                and to_char(indc_dt, 'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1days', 'YYYY-MM-DD' )
+            </when>
+            <when test="type != null and type != '' and type == 'plus'">
+                <if test="date == 1">
+                    and to_char(indc_dt, 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
+                </if>
+                <if test="date > 1">
+                    and to_char(indc_dt, 'YYYY-MM-DD') = to_char(now() + ('-'||#{date}||'days')::interval, 'YYYY-MM-DD')
+                </if>
+            </when>
+        </choose>
+        order by reg_dt desc
+        limit 6
+    </select>
+</mapper>

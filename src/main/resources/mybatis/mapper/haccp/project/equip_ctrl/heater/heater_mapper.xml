@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.equip_ctrl.heater.HeaterMapper">
+
+    <select id="selectCcpEquipList" resultType="camelMap">
+        /* [가열기 제어 - 가열기 가져오기] equip_ctrl.heater.selectCcpEquipList */
+        SELECT
+            B.LMT_STD_CODE
+             ,A.M_CODE_NM
+             ,A.M_CODE
+             ,(SELECT C.VERF_TYPE_CODE FROM SHC_CCP_LMT_STD C WHERE B.LMT_STD_CODE = C.LMT_STD_CODE) AS VERF_TYPE_CODE
+        FROM SHC_CCP_EQUIP A
+                 LEFT JOIN SHC_REC_CCP B
+                           ON B.M_CODE = A.M_CODE AND B.L_CODE = A.L_CODE
+        WHERE A.USE_YN = 'Y'
+          AND A.L_CODE = 'C0010'
+        ORDER BY A.L_CODE, A.M_CODE
+    </select>
+
+    <select id="selectCcpLmtStdList" resultType="camelMap">
+        /* [가열기 제어 - 한계기준 가져오기] equip_ctrl.heater.selectCcpLmtItemList */
+        SELECT  LMT_STD_CODE,
+                LMT_STD_NM,
+                VERF_TYPE_CODE_KIND,
+                VERF_TYPE_CODE,
+                (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE_KIND = 'VERFCD' AND CODE = VERF_TYPE_CODE) AS VERF_TYPE_CODE_NM,
+                ORD_SEQ,
+                CYCLE,
+                BREAK_RCV_TIME,
+                PRC_TIME,
+                USE_YN
+        FROM SHC_CCP_LMT_STD
+        WHERE SUBSTR(VERF_TYPE_CODE,1,1) = 'H'
+        ORDER BY VERF_TYPE_CODE
+    </select>
+
+    <select id="selectRecCcpEvent" resultType="camelMap">
+        /* [가열기 제어 - 이벤트 가져오기] equip_ctrl.heater.selectRecCcpEvent */
+        SELECT
+            EVENT_YN
+             ,DATE_FORMAT(EVENT_START_DT, '%Y/%m/%d %H:%i:%s') AS EVENT_START_DT
+        FROM SHC_REC_CCP
+        WHERE L_CODE = #{lCode}
+          AND M_CODE = #{mCode}
+    </select>
+
+    <select id="selectCcpRawDataPrcTime" resultType="camelMap">
+        /* [가열기 제어 - 공정시간 가져오기] equip_ctrl.heater.selectCcpRawDataPrcTime */
+        SELECT
+        PRC_TIME
+        ,MEAS_TIME
+        FROM  SHC_CCP_RAW_DATA
+        WHERE M_CODE = #{mCode}
+        AND PRC_TIME IS NOT NULL
+        AND LMT_ITEM_CODE = '01'
+        AND DATE_FORMAT(REG_DATE, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')
+        AND(
+        CASE WHEN (SELECT
+        MAX(MEAS_TIME)
+        FROM SHC_CCP_RAW_DATA
+        WHERE M_CODE = #{mCode}
+        AND LMT_ITEM_CODE = '01'
+        AND EVENT_YN = 'N'
+        AND DATE_FORMAT(MEAS_TIME, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d')) IS NOT NULL
+        THEN meas_time <![CDATA[>]]> (SELECT
+        MAX(MEAS_TIME)
+        FROM SHC_CCP_RAW_DATA
+        WHERE M_CODE = #{mCode}
+        AND LMT_ITEM_CODE = '01'
+        AND EVENT_YN = 'N'
+        AND DATE_FORMAT(MEAS_TIME, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d'))
+        ELSE 1=1
+        END)
+        ORDER BY PRC_TIME DESC
+        LIMIT 1
+
+        <!-- SELECT
+           PRC_TIME
+          ,MEAS_TIME
+        FROM  SHC_CCP_RAW_DATA
+        WHERE M_CODE = #{mCode}
+        AND PRC_TIME IS NOT NULL
+        AND LMT_ITEM_CODE = '01'
+        ORDER BY MEAS_TIME DESC
+        LIMIT 1 -->
+    </select>
+
+    <select id="selectLmtStdInfo" parameterType="map" resultType="camelMap">
+        /* [가열기 제어 - 한계기준 선택시 정보 가져오기] equip_ctrl.heater.selectLmtStdInfo */
+        SELECT LMT_STD_CODE,
+               LMT_STD_NM,
+               VERF_TYPE_CODE_KIND,
+               VERF_TYPE_CODE,
+               (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE_KIND = 'VERFCD' AND CODE = VERF_TYPE_CODE)AS VERF_TYPE_CODE_NM,
+               ORD_SEQ,
+               CYCLE,
+               BREAK_RCV_TIME,
+               PRC_TIME,
+               USE_YN
+        FROM SHC_CCP_LMT_STD
+        WHERE LMT_STD_CODE = #{lmtStdCode}
+    </select>
+
+    <select id="selectLmtItemList" parameterType="map" resultType="camelMap">
+        /* [가열기 제어 - 한계기준 선택시 Item 정보 가져오기] equip_ctrl.heater.selectLmtItemList */
+        SELECT LMT_STD_CODE,
+               LMT_ITEM_CODE_KIND,
+               LMT_ITEM_CODE,
+               (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE_KIND = 'LMTITM' AND CODE = LMT_ITEM_CODE) AS LMT_ITEM_CODE_NM,
+               LMT_ITEM_UNIT,
+               (SELECT CODE_NM FROM SHC_COMM_CODE WHERE CODE = LMT_ITEM_UNIT) AS ITEM_UNIT_NM,
+               LMT_STD_VAL,
+               LMT_MIN_VAL,
+               LMT_MAX_VAL,
+               RMK,
+               CREATE_ID,
+               CREATE_DT
+        FROM SHC_CCP_LMT_ITEM
+        WHERE LMT_STD_CODE =#{lmtStdCode}
+    </select>
+
+    <update id="updateRecCcp" parameterType="map">
+        /* [가열기 제어 - 한계기준 값 변경] equip_ctrl.heater.updateRecCcp */
+        UPDATE SHC_REC_CCP
+        SET LMT_STD_CODE = #{codeDesc},
+            MODIFY_ID = #{userId},
+            MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE L_CODE = #{lCode}
+          AND M_CODE = #{mCode}
+    </update>
+
+    <update id="updateRecCcpEvent" parameterType="map">
+        /* [가열기 제어 - 한계기준 값 변경] equip_ctrl.heater.updateRecCcpEvent */
+        UPDATE SHC_REC_CCP
+        SET EVENT_YN = #{eventYn},
+            EVENT_START_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'),
+            MODIFY_ID = #{userId},
+            MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE L_CODE = #{lCode}
+          AND M_CODE = #{mCode}
+    </update>
+</mapper>

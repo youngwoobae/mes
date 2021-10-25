@@ -1,0 +1,1215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.ord.mapper.OrdMapper">
+
+
+    <select id="getOrdList" parameterType="map" resultType="camelMap">
+        /*현황통계:주문목록(OrdMapper.getOrdList)*/
+        SELECT a.cmpy_no
+             , coalesce (a.purs_no,0) as purs_no
+             , a.ord_no
+             , a.ord_tp --주문유형
+             , coalesce (a.ord_nm, coalesce (case when f.ord_cnt  <![CDATA[ > ]]>  0 then g.prod_nm || '외 ' || f.ord_cnt || '개 상품' else g.prod_nm end,d.cmpy_nm || ' 주문' )) as ord_nm
+             , coalesce (case when f.ord_cnt  <![CDATA[ > ]]>  0 then g.prod_nm || '외 ' || f.ord_cnt || '개 상품' else g.prod_nm || ' 주문' end, d.cmpy_nm || ' 주문')  as plan_nm --주문명
+          -- , (select plc_nm from cmpy_dlv_plc where plc_no = a.plc_no ) as plc_nm
+             , to_char(a.ord_dt,'YYYY-MM-DD') as ord_dt
+             , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt
+             , to_char(a.dlv_dt,'YYYY-MM-DD') as dlv_dt
+             , m.ord_qty --주문수량
+             , coalesce (k.owh_qty,0) as owh_qty --납품(출고)수량
+             , a.plc_no --납풍장소번
+             , a.ord_sts --주문상태
+             , e.code_nm as trk_cmpy_no --운송사코드번호
+             , a.trk_no --송장번호
+             , a.take_no --인수번호
+             , b.code_nm as ord_sts_nm
+             , c.code_nm as ord_tp_nm
+             , d.cmpy_nm --판매처명
+             , d.fax_no
+             , d.tel_no
+             , d.hp
+             , e.code_nm as trk_cmpy_nm --운송사명
+             , (select coalesce(sum(ord_qty),0) from ord_prod op where op.ord_no = a.ord_no) as ord_qty
+             , (select coalesce(sum(owh_qty),0) from prod_owh op where op.ord_no = a.ord_no) as owh_qty
+        FROM ord_info a join code_info b ON a.ord_sts = b.code_no
+                        join code_info c ON a.ord_tp = c.code_no
+                        join cmpy_info d on a.cmpy_no = d.cmpy_no
+                   left join (select max(d.prod_no) as prod_no
+                                   , count(d.prod_no) -1 as ord_cnt
+                                   , d.ord_no
+                                from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                                where d.used_yn = 'Y'
+                                group by d.ord_no
+                             ) f on a.ord_no = f.ord_no
+                   left join prod_info g on g.prod_no = f.prod_no
+                   left join code_info e on a.trk_cmpy_no = e.code_no
+                   left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
+                   left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
+                    <if test="prodNo != null and prodNo != ''">
+                        join ord_prod h on h.ord_no = a.ord_no
+                    </if>
+        WHERE a.used_yn = 'Y'
+        <if test="cmpyNo != null and cmpyNo != ''">AND a.cmpy_no = #{cmpyNo}</if>
+        <if test="ordTp != null and ordTp != ''">AND a.ord_tp = #{ordTp}</if>
+        <if test="ordNo != null and ordNo != ''">AND a.ord_no = #{ordNo}</if>
+        <if test="ordDt != null and ordDt != ''">AND to_char(a.ord_dt,'YYYY-MM-DD') = #{ordDt}</if>
+        <if test="prodNo != null and prodNo != ''">
+            AND f.prod_no = #{prodNo}
+        </if>
+        <if test="ordSts != null and ordSts != ''">
+            AND a.ord_sts = #{ordSts}
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'OrdSts'">
+                AND a.ord_sts = #{findSz}
+            </if>
+            <if test="findTp != null and findTp == 'ordNm'">
+                AND upper(replace(a.ord_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="dateFr != null and dateFr != ''">
+            and to_char(a.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        </if>
+        ORDER by  a.reg_dt desc
+        LIMIT #{pageSz} OFFSET #{pageNo}
+    </select>
+
+    <select id="getOrdListCount" parameterType="map" resultType="int">
+        SELECT count(a.cmpy_no)
+        FROM ( SELECT a.cmpy_no
+                 FROM ord_info a join code_info b ON a.ord_sts = b.code_no
+                                 join code_info c ON a.ord_tp = c.code_no
+                                 join cmpy_info d on a.cmpy_no = d.cmpy_no
+                            left join (select max(d.prod_no) as prod_no
+                                            , count(d.prod_no) -1 as ord_cnt
+                                            , d.ord_no
+                                         from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                                        where d.used_yn = 'Y'
+                                        group by d.ord_no
+                                      ) f on a.ord_no = f.ord_no
+                            left join prod_info g on g.prod_no = f.prod_no
+                            left join code_info e on a.trk_cmpy_no = e.code_no
+                            left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
+                            left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
+        <if test="prodNo != null and prodNo != ''">
+                    join ord_prod h on h.ord_no = a.ord_no
+                </if>
+                WHERE a.used_yn = 'Y'
+
+                <if test="cmpyNo != null and cmpyNo != ''">AND a.cmpy_no = #{cmpyNo}</if>
+                <if test="ordTp != null and ordTp != ''">AND a.ord_tp = #{ordTp}</if>
+                <if test="ordNo != null and ordNo != ''">AND a.ord_no = #{ordNo}</if>
+                <if test="ordDt != null and ordDt != ''">AND to_char(a.ord_dt,'YYYY-MM-DD') = #{ordDt}</if>
+                <if test="prodNo != null and prodNo != ''">
+                    AND f.prod_no = #{prodNo}
+                </if>
+                <if test="ordSts != null and ordSts != ''">
+                    AND a.ord_sts = #{ordSts}
+                </if>
+
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'OrdSts'">
+                        AND a.ord_sts = #{findSz}
+                    </if>
+                    <if test="findTp != null and findTp == 'ordNm'">
+                        AND upper(replace(a.ord_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+                <if test="dateFr != null and dateFr != ''">
+                    and to_char(a.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+                </if>
+                ORDER by  a.reg_dt desc
+        ) a
+    </select>
+
+    <select id="getPrjOrdList" parameterType="map" resultType="camelMap">
+        SELECT a.cmpy_no
+              , coalesce (a.purs_no,0) as purs_no
+              , a.ord_no
+              , a.ord_tp --주문유형
+              , a.ord_path --주문경로(수주인경우만 설정됨)
+              , coalesce (a.ord_nm, coalesce (case when f.ord_cnt     <![CDATA[ > ]]>   0 then g.prod_nm || '외 ' || f.ord_cnt || '개 상품' else g.prod_nm end,d.cmpy_nm || ' 주문' )) as ord_nm
+              , coalesce (case when f.ord_cnt <![CDATA[ > ]]>  0 then g.prod_nm || '외' || f.ord_cnt || '개 제품 ' else g.prod_nm || '주문' end, d.cmpy_nm || ' 주문')  as plan_nm --주문명              , to_char(a.ord_dt,'YYYY-MM-DD') AS ord_dt
+              , to_char(a.ord_dt,'YYYY-MM-DD') as ord_dt
+              , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt
+              , h.dlv_dt
+              , m.ord_qty --주문수량
+              , coalesce (k.owh_qty,0) as owh_qty --납품(출고)수량
+              , a.ord_sts --주문상태
+              , a.trk_cmpy_no --운송사코드번호
+              , a.trk_no --송장번호
+              , a.take_no --인수번호
+              , b.code_nm as ord_sts_nm
+              , c.code_nm as ord_tp_nm
+              , d.cmpy_nm --판매처명
+              , d.fax_no
+              , d.tel_no
+              , d.hp
+              , e.code_nm as trk_cmpy_nm --운송사명
+              , b.code_nm as ord_path_nm --주문경로명
+        FROM ord_info a join code_info b ON a.ord_sts = b.code_no
+                        join code_info c ON a.ord_tp = c.code_no
+                        join cmpy_info d on a.cmpy_no = d.cmpy_no
+                   left join code_info e on a.trk_cmpy_no = e.code_no
+                  left join (select  to_char(max(h.owh_dt),'YYYY-MM-DD') as dlv_dt
+                                    , ord_no
+                            from prod_owh h
+                            where used_yn = 'Y'
+                            group by ord_no
+                            ) h on h.ord_no = a.ord_no
+                   left join (select max(d.prod_no) as prod_no
+                                    , count(d.prod_no) -1 as ord_cnt
+                                    , d.ord_no
+                                from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                                where d.used_yn = 'Y'
+                                group by d.ord_no
+                              ) f on a.ord_no = f.ord_no
+                   left join prod_info g on g.prod_no = f.prod_no
+                   left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
+                   left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
+        WHERE a.used_yn = 'Y'
+          and a.ord_tp = #{ordTp}
+        <if test="ordSts != null and ordSts != ''">
+            and a.ord_sts = #{ordSts}
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'OrdSts'">
+                AND a.ord_sts = #{findSz}
+            </if>
+            <if test="findTp != null and findTp == 'cmpyNm'">
+                AND upper(replace(d.cmpy_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="dateFr != null and dateFr != ''">
+            and to_char(a.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        </if>
+        ORDER BY ord_dt desc
+        LIMIT #{pageSz} OFFSET #{pageNo}
+    </select>
+
+    <select id="getPrjOrdListCount" parameterType="map" resultType="int">
+        select count(a.ord_no)
+        from (  SELECT a.ord_no
+                FROM ord_info a join code_info b ON a.ord_sts = b.code_no
+                                join code_info c ON a.ord_tp = c.code_no
+                                join cmpy_info d on a.cmpy_no = d.cmpy_no
+                           left join code_info e on a.trk_cmpy_no = e.code_no
+                          left join (select  to_char(max(h.owh_dt),'YYYY-MM-DD') as dlv_dt
+                                            , ord_no
+                                    from prod_owh h
+                                    where used_yn = 'Y'
+                                    group by ord_no
+                                    ) h on h.ord_no = a.ord_no
+                           left join (select max(d.prod_no) as prod_no
+                                           , count(d.prod_no) -1 as ord_cnt
+                                           , d.ord_no
+                                        from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                                        where d.used_yn = 'Y'
+                                        group by d.ord_no
+                                     ) f on a.ord_no = f.ord_no
+                           left join prod_info g on g.prod_no = f.prod_no
+                           left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
+                           left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
+                WHERE a.used_yn = 'Y'
+                  and a.ord_tp = #{ordTp}
+                <if test="ordSts != null and ordSts != ''">
+                    and a.ord_sts = #{ordSts}
+                </if>
+
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'OrdSts'">
+                        AND a.ord_sts = #{findSz}
+                    </if>
+                    <if test="findTp != null and findTp == 'cmpyNm'">
+                        AND upper(replace(d.cmpy_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+                <if test="dateFr != null and dateFr != ''">
+                    and to_char(a.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+                </if>
+        ) a
+    </select>
+    <select id="getOrdInfo" parameterType="map" resultType="camelMap">
+        select a.cmpy_no --거래처번호
+             , b.cmpy_nm --거래처명
+             , a.ord_no  --주문번호
+             , coalesce (a.purs_no,0) as purs_no --연관구매번호F
+             , a.ord_tp  --주문유형
+             , a.ord_path --주문경로
+             , a.plc_no  --납품장소코드
+             , (select plc_nm from cmpy_dlv_plc where plc_no = a.plc_no ) as plc_nm --납품장소명
+             , a.ord_nm   --주문명
+             , case when f.ord_cnt  > 0 then c.prod_nm || '외' || f.ord_cnt || '개 상품' else c.prod_nm end  as plan_nm --주문명
+             , to_char(a.ord_dt,'YYYY-MM-DD')  AS ord_dt --주문일
+             , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt --납품요청일
+             , to_char(a.dlv_dt,'YYYY-MM-DD') AS dlv_req_dt --납품일
+             , a.ord_path --주문경로
+             , a.take_no  --인수증번호
+             , coalesce(a.trk_amt,0)  as trk_amt --운송요금
+             , coalesce(a.trk_cmpy_no,0) as trk_cmpy_no --운송사
+             , a.ord_sts --주문상태
+        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no
+                        join (select max(d.prod_no) as prod_no
+                                   , count(d.prod_no) -1 as ord_cnt
+                                   , d.ord_no
+                              from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                              where d.used_yn = 'Y'
+                              group by d.ord_no
+                              ) f on a.ord_no = f.ord_no
+                        join prod_info c on f.prod_no = c.prod_no
+        where a.ord_no = #{ordNo}
+          and a.used_yn = 'Y'
+    </select>
+
+    <select id="getOemOrdInfo" parameterType="map" resultType="camelMap">
+        SELECT  a.cmpy_no
+              , a.ord_no
+              , coalesce (a.purs_no,0) as purs_no
+              , (select plc_nm from cmpy_dlv_plc where plc_no = a.plc_no ) as plc_nm
+              , a.ord_tp
+              , a.ord_nm
+              , to_char(a.ord_dt,'YYYY-MM-DD')  AS ord_dt --주문일
+              , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt --납품요청일
+              , to_char(a.dlv_dt,'YYYY-MM-DD') AS dlv_req_dt --납품일
+              , a.ord_path --주문경로
+              , a.take_no  --인수증번호
+              , coalesce(a.trk_amt,0)  as trk_amt --운송요금
+              , coalesce(a.trk_cmpy_no,0) as trk_cmpy_no --운송사
+              , a.ord_sts --주문상태
+              , c.code_nm as ord_sts_nm --주문상태명
+              , d.cmpy_nm --거래처명
+              , d.fax_no --대표팩스
+              , d.tel_no --대표전화
+              , d.hp     --홈페이지
+        FROM ord_info a join cmpy_info d on a.cmpy_no = d.cmpy_no
+                        join code_info c on a.ord_sts = c.code_no
+         AND  a.ord_no = #{ordNo}
+    </select>
+
+    <select id="getPrjOrdInfo" parameterType="map" resultType="camelMap">
+        SELECT  a.cmpy_no
+              , a.ord_no
+              , a.ord_tp
+              , a.ord_nm
+              , (select plc_nm from cmpy_dlv_plc where plc_no = a.plc_no ) as plc_nm
+              , to_char(a.ord_dt,'YYYY-MM-DD')  AS ord_dt --주문일
+              , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt --납품요청일
+              , to_char(a.dlv_dt,'YYYY-MM-DD') AS dlv_req_dt --납품일
+              , a.ord_path --주문경로
+              , a.take_no  --인수증번호
+              , coalesce( a.trk_amt,0)  as trk_amt --운송요금
+              , coalesce(a.trk_cmpy_no,0) as trk_cmpy_no --운송사
+              , a.ord_sts --주문상태
+              , b.code_nm as ord_path_nm --주문출처명
+              , c.code_nm as ord_sts_nm --주문상태명
+              , d.cmpy_nm --거래처명
+              , d.fax_no --대표팩스
+              , d.tel_no --대표전화
+              , d.hp     --홈페이지
+        FROM ord_info a join cmpy_info d on a.cmpy_no = d.cmpy_no
+                        join code_info c on a.ord_sts = c.code_no
+                   left join code_info b on a.ord_path = b.code_no
+         AND  a.ord_no = #{ordNo}
+    </select>
+
+    <select id="getOrdInfoCart" parameterType="map" resultType="camelMap">
+        SELECT  a.cmpy_no
+              , 0          as ord_no
+              , a.ord_tp
+              , a.ord_nm
+              , a.ord_qty
+              , a.ord_amt
+              , to_char(NOW(),'YYYY-MM-DD')  AS ord_dt
+              , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt
+              , a.ord_sts
+              , c.code_nm as ord_sts_nm
+              , d.cmpy_nm
+              , d.fax_no
+              , d.tel_no
+              , d.hp
+        FROM ord_info_cart a JOIN cmpy_info d on a.cmpy_no = d.cmpy_no
+                             JOIN code_info c on a.ord_sts = c.code_no
+        WHERE A.user_id = #{userId}
+         AND  A.cmpy_no = #{cmpyNo}
+    </select>
+
+
+    <select id="getOrdProdList" parameterType="map" resultType="camelMap">
+        /*주문정보(ordMapper.getOrdProdList)*/
+        SELECT  a.ord_prod_no --판매품관리번호
+              , a.ord_no --주문번호
+              , a.prod_no --상품번호
+              , b.prod_code --상품코드
+              , coalesce (a.ord_qty,0) as ord_qty
+              , b.mess --단위중량
+              , a.ord_qty --판매수량
+              , to_char(d.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --납품요청일자
+              , to_char(d.dlv_dt,'YYYY-MM-DD') as dlv_dt --납품일자
+              , a.dlv_qty  --납품수량
+              , a.sale_unit   --판단위코드
+              , c.code_nm as sale_unit_nm --판매단위명
+              , a.qty_per_pkg --포장단위수량
+              , b.prod_nm     --주문상품
+              , b.erp_prod_nm
+              , ci.code_nm as mngr_unit_nm --관리단위명
+        FROM ord_prod a join prod_info b ON a.prod_no = b.prod_no and b.used_yn = 'Y'
+                        join code_info c on a.sale_unit = c.code_no
+                        join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y'
+                        <if test="cmpyNo != null and cmpyNo != ''">
+                            and d.cmpy_no = #{cmpyNo}
+                        </if>
+                   left join code_info ci on ci.code_no = b.mngr_unit
+        WHERE a.used_yn = 'Y'
+        <if test="ordNo != null and ordNo != ''">
+          AND a.ord_no = #{ordNo}
+        </if>
+        <if test="ordTp != null and ordTp != ''">
+            and d.ord_tp = #{ordTp}
+        </if>
+        order by ord_prod_no
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getOrdProdListCount" parameterType="map" resultType="int">
+        SELECT COUNT(a.ord_prod_no)
+        FROM ( SELECT  a.ord_prod_no
+                FROM ord_prod a join prod_info b ON a.prod_no = b.prod_no and b.used_yn = 'Y'
+                                join code_info c on a.sale_unit = c.code_no
+                                join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y'
+                                <if test="cmpyNo != null and cmpyNo != ''">
+                                    and d.cmpy_no = #{cmpyNo}
+                                </if>
+                WHERE a.used_yn = 'Y'
+                <if test="ordNo != null and ordNo != ''">
+                    AND a.ord_no = #{ordNo}
+                </if>
+                <if test="ordTp != null and ordTp != ''">
+                    and d.ord_tp = #{ordTp}
+                </if>
+        ) a
+    </select>
+
+    <select id="getOrdProdCartList" parameterType="map" resultType="camelMap">
+        select 'Y' as is_cart_yn
+              , a.prod_no
+              , a.sale_unit
+              , a.ord_qty
+              , coalesce (a.dlv_qty,0) as dlv_qty
+              , b.prod_nm --품명
+              , b.prod_code --상품코드
+              , a.ord_sz --주문규격
+              , a.ord_modl_nm --주문모델명
+              , coalesce (a.sale_unit,b.sale_unit)       as sale_unit --판단위코드
+              , coalesce( a.qty_per_pkg, b.qty_per_pkg) as qty_per_pkg --포장당수량
+              , d.code_nm as sale_unit_nm
+        FROM ord_prod_cart a join prod_info b ON a.prod_no = b.prod_no
+                             join code_info d on coalesce (a.sale_unit,b.sale_unit)= d.code_no
+        WHERE a.user_id = #{userId}
+
+
+    </select>
+
+    <select id="getOrdProdCartListCount" parameterType="map" resultType="int">
+        SELECT COUNT(a.prod_no)
+        FROM ( select a.prod_no
+                FROM  ord_prod_cart a join prod_info b ON a.prod_no = b.prod_no
+                                      join code_info d on coalesce (a.sale_unit,b.sale_unit)= d.code_no
+               WHERE  a.user_id = #{userId}
+        ) a
+    </select>
+
+    <select id="getOrdProdBomList" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             , a.prod_nm --자재명
+             , b.bom_no  --BOM관리번호
+             , b.matr_no --자재번호
+             , b.need_qty --bom구성 필요수량
+             , ceil(coalesce(f.qty_per_pkg,0) * b.need_qty::numeric::integer * f.ord_qty)   as need_qty
+             , c.file_no --사진번호
+             , c.matr_nm --원부자재명
+             , c.sz --규격
+             , coalesce(e.safe_stk_qty,0) as  safe_stk_qty -- 안전재고
+             , d.code_nm as matr_tp_nm -- 원부자재구분
+             , f.ord_qty --주문수량
+             , coalesce (g.stk_qty,0) as stk_qty --자재 재고
+             , coalesce(p.purs_qty ,0) as purs_qty --구매수량
+             , z.code_nm as purs_unit_nm --구매단위명
+        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                         join matr_info c on b.matr_no = c.matr_no
+                         join code_info d on c.matr_tp = d.code_no
+                         join ord_prod  f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
+                         left join matr_stk g on c.matr_no = g.matr_no
+                         left join ord_info  h on f.ord_no = h.ord_no
+                         left join purs_info k on h.purs_no = k.purs_no
+                         left join purs_matr p on k.purs_no = p.purs_no and p.matr_no = c.matr_no
+                         left join code_info z on p.purs_unit = z.code_no
+                    left join ( select matr_no
+                                    , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+                                          when to_char(now(),'mm') = '02'  then feb_stk_qty
+                                          when to_char(now(),'mm') = '03'  then mar_stk_qty
+                                          when to_char(now(),'mm') = '04'  then apr_stk_qty
+                                          when to_char(now(),'mm') = '05'  then may_stk_qty
+                                          when to_char(now(),'mm') = '06'  then jun_stk_qty
+                                          when to_char(now(),'mm') = '07'  then jul_stk_qty
+                                          when to_char(now(),'mm') = '08'  then aug_stk_qty
+                                          when to_char(now(),'mm') = '09'  then sep_stk_qty
+                                          when to_char(now(),'mm') = '10'  then oct_stk_qty
+                                          when to_char(now(),'mm') = '11'  then nov_stk_qty
+                                          when to_char(now(),'mm') = '12'  then dec_stk_qty
+                                    end as safe_stk_qty
+                                from matr_safe_stk
+                               ) e on c.matr_no = e.matr_no
+        where a.prod_no = #{prodNo}
+        order by c.matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getOrdProdBomListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from ( select a.prod_no --품번
+               from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                                join matr_info c on b.matr_no = c.matr_no
+                                join code_info d on c.matr_tp = d.code_no
+                                join ord_prod  f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
+                                left join matr_stk g on c.matr_no = g.matr_no
+                                left join ord_info  h on f.ord_no = h.ord_no
+                                left join purs_info k on h.purs_no = k.purs_no
+                                left join purs_matr p on k.purs_no = p.purs_no and p.matr_no = c.matr_no
+                                left join code_info z on p.purs_unit = z.code_no
+                                left join ( select matr_no
+                                                 , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+                                                        when to_char(now(),'mm') = '02'  then feb_stk_qty
+                                                        when to_char(now(),'mm') = '03'  then mar_stk_qty
+                                                        when to_char(now(),'mm') = '04'  then apr_stk_qty
+                                                        when to_char(now(),'mm') = '05'  then may_stk_qty
+                                                        when to_char(now(),'mm') = '06'  then jun_stk_qty
+                                                        when to_char(now(),'mm') = '07'  then jul_stk_qty
+                                                        when to_char(now(),'mm') = '08'  then aug_stk_qty
+                                                        when to_char(now(),'mm') = '09'  then sep_stk_qty
+                                                        when to_char(now(),'mm') = '10'  then oct_stk_qty
+                                                        when to_char(now(),'mm') = '11'  then nov_stk_qty
+                                                        when to_char(now(),'mm') = '12'  then dec_stk_qty
+                       end as safe_stk_qty
+                                            from matr_safe_stk
+               ) e on c.matr_no = e.matr_no
+               where a.prod_no = #{prodNo}
+        ) a
+    </select>
+
+    <select id="getOrdProdCartBomList" parameterType="map"  resultType="camelMap">
+        select a.prod_no --품번
+             , a.prod_nm --자재명
+             , b.bom_no  --BOM관리번호
+             , b.matr_no --자재번호
+             , b.need_qty --bom구성 필요수량
+             , ceil(coalesce(f.qty_per_pkg,0) * b.need_qty::numeric::integer * f.ord_qty)   as need_qty
+             , c.file_no --사진번호
+             , c.matr_nm --원부자재명
+             , c.sz --규격
+             , coalesce(e.safe_stk_qty,0) as  safe_stk_qty -- 안전재고
+             , d.code_nm as matr_tp_nm -- 원부자재구분
+             , f.ord_qty --주문수량
+             , coalesce (g.stk_qty,0) as stk_qty --자재 재고
+             , coalesce(p.purs_qty ,0) as purs_qty --구매수량
+             , z.code_nm as purs_unit_nm --구매단위명
+        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                         join matr_info c on b.matr_no = c.matr_no
+                         join code_info d on c.matr_tp = d.code_no
+                         join ord_prod_cart f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
+                         left join matr_stk g on c.matr_no = g.matr_no
+                         left join ord_info  h on f.ord_no = h.ord_no
+                         left join purs_info k on h.purs_no = k.purs_no
+                         left join purs_matr p on k.purs_no = p.purs_no  and p.matr_no = c.matr_no
+                         left join code_info z on p.purs_unit = z.code_no
+                    left join ( select matr_no
+                                    , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+                                          when to_char(now(),'mm') = '02'  then feb_stk_qty
+                                          when to_char(now(),'mm') = '03'  then mar_stk_qty
+                                          when to_char(now(),'mm') = '04'  then apr_stk_qty
+                                          when to_char(now(),'mm') = '05'  then may_stk_qty
+                                          when to_char(now(),'mm') = '06'  then jun_stk_qty
+                                          when to_char(now(),'mm') = '07'  then jul_stk_qty
+                                          when to_char(now(),'mm') = '08'  then aug_stk_qty
+                                          when to_char(now(),'mm') = '09'  then sep_stk_qty
+                                          when to_char(now(),'mm') = '10'  then oct_stk_qty
+                                          when to_char(now(),'mm') = '11'  then nov_stk_qty
+                                          when to_char(now(),'mm') = '12'  then dec_stk_qty
+                                    end as safe_stk_qty
+                                from matr_safe_stk
+                               ) e on c.matr_no = e.matr_no
+        where a.prod_no = #{prodNo}
+        order by c.matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getOrdProdCartBomListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from ( select a.prod_no --품번
+                from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
+                                 join matr_info c on b.matr_no = c.matr_no
+                                 join code_info d on c.matr_tp = d.code_no
+                                 join ord_prod_cart f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
+                                 left join matr_stk g on c.matr_no = g.matr_no
+                                 left join ord_info  h on f.ord_no = h.ord_no
+                                 left join purs_info k on h.purs_no = k.purs_no
+                                 left join purs_matr p on k.purs_no = p.purs_no  and p.matr_no = c.matr_no
+                                 left join code_info z on p.purs_unit = z.code_no
+                            left join ( select matr_no
+                                            , case when to_char(now(),'mm') = '01'  then jan_stk_qty
+                                                  when to_char(now(),'mm') = '02'  then feb_stk_qty
+                                                  when to_char(now(),'mm') = '03'  then mar_stk_qty
+                                                  when to_char(now(),'mm') = '04'  then apr_stk_qty
+                                                  when to_char(now(),'mm') = '05'  then may_stk_qty
+                                                  when to_char(now(),'mm') = '06'  then jun_stk_qty
+                                                  when to_char(now(),'mm') = '07'  then jul_stk_qty
+                                                  when to_char(now(),'mm') = '08'  then aug_stk_qty
+                                                  when to_char(now(),'mm') = '09'  then sep_stk_qty
+                                                  when to_char(now(),'mm') = '10'  then oct_stk_qty
+                                                  when to_char(now(),'mm') = '11'  then nov_stk_qty
+                                                  when to_char(now(),'mm') = '12'  then dec_stk_qty
+                                            end as safe_stk_qty
+                                        from matr_safe_stk
+                                       ) e on c.matr_no = e.matr_no
+                where a.prod_no = #{prodNo}
+        ) a
+    </select>
+
+
+    <update id="saveOrdProdCart" parameterType="map">
+        UPDATE ord_prod_cart
+           SET ord_qty = #{ordQty}
+             , sale_unit = #{saleUnit}
+             , qty_per_pkg = #{qtyPerPkg}
+         WHERE user_id = #{userId} AND prod_no = #{prodNo}
+    </update>
+
+    <delete id="dropOrdProdCart" parameterType="map">
+        DELETE FROM ord_prod_cart WHERE user_id = #{userId}
+        <if test="prodNo != null and prodNo != ''">AND prod_no = #{prodNo}</if>
+    </delete>
+
+<!--    <delete id="dropOrdProd" parameterType="map">-->
+<!--        DELETE FROM ord_prod WHERE ord_no = #{ordNo}-->
+<!--        <if test="prodNo != null and prodNo != ''">AND prod_no = #{prodNo}</if>-->
+<!--    </delete>-->
+
+    <update id="dropOrdProd" parameterType="map">
+        update ord_prod set used_yn = 'N'
+        where ord_prod_no = #{ordProdNo}
+    </update>
+
+    <delete id="renewalOrdProd" parameterType="map">
+        DELETE FROM ord_prod WHERE ord_no = #{ordNo}
+        <if test="prodNos != null and prodNos != ''">
+            and prod_no not in <foreach collection="prodList" item="prodNos" index="index" open="(" close=")" separator=",">   #{prodNos}   </foreach>
+        </if>
+    </delete>
+
+    <select id="getComboDlvPlc" parameterType="map" resultType="camelMap">
+        /*판매처별 납풍장소 목록 (ordMapper.getComboDlvPlc) */
+		 select   plc_no as value
+				, plc_nm as text
+		  from cmpy_dlv_plc
+		  where used_yn = 'Y'
+		   and cmpy_no = #{cmpyNo}
+      order by base_plc_yn desc, plc_nm
+	</select>
+
+    <!--출고대기자재목록-->
+    <select id="getOwhWaitMatrList" parameterType="map" resultType="camelMap">
+        select c.matr_no
+              ,round( ( sum(coalesce(b.qty_per_pkg,0) * c.need_qty * b.ord_qty ))::decimal,2) as owh_wait_detl_qty
+              ,round(ceil( ( sum(coalesce(b.qty_per_pkg,0) * c.need_qty * b.ord_qty )) )::decimal)  as owh_wait_qty
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn  = 'Y'
+                        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+        where a.used_yn  = 'Y'
+        and  a.ord_sts = #{ordSts}
+        <if test="ordNo != null and ordNo != ''">  AND a.ord_no = #{ordNo}</if>
+        <if test="pursNo != null and pursNo != ''">  AND a.purs_no = #{pursNo}</if>
+        group by c.matr_no
+    </select>
+
+    <select id="getOwhWaitMatrListCount" parameterType="map" resultType="camelMap">
+        select count(a.ord_no)
+        from ( select c.matr_no
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        and a.purs_no is null
+        and a.ord_sts = #{ordSts}
+        <if test="ordNo != null and ordNo != ''">AND a.ord_no = #{ordNo}</if>
+        <if test="pursNo != null and pursNo != ''">AND a.purs_no = #{pursNo}</if>
+        group by c.matr_no
+        ) a
+    </select>
+
+    <!--출고대기 자재수량 update-->
+    <update id="renewalMatrStk" parameterType="map">
+        update matr_stk
+          set  iwh_wait_qty = #{iwhWaitQty}
+             , owh_wait_qty = #{owhWaitQty}
+             , mod_id = #{userId}
+             , mod_ip = #{ipaddr}
+             , mod_dt = now()
+        where stk_no = #{stkNo}
+    </update>
+
+    <!--출고대기 자재수량 추가-->
+    <insert id="addOnMatrStk" parameterType="map">
+        <selectKey resultType="long" keyProperty="stkNo" order="BEFORE">
+            SELECT coalesce (max(stk_no +1 ),1) stkNo from matr_stk
+        </selectKey>
+        insert into matr_stk ( stk_no
+        , matr_no
+        , iwh_wait_qty
+        , owh_wait_qty
+        , stk_qty
+        , reg_id
+        , reg_ip
+        , reg_dt
+        , mod_id
+        , mod_ip
+        , mod_dt
+        ) values (#{stkNo}
+        , #{matrNo}
+        , coalesce (#{iwhWaitQty},0)
+        , coalesce (#{owhWaitQty},0)
+        , coalesce (#{stkQty},0)
+        , #{userId}
+        , #{ipaddr}
+        , now()
+        , #{userId}
+        , #{ipaddr}
+        , now()
+        )
+    </insert>
+
+    <!--출고대기자재목록-->
+    <select id="getJustInCreatedOrdNo" parameterType="map" resultType="long">
+        select max(ord_no) as ord_no from ord_info where cmpy_no = #{cmpy_no} and reg_id = #{userId}
+    </select>
+
+    <update id="saveOwhWaitQty" parameterType="map">
+        update matr_stk set owh_wait_qty = #{owhWaitQty}, mod_id = #{modId}, mod_ip = #{modIp}, mod_dt = now() where stk_no = #{stkNo}
+    </update>
+
+    <update id="resetPursNo" parameterType="map">
+        update ord_info set purs_no = #{pursNo}, mod_id = #{modId}, mod_ip = #{modIp}, mod_dt = now() where ord_no = #{ordNo}
+    </update>
+
+    <delete id = "initPursProd" parameterType="map" >
+        delete from purs_matr where purs_no = (select purs_no from ord_info where ord_no = #{ordNo})
+    </delete>
+
+    <delete id = "initOrdProdCart" parameterType="map" >
+        delete from ord_prod_cart where user_id =  #{userId}
+    </delete>
+
+    <insert id = "createOrdrProdCart" parameterType="map" >
+        insert into ord_prod_cart(
+           cart_no
+         , ord_no
+         , prod_no
+         , ord_qty
+         , sale_unit
+         , qty_per_pkg
+         , ord_sz
+         , user_id
+      ) select ord_prod_no
+             , ord_no
+             , prod_no
+             , ord_qty
+             , sale_unit
+             , qty_per_pkg
+             , ord_sz
+             , #{userId}
+        from ord_prod
+        where ord_no =  #{ordNo}
+    </insert>
+
+    <select id="getOrdProdInfo" parameterType="map" resultType="camelMap">
+        select a.prod_no --품번
+             , a.prod_code --코드
+             , a.prod_nm  --품명
+             , a.sz  --규격
+             , b.ord_qty as ord_wgt --주문중량
+             , ceil(case when a.mess = 0 then b.ord_qty else b.ord_qty / a.mess end) as org_qty --주문수량
+             , a.sale_unit --판매단위
+             , a.qty_per_pkg --판매단위(포장당)수량
+        from prod_info a join ord_prod b on a.prod_no = b.prod_no
+        where b.ord_prod_no  = #{ordProdNo}
+    </select>
+
+    <select id="getExOrdProdList" parameterType="map" resultType="camelMap">
+        /*주문상품을 설저하기위한 제품목록(ordMapper.getExOrdProdList) */
+        select a.prod_no --품번
+             , a.prod_code --코드
+             , a.prod_nm  --품명
+             , a.erp_prod_nm --erp제품명
+             , a.mess -- 단위중량
+             , a.vol -- 단위부피
+             , a.sale_unit --판매단위
+             , a.qty_per_pkg --판매단위(포장당)수량
+             , a.brnch_no --제조공정코드
+             , b.code_nm as sale_unit_nm --판매단위명
+             , c.code_nm as mngr_unit_nm
+             , d.code_nm as shape
+        from prod_info a left join code_info b on a.sale_unit = b.code_no
+                         left join code_info c on a.mngr_unit = c.code_no
+                         left join code_info d on a.prod_shape = d.code_no
+        where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
+          AND a.brnch_no is not null and  a.used_yn = 'Y'
+        <if test="cmpyNo != null and cmpyNo != ''">
+            AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
+        </if>
+        <if test="ordNo != null and ordNo != ''">
+            and a.prod_no not in (select prod_no from ord_prod where used_yn = 'Y' and ord_no=#{ordNo})
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND (   upper(replace(prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                     or  upper(replace(erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    )
+            </if>
+        </if>
+        order by prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getExOrdProdListCount" parameterType="map" resultType="int">
+        select count(a.prod_no)
+        from ( select a.prod_no
+               from prod_info a left join code_info b on a.sale_unit = b.code_no
+                                left join code_info c on a.mngr_unit = c.code_no
+                where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
+                 AND a.brnch_no is not null and  a.used_yn = 'Y'
+                <if test="cmpyNo != null and cmpyNo != ''">
+                    AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
+                </if>
+                <if test="ordNo != null and ordNo != ''">
+                    and a.prod_no not in (select prod_no from ord_prod where used_yn = 'Y' and ord_no=#{ordNo})
+                </if>
+               <if test="findSz != null and findSz != ''">
+                   <if test="findSz != null and findSz != ''">
+                       <if test="findTp != null and findTp == 'prodNm'">
+                           AND (   upper(replace(prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                                or upper(replace(erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                               )
+                       </if>
+                   </if>
+               </if>
+        ) a
+    </select>
+
+    <select id="getComboDlvPlcList" parameterType="map" resultType="camelMap">
+		 select   plc_no as value
+				, plc_nm as text
+		  from cmpy_dlv_plc
+		  where cmpy_no = #{cmpyNo}
+      order by base_plc_yn desc, plc_nm
+	</select>
+
+    <select id="updateOrdProdQty" parameterType="map" >
+        update ord_prod set ord_qty = #{ordQty} where ord_no = #{ordNo} and prod_no = #{prodNo}
+    </select>
+
+    <!-- 월실적보고서 - 상반기   -->
+    <select id="getFirstHalfPerformList" parameterType="map" resultType="camelMap">
+        select     a.prod_no
+                 , b.prod_nm
+                 , round(coalesce(jan.ord_qty::numeric,0)/1000,3)::numeric as jan_ord_qty -- 1월 주문수량
+                 , round(coalesce(jan.owh_qty::numeric,0)/1000,3)::numeric as jan_owh_qty -- 1월 출고수량
+
+                 , round(coalesce(feb.ord_qty::numeric,0)/1000,3)::numeric as feb_ord_qty -- 2월 주문수량
+                 , round(coalesce(feb.owh_qty::numeric,0)/1000,3)::numeric as feb_owh_qty -- 2월 출고수량
+
+                 , round(coalesce(mar.ord_qty::numeric,0)/1000,3)::numeric as mar_ord_qty -- 3월 주문수량
+                 , round(coalesce(mar.owh_qty::numeric,0)/1000,3)::numeric as mar_owh_qty -- 3월 출고수량
+
+                 , round(coalesce(apr.ord_qty::numeric,0)/1000,3)::numeric as apr_ord_qty -- 4월 주문수량
+                 , round(coalesce(apr.owh_qty::numeric,0)/1000,3)::numeric as apr_owh_qty -- 4월 출고수량
+
+                 , round(coalesce(may.ord_qty::numeric,0)/1000,3)::numeric as may_ord_qty -- 5월 주문수량
+                 , round(coalesce(may.owh_qty::numeric,0)/1000,3)::numeric as may_owh_qty -- 5월 출고수량
+
+                 , round(coalesce(jun.ord_qty::numeric,0)/1000,3)::numeric as jun_ord_qty -- 6월 주문수량
+                 , round(coalesce(jun.owh_qty::numeric,0)/1000,3)::numeric as jun_owh_qty -- 6월 출고수량
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no
+                        join exchg_unit c on a.sale_unit = c.unit_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '01'
+                                group by b.prod_no
+                             ) jan on a.prod_no = jan.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no
+                                           left join prod_owh d on c.ord_no = d.ord_no
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '02'
+                                group by b.prod_no
+                             ) feb on a.prod_no = feb.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '03'
+                                group by b.prod_no
+                             ) mar on a.prod_no = mar.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '04'
+                                group by b.prod_no
+                             ) apr on a.prod_no = apr.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '05'
+                                group by b.prod_no
+                             ) may on a.prod_no = may.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '06'
+                                group by b.prod_no
+                             ) jun on a.prod_no = jun.prod_no
+        where 1 = 1
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prod_nm'">
+                and (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                     or upper(replace(erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    )
+            </if>
+        </if>
+        LIMIT #{pageSz} OFFSET #{pageNo}
+    </select>
+
+    <select id="getFirstHalfPerformListCount" parameterType="map" resultType="int">
+        select count(a.prod_no)
+            from( select a.prod_no
+                        from ord_prod a join prod_info b on a.prod_no = b.prod_no
+                                        join exchg_unit c on a.sale_unit = c.unit_no
+                                   left join (select  b.prod_no
+                                                    , sum(b.ord_qty) as ord_qty
+                                                    , sum(d.owh_qty) as owh_qty
+                                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                                where b.used_yn = 'Y'
+                                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                                and to_char(d.owh_dt,'MM') = '01'
+                                                group by b.prod_no
+                                             ) jan on a.prod_no = jan.prod_no
+                                   left join (select  b.prod_no
+                                                    , sum(b.ord_qty) as ord_qty
+                                                    , sum(d.owh_qty) as owh_qty
+                                               from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                          left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                                where b.used_yn = 'Y'
+                                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                                and to_char(d.owh_dt,'MM') = '02'
+                                                group by b.prod_no
+                                             ) feb on a.prod_no = feb.prod_no
+                                   left join (select  b.prod_no
+                                                    , sum(b.ord_qty) as ord_qty
+                                                    , sum(d.owh_qty) as owh_qty
+                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                              where b.used_yn = 'Y'
+                                              and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                              and to_char(d.owh_dt,'MM') = '03'
+                                              group by b.prod_no
+                                             ) mar on a.prod_no = mar.prod_no
+                                   left join (select   b.prod_no
+                                                    , sum(b.ord_qty) as ord_qty
+                                                    , sum(d.owh_qty) as owh_qty
+                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                                where b.used_yn = 'Y'
+                                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                                and to_char(d.owh_dt,'MM') = '04'
+                                                group by b.prod_no
+                                              ) apr on a.prod_no = apr.prod_no
+                                   left join (select   b.prod_no
+                                                    , sum(b.ord_qty) as ord_qty
+                                                    , sum(d.owh_qty) as owh_qty
+                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                                where b.used_yn = 'Y'
+                                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                                and to_char(d.owh_dt,'MM') = '05'
+                                                group by b.prod_no
+                                              ) may on a.prod_no = may.prod_no
+                                   left join (select   b.prod_no
+                                                    , sum(b.ord_qty) as ord_qty
+                                                    , sum(d.owh_qty) as owh_qty
+                                             from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                        left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                                where b.used_yn = 'Y'
+                                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                                and to_char(d.owh_dt,'MM') = '06'
+                                                group by b.prod_no
+                                             ) jun on a.prod_no = jun.prod_no
+            where 1 = 1
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'prod_nm'">
+                    and (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                         or upper(replace(erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        )
+                </if>
+            </if>
+            )a
+    </select>
+
+    <!-- 월실적보고서 - 하반기   -->
+    <select id="getSecondHalfPerformList" parameterType="map" resultType="camelMap">
+        select a.prod_no
+             , b.prod_nm
+             , round(coalesce(jul.ord_qty::numeric,0)/1000,3)::numeric as jul_ord_qty -- 7월 주문수량
+             , round(coalesce(jul.owh_qty::numeric,0)/1000,3)::numeric as jul_owh_qty -- 7월 출고수량
+
+             , round(coalesce(aug.ord_qty::numeric,0)/1000,3)::numeric as aug_ord_qty -- 8월 주문수량
+             , round(coalesce(aug.owh_qty::numeric,0)/1000,3)::numeric as aug_owh_qty -- 8월 출고수량
+
+             , round(coalesce(sep.ord_qty::numeric,0)/1000,3)::numeric as sep_ord_qty -- 9월 주문수량
+             , round(coalesce(sep.owh_qty::numeric,0)/1000,3)::numeric as sep_owh_qty -- 9월 출고수량
+
+             , round(coalesce(oct.ord_qty::numeric,0)/1000,3)::numeric as oct_ord_qty -- 10월 주문수량
+             , round(coalesce(oct.owh_qty::numeric,0)/1000,3)::numeric as oct_owh_qty -- 10월 출고수량
+
+             , round(coalesce(nov.ord_qty::numeric,0)/1000,3)::numeric as nov_ord_qty -- 11월 주문수량
+             , round(coalesce(nov.owh_qty::numeric,0)/1000,3)::numeric as nov_owh_qty -- 11월 출고수량
+
+             , round(coalesce(dece.ord_qty::numeric,0)/1000,3)::numeric as dec_ord_qty -- 12월 주문수량
+             , round(coalesce(dece.owh_qty::numeric,0)/1000,3)::numeric as dec_owh_qty -- 12월 출고수량
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no
+                        join exchg_unit c on a.sale_unit = c.unit_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                   from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                              left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                    where b.used_yn = 'Y'
+                                    and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                    and to_char(d.owh_dt,'MM') = '07'
+                                    group by b.prod_no
+                             ) jul on a.prod_no = jul.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '08'
+                                group by b.prod_no
+                             ) aug on a.prod_no = aug.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '09'
+                                group by b.prod_no
+                             ) sep on a.prod_no = sep.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '10'
+                                group by b.prod_no
+                             ) oct on a.prod_no = oct.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '11'
+                                group by b.prod_no
+                             ) nov on a.prod_no = nov.prod_no
+                   left join (select  b.prod_no
+                                    , sum(b.ord_qty) as ord_qty
+                                    , sum(d.owh_qty) as owh_qty
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                where b.used_yn = 'Y'
+                                and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                and to_char(d.owh_dt,'MM') = '12'
+                                group by b.prod_no
+                             ) dece on a.prod_no = dece.prod_no
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'prod_nm'">
+                where (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                or upper(replace(erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                )
+            </if>
+        </if>
+        LIMIT #{pageSz} OFFSET #{pageNo}
+    </select>
+
+    <select id="getSecondHalfPerformListCount" parameterType="map" resultType="int">
+        select count(a.prod_no)
+            from(select a.prod_no
+                    from ord_prod a join prod_info b on a.prod_no = b.prod_no
+                                    join exchg_unit c on a.sale_unit = c.unit_no
+                               left join (select  b.prod_no
+                                                , sum(b.ord_qty) as ord_qty
+                                                , sum(d.owh_qty) as owh_qty
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                            where b.used_yn = 'Y'
+                                            and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                            and to_char(d.owh_dt,'MM') = '07'
+                                            group by b.prod_no
+                                         ) jul on a.prod_no = jul.prod_no
+                               left join (select  b.prod_no
+                                                , sum(b.ord_qty) as ord_qty
+                                                , sum(d.owh_qty) as owh_qty
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                            where b.used_yn = 'Y'
+                                            and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                            and to_char(d.owh_dt,'MM') = '08'
+                                            group by b.prod_no
+                                         ) aug on a.prod_no = aug.prod_no
+                               left join (select  b.prod_no
+                                                , sum(b.ord_qty) as ord_qty
+                                                , sum(d.owh_qty) as owh_qty
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                            where b.used_yn = 'Y'
+                                            and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                            and to_char(d.owh_dt,'MM') = '09'
+                                            group by b.prod_no
+                                         ) sep on a.prod_no = sep.prod_no
+                               left join (select  b.prod_no
+                                                , sum(b.ord_qty) as ord_qty
+                                                , sum(d.owh_qty) as owh_qty
+                                           from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                      left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                            where b.used_yn = 'Y'
+                                            and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                            and to_char(d.owh_dt,'MM') = '10'
+                                            group by b.prod_no
+                                         ) oct on a.prod_no = oct.prod_no
+                               left join (select  b.prod_no
+                                                , sum(b.ord_qty) as ord_qty
+                                                , sum(d.owh_qty) as owh_qty
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                            where b.used_yn = 'Y'
+                                            and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                            and to_char(d.owh_dt,'MM') = '11'
+                                            group by b.prod_no
+                                         ) nov on a.prod_no = nov.prod_no
+                               left join (select  b.prod_no
+                                                , sum(b.ord_qty) as ord_qty
+                                                , sum(d.owh_qty) as owh_qty
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                            where b.used_yn = 'Y'
+                                            and to_char(d.owh_dt,'YYYY') = #{procYy}
+                                            and to_char(d.owh_dt,'MM') = '12'
+                                            group by b.prod_no
+                                         ) dece on a.prod_no = dece.prod_no
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'prod_nm'">
+                            where (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                                   or upper(replace(erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                                  )
+                        </if>
+                    </if>
+            )a
+    </select>
+
+    <select id="getProcStockList" parameterType="map" resultType="int">
+        select  b.wh_no
+             , b.wh_nm
+             , a.stk_qty
+             , a.prod_no
+        from prod_stk a join wh_info b on a.wh_no = b.wh_no
+        where a.prod_no = #{prodNo} and a.stk_qty <![CDATA[ > ]]> 0
+    </select>
+
+
+    <select id="getProcStockListCount" parameterType="map" resultType="int">
+        select count(a.prod_no)
+        from (
+             select a.prod_no
+             from prod_stk a join wh_info b on a.wh_no = b.wh_no
+             where a.prod_no = #{prodNo}
+        ) a
+    </select>
+    <select id="geOwhDateList" parameterType="map" resultType="camelMap">
+        select distinct to_char(owh_dt,'YYYY')      as value
+             , concat(to_char(owh_dt,'YYYY'),'년도') as text
+        from prod_owh
+        order by value
+    </select>
+
+    <!-- 주문장정보 리스트-->
+    <select id="getOrderBookList" parameterType="map" resultType="camelMap">
+        select a.ord_no
+             , to_char(a.dlv_req_dt, 'YYYY-MM-DD HH24:MI') as dlv_req_dt --납품요청일
+             , case when row_number() over(order by a.ord_no) <![CDATA[ < ]]> 10
+                    then to_char(a.ord_dt, 'YYYYMMDD') || '_A_00' || row_number() over(order by a.ord_no)
+                    when row_number() over(order by a.ord_no) <![CDATA[ < ]]> 100
+                    then to_char(a.ord_dt, 'YYYYMMDD') || '_A_0' || row_number() over(order by a.ord_no)
+                    else to_char(a.ord_dt, 'YYYYMMDD') || '_A_' || row_number() over(order by a.ord_no)
+                    end as ord_book_no --주문장번호
+             , a.ord_nm --주문명
+             , d.prod_nm --제품명
+             , case when row_number() over(order by a.ord_no) <![CDATA[ < ]]> 10
+                    then to_char(e.owh_dt, 'MMDD') || '-0' || row_number() over(order by a.ord_no)
+                    else to_char(e.owh_dt, 'MMDD') || '-' || row_number() over(order by a.ord_no)
+                    end as owh_no --출고번호
+        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no and b.used_yn = 'Y'
+                        join ord_prod c on a.ord_no = c.ord_no and c.used_yn = 'Y'
+                        join prod_info d on c.prod_no = d.prod_no and d.used_yn = 'Y'
+                   left join (select po.ord_no
+                                   , po.prod_no
+                                   , max(po.owh_no) as owh_no
+                                   , max(po.owh_dt) as owh_dt
+                                from prod_owh po
+                                group by po.prod_no, po.ord_no) e on c.ord_no = e.ord_no and c.prod_no = e.prod_no
+        where a.used_yn = 'Y'
+        and e.owh_no is not null
+        and a.ord_no in <foreach collection="ordList" item="ordNo" index="index" open="(" close=")" separator=",">   #{ordNo}   </foreach>
+        order by a.dlv_req_dt, a.ord_no
+    </select>
+
+</mapper>

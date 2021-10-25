@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.pre_rec_mgmt.P0010">
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 그리드 페이징 카운트] pre_rec_mgmt.p0010.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_PRE_LIST
+        WHERE 1=1
+          AND L_CODE = #{recLargeCode}
+          AND CREATE_DT BETWEEN STR_TO_DATE(#{thisYearFirst}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{thisYearLast}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 그리드 페이징] pre_rec_mgmt.p0010.gridPaging */
+        SELECT
+            REC_NO, L_CODE_NM, REG_DATE, FILE_KEY, RMK, CREATE_DT, CREATE_ID,
+            (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE SUBSTR(B.CODE_KIND,1,3)='APP' AND B.CODE = A.REVW_STATUS) AS REVW_STATUS,
+            (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE SUBSTR(B.CODE_KIND,1,3)='APP' AND B.CODE = A.APPR_STATUS) AS APPR_STATUS
+        FROM (
+                 SELECT REC_NO, (SELECT L_CODE_NM FROM SHC_REC_MAIN WHERE L_CODE = #{recLargeCode} ) AS L_CODE_NM, REG_DATE, RMK, CREATE_DT, CREATE_ID,
+                        (SELECT B.REVW_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS REVW_STATUS,
+                        (SELECT B.APPR_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS APPR_STATUS,
+                        (SELECT B.FILE_KEY FROM SHC_REC_PRE_COMM B WHERE B.REC_NO = A.REC_NO AND B.SEQ = 1) AS FILE_KEY
+                 FROM SHC_REC_PRE_LIST A
+                 WHERE 1=1
+                   AND L_CODE = #{recLargeCode}
+                   AND CREATE_DT BETWEEN STR_TO_DATE(#{thisYearFirst}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{thisYearLast}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+             ) A
+        ORDER BY A.CREATE_DT DESC
+            LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectCheckList" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 기본 체크 리스트 가져오기] pre_rec_mgmt.p0010.selectCheckList */
+        SELECT A.L_CODE, A.SEQ, A.ORD_SEQ, A.M_CODE_KIND, A.M_CODE,
+               (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS M_CODE_NM,
+               (SELECT B.CODE_DESC FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS M_CODE_DESC,
+               'N' AS CONF_YN
+        FROM SHC_REC_PRE A
+        WHERE 1=1
+          AND L_CODE = #{recLargeCode}
+          AND USE_YN = 'Y'
+        ORDER BY ORD_SEQ ASC
+    </select>
+
+    <select id="selectCheckListForExcel" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 기본 체크 리스트 가져오기] pre_rec_mgmt.p0010.selectCheckListForExcel */
+        SELECT A.ORD_SEQ,A. M_CODE_DESC, CASE WHEN A.CONF_YN = 'Y' THEN 'V' ELSE 'X' END AS CONF_YN, A.IMPRV_COMM
+        FROM (
+                 SELECT ORD_SEQ,
+                        (SELECT B.CODE_DESC FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS M_CODE_DESC,
+                        CONF_YN,
+                        (SELECT B.IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.SEQ = A.SEQ AND B.REC_NO = A.REC_NO) AS IMPRV_COMM
+                 FROM SHC_REC_PRE_CLEAN A
+                 WHERE 1=1
+                   AND A.REC_NO = #{recNo}
+             ) A
+        ORDER BY ORD_SEQ ASC
+    </select>
+
+    <select id="selectSavedCheckList" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 저장된 체크 리스트 가져오기] pre_rec_mgmt.p0010.selectSavedCheckList */
+        SELECT A.*
+        FROM (
+                 SELECT REC_NO, SEQ, ORD_SEQ, M_CODE,
+                        (SELECT B.CODE_DESC FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS M_CODE_DESC,
+                        (SELECT B.IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.SEQ = A.SEQ AND B.REC_NO = A.REC_NO) AS IMPRV_COMM,
+                        CONF_YN, RMK
+                 FROM SHC_REC_PRE_CLEAN A
+                 WHERE 1=1
+                   AND REC_NO = #{recNo}
+             ) A
+        ORDER BY ORD_SEQ ASC
+    </select>
+
+    <insert id="insertPreClean" parameterType="map">
+        /* [위생.시설점검일지관리 - 위생 시설 체크리스트 등록] pre_rec_mgmt.p0010.insertPreClean */
+        INSERT INTO SHC_REC_PRE_CLEAN
+        (	REC_NO,
+             SEQ,
+             ORD_SEQ,
+             M_CODE_KIND,
+             M_CODE,
+             CONF_YN,
+             RMK,
+             CREATE_ID,
+             CREATE_DT)
+        VALUES
+            (#{newRecNo},
+             #{seq},
+             #{ordSeq},
+             #{mCodeKind},
+             #{mCode},
+             #{confYn},
+             NULL,
+             #{userId},
+             STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'))
+    </insert>
+
+    <update id="updatePreClean" parameterType="map">
+        /* [위생.시설점검일지관리 - 위생 시설 체크리스트 업데이트] pre_rec_mgmt.p0010.updatePreClean */
+        UPDATE SHC_REC_PRE_CLEAN SET
+                                     CONF_YN = #{confYn},
+                                     MODIFY_ID = #{userId},
+                                     MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE REC_NO = #{recNo}
+          AND SEQ = #{seq}
+          AND ORD_SEQ = #{ordSeq}
+    </update>
+
+    <delete id="deletePreClean" parameterType="map">
+        /* [위생.시설점검일지관리 - 위생 시설 점검 체크리스트 삭제] pre_rec_mgmt.p0010.deletePreClean */
+        DELETE FROM SHC_REC_PRE_CLEAN WHERE REC_NO = #{recNo}
+    </delete>
+
+    <select id="selectPreCleanImprv" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 위생 개선 조치 검색하기] pre_rec_mgmt.p0010.selectPreCleanImprv */
+        SELECT REC_NO, SEQ, BREAK_YN, BREAK_REASON, IMPRV_YN, IMPRV_COMM, RMK
+        FROM SHC_REC_PRE_IMPRV
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+    </select>
+
+    <select id="selectPreCleanImprvOne" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 위생 개선 조치 검색하기] pre_rec_mgmt.p0010.selectPreCleanImprvOne */
+        SELECT REC_NO, SEQ, BREAK_YN, BREAK_REASON, IMPRV_YN, IMPRV_COMM, RMK
+        FROM SHC_REC_PRE_IMPRV
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+          AND SEQ = #{seq}
+    </select>
+
+    <insert id="insertPreCleanImprv" parameterType="map" >
+        /* [위생.시설점검일지관리 - 개선 요청 등록] pre_rec_mgmt.p0010.insertPreCleanImprv */
+        INSERT INTO SHC_REC_PRE_IMPRV
+        (	REC_NO,
+             SEQ,
+             BREAK_YN,
+             IMPRV_YN,
+             IMPRV_COMM,
+             CREATE_ID,
+             CREATE_DT)
+        VALUES
+            (#{newRecNo},
+             #{seq},
+             'Y',
+             'Y',
+             #{imprvComm},
+             #{userId},
+             STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s'))
+    </insert>
+
+    <update id="updatePreCleanImprv" parameterType="map">
+        /* [위생.시설점검일지관리 - 개선 요청 수정] pre_rec_mgmt.p0010.updatePreCleanImprv */
+        UPDATE SHC_REC_PRE_IMPRV SET
+                                     IMPRV_COMM = #{imprvComm},
+                                     MODIFY_ID = #{userId},
+                                     MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE REC_NO = #{recNo} AND SEQ = #{seq}
+    </update>
+
+    <delete id="deletePreCleanImprvOne" parameterType="map">
+        /* [위생.시설점검일지관리 - 개선 요청 수정] pre_rec_mgmt.p0010.deletePreCleanImprvOne */
+        DELETE FROM SHC_REC_PRE_IMPRV WHERE REC_NO = #{recNo} AND SEQ = #{seq}
+    </delete>
+
+    <delete id="deletePreCleanImprv" parameterType="map">
+        /* [위생.시설점검일지관리 - 개선 요청 수정] pre_rec_mgmt.p0010.deletePreCleanImprv */
+        DELETE FROM SHC_REC_PRE_IMPRV WHERE REC_NO = #{recNo}
+    </delete>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [위생.시설점검일지관리 - 인증원으로 보낼 체크 리스트 가져오기] pre_rec_mgmt.p0010.selectFinalCheckList */
+        SELECT A.LCNS_NO, A.COMPANY_NM, A.CREATE_DATE, A.CREATE_TIME, A.APPR_YN, A.REC_CODE, A.REC_NM, A.SEQ, A.CONF_NM, A.CONF_CONTENTS, A.CONF_YN, A.IMPRV_COMM
+        FROM (
+                 SELECT #{lcnsNo} AS LCNS_NO,
+                        #{companyNm} AS COMPANY_NM,
+                        DATE_FORMAT(CREATE_DT, '%Y-%m-%d') AS CREATE_DATE,
+                        DATE_FORMAT(CREATE_DT, '%H:%i:%s') AS CREATE_TIME,
+                        'Y' AS APPR_YN,
+                        #{lCode} AS REC_CODE,
+                        #{lCodeNm} AS REC_NM,
+                        A.SEQ AS SEQ,
+                        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS CONF_NM,
+                        (SELECT B.CODE_DESC FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS CONF_CONTENTS,
+                        CONF_YN,
+                        (SELECT B.IMPRV_COMM FROM SHC_REC_PRE_IMPRV B WHERE B.SEQ = A.SEQ AND B.REC_NO = A.REC_NO) AS IMPRV_COMM,
+                        ORD_SEQ
+                 FROM SHC_REC_PRE_CLEAN A
+                 WHERE 1=1
+                   AND REC_NO = #{recNo}
+                   AND EXISTS (SELECT 1 FROM SHC_COMM_CODE TZ WHERE TZ.CODE= A.M_CODE AND TZ.BASIC_YN='Y')
+             ) A
+        ORDER BY ORD_SEQ ASC
+    </select>
+</mapper>

@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.dash.mapper.DashMapper">
+<!--    <select id="gethumanList" parameterType="map"  resultType="camelMap">-->
+<!--        select-->
+<!--            u.empl_kind,-->
+<!--            m.mp_used_dt-->
+<!--        from make_indc_mp m join user_info u on m.user_id = u.user_id-->
+<!--        where 1 = 1-->
+<!--        <choose>-->
+<!--            <when test="custNo != null and custNo == 2">-->
+<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() - '1 day'::interval,'YYYY-MM-DD')-->
+<!--            </when>-->
+<!--            <otherwise>-->
+<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() ,'YYYY-MM-DD')-->
+<!--            </otherwise>-->
+<!--        </choose>-->
+<!--    </select>-->
+
+<!--    <select id="gethumanListCount" parameterType="map"  resultType="camelMap">-->
+<!--        select-->
+<!--            u.empl_kind,-->
+<!--            m.mp_used_dt-->
+<!--        from make_indc_mp m join user_info u on m.user_id = u.user_id-->
+<!--        where 1 - 1-->
+<!--        <choose>-->
+<!--            <when test="custNo != null and custNo == 2">-->
+<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() - '1 day'::interval,'YYYY-MM-DD')-->
+<!--            </when>-->
+<!--            <otherwise>-->
+<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() ,'YYYY-MM-DD')-->
+<!--            </otherwise>-->
+<!--        </choose>-->
+<!--    </select>-->
+
+    <select id="getToTalhumanCount" parameterType="map"  resultType="int">
+        select count(user_id)
+        from user_info ui where used_yn = 'Y' and ocpn_kind = 222
+    </select>
+
+
+    <select id="gethumanList" parameterType="map"  resultType="camelMap">
+        select a.user_id
+             , b.user_nm
+             , c.code_nm
+             , c.code_no
+        from make_indc_mp a join user_info b on a.user_id = b.user_id and b.used_yn = 'Y'
+                            join code_info c on c.code_no = b.empl_kind and c.used_yn = 'Y'
+                            join make_indc d on a.indc_no = d.indc_no and d.used_yn = 'Y'
+        where a.used_yn ='Y'
+        and d.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = d.par_indc_no)
+        <choose>
+            <when test="weekDay == 0 or weekDay == 1">
+                <if test="weekDay == 0 ">
+                    and to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(now() - '2 day'::interval,'YYYY-MM-DD')
+                </if>
+                <if test="weekDay == 1 ">
+                    and to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(now() - '1 day'::interval,'YYYY-MM-DD')
+                </if>
+            </when>
+            <otherwise>
+                and to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(now() - '1 day'::interval,'YYYY-MM-DD')
+            </otherwise>
+        </choose>
+        group by a.user_id ,b.user_nm ,c.code_nm , c.code_no
+    </select>
+
+
+    <select id="getEvtMsgList" parameterType="map"  resultType="camelMap">
+        select to_char(send_dt,'YYYY-MM-DD HH24:MI:SS') as msg_date --발송일자
+             , msg_tp --발송유형
+              ,msg_cont --발내용
+        from evt_msg
+        order by send_dt desc
+        limit 3
+    </select>
+
+
+
+
+    <select id="getToDayProduction" parameterType="map"  resultType="camelMap">
+        select
+            mi.indc_wgt,
+            mir.make_dt,
+            mir.make_qty
+            --op.ord_sz
+        from make_indc mi join make_indc_rslt mir on mir.indc_no = mi.indc_no
+                      --    join ord_info oi on mi.ord_no = oi.ord_no
+                        --  join ord_prod op on oi.ord_no = op.ord_no
+        where 1 = 1
+        and TO_CHAR(mi.indc_dt,'YYYY-MM-DD') = TO_CHAR(now(),'YYYY-MM-DD')
+
+    </select>
+
+    <select id="getToDayQuality" parameterType="map"  resultType="camelMap">
+        select
+            mir.make_qty,
+            mir.make_dt,
+            mir.pack_qty,
+            mir.metal_qty,
+            mir.szn_qty,
+            mir.wgt_qty
+        from make_indc_rslt mir
+        where 1 = 1
+        and TO_CHAR(mir.make_dt,'YYYY-MM-DD') = TO_CHAR(now(),'YYYY-MM-DD')
+    </select>
+
+    <select id="ToDayStoreQuality" parameterType="map"  resultType="camelMap">
+        select *
+        from wh_tmpr
+        where 1 = 1
+        limit 2
+    </select>
+
+    <select id="getGraphData" parameterType="map"  resultType="camelMap">
+        select
+            a.* ,
+            b.*
+        from(
+            select a.spot_equip_no as in_spot_equip_no, a.meas_val as in_now ,b.meas_val as in_eight ,c.meas_val as in_sixteen, d.meas_val as in_day
+            from 			(
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{firstNo}
+                order by time desc
+                limit 1
+            ) a left join
+            (
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{firstNo} and to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24') <![CDATA[ < ]]> to_char(NOW() - '8 hour'::interval,'YYYY-MM-DD HH24')
+                order by time desc
+                limit 1
+            ) b  on 1 = 1  left join
+            (
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{firstNo} and to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24') <![CDATA[ < ]]> to_char(NOW() - '16 hour'::interval,'YYYY-MM-DD HH24')
+                order by time desc
+                limit 1
+            ) c on 1 = 1 left join
+            (
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{firstNo} and to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24') <![CDATA[ < ]]> to_char(NOW() - '1 day'::interval,'YYYY-MM-DD HH24')
+                order by time desc
+                limit 1
+            ) d on 1 = 1
+        ) a join(
+            select a.spot_equip_no as out_spot_equip_no, a.meas_val as out_now ,b.meas_val as out_eight ,c.meas_val as out_sixteen, d.meas_val as out_day
+                from 			(
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{secondNo}
+                order by time desc
+                limit 1
+            ) a left join
+            (
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{secondNo} and to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24') <![CDATA[ < ]]> to_char(NOW() - '8 hour'::interval,'YYYY-MM-DD HH24')
+                order by time desc
+                limit 1
+            ) b  on 1 = 1  left join
+            (
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{secondNo} and to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24') <![CDATA[ < ]]> to_char(NOW() - '16 hour'::interval,'YYYY-MM-DD HH24')
+                order by time desc
+                limit 1
+            ) c on 1 = 1 left join
+            (
+                select meas_val , spot_equip_no , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI') as time
+                from equip_mngr_hstr
+                where spot_equip_no = #{secondNo} and to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24') <![CDATA[ < ]]> to_char(NOW() - '1 day'::interval,'YYYY-MM-DD HH24')
+                order by time desc
+                limit 1
+            ) d on 1 = 1
+        ) b on 1=1
+    </select>
+
+    <select id="getScadaTmprSpotList" parameterType="map"  resultType="camelMap">
+        select a.spot_no , a.spot_nm
+        from spot_info a join spot_equip b on a.spot_no = b.spot_no
+                        join equip_info c on b.equip_no  = c.equip_no and c.equip_no = #{equipNo} and c.used_yn = 'Y'
+        where a.used_yn  = 'Y' and a.cust_no = #{custNo}
+        and   a.svc_tp =  'SCADA_API'
+    </select>
+
+    <select id="getScadaTmprList" parameterType="map"  resultType="camelMap">
+        select  c.spot_no --작업장번호
+             , c.spot_nm --작업장명
+             , max(round(a.meas_val::numeric,2)) as tmpr --측정온도
+             , to_char(to_timestamp(a.unix_hms),'HH24')  as chk_hms --측정시간
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                                join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y' and c.svc_tp  = 'SCADA_API' and c.spot_no = #{spotNo}
+        where 1 = 1
+        <choose>
+            <when test="custNo != null and custNo == 2">
+                and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = TO_CHAR(now(),'YYYY-MM-DD')
+            </when>
+            <otherwise>
+                and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = TO_CHAR(now(),'YYYY-MM-DD')
+            </otherwise>
+        </choose>
+        group by c.spot_no,c.spot_nm , to_char(to_timestamp(a.unix_hms),'HH24')
+        order by c.spot_no, chk_hms
+    </select>
+
+
+    <select id="getDashTotalMakeIndc" parameterType="map"  resultType="camelMap">
+        select
+            floor(sum(a.indc_qty)) as total_qty,
+            floor(sum(a.indc_qty * b.mess)  / 1000 ) as total_wgt
+        from make_indc a join prod_info b on a.prod_no = b.prod_no
+        where a.proc_cd = 999 and a.used_yn = 'Y'
+         and TO_CHAR(a.indc_dt ,'YYYY-MM-DD') = TO_CHAR(now()  + '-1 day'::interval ,'YYYY-MM-DD')
+    </select>
+
+    <select id="getDashTotalMakeIndcRslt" parameterType="map"  resultType="camelMap">
+        select
+            floor(sum(a.make_qty)) as  total_qty_rslt,
+            floor(sum(a.make_qty * c.mess) / 1000) as total_wgt_rslt
+        from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no
+                              join prod_info c on b.prod_no = c.prod_no
+            where a.used_yn = 'Y' and b.proc_cd = 999
+            and TO_CHAR(b.indc_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+
+    </select>
+
+    <select id="getUtilsAndTransAndErrorList" parameterType="map" resultType="camelMap">
+        select a.make_dt
+             , round(( sum(a.oper_rt)  / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as oper_rt --가동율
+             , round(( sum(a.yield_rt) / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as yield_rt --수율
+             , round(( sum(a.fail_rt)  / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as fail_rt --불량율
+        from (
+                select  a.indc_no
+                      , d.make_dt
+                      , a.indc_qty --지시량
+                      , coalesce (d.make_qty,0) as make_qty --생산량
+                      , case when coalesce (a.max_make_qty,0) = 0 then 0 else coalesce (a.indc_wgt,0) /  a.max_make_qty end  as oper_rt --가동률
+                      , case when coalesce (a.indc_qty,0) = 0 then 0 else coalesce (d.make_qty,0) / a.indc_qty end  as yield_rt --수율
+                      , case when coalesce (a.indc_qty,0) = 0 then 0 else coalesce (d.fault_qty,0) / a.indc_qty end  as fail_rt --불량율
+                from make_indc a join code_info b on a.proc_cd = b.code_no
+                                 join prod_info c on a.prod_no = c.prod_no
+                            left join (select indc_no
+                                            ,to_char(make_dt,'YYYY-MM-DD') as make_dt
+                                            ,sum(make_qty) as make_qty
+                                            ,sum(metal_qty) + sum(wgt_qty) +  sum(pack_qty) + sum(szn_qty)   as fault_qty
+                                        from make_indc_rslt
+                                        where used_yn = 'Y'
+                                          and to_char(make_dt,'YYYY-MM-DD') = to_char(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                                        group by indc_no, to_char(make_dt,'YYYY-MM-DD')
+                                      ) d on a.indc_no = d.indc_no
+                where a.used_yn = 'Y'
+                and a.proc_cd  = 999
+                and (   TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                     or TO_CHAR(a.make_to_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                    )
+          ) a
+          where a.make_dt is not null
+          group by make_dt
+    </select>
+
+    <select id="getPhoneDashPreMonthList" parameterType="map" resultType="camelMap">
+        select
+            c.date
+             , coalesce(round(( sum(b.oper_rt)  / case when max(b.indc_cnt) = 0 then 1 else max(b.indc_cnt) end  ) * 100,2),0) as oper_rt
+             , coalesce(round(( sum(b.yield_rt) / case when max(b.indc_cnt) = 0  then 1 else max(b.indc_cnt) end  ) * 100,2),0) as yield_rt
+             , coalesce(round(( sum(b.fail_rt)  / case when max(b.indc_cnt) = 0  then 1 else max(b.indc_cnt) end  ) * 100,2),0) as fail_rt
+        from ( select to_char(DATE(GENERATE_SERIES(DATE  (#{procYy} || '-' || #{procMm}||'-'||'01')
+                    , (date_trunc('MONTH', (replace(#{procYy},'-','')||#{procMm}||'01')::date) + INTERVAL '1 MONTH - 1 day'),'1 day')),'YYYY-MM-DD') as date
+             ) c left join (
+            select count(a.indc_no) as indc_cnt
+                 , a.make_dt
+                 , round(( sum(a.oper_rt)  / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as oper_rt
+                 , round(( sum(a.yield_rt) / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as yield_rt
+                 , round(( sum(a.fail_rt)  / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as fail_rt
+            from (
+                     select  a.indc_no
+                          , d.make_dt
+                          , a.indc_qty --지시량
+                          , coalesce (d.make_qty,0) as make_qty --생산량
+                          , case when coalesce (a.max_make_qty,0) = 0 then 0
+                                 else coalesce (a.indc_wgt,0) /  a.max_make_qty
+                         end  as oper_rt --가동률
+
+                          , case when coalesce (a.indc_qty,0) = 0 then 0
+                                 else coalesce (d.make_qty,0) / a.indc_qty
+                         end  as yield_rt --수율
+                          , case when coalesce (a.indc_qty,0) = 0 then 0
+                                 else coalesce (d.fault_qty,0) / a.indc_qty
+                         end  as fail_rt --불량율
+
+                     from make_indc a join code_info b on a.proc_cd = b.code_no
+                                      join prod_info c on a.prod_no = c.prod_no
+                                      left join (select indc_no
+                                                      ,to_char(make_dt,'YYYY-MM-DD') as make_dt
+                                                      ,sum(make_qty) as make_qty
+                                                      ,sum(metal_qty) + sum(wgt_qty) +  sum(pack_qty) + sum(szn_qty)   as fault_qty
+                                                 from make_indc_rslt
+                                                 where used_yn = 'Y'
+                                                   and to_char(make_dt,'YYYY-MM-DD') = to_char(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                                                 group by indc_no,   to_char(make_dt,'YYYY-MM-DD')
+                     ) d on a.indc_no = d.indc_no
+                     where a.used_yn = 'Y'
+                       and a.proc_cd  = 999
+                       and (   TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                         or TO_CHAR(a.make_to_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                         )
+                 ) a
+            where a.make_dt is not null
+            group by make_dt
+        ) b on c.date = b.make_dt
+        group by c.date
+        order by c.date
+    </select>
+
+    <select id="getPhoneDashMonthList" parameterType="map" resultType="camelMap">
+        select substring(c.date,9,2) as date
+             , coalesce (sum(b.oper_rt)  / case when max(b.indc_cnt) = 0 then 1 else max(b.indc_cnt) end ,0)   as oper_rt
+             , coalesce (sum(b.yield_rt) / case when max(b.indc_cnt) = 0  then 1 else max(b.indc_cnt) end,0)   as yield_rt
+             , coalesce (sum(b.fail_rt)  / case when max(b.indc_cnt) = 0  then 1 else max(b.indc_cnt) end,0)   as fail_rt        from ( select to_char(DATE(GENERATE_SERIES(DATE  (#{procYy} || '-' || #{procMm} ||'-'||'01')
+             , (date_trunc('MONTH', (replace(#{procYy},'-','')|| #{procMm} ||'01')::date) + INTERVAL '1 MONTH - 1 day'),'1 day')),'YYYY-MM-DD') as date
+               ) c left join (
+                      select count(a.indc_no) as indc_cnt
+                           , a.make_dt
+                           , round(( sum(a.oper_rt)  / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as oper_rt
+                           , round(( sum(a.yield_rt) / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as yield_rt
+                           , round(( sum(a.fail_rt)  / case when count(a.indc_no) = 0 then 1 else count(a.indc_no) end  ) * 100,2) as fail_rt
+                      from (
+                              select  a.indc_no
+                                    , d.make_dt
+                                    , a.indc_qty --지시량
+                                    , coalesce (d.make_qty,0) as make_qty --생산량
+                                    , case when coalesce (a.max_make_qty,0) = 0 then 0 else coalesce (a.indc_wgt,0) /  a.max_make_qty end  as oper_rt --가동률
+                                    , case when coalesce (a.indc_qty,0) = 0 then 0  else coalesce (d.make_qty,0) / a.indc_qty end  as yield_rt --수율
+                                    , case when coalesce (a.indc_qty,0) = 0 then 0 else coalesce (d.fault_qty,0) / a.indc_qty end  as fail_rt --불량율
+                              from make_indc a join code_info b on a.proc_cd = b.code_no
+                                               join prod_info c on a.prod_no = c.prod_no
+                                          left join (select indc_no
+                                                         , to_char(make_dt,'YYYY-MM-DD') as make_dt
+                                                         , sum(make_qty) as make_qty
+                                                         , sum(metal_qty) + sum(wgt_qty) +  sum(pack_qty) + sum(szn_qty)   as fault_qty
+                                                     from make_indc_rslt
+                                                     where used_yn = 'Y'
+                                                     and to_char(make_dt,'YYYY-MM-DD') = to_char(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                                                     group by indc_no,   to_char(make_dt,'YYYY-MM-DD')
+                                          ) d on a.indc_no = d.indc_no
+                              where a.used_yn = 'Y'
+                              and a.proc_cd  = 999
+                              and (   TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                                    or TO_CHAR(a.make_to_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+                                  )
+                      ) a
+                     where a.make_dt is not null
+                     group by make_dt
+             ) b on c.date = b.make_dt
+            group by c.date
+            order by c.date
+    </select>
+
+    <select id="getPhoneDashRsltInfo" resultType="camelMap" parameterType="map">
+        select a.indc_qty
+             , b.prod_nm
+             , to_char(a.indc_dt, 'DD') as indc_dt
+             , c.make_qty
+        from make_indc a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                         left join (select mir.make_qty
+                                         , mi.par_indc_no
+                                    from make_indc_rslt mir join make_indc mi on mir.indc_no = mi.indc_no and mi.proc_cd = 999
+                                    ) c on a.indc_no = c.par_indc_no
+        where a.used_yn = 'Y'
+          and a.par_indc_no = 0
+        <if test="calcType != null and calcType == 'day'">
+            and TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+        </if>
+        <if test="calcType != null and calcType == 'week'">
+            and TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') between TO_CHAR(now() - #{calcDay}::interval ,'YYYY-MM-DD') and TO_CHAR(now(),'YYYY-MM-DD')
+        </if>
+        <if test="calcType != null and calcType == 'month'">
+            and TO_CHAR(a.make_fr_dt ,'YYYY-MM') = TO_CHAR(now(),'YYYY-MM')
+        </if>
+        order by indc_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getPhoneDashRsltInfoCount" resultType="int" parameterType="map">
+        select count(a.indc_no)
+          from make_indc a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                      left join (select mir.make_qty
+                                      , mi.par_indc_no
+                                   from make_indc_rslt mir join make_indc mi on mir.indc_no = mi.indc_no and mi.proc_cd = 999
+                                ) c on a.indc_no = c.par_indc_no
+        where a.used_yn = 'Y'
+        and a.par_indc_no = 0
+        <if test="calcType != null and calcType == 'day'">
+            and TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') = TO_CHAR(now() + '-1 day'::interval ,'YYYY-MM-DD')
+        </if>
+        <if test="calcType != null and calcType == 'week'">
+            and TO_CHAR(a.make_fr_dt ,'YYYY-MM-DD') between TO_CHAR(now() - #{calcDay}::interval ,'YYYY-MM-DD') and TO_CHAR(now(),'YYYY-MM-DD')
+        </if>
+        <if test="calcType != null and calcType == 'month'">
+            and TO_CHAR(a.make_fr_dt ,'YYYY-MM') = TO_CHAR(now(),'YYYY-MM')
+        </if>
+    </select>
+</mapper>

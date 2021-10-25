@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.shc.ccp.mapper.ShcCcpMapper">
+    <select id="getShcCcpItemList" resultType="camelMap" parameterType="map">
+        select a.ccp_lmt_std_no
+             , a.lmt_std_code --한계기준코드
+             , a.lmt_std_nm --한계기준명
+             , b.ccp_lmt_item_no
+             , b.lmt_item_code_kind  -- 한계항목코드종류
+             , b.lmt_item_code -- 한계항목코드
+             , b.lmt_std_val --한계기준값
+             , b.lmt_max_val --한계최대값
+             , b.lmt_min_val --한계최저값
+        from shc_ccp_lmt_std a left join shc_ccp_lmt_item b on a.lmt_std_code = b.lmt_std_code
+        where a.use_yn = 'Y'
+        order by ccp_lmt_std_no
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getShcCcpItemListCount" parameterType="map" resultType="int">
+        select count(a.ccp_lmt_std_no)
+        from (select a.ccp_lmt_std_no
+              from shc_ccp_lmt_std a left join shc_ccp_lmt_item b on a.lmt_std_code = b.lmt_std_code
+              where a.use_yn = 'Y') a
+    </select>
+</mapper>

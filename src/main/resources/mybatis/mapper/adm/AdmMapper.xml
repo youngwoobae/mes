@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.bord.mapper.AdmMapper">
+    <select id="getSysMenuList" parameterType="map"  resultType="camelMap">
+        WITH recursive cte (
+                par_sys_menu_no
+                , sys_menu_no
+                , sys_menu_nm
+                , sys_menu_path
+                , sys_menu_ip
+                , sys_menu_port
+                , level
+                , prt_seq
+                , path
+                , disp_yn
+                , used_yn
+        ) AS ( SELECT a.par_sys_menu_no
+                    , a.sys_menu_no
+                    , a.sys_menu_nm
+                    , a.sys_menu_path
+                    , a.sys_menu_ip
+                    , a.sys_menu_port
+                    , 1 AS level
+                    , a.prt_seq
+                    , lpad(a.prt_seq::text,5,'0')
+                    , a.disp_yn
+                    , a.used_yn
+                FROM  sys_menu a
+                WHERE a.par_sys_menu_no = 0
+                UNION ALL
+                SELECT  b.par_sys_menu_no
+                      , b.sys_menu_no
+                      , b.sys_menu_nm
+                      , b.sys_menu_path
+                      , b.sys_menu_ip
+                      , b.sys_menu_port
+                      , c.level+1 AS level
+                      , b.prt_seq
+                      , path ||lpad(b.prt_seq::text,5,'0')
+                      , b.disp_yn
+                      , b.used_yn
+                FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+        )
+        select * from cte
+        where used_yn = 'Y'
+        and disp_yn = 'Y'
+        <if test="parSysMenuNo != null and parSysMenuNo != ''">
+            AND par_sys_menu_no = #{parSysMenuNo}
+        </if>
+        order by path,prt_seq
+    </select>
+</mapper>

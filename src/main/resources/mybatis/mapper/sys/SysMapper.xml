@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.sys.mapper.SysMapper">
+    <select id="getOrdList" parameterType="map" resultType="camelMap">
+        select a.ord_no
+             , a.ord_nm
+        from ord_info a
+        where a.used_yn = 'N'
+          and a.ord_no = #{ordNo}
+        order by a.ord_no
+    </select>
+
+    <select id="getOrdProdList" parameterType="map" resultType="camelMap">
+        /*주문정보(sysMapper.getOrdProdList)*/
+        select a.ord_prod_no
+             , b.prod_nm
+             , b.erp_prod_nm
+             , c.ord_nm
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y'
+        where a.used_yn = 'N'
+        <if test="ordNo != null and ordNo != ''">
+            and a.ord_no = #{ordNo}
+        </if>
+        <if test="ordProdNo != null and ordProdNo != ''">
+          and a.ord_prod_no = #{ordProdNo}
+        </if>
+        order by a.ord_prod_no
+    </select>
+
+    <select id="getIndcList" parameterType="map" resultType="camelMap">
+        select mi.indc_no
+             , to_char(mi.indc_dt,'YYYY-MM-DD') as indc_dt
+             , mi.indc_qty
+             , mi.proc_cd
+             , a.code_nm as proc_cd_nm
+             , b.prod_nm
+        from make_indc mi join code_info a on mi.proc_cd = a.code_no amd a.used_yn = 'Y'
+                          join prod_info b on mi.prod_no = b.prod_no and b.used_yn = 'Y'
+        where mi.used_yn = 'N'
+          and mi.par_indc_no = 0
+        <if test="ordNo != null and ordNo != ''">
+            and mi.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and mi.indc_no = #{indcNo}
+        </if>
+        order by mi.proc_cd, mi.indc_no
+    </select>
+
+    <select id="getIndcMatrList" parameterType="map" resultType="camelMap">
+        select a.indc_matr_no
+             , a.indc_no
+             , b.matr_nm
+        from make_indc_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                              join make_indc c on a.indc_no = c.indc_no and c.used_yn = 'Y'
+        where a.used_yn = 'N'
+        <if test="ordNo != null and ordNo != ''">
+            and c.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="indcMatrNo != null and indcMatrNo != ''">
+            and a.indc_matr_no = #{indcMatrNo}
+        </if>
+        order by a.indc_matr_no
+    </select>
+
+    <select id="getPursList" parameterType="map" resultType="camelMap">
+        select a.purs_no
+             , z.code_nm as purs_sts_nm
+             , to_char(a.purs_dt ,'YYYY-MM-DD') as purs_dt
+             , to_char(a.dlv_req_dt , 'YYYY-MM-DD') as dlv_req_dt
+        from purs_info a left join make_indc b on a.indc_no = b.indc_no and b.par_indc_no = 0 and b.used_yn = 'Y'
+                              join code_info z on a.purs_sts = z.code_no and z.used_yn = 'Y'
+        where a.used_yn = 'N'
+        <if test="ordNo != null and ordNo != ''">
+            and b.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and a.purs_no = #{pursNo}
+        </if>
+        order by a.purs_no
+    </select>
+
+    <select id="getPursMatrList" parameterType="map" resultType="camelMap">
+        select b.purs_matr_no
+             , b.purs_no
+             , b.purs_qty
+             , d.matr_nm
+             , e.code_nm as matr_tp
+        from purs_info a join purs_matr b on a.purs_no = b.purs_no
+                    left join make_indc c on a.indc_no = c.indc_no
+                         join matr_info d on b.matr_no = d.matr_no
+                         join code_info e on d.matr_tp = e.code_no
+        where a.used_yn = 'Y'
+        <if test="ordNo != null and ordNo != ''">
+            and c.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and a.purs_no = #{pursNo}
+        </if>
+        <if test="pursMatrNo != null and pursMatrNo != ''">
+            and b.purs_matr_no = #{pursMatrNo}
+        </if>
+        order by b.purs_matr_no, d.matr_nm
+    </select>
+
+    <select id="getMatrIwhList" parameterType="map" resultType="camelMap">
+        select a.iwh_no
+             , to_char(a.iwh_dt,'YYYY-MM-DD') as iwh_dt
+             , a.iwh_qty
+             , c.wh_nm
+             , b.matr_nm
+             , to_char(a.date_manufacture,'YYYY-MM-DD') as date_manufacture
+        from matr_iwh a join matr_info b on a.matr_no = b.matr_no
+                        join wh_info c on a.wh_no = c.wh_no
+                   left join purs_info d on a.purs_no = d.purs_no
+                   left join make_indc e on d.indc_no = e.indc_no
+        where a.used_yn = 'N'
+        <if test="ordNo != null and ordNo != ''">
+            and e.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and e.indc_no = #{indcNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and a.purs_no = #{pursNo}
+        </if>
+        <if test="iwhNo != null and iwhNo != ''">
+            and a.iwh_no = #{iwhNo}
+        </if>
+        order by a.iwh_no, b.matr_nm
+    </select>
+
+    <select id="getMatrOwhList" parameterType="map" resultType="camelMap">
+        select a.owh_no
+             , a.owh_qty
+             , a.owh_req_qty
+             , to_char(a.owh_dt, 'YYYY-MM-DD') as owh_dt
+             , to_char(a.owh_req_dt, 'YYYY-MM-DD') as owh_req_dt
+             , b.matr_nm
+             , c.wh_nm
+        from matr_owh a join matr_info b on a.matr_no = b.matr_no
+                        join wh_info c on a.wh_no = c.wh_no
+                        join make_indc d on a.indc_no = d.indc_no
+                   left join purs_info e on e.indc_no = d.indc_no
+        where a.used_yn = 'N'
+        <if test="ordNo != null and ordNo != ''">
+            and d.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and a.purs_no = #{pursNo}
+        </if>
+        <if test="owhNo != null and owhNo != ''">
+            and d.owh_no = #{owhNo}
+        </if>
+        order by a.owh_no, b.matr_nm
+    </select>
+
+    <select id="getIndcRsltList" parameterType="map" resultType="camelMap">
+        select a.indc_rslt_no
+             , a.indc_no
+             , a.make_qty
+             , b.indc_qty
+             , to_char(b.make_fr_dt, 'YYYY-MM-DD') as make_fr_dt
+             , to_char(b.make_to_dt, 'YYYY-MM-DD') as make_to_dt
+             , b.proc_cd
+             , c.code_nm as proc_cd_nm
+             , coalesce (e.purs_no, 0) as purs_no
+             , f.prod_nm
+        from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no
+                              join code_info c on b.proc_cd = c.code_no
+                              join ord_info d on b.ord_no = d.ord_no
+                              join prod_info f on b.prod_no = f.prod_no
+                         left join purs_info e on b.indc_no = e.indc_no
+        where a.used_yn = 'N'
+        <if test="ordNo != null and ordNo != ''">
+            and b.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and a.indc_no = #{indcNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and e.purs_no = #{pursNo}
+        </if>
+        order by a.indc_rslt_no, c.code_nm
+    </select>
+
+    <select id="getProdIwhList" parameterType="map" resultType="camelMap">
+        select distinct a.iwh_no --입고이력번호
+             , e.prod_nm --제품명
+             , a.prod_no --제품번호
+             , a.iwh_qty --입고량
+             , to_char(a.reg_dt, 'YYYY-MM-DD') as reg_dt --등록일자
+             , d.ord_nm --주문명
+             , g.wh_nm --창고명
+             , a.wh_no --창고번호
+             , h.stk_qty --현재고
+             , case when coalesce (j.owh_no, 0) != 0 then 'O' else 'X' end as owh_yn
+        from prod_iwh a join make_indc_rslt b on a.indc_rslt_no = b.indc_rslt_no
+                        join ord_prod c on a.prod_no = c.prod_no
+                        join ord_info d on c.ord_no = d.ord_no
+                        join make_indc i on b.indc_no = i.indc_no and d.ord_no = i.ord_no and i.used_yn = 'Y'
+                        join prod_info e on a.prod_no = e.prod_no
+                        join wh_info g on a.wh_no = g.wh_no
+                        join prod_stk h on a.wh_no = h.wh_no and a.prod_no = h.prod_no
+                        left join purs_info f on d.purs_no = f.purs_no
+                        left join prod_owh j on a.wh_no = j.wh_no and a.prod_no = j.prod_no and d.ord_no = j.ord_no and j.used_yn = 'Y'
+        where a.used_yn = 'N'
+        <if test="iwhNo != null and iwhNo != ''">
+            and a.iwh_no = #{iwhNo}
+        </if>
+        <if test="ordNo != null and ordNo != ''">
+            and d.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and i.indc_no = #{indcNo}
+        </if>
+        <if test="indcRsltNo != null and indcRsltNo != ''">
+            and b.indc_rslt_no = #{indcRsltNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and f.purs_no = #{pursNo}
+        </if>
+        order by to_char(a.reg_dt, 'YYYY-MM-DD') , e.prod_nm
+    </select>
+
+    <select id="getProdOwhList" resultType="camelMap" parameterType="map">
+        select a.owh_no
+             , to_char(a.owh_dt, 'YYYY-MM-DD') as owh_dt
+             , a.owh_qty
+             , b.prod_no
+             , b.prod_nm
+             , f.wh_nm
+             , f.wh_no
+             , i.stk_qty
+        from prod_owh a join prod_info b on a.prod_no = b.prod_no
+                        join wh_info f on a.wh_no = f.wh_no
+                        join prod_stk i on a.wh_no = i.wh_no and a.prod_no = i.prod_no
+                        left join ord_info c on a.ord_no = c.ord_no
+                        left join ord_prod d on c.ord_no = d.ord_no
+                        left join purs_info e on c.purs_no = e.purs_no
+                        left join make_indc g on g.ord_no = a.ord_no and g.proc_cd = 999
+                        left join make_indc_rslt h on g.indc_no = h.indc_no
+        where a.used_yn = 'N'
+        <if test="owhNo != null and owhNo != ''">
+            and a.owh_no = #{owhNo}
+        </if>
+        <if test="ordNo != null and ordNo != ''">
+            and a.ord_no = #{ordNo}
+        </if>
+        <if test="indcNo != null and indcNo != ''">
+            and g.indc_no = #{indcNo}
+        </if>
+        <if test="indcRsltNo != null and indcRsltNo != ''">
+            and h.indc_rslt_no = #{indcRsltNo}
+        </if>
+        <if test="pursNo != null and pursNo != ''">
+            and e.purs_no = #{pursNo}
+        </if>
+    </select>
+
+    <select id="getResultProdOwhList" resultType="camelMap" parameterType="map">
+        select b.wh_nm
+             , c.prod_nm
+             , a.owh_qty --이전 출고수량
+             , d.stk_qty -- 변경된 수량(현재고)
+             , d.stk_qty + a.owh_qty as bf_stk_qty -- 이전 재고수량
+        from prod_owh a join wh_info b on a.wh_no = b.wh_no
+                        join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                        join prod_stk d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+        where a.owh_no in <foreach collection="owhNos" item="owhNos" index="index" open="(" close=")" separator=",">   #{owhNos}   </foreach>
+    </select>
+
+    <select id="getResultProdIwhList" resultType="camelMap" parameterType="map">
+        select d.wh_nm
+             , c.prod_nm
+             , b.stk_qty --현재고
+             , a.iwh_qty --이전 입고수량
+             , b.stk_qty - a.iwh_qty as bf_stk_qty --이전 재고수량
+        from prod_iwh a join prod_stk b on a.wh_no = b.wh_no and a.prod_no = b.prod_no and b.used_yn = 'Y'
+        join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+        join wh_info d on a.wh_no = d.wh_no and d.used_yn = 'Y'
+        where a.iwh_no in <foreach collection="iwhNos" item="iwhNos" index="index" open="(" close=")" separator=",">   #{iwhNos}   </foreach>
+    </select>
+
+    <select id="getResultIndcRslt" resultType="camelMap" parameterType="map">
+        select a.indc_rslt_no --지시결과번호
+             , a.make_qty --생산수량
+             , c.code_nm as proc_nm --공정명
+             , d.prod_nm --생산품명
+        from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no and b.used_yn = 'Y'
+                              join code_info c on b.proc_cd = c.code_no and c.used_yn = 'Y'
+                              join prod_info d on b.prod_no = d.prod_no and d.used_yn = 'Y'
+        where a.indc_rslt_no in <foreach collection="indcRsltNos" item="indcRsltNos" index="index" open="(" close=")" separator=",">   #{indcRsltNos}   </foreach>
+    </select>
+</mapper>

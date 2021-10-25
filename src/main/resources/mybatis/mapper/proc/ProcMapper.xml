@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.proc.mapper.ProcMapper">
+    <select id="getProcInfoList" parameterType="map" resultType="camelMap">
+        select a.proc_cd --공정코드
+             , b.code_nm --공정명
+             , b.code_seq --공정순서
+             , a.max_make_qty --일생산량
+             , a.proc_unit --생산단위코드
+             , c.code_nm as proc_unit_nm --생산단위명
+        from proc_info a join code_info b on a.proc_cd = b.code_no  and b.used_yn = 'Y'
+                         join code_info c on a.proc_unit = c.code_no
+        where 1 = 1
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'procNm'">
+                and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        limit #{pageNo} offset #{pageNo}
+        order by b.code_seq
+    </select>
+    <select id="getProcInfoListCount" parameterType="map" resultType="int">
+        select count(a.proc_cd)
+        from (
+                 select a.proc_cd --공정코드
+                 from proc_info a join code_info b on a.proc_cd = b.code_no  and b.used_yn = 'Y'
+                                  join code_info c on a.proc_unit = c.code_no
+                where 1 = 1
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'procNm'">
+                        and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+        ) a
+    </select>
+
+    <select id="getProcBrnchList" parameterType="map" resultType="camelMap">
+        select b.proc_cd --공정코드
+             , a.code_nm as proc_nm --공정명
+             , coalesce (a.code_seq,0) as proc_seq  --공정순서
+             , c.used_yn as proc_yn --공정코드를 공정분류정보에 설정했는지Ï
+             , c.proc_brnch_no --공정분류관리번호
+             , c.brnch_no --공정분류번호
+             , coalesce (c.need_dt_val,0) as need_dt_val --공정소요시간
+             , coalesce (c.next_step_val,0) as next_step_val --다음공정STEP(다음공정시작일 = 직전공정 종료일 + next_step_val)
+             , d.code_nm as proc_grp_nm --인력투입그룹명
+             , a.ccp_tp --관리공정
+        from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y'
+                    left join proc_brnch c on b.proc_cd = c.proc_cd
+                         <if test="brnchNo != null and brnchNo != ''">
+                            and c.brnch_no = #{brnchNo}
+                         </if>
+                        <if test="mngrYn!= null and mngrYn != ''">
+                            and c.used_yn = #{mngrYn}
+                        </if>
+                    left join code_info d on c.proc_grp_cd  = d.code_no
+        where a.par_code_no  = #{parCodeNo} --공정모코드(720)
+          and a.used_yn  = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'proc_nm'">
+                and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.code_seq
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProcBrnchListCount" parameterType="map" resultType="int">
+        select count(a.code_no)
+        from (  select a.code_no
+                from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y'
+                            left join proc_brnch c on b.proc_cd = c.proc_cd
+                                <if test="brnchNo != null and brnchNo != ''">
+                                    and c.brnch_no = #{brnchNo}
+                                    </if>
+                                <if test="mngrYn != null and mngrYn != ''">
+                                   and c.used_yn = #{mngrYn}
+                                </if>
+                          left join code_info d on c.proc_grp_cd  = d.code_no
+                where a.par_code_no  = #{parCodeNo} --공정모코드(720)
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'proc_nm'">
+                        and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+
+                and a.used_yn  = 'Y'
+        ) a
+    </select>
+
+    <select id="getProcInfo" parameterType="map" resultType="camelMap">
+        select a.proc_cd --공정코드
+             , b.code_nm  as proc_nm --공정명
+             , a.max_make_qty --최대생산캐퍼(Kg 단위로 환산)
+             , a.need_hm --공정소요시간
+             , a.proc_ctnt
+             , a.file_no
+             , a.proc_unit
+             , #{baseUrl} || c.acc_url as acc_url-- 원자재사진 경로
+        from  proc_info a join code_info b on a.proc_cd = b.code_no
+                     left join  file_info c on a.file_no = c.file_no
+        where a.proc_cd =  #{procCd}
+    </select>
+
+    <select id="getProcList" parameterType="map" resultType="camelMap">
+        select a.proc_cd --공정코드
+              , a.max_make_qty --일간생산량
+              , case when length(a.proc_ctnt) <![CDATA[ > ]]> 60 then substr(a.proc_ctnt,1,60) || '...' else a.proc_ctnt end as proc_ctnt --공정표준
+              , b.code_nm as proc_nm --공정명
+              , c.code_nm as proc_unit_nm --일간생산량단위
+        from proc_info a join code_info b on a.proc_cd = b.code_no
+                         join code_info c on a.proc_unit = c.code_no
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'procNm'">
+                and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.proc_cd
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProcListCount" parameterType="map" resultType="int">
+        select count(a.proc_cd)
+        from (  select a.proc_cd --공정코드
+                     , a.max_make_qty --일간생산량
+                     , case when length(a.proc_ctnt) <![CDATA[ > ]]> 60 then substr(a.proc_ctnt,1,60) || '...' else a.proc_ctnt end as proc_ctnt --공정표준
+                     , b.code_nm as proc_nm --공정명
+                     , c.code_nm as proc_unit_nm --일간생산량단위
+                    from proc_info a join code_info b on a.proc_cd = b.code_no
+                                     join code_info c on a.proc_unit = c.code_no
+                    where a.used_yn = 'Y'
+                    <if test="findSz != null and findSz != ''">
+                        <if test="findTp != null and findTp == 'procNm'">
+                            and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+        ) a
+    </select>
+
+    <select id="getProcStdList" parameterType="map"  resultType="camelMap">
+        select    a.proc_cd --작업코드
+                , b.code_nm as proc_nm --작업명
+                , case when length(a.proc_ctnt) <![CDATA[ > ]]> 60 then substr(a.proc_ctnt,1,60) || '...' else a.proc_ctnt end as proc_ctnt --작업표준
+                , need_hm  --소요시간(분단위)
+                , round(case when a.max_make_qty = 0 then 0 else a.max_make_qty / 1000 end,2) as max_make_qty --최대생산량(Kg)
+                , a.proc_seq --출력순서
+                , a.used_mp_lvlt --숙련도(상) 필요인원수
+                , a.used_mp_lvlm --숙련도(중) 필요인원수
+                , a.used_mp_lvlb --숙련도(하) 필요인원수
+         from proc_info a join code_info b on a.proc_cd = b.code_no and b.par_code_no = #{parCodeNo}
+        where a.used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'procNm'">
+                and upper(replace(code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by b.code_seq
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProcStdListCount" parameterType="map"  resultType="int">
+        select count(a.proc_cd)
+        from (select a.proc_cd
+              from proc_info a join code_info b on a.proc_cd = b.code_no and b.par_code_no = #{parCodeNo}
+              where a.used_yn = 'Y'
+              <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'code'">
+                    and upper(replace(code_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+              </if>
+        ) a
+    </select>
+
+    <update id="dropProcStd" parameterType="map">
+        update proc_info set used_yn = 'N' where proc_cd = #{procCd}
+    </update>
+
+    <select id="getPopProcList" parameterType="map" resultType="camelMap">
+        select a.prod_no --상품번호
+             , a.indc_no --지시번호
+             , b.prod_nm --상품번호
+             , c.proc_cd --공정번호
+             , z.code_nm as proc_nm --공정이름
+             , a.make_fr_dt --생산시작일자
+             , a.make_to_dt --생산종료일자
+             , to_char(a.indc_dt, 'YYYY-MM-DD') as indc_dt --생산지시일자
+        from make_indc a join prod_info b on a.prod_no = b.prod_no
+                         join proc_info c on a.proc_cd = c.proc_cd
+                         join code_info z on c.proc_cd = z.code_no
+        where a.used_yn = 'Y'
+        <if test="findSz != null || findSz != ''">
+            <if test="findTp != null and findTp == 'prodNm'">
+                AND upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by proc_cd asc, indc_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getPopProcListCount" parameterType="map" resultType="int">
+        select count(a.prod_no)
+        from (   select a.prod_no
+                 from make_indc a join prod_info b on a.prod_no = b.prod_no
+                                  join proc_info c on a.proc_cd = c.proc_cd
+                                  join code_info z on c.proc_cd = z.code_no
+                 where a.used_yn = 'Y'
+                    <if test="findSz != null || findSz != ''">
+                        <if test="findTp != null and findTp == 'prodNm'">
+                            AND upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        </if>
+                    </if>
+             ) a
+    </select>
+
+    <select id="getProcMemberList" parameterType="map" resultType="camelMap">
+        select b.proc_grp_cd
+             , a.user_id
+             , a.user_nm
+             , case when b.proc_grp_cd is null then 'N' else 'Y' end as memb_yn
+        from user_info a left join proc_mp b on a.user_id = b.user_id and b.proc_grp_cd = #{procGrpCd} and b.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        and a.ocpn_kind = #{ocpnKind}
+        <if test="findSz != null || findSz != ''">
+            <if test="findTp != null and findTp == 'user_nm'">
+                AND upper(replace(a.user_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by user_nm
+    </select>
+
+
+    <select id="getCodeListByParAndSeqOver" parameterType="map" resultType="camelMap">
+        SELECT a.par_code_no
+             , a.code_no
+             , a.code_seq
+        FROM  code_info a
+        where a.used_yn ='Y'
+          and a.par_code_no = #{parCodeNo}
+          and a.code_seq <![CDATA[ >= ]]> #{codeSeq}
+         order by a.code_seq
+    </select>
+
+    <delete id="dropProcMpByProcGrpCd" parameterType="map" >
+        delete from proc_mp where proc_grp_cd = #{proc_grp_cd}
+    </delete>
+
+    <update id="getUpdateUsedyn" parameterType="map" >
+            update proc_mp set used_yn = 'N' where proc_grp_cd = #{procGrpCd}
+    </update>
+
+</mapper>

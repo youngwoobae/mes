@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.equip.mapper.EquipMatrMapper">
+    <select id="getEquipMatrList" parameterType="map"  resultType="camelMap">
+        SELECT a.matr_no --설비비자재번호
+            , a.matr_nm --설비자재명
+            , a.purs_unit  --구매단위
+            , to_char(a.purs_unit_prc,'FM9,999,999') as purs_unit_prc --구매단가
+            , a.safe_stk_qty --안전재고
+            , a.make_cmpy   --제조사
+            , a.madein      --원산지
+            , a.sz          --규격
+            , a.modl_nm     --모델명
+            , a.part_no     --부품번호
+            , a.file_no     --이미지관리번호
+            , c.code_nm  AS madein_nm   --원산지명
+            , d.code_nm AS purs_unit_nm   --구매단위명
+        FROM equip_matr a JOIN code_info d on a.purs_unit = d.code_no
+                     LEFT JOIN code_info c on a.madein = c.code_no
+        WHERE a.used_yn  = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'sensorNm'">
+                AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getEquipMatrListCount" parameterType="map"  resultType="int">
+        SELECT COUNT(a.matr_no)
+        FROM ( SELECT a.matr_no --센서번호
+        FROM equip_matr a JOIN code_info d on a.purs_unit = d.code_no
+                     LEFT JOIN code_info c on a.madein = c.code_no
+        WHERE a.used_yn  = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'equipNm'">
+                AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+
+    <update id="dropEquipMatr" parameterType="map" >
+        UPDATE equip_matr SET used_yn = 'N' ,mod_dt = NOW(), mod_id = #{userId}, mod_ip = #{ipaddr} WHERE matr_no = #{matrNo}
+    </update>
+
+    <update id="revervalEquipMatr" parameterType="map" >
+        UPDATE equip_matr SET used_yn = 'Y',mod_dt = NOW(), mod_id = #{userId}, mod_ip = #{ipaddr}  WHERE matr_no = #{matrNo}
+    </update>
+
+    <insert id="apndEquipMatrCart"  parameterType="map" >
+        INSERT INTO equip_matr_cart (user_id, equip_no    , matr_no)
+            SELECT                 #{userId} ,#{equipNo}  , #{matrNo}
+             WHERE 0 = (SELECT COUNT(matr_no) from equip_matr_cart where user_id = #{userId} and equip_no = #{equipNo} and matr_no = #{matrNo})
+    </insert>
+    <select id="equipBomList" parameterType="map" resultType="camelMap">
+         select
+                  a.matr_no
+                , a.matr_nm
+                , a.part_no
+                , b.need_qty
+                , a.modl_nm
+                , a.safe_stk_qty
+        from equip_matr a join equip_bom b on a.matr_no = b.matr_no
+                          join equip_info c on b.equip_no = c.equip_no
+        where b.matr_no = #{matrNo}
+    </select>
+    <select id="equipMatrInfo" parameterType="map" resultType="camelMap">
+        SELECT a.matr_no --설비비자재번호
+            , a.matr_nm --설비자재명
+            , a.purs_unit  --구매단위
+            , to_char(a.purs_unit_prc,'999,999,999') as purs_unit_prc --구매단가
+            , a.safe_stk_qty --안전재고
+            , a.make_cmpy   --제조사
+            , a.madein      --원산지
+            , a.sz          --규격
+            , a.modl_nm     --모델명
+            , a.part_no     --부품번호
+            , a.file_no     --이미지관리번호
+            , c.code_nm  AS madein_nm   --원산지명
+            , d.code_nm AS purs_unit_nm   --구매단위명
+        FROM equip_matr a JOIN code_info d on a.purs_unit = d.code_no
+                     LEFT JOIN code_info c on a.madein = c.code_no
+        WHERE a.matr_no = #{matrNo}
+    </select>
+</mapper>

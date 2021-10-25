@@ -1,0 +1,9 @@
+build
+.DS_Store
+.gradle
+gradle
+fileroot
+.idea
+libs
+log
+LOG_FILE_IS_UNDEFINED

@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.moniter.mapper.DdkorMapper">
+    <select id="getMoniterHstr" parameterType="map"  resultType="camelMap">
+        select  a.spot_equip_no
+              , b.spot_no
+              , c.spot_nm
+              , round(coalesce(meas_val,0)::numeric,2) as co2
+              , round(coalesce(meas_val2,0)::numeric ,2) as tmpr
+              , round(coalesce(meas_val3,0)::numeric ,2) as humy
+              , round(coalesce(meas_val4,0)::numeric ,2) as hz
+              , round(coalesce(meas_val5,0)::numeric ,2) as rpm
+              , round(coalesce(meas_val6,0)::numeric ,2) as make_qty --생산수량
+              , round(coalesce(meas_val7,0)::numeric ,2) as fault_qty --불량수량
+              , round(coalesce(meas_val8,0)::numeric ,2) as pkgin_qty --급대수량
+              , round(coalesce(meas_val9,0)::numeric ,2) as press --    압력
+              , round(coalesce(meas_val10,0)::numeric ,2) as trkin_qty --중량선별기_투입수량
+              , round(coalesce(meas_val11,0)::numeric ,2) as norm_qty --중량선별기_정량수량
+              , round(coalesce(meas_val12,0)::numeric ,2) as flow_meter --유량계
+              , round(coalesce(meas_val13,0)::numeric ,2) as cur_pwr --현재전력
+              , round(coalesce(meas_val14,0)::numeric ,2) as acc_pwr --적산전력
+        from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                               join spot_info c on b.spot_no = c.spot_no
+                               join (select max(unix_hms) as unix_hms, spot_equip_no from equip_mngr_hstr group by spot_equip_no) d on a.spot_equip_no  = d.spot_equip_no and a.unix_hms = d.unix_hms
+        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between  substring (#{dateFr},1,10) and substring(#{dateTo},1,10)
+        and coalesce (a.meas_val,0) not in (-999)
+        and coalesce (a.meas_val2,0) not in (-999)
+        and coalesce (a.meas_val3,0) not in (-999)
+        and coalesce (a.meas_val4,0) not in (-999)
+        and coalesce (a.meas_val5,0) not in (-999)
+        and coalesce (a.meas_val6,0) not in (-999)
+        and coalesce (a.meas_val7,0) not in (-999)
+        and coalesce (a.meas_val8,0) not in (-999)
+        and coalesce (a.meas_val9,0) not in (-999)
+        and coalesce (a.meas_val10,0) not in (-999)
+        and coalesce (a.meas_val11,0) not in (-999)
+        and coalesce (a.meas_val12,0) not in (-999)
+        and coalesce (a.meas_val13,0) not in (-999)
+        and coalesce (a.meas_val14,0) not in (-999)
+        <if test="spots != null and spots != '' and spots.size != 0 ">
+            and b.spot_no in <foreach collection="spots" item="spots" index="index" open="(" close=")" separator=",">   #{spots}   </foreach>
+        </if>
+        order by spot_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getMoniterHstrCount" parameterType="map"  resultType="int">
+        select count(a.spot_equip_no)
+        from (
+            select a.spot_equip_no
+                 , b.spot_no
+                 , c.spot_nm
+                 , round(coalesce(meas_val,0)::numeric,2) as co2
+                 , round(coalesce(meas_val2,0)::numeric ,2) as tmpr
+                 , round(coalesce(meas_val3,0)::numeric ,2) as humy
+                 , round(coalesce(meas_val4,0)::numeric ,2) as hz
+                 , round(coalesce(meas_val5,0)::numeric ,2) as rpm
+                 , round(coalesce(meas_val6,0)::numeric ,2) as make_qty --생산수량
+                 , round(coalesce(meas_val7,0)::numeric ,2) as fault_qty --불량수량
+                 , round(coalesce(meas_val8,0)::numeric ,2) as pkgin_qty --급대수량
+                 , round(coalesce(meas_val9,0)::numeric ,2) as press --    압력
+                 , round(coalesce(meas_val10,0)::numeric ,2) as trkin_qty --중량선별기_투입수량
+                 , round(coalesce(meas_val11,0)::numeric ,2) as norm_qty --중량선별기_정량수량
+                 , round(coalesce(meas_val12,0)::numeric ,2) as flow_meter --유량계
+                 , round(coalesce(meas_val13,0)::numeric ,2) as cur_pwr --현재전력
+                 , round(coalesce(meas_val14,0)::numeric ,2) as acc_pwr --적산전력
+            from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                                   join spot_info c on b.spot_no = c.spot_no
+                                   join (select max(unix_hms) as unix_hms, spot_equip_no from equip_mngr_hstr group by spot_equip_no) d on a.spot_equip_no  = d.spot_equip_no and a.unix_hms = d.unix_hms
+            where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between  substring (#{dateFr},1,10) and substring(#{dateTo},1,10)
+            and coalesce (a.meas_val,0) not in (-999)
+            and coalesce (a.meas_val2,0) not in (-999)
+            and coalesce (a.meas_val3,0) not in (-999)
+            and coalesce (a.meas_val4,0) not in (-999)
+            and coalesce (a.meas_val5,0) not in (-999)
+            and coalesce (a.meas_val6,0) not in (-999)
+            and coalesce (a.meas_val7,0) not in (-999)
+            and coalesce (a.meas_val8,0) not in (-999)
+            and coalesce (a.meas_val9,0) not in (-999)
+            and coalesce (a.meas_val10,0) not in (-999)
+            and coalesce (a.meas_val11,0) not in (-999)
+            and coalesce (a.meas_val12,0) not in (-999)
+            and coalesce (a.meas_val13,0) not in (-999)
+            and coalesce (a.meas_val14,0) not in (-999)
+            <if test="spots != null and spots != '' and spots.size != 0 ">
+                and b.spot_no in <foreach collection="spots" item="spots" index="index" open="(" close=")" separator=",">   #{spots}   </foreach>
+            </if>
+            ) a
+    </select>
+
+
+    <select id="getMoniterHstrH24" parameterType="map"  resultType="camelMap">
+              select
+                max(round(meas_val::numeric ,2)) as max_co2 ,
+                avg(round(coalesce (meas_val,0))) as avg_co2,
+                min(round(meas_val::numeric ,2)) as min_co2 ,
+
+                max(round(meas_val2::numeric ,2)) as max_tmpr ,
+                avg(round(coalesce (meas_val2,0))) as avg_tmpr,
+                min(round(meas_val2::numeric ,2)) as min_tmpr ,
+
+                max(round(meas_val3::numeric ,2)) as max_humy ,
+                avg(round(coalesce (meas_val3,0))) as avg_humy,
+                min(round(meas_val3::numeric ,2)) as min_humy ,
+
+                max(round(meas_val4::numeric ,2)) as max_hz ,
+                avg(round(coalesce (meas_val4,0))) as avg_hz,
+                min(round(meas_val4::numeric ,2)) as min_hz ,
+
+                max(round(meas_val5::numeric ,2)) as max_rpm ,
+                avg(round(coalesce (meas_val5,0))) as avg_rpm,
+                min(round(meas_val5::numeric ,2)) as min_rpm ,
+
+                max(round(meas_val6::numeric ,2)) as max_make_qty ,
+                avg(round(coalesce (meas_val6,0))) as avg_make_qty,
+                min(round(meas_val6::numeric ,2)) as min_make_qty ,
+
+                max(round(meas_val7::numeric ,2)) as max_fault_qty ,
+                avg(round(coalesce (meas_val7,0))) as avg_fault_qty,
+                min(round(meas_val7::numeric ,2)) as min_fault_qty ,
+
+                max(round(meas_val8::numeric ,2)) as max_pkgin_qty ,
+                avg(round(coalesce (meas_val8,0))) as avg_pkgin_qty,
+                min(round(meas_val8::numeric ,2)) as min_pkgin_qty ,
+
+                max(round(meas_val9::numeric ,2)) as max_press ,
+                avg(round(coalesce (meas_val9,0))) as avg_press,
+                min(round(meas_val9::numeric ,2)) as min_press ,
+
+                max(round(meas_val10::numeric ,2)) as max_trkin_qty ,
+                avg(round(coalesce (meas_val10,0))) as avg_trkin_qty,
+                min(round(meas_val10::numeric ,2)) as min_trkin_qty ,
+
+                max(round(meas_val11::numeric ,2)) as max_norm_qty ,
+                avg(round(coalesce (meas_val11,0))) as avg_norm_qty,
+                min(round(meas_val11::numeric ,2)) as min_norm_qty ,
+
+               	max(round(meas_val12::numeric ,2)) as max_flow_meter ,
+                avg(round(coalesce (meas_val12,0))) as avg_flow_meter,
+                min(round(meas_val12::numeric ,2)) as min_flow_meter ,
+
+				max(round(meas_val13::numeric ,2)) as max_cur_pwr ,
+                avg(round(coalesce (meas_val13,0))) as avg_cur_pwr,
+                min(round(meas_val13::numeric ,2)) as min_cur_pwr ,
+
+                max(round(meas_val14::numeric ,2)) as max_acc_pwr ,
+                avg(round(coalesce (meas_val14,0))) as avg_acc_pwr,
+                min(round(meas_val14::numeric ,2)) as min_acc_pwr ,
+
+                to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24') as date
+            from equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
+                                   join spot_info c on b.spot_no = c.spot_no
+            where b.spot_no = #{spot_no}
+		        and coalesce (a.meas_val,0) not in (-999)
+		        and coalesce (a.meas_val2,0) not in (-999)
+		        and coalesce (a.meas_val3,0) not in (-999)
+		        and coalesce (a.meas_val4,0) not in (-999)
+		        and coalesce (a.meas_val5,0) not in (-999)
+		        and coalesce (a.meas_val6,0) not in (-999)
+		        and coalesce (a.meas_val7,0) not in (-999)
+		        and coalesce (a.meas_val8,0) not in (-999)
+		        and coalesce (a.meas_val9,0) not in (-999)
+		        and coalesce (a.meas_val10,0) not in (-999)
+		        and coalesce (a.meas_val11,0) not in (-999)
+		        and coalesce (a.meas_val12,0) not in (-999)
+		        and coalesce (a.meas_val13,0) not in (-999)
+		        and coalesce (a.meas_val14,0) not in (-999)
+            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') =  to_char(#{date}::date,'YYYY-MM-DD')
+            group by to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24')
+            order by to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24')
+    </select>
+
+    <select id="getEquipName" parameterType="map" resultType="camelMap">
+        select a.spot_no
+             , a.spot_nm
+             , b.spot_equip_no
+        from spot_info a join spot_equip b on a.spot_no = b.spot_no
+        where b.used_yn = 'Y'
+          and b.spot_equip_no = #{eqno}
+    </select>
+</mapper>

@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.pre_rec_mgmt.P0050">
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        SELECT C.*
+             ,(SELECT D.CODE_NM FROM SHC_COMM_CODE D WHERE SUBSTR(D.CODE_KIND,1,3)='APP' AND D.CODE = C.REVW_STATUS) AS REVW_STATUS
+             ,(SELECT D.CODE_NM FROM SHC_COMM_CODE D WHERE SUBSTR(D.CODE_KIND,1,3)='APP' AND D.CODE = C.APPR_STATUS) AS APPR_STATUS
+        FROM (
+                 SELECT
+                     A.REC_NO
+                      ,STR_TO_DATE(MAX(A.CREATE_DT), '%Y-%m-%d') AS CREATE_DT
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK1' THEN A.MEAS_VAL END) AS dg1
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK2' THEN A.MEAS_VAL END) AS dg2
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK3' THEN A.MEAS_VAL END) AS dg3
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK4' THEN A.MEAS_VAL END) AS dg4
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK5' THEN A.MEAS_VAL END) AS dg5
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK6' THEN A.MEAS_VAL END) AS dg6
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK7' THEN A.MEAS_VAL END) AS dg7
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK8' THEN A.MEAS_VAL END) AS dg8
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK9' THEN A.MEAS_VAL END) AS dg9
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK10' THEN A.MEAS_VAL END) AS dg10
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK1' THEN A.MEAS_VAL1 END) AS m1
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK2' THEN A.MEAS_VAL1 END) AS m2
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK3' THEN A.MEAS_VAL1 END) AS m3
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK4' THEN A.MEAS_VAL1 END) AS m4
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK5' THEN A.MEAS_VAL1 END) AS m5
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK6' THEN A.MEAS_VAL1 END) AS m6
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK7' THEN A.MEAS_VAL1 END) AS m7
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK8' THEN A.MEAS_VAL1 END) AS m8
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK9' THEN A.MEAS_VAL1 END) AS m9
+                      ,MAX(CASE WHEN A.M_CODE = 'DGRWRK10' THEN A.MEAS_VAL1 END) AS m10
+                      ,(SELECT B.REVW_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS REVW_STATUS
+                      ,(SELECT B.APPR_STATUS FROM SHC_APPR_LIST B WHERE B.REC_NO = A.REC_NO) AS APPR_STATUS
+                 FROM SHC_REC_PRE_DEGREE A
+                 WHERE CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s')
+                           AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+                 GROUP BY REC_NO
+                 ORDER BY MAX(CREATE_DT) DESC
+             ) C
+            LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectColList" parameterType="map" resultType="camelMap">
+        SELECT M_CODE,
+               (SELECT CODE_NM FROM SHC_COMM_CODE A WHERE CODE_KIND='DGRWRK' AND CODE = M_CODE) M_CODE_NM
+        FROM SHC_REC_PRE
+        WHERE L_CODE = 'P0050'
+          AND USE_YN ='Y'
+        ORDER BY ORD_SEQ
+    </select>
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        SELECT COUNT(*)AS CNT FROM (SELECT REC_NO AS CNT
+                                    FROM SHC_REC_PRE_DEGREE
+                                    WHERE 1=1
+                                      AND CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+                                    GROUP by REC_NO) CNT
+    </select>
+
+
+    <select id="selectInfo" parameterType="map" resultType="camelMap">
+        SELECT
+            A.REC_NO
+             , A.SEQ
+             , A.ORD_SEQ
+             , A.M_CODE
+             ,(SELECT C.CODE_NM FROM SHC_COMM_CODE C WHERE C.CODE_KIND='DGRWRK' AND C.CODE = A.M_CODE) M_CODE_NM
+             , A.STD_VAL
+             , A.STD_VAL1
+             , A.MEAS_VAL
+             , A.MEAS_VAL1
+             , A.RMK
+             , DATE_FORMAT(A.CREATE_DT, '%Y-%m-%d') AS CREATE_DATE
+             , B.IMPRV_COMM AS IMPRV
+        FROM SHC_REC_PRE_DEGREE A
+                 LEFT JOIN  SHC_REC_PRE_IMPRV B
+                            ON (B.REC_NO = A.REC_NO AND B.SEQ = A.SEQ)
+        WHERE A.REC_NO = #{recNo}
+    </select>
+
+    <select id="selectPlaceList" parameterType="map" resultType="camelMap">
+        SELECT A.L_CODE, A.SEQ, A.ORD_SEQ, A.M_CODE_KIND, A.M_CODE,
+               (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS M_CODE_NM,
+               (SELECT B.CODE_DESC FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.M_CODE_KIND AND B.CODE = A.M_CODE) AS M_CODE_DESC,
+               STD_VAL,
+               STD_VAL1
+        FROM SHC_REC_PRE A
+        WHERE 1=1
+          AND L_CODE = #{recLargeCode}
+          AND USE_YN = 'Y'
+        ORDER BY ORD_SEQ ASC
+    </select>
+
+    <insert id="insertPreDegree" parameterType="map">
+        INSERT INTO SHC_REC_PRE_DEGREE
+        (
+        REC_NO
+        , SEQ
+        , ORD_SEQ
+        , M_CODE_KIND
+        , M_CODE
+        , STD_VAL
+        , STD_VAL1
+        , MEAS_VAL
+        , MEAS_VAL1
+        , RMK
+        , CREATE_ID
+        , CREATE_DT
+        )VALUES(
+        #{newRecNo},
+        ( SELECT COALESCE (MAX(A.SEQ),0)+1 FROM SHC_REC_PRE_DEGREE A WHERE A.REC_NO =#{newRecNo} ),
+        ( SELECT IFNUCOALESCE LL(MAX(B.ORD_SEQ),0)+1 FROM SHC_REC_PRE_DEGREE B WHERE B.REC_NO =#{newRecNo} ),
+        #{mCodeKind},
+        #{mCode},
+        (SELECT C.STD_VAL FROM SHC_REC_PRE C WHERE C.L_CODE = 'P0050' and C.M_CODE = #{mCode}),
+        (SELECT C.STD_VAL1 FROM SHC_REC_PRE C WHERE C.L_CODE = 'P0050' and C.M_CODE = #{mCode}),
+        <choose>
+            <when test="measVal != null and measVal != ''">
+                #{measVal},
+            </when>
+            <otherwise>
+                null,
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="measVal1 != null and measVal1 != ''">
+                #{measVal1},
+            </when>
+            <otherwise>
+                null,
+            </otherwise>
+        </choose>
+        #{rmk},
+        #{userId},
+        STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        )
+    </insert>
+
+    <insert id="insertPreImprv" parameterType="map" >
+        INSERT INTO SHC_REC_PRE_IMPRV
+        (	REC_NO,
+             SEQ,
+             BREAK_YN,
+             IMPRV_YN,
+             IMPRV_COMM,
+             CREATE_ID,
+             CREATE_DT)
+        VALUES
+            (#{newRecNo},
+             ( SELECT COALESCE (MAX(SEQ),0) FROM SHC_REC_PRE_DEGREE where REC_NO =#{newRecNo} ),
+             'Y',
+             'Y',
+             #{imprv},
+             #{userId},
+             STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+    </insert>
+
+    <insert id="insertPreImprv2" parameterType="map" >
+        INSERT INTO SHC_REC_PRE_IMPRV
+        (	REC_NO,
+             SEQ,
+             BREAK_YN,
+             IMPRV_YN,
+             IMPRV_COMM,
+             CREATE_ID,
+             CREATE_DT)
+        VALUES
+            (#{recNo},
+             #{seq},
+             'Y',
+             'Y',
+             #{imprv},
+             #{userId},
+             STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+            )
+    </insert>
+
+
+    <update id="updatePreImprv" parameterType="map">
+        UPDATE SHC_REC_PRE_IMPRV SET
+                                     IMPRV_COMM = #{imprv},
+                                     MODIFY_ID = #{userId},
+                                     MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE REC_NO = #{recNo}
+          AND SEQ = #{seq}
+    </update>
+
+    <update id="updatePreDegree" parameterType="map">
+        UPDATE SHC_REC_PRE_DEGREE SET
+        MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        <choose>
+            <when test="measVal != null and measVal != ''">
+                ,MEAS_VAL = #{measVal}
+            </when>
+            <otherwise>
+                ,MEAS_VAL = null
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="measVal1 != null and measVal1 != ''">
+                ,MEAS_VAL1 = #{measVal1}
+            </when>
+            <otherwise>
+                ,MEAS_VAL1 = null
+            </otherwise>
+        </choose>
+
+        WHERE REC_NO = #{recNo}
+        AND SEQ = #{seq}
+        <!--     	AND ORD_SEQ = #{ordSeq} -->
+    </update>
+
+    <select id="selectPreImprv" parameterType="map" resultType="camelMap">
+        SELECT REC_NO, SEQ, BREAK_YN, BREAK_REASON, IMPRV_YN, IMPRV_COMM, RMK
+        FROM SHC_REC_PRE_IMPRV
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+          AND SEQ = #{seq}
+    </select>
+
+    <delete id="deletePreDegree" parameterType="map">
+        DELETE FROM SHC_REC_PRE_DEGREE WHERE REC_NO = #{recNo}
+    </delete>
+
+    <delete id="deletePreImprv" parameterType="map">
+        DELETE FROM SHC_REC_PRE_IMPRV WHERE REC_NO = #{recNo}
+    </delete>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [온습도관리 - 인증원으로 보낼 체크 리스트 가져오기] pre_rec_mgmt.p0050.selectFinalCheckList */
+        SELECT A.LCNS_NO, A.COMPANY_NM, A.CREATE_DATE, A.CREATE_TIME, A.APPR_YN, A.REC_CODE, A.REC_NM, A.SEQ, A.WP_NM, A.TMPR_VAL, A.HMDT_YN, A.IMPRV_COMM, A.BREAK_YN
+        FROM (
+                 SELECT  #{lcnsNo} AS LCNS_NO,
+                         #{companyNm} AS COMPANY_NM,
+                         DATE_FORMAT(A.CREATE_DT, '%Y-%m-%d') AS CREATE_DATE,
+                         DATE_FORMAT(A.CREATE_DT, '%H:%i:%s') AS CREATE_TIME,
+                         'Y' AS APPR_YN,
+                         #{lCode} AS REC_CODE,
+                         #{lCodeNm} AS REC_NM,
+                         A.ORD_SEQ AS SEQ,
+                         (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND='DGRWRK' AND B.CODE = A.M_CODE) AS WP_NM,
+                         A.MEAS_VAL as TMPR_VAL,
+                         A.MEAS_VAL1 as HMDT_YN,
+                         B.BREAK_YN,
+                         B.IMPRV_COMM,
+                         A.REC_NO
+                 FROM SHC_REC_PRE_DEGREE A
+                          LEFT JOIN  SHC_REC_PRE_IMPRV B
+                                     ON (B.REC_NO = A.REC_NO AND B.SEQ = A.SEQ)
+                 WHERE 1=1
+                   AND A.REC_NO = #{recNo}
+             ) A
+        ORDER BY A.REC_NO, SEQ ASC
+    </select>
+
+    <select id="selectFinalImprv" parameterType="map" resultType="camelMap">
+        /* [온습도관리 - 인증원으로 보낼 개선 조치 가져오기] pre_rec_mgmt.p0050.selectFinalImprv */
+        SELECT #{lcnsNo} AS LCNS_NO,
+               #{companyNm} AS COMPANY_NM,
+               STR_TO_DATE(CREATE_DT, '%Y-%m-%d') AS CREATE_DATE,
+               STR_TO_DATE(CREATE_DT, '%H:%i:%s') AS CREATE_TIME,
+               'Y' AS APPR_YN,
+               #{lCode} AS CODE,
+               #{lCodeNm} AS REC_NM,
+               SEQ AS SEQ,
+               IMPRV_COMM,
+               STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s') AS TRNS_DT
+        FROM SHC_REC_PRE_IMPRV
+        WHERE 1=1
+          AND REC_NO = #{recNo}
+
+    </select>
+</mapper>

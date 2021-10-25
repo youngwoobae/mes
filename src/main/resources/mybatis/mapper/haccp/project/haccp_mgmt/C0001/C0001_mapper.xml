@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.haccp_mgmt.C0001">
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [위해요소분석의근거자료 - 인증원으로 보낼 체크 리스트 가져오기] haccp_mgmt.C0001.selectFinalCheckList */
+        SELECT
+            #{lcnsNo} AS LCNS_NO
+             ,#{companyNm} AS COMPANY_NM
+             ,DATE_FORMAT(CREATE_DT, '%Y-%m-%d') AS CREATE_DATE
+             ,DATE_FORMAT(CREATE_DT, '%Y%m%d') AS CREATE_DATE_FOR_FILE
+             ,DATE_FORMAT(CREATE_DT, '%H:%i:%s') AS CREATE_TIME
+             ,L_CODE AS REC_CODE
+             ,(SELECT L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS REC_NM
+             , 1 AS SEQ
+             ,(select ORG_FILE_NM from SHC_COMM_FILES where FILE_KEY = A.FILE_KEY) AS FILE_NM
+             ,A.RMK
+        FROM SHC_REC_CCP_LIST A
+        WHERE REC_NO = #{recNo}
+    </select>
+</mapper>

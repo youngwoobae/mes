@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.bord.mapper.BordMapper">
+    <select id="getFindBoardTerm" parameterType="map"  resultType="camelMap">
+        select TO_CHAR(NOW(),'YYYY-MM-DD') AS find_date_fr , TO_CHAR(now() + #{term} ::interval ,'YYYY-MM-DD') AS find_date_to
+    </select>
+
+    <select id="getBordList" parameterType="map"  resultType="camelMap">
+    /*게시관리 > 게시목록 (boardMapper.getBoardList) */
+        select  a.bord_no
+              , a.file_no
+              , a.bord_subj
+              , c.read_cnt
+              , b.user_nm
+              , d.org_file_nm
+              , to_char(a.reg_dt, 'yyyy-mm-dd hh24:mi') as reg_dt
+        from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id
+                    left join file_info d on a.file_no = d.file_no
+                    left join ( select bord_no, count(a.user_id) as read_cnt from bord_read a group by bord_no )  c on a.bord_no = c.bord_no
+        where a.used_yn = 'Y'
+        and a.bord_tp = #{bordTp}
+        <if test="dateFr != null and dateFr != ''">
+            and TO_CHAR(NOW(),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'bordNm'">
+                and upper(replace(a.bord_subj,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by reg_dt	desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getBordListCount" parameterType="map"  resultType="int">
+        select count(a.bord_no)
+        from
+        ( select a.bord_no
+          from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id
+                      left join ( select bord_no, count(a.user_id) as read_cnt from bord_read a group by bord_no )  c on a.bord_no = c.bord_no
+          where a.used_yn = 'Y'
+          and a.bord_tp = #{bordTp}
+        <if test="dateFr != null and dateFr != ''">
+            and TO_CHAR(NOW(),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+        </if>
+
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'bordNm'">and upper(replace(a.bord_subj,' ','')) like '%' ||
+                upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+    <select id="regDate" parameterType="map">
+        select * from bord_info where reg_dt between fr_dt and to_dt
+    </select>
+
+</mapper>

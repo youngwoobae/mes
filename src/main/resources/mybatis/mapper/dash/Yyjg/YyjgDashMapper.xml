@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.dash.mapper.yyjg.YyjgDashMapper">
+	<select id="getYyjgProdIoList" parameterType="map"  resultType="camelMap">
+		select g.prod_stk_clos_no --마감번호
+			 , to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일자
+			 , coalesce(a.wh_no,0) as wh_no --창고번
+			 , coalesce(f.wh_nm,'창고미지정') as wh_nm --창고명
+			 , c.prod_no   --품번
+			 , c.prod_nm   --품목제조보고 품명
+			 , c.erp_prod_nm  --ERP 품명
+			 , coalesce (g.iwh_qty,0) as iwh_qty --재품입고
+			 , coalesce (g.owh_qty,0) as owh_qty --재품출고
+			 , coalesce (a.stk_qty,0) as stk_qty --재품최종재고
+			 , coalesce (d.stk_qty,0) as jb_qty --전일재고
+			 , case when coalesce(d.stk_qty ,0) + coalesce(g.iwh_qty ,0) - coalesce(g.owh_qty ,0) <![CDATA[ != ]]> coalesce(a.stk_qty ,0)
+					then 'Y'
+					else 'N' end as stk_chk --재고 체크
+		from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
+						 left join wh_info f on a.wh_no = f.wh_no and f.used_yn   = 'Y'
+						 left join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
+			and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+						 left join ( select a.wh_no
+										  , a.prod_no
+										  , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+										  , coalesce (sum(stk_qty),0) as  stk_qty
+									 from prod_stk_clos a
+									 where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+									 group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
+		) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+		where  1 = 1
+		  and c.used_yn = 'Y'
+		order by prod_nm
+	</select>
+
+	<select id="getYyjgProdIoListCount" parameterType="map"  resultType="int">
+		select count(a.prod_no)
+		from (
+				 select a.prod_no --품번
+				 from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
+								  left join wh_info f on a.wh_no = f.wh_no and f.used_yn   = 'Y'
+								  left join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
+					 and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+								  left join ( select a.wh_no
+												   , a.prod_no
+												   , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+												   , coalesce (sum(stk_qty),0) as  stk_qty
+											  from prod_stk_clos a
+											  where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+											  group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
+				 ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+				 where  1 = 1
+			   and c.used_yn = 'Y'
+			 ) a
+	</select>
+
+	<select id="getYyjgMatrIoList" parameterType="map"  resultType="camelMap">
+		select   distinct a.wh_no
+						, coalesce(e.wh_nm,'창고미지정') as wh_nm
+						, b.matr_no
+						, b.matr_nm
+						, g.matr_stk_clos_no
+						, to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일
+						, floor (coalesce (d.stk_qty,0)) as jb_qty --전일재고
+						, floor (coalesce (g.iwh_qty,0)) as iwh_qty --자재입고
+						, floor (coalesce (g.owh_qty,0)) as owh_qty --자재출고
+						, floor (coalesce (a.stk_qty,0)) as stk_qty --자재재고
+						, case when coalesce(d.stk_qty ,0) + coalesce(g.iwh_qty ,0) - coalesce(g.owh_qty ,0) <![CDATA[ != ]]> coalesce(a.stk_qty ,0)
+							   then 'Y'
+							   else 'N' end as stk_chk --재고 체크
+		from matr_info b left join matr_stk a on b.matr_no= a.matr_no and a.used_yn  = 'Y'
+						 left join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y'
+	                                                            		and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+						 left join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
+						 left join ( select a.wh_no
+										  , a.matr_no
+										  , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+										  , coalesce (sum(stk_qty),0) as  stk_qty
+									 from matr_stk_clos a
+									 where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+									 group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
+		) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
+		where  b.used_yn = 'Y'
+		  and b.matr_tp = #{matrTp}
+		order by floor (coalesce (d.stk_qty,0))
+	</select>
+
+	<select id="getYyjgMatrIoListCount" parameterType="map"  resultType="int">
+		select count(a.matr_no)
+		from (
+				 select  distinct a.matr_no
+				 from matr_info b left join matr_stk a on b.matr_no= a.matr_no and a.used_yn  = 'Y'
+								  left join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y'
+					 								                         	and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+								  left join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
+								  left join ( select a.wh_no
+												   , a.matr_no
+												   , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+												   , coalesce (sum(stk_qty),0) as  stk_qty
+											  from matr_stk_clos a
+											  where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+											  group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
+				 ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
+				 where  b.used_yn = 'Y'
+				   and b.matr_tp = #{matrTp}
+			 ) a
+	</select>
+
+	<select id="getYyjgPhothCounter" parameterType="map"  resultType="camelMap">
+		select to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as chk_dt
+			 , a.meas_val1 - b.pass_qty1 as meas_val1
+			 , a.meas_val2 - b.pass_qty2 as meas_val2
+    	from equip_mngr_hstr a join init_counter b on to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(b.proc_dt,'YYYY-MM-DD')
+    	    join (select max(unix_hms) as unix_hms from equip_mngr_hstr ) c on a.unix_hms = c.unix_hms
+	</select>
+
+	<select id="getYyjgSpotList" parameterType="map"  resultType="camelMap">
+		SELECT a.spot_no ,--센서번호
+			   a.spot_nm
+        FROM spot_info a
+        where a.used_yn  = 'Y'
+	</select>
+
+
+</mapper>

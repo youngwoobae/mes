@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.haccp_mgmt.C0010">
+
+    <select id="getCcpHteRead" parameterType="map" resultType="camelMap">
+        /* [CCP 가열 - 수집 상세 데이터 조회 ] c0010.getCcpHteRead */
+        SELECT A.REC_NO, A.M_CODE, A.SEQ
+        , MAX(A.REG_DATE) 'REG_DATE'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='01' THEN B.MEAS_TIME END) 'RCV_TIME'
+        , ROUND(MAX(CASE WHEN B.LMT_ITEM_CODE='01' THEN B.MEAS_VAL END),2) 'TEMP'
+        , ROUND(MAX(CASE WHEN B.LMT_ITEM_CODE='02' THEN B.MEAS_VAL END),2) 'SPEED'
+        , ROUND(MAX(CASE WHEN B.LMT_ITEM_CODE='03' THEN B.MEAS_VAL END),2) 'PRESSURE'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='04' THEN B.MEAS_VAL END) 'METAL'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='01' THEN B.BREAK_TYPE_CODE END) 'TEMP_BREAK_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='02' THEN B.BREAK_TYPE_CODE END) 'SPEED_BREAK_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='03' THEN B.BREAK_TYPE_CODE END) 'PRESSURE_BREAK_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='04' THEN B.BREAK_TYPE_CODE END) 'METAL_BREAK_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='01' THEN B.IMPRV_YN END) 'TEMP_IMPRV_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='02' THEN B.IMPRV_YN END) 'SPEED_IMPRV_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='03' THEN B.IMPRV_YN END) 'PRESSURE_IMPRV_YN'
+        , MAX(CASE WHEN B.LMT_ITEM_CODE='04' THEN B.IMPRV_YN END) 'METAL_IMPRV_YN'
+        FROM SHC_REC_CCP_DESC A
+        INNER JOIN (
+        SELECT TA.*, TC.BREAK_TYPE_CODE , TC.IMPRV_YN
+        FROM SHC_REC_CCP_DATA TA
+        <choose>
+            <when test="recNo != ''">
+                LEFT OUTER JOIN SHC_REC_CCP_IMPRV TC
+                ON TA.REC_NO=TC.REC_NO
+                AND TA.M_CODE=TC.M_CODE
+                AND TA.SEQ=TC.seq
+                AND TA.LMT_ITEM_CODE=TC.LMT_ITEM_CODE
+                ) B ON A.REC_NO=B.REC_NO
+                AND A.REC_NO=B.REC_NO
+                AND A.M_CODE=B.M_CODE
+            </when>
+            <otherwise>
+                LEFT OUTER JOIN SHC_REC_CCP_IMPRV TC
+                ON TA.M_CODE=TC.M_CODE
+                AND TA.REG_DATE=TC.REG_DATE
+                AND TA.L_CODE=TC.L_CODE
+                AND TA.SEQ=TC.SEQ
+                AND TA.LMT_ITEM_CODE=TC.LMT_ITEM_CODE
+                ) B ON A.M_CODE=B.M_CODE
+            </otherwise>
+        </choose>
+        AND A.REG_DATE=B.REG_DATE
+        AND A.L_CODE=B.L_CODE
+        AND A.SEQ=B.SEQ
+        WHERE
+        <choose>
+            <when test="recNo != ''">
+                A.REC_NO = #{recNo}
+                AND A.M_CODE = #{mCode}
+                GROUP BY A.REC_NO, A.M_CODE, A.REG_DATE, A.SEQ
+            </when>
+            <otherwise>
+                A.REC_NO IS NULL
+                AND A.M_CODE = #{mCode}
+                <![CDATA[
+		   		AND DATE_FORMAT(A.CREATE_DT,'%Y%m%d%H%i%s') <= #{currentTime}
+		   		]]>
+                GROUP BY A.REC_NO, A.M_CODE, A.REG_DATE, A.SEQ
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getCcpHteList" parameterType="map" resultType="camelMap">
+        /* [CCP 가열 - 가열기 리스트 조회 ] c0010.getCcpHteList */
+        SELECT EQUIP.M_CODE
+             , EQUIP.M_CODE_NM
+             , STD.VERF_TYPE_CODE
+        FROM SHC_CCP_EQUIP EQUIP
+           , SHC_REC_CCP CCP
+           , SHC_CCP_LMT_STD STD
+        WHERE EQUIP.M_CODE = CCP.M_CODE
+          AND CCP.LMT_STD_CODE = STD.LMT_STD_CODE
+          AND EQUIP.L_CODE = #{recLargeCode}
+    </select>
+
+    <select id="recImprvChk" parameterType="map" resultType="camelMap">
+        /* [CCP 가열 - 모든 가열기의 개선조치가 완료 되었는지 조회 ] c0010.recImprvChk */
+        SELECT CASE WHEN A.IMPRV_N_CNT > 0 THEN 'N' ELSE 'Y' END IMPRV_YN
+        FROM (
+        SELECT COUNT(*) IMPRV_N_CNT
+        FROM SHC_REC_CCP_DESC A
+        ,SHC_REC_CCP_IMPRV B
+        WHERE 1=1
+        AND A.REG_DATE = B.REG_DATE
+        AND A.M_CODE = B.M_CODE
+        AND A.SEQ = B.SEQ
+        <choose>
+            <when test="recNo != ''">
+                AND B.REC_NO = #{recNo}
+            </when>
+            <otherwise>
+                <![CDATA[
+			   		    AND B.REC_NO IS NULL
+			   			AND DATE_FORMAT(A.CREATE_DT, '%Y%m%d%H%i%s') <= #{currentTime}
+			   		]]>
+            </otherwise>
+        </choose>
+        AND B.IMPRV_YN = 'N'
+        AND B.BREAK_TYPE_CODE = '01'
+        AND B.L_CODE = #{recLargeCode}
+        ) A
+    </select>
+
+    <select id="equipImprvMessage" parameterType="map" resultType="camelMap">
+        /* [CCP 가열 - 이탈 데이터 중 개선조치 되지않은 건수 조회 ] c0010.equipImprvMessage */
+        SELECT (SELECT M_CODE_NM FROM SHC_CCP_EQUIP EQUIP WHERE EQUIP.M_CODE = A.M_CODE) M_CODE_NM
+        ,IMPRV_N_CNT
+        FROM (
+        SELECT B.M_CODE
+        ,COUNT(*) IMPRV_N_CNT
+        FROM SHC_REC_CCP_DESC A
+        ,SHC_REC_CCP_IMPRV B
+        WHERE 1=1
+        AND A.REG_DATE = B.REG_DATE
+        AND A.M_CODE = B.M_CODE
+        AND A.SEQ = B.SEQ
+        <choose>
+            <when test="recNo != ''">
+                AND B.REC_NO = #{recNo}
+            </when>
+            <otherwise>
+                <![CDATA[
+			   		    AND B.REC_NO IS NULL
+			   			AND DATE_FORMAT(A.CREATE_DT, '%Y%m%d%H%i%s') <= #{currentTime}
+			   			AND B.L_CODE = #{recLargeCode}
+			   		]]>
+            </otherwise>
+        </choose>
+        AND B.IMPRV_YN = 'N'
+        AND B.BREAK_TYPE_CODE = '01'
+        GROUP BY B.M_CODE
+        ) A
+    </select>
+
+    <select id="selectFinalCheckList" parameterType="map" resultType="camelMap">
+        /* [CCP 가열 - 인증원으로 보낼 체크 리스트 가져오기] c0010.selectFinalCheckList */
+        SELECT #{lcnsNo} AS LCNS_NO
+             , #{companyNm} AS COMPANY_NM
+             , DATE_FORMAT(DT.CREATE_DT, '%Y-%m-%d') AS CREATE_DATE -- 생성일자
+             , DATE_FORMAT(DT.CREATE_DT, '%H:%i:%s') AS CREATE_TIME -- 생성시각
+             , DT.L_CODE AS REC_CODE -- 문서코드
+             , (SELECT L_CODE_NM FROM SHC_REC_MAIN MI WHERE MI.L_CODE = DT.L_CODE) AS REC_NM -- CCP 종류명 * 확인 필요
+             , ROW_NUMBER() OVER(PARTITION BY DT.REC_NO ORDER BY DT.CREATE_DT) AS SEQ -- 일지별 순번
+		     , DT.M_CODE AS EQUIP_CODE -- 설비코드
+             , VERF.M_CODE_NM AS EQUIP_NM -- 설비명
+             , CONCAT('VF',VERF.CODE) AS VERF_TYPE_CODE -- 검증유형코드
+             , VERF.CODE_DESC AS VERF_TYPE_NM -- 검증유형명
+             , CONCAT('LM',DT.LMT_ITEM_CODE) AS LMT_ITEM_CODE -- 한계항목코드
+             , (SELECT CD.CODE_DESC FROM SHC_COMM_CODE CD WHERE CD.CODE_KIND = 'LMTITM' AND CD.CODE = DT.LMT_ITEM_CODE) AS LMT_ITEM_NM
+             , DT.MEAS_TIME AS MEAS_TIME -- 측정시각
+             , DT.MEAS_VAL AS MEAS_VAL -- 측정값
+             , DT.BREAK_YN AS BREAK_YN
+             , IM.IMPRV AS IMPRV_COMM
+             , (SELECT date_format(CL.CREATE_DT, '%Y%m%d%H%i%s') FROM SHC_REC_CCP_LIST CL WHERE CL.REC_NO = DT.REC_NO) AS REC_CREATE_DT
+        FROM SHC_REC_CCP_DATA DT
+                 LEFT JOIN SHC_REC_CCP_IMPRV IM ON DT.REC_NO = IM.REC_NO
+            AND DT.REG_DATE = IM.REG_DATE
+            AND DT.M_CODE = IM.M_CODE
+            AND DT.SEQ = IM.SEQ
+            AND DT.LMT_ITEM_CODE = IM.LMT_ITEM_CODE
+                 LEFT JOIN (
+            SELECT EQUIP.M_CODE, EQUIP.M_CODE_NM, CD.CODE, CD.CODE_DESC
+            FROM SHC_CCP_EQUIP EQUIP
+                     INNER JOIN SHC_REC_CCP CCP ON EQUIP.M_CODE = CCP.M_CODE
+                     INNER JOIN SHC_CCP_LMT_STD STD ON CCP.LMT_STD_CODE = STD.LMT_STD_CODE
+                     INNER JOIN SHC_COMM_CODE CD ON STD.VERF_TYPE_CODE = CD.CODE
+            WHERE CD.CODE_KIND = 'VERFCD'
+        ) VERF ON DT.M_CODE = VERF.M_CODE
+        WHERE DT.REC_NO = #{recNo}
+    </select>
+</mapper>

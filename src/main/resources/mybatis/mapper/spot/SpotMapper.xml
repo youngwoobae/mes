@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.spot.mapper.SpotMapper">
+   <select id="getSpots" parameterType="map" resultType="camelMap">
+       select a.spot_no
+            , a.spot_nm  -- 작업장명
+            , a.spot_rmk --작업장비고
+            , a.svc_tp   --설비연동서비스타입
+            , a.scada_api --scada api
+       from spot_info a
+       where a.used_yn = 'Y'
+       <if test="spotNo != null and  spotNo != ''">
+           AND a.spot_no = #{spotNo}
+       </if>
+       <if test="findSz != null and findSz != ''">
+           <if test="findTp != null and findTp == 'spotNm'">
+               AND upper(replace(a.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+           </if>
+       </if>
+       order by svc_tp,spot_nm
+   </select>
+
+    <select id="getSpotList" parameterType="map" resultType="camelMap">
+        select a.spot_no
+              ,a.spot_nm  -- 작업장명
+              ,a.spot_rmk --작업장비고
+              ,a.svc_tp   --설비연동서비스타입
+              ,a.scada_api --scada api
+              ,a.scada_api --scada_api
+        FROM spot_info a
+        WHERE a.used_yn  = 'Y'
+        <if test="spotNo != null and  spotNo != ''">
+            AND a.spot_no = #{spotNo}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'spotNm'">
+                AND upper(replace(a.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by svc_tp,spot_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getSpotListCount" parameterType="map"  resultType="int">
+        SELECT COUNT(spot_no)
+        FROM ( SELECT a.spot_no --센서번호
+                FROM spot_info a
+                where a.used_yn  = 'Y'
+                <if test="spotNo != null and  spotNo != ''">
+                    AND a.spot_no = #{spotNo}
+                </if>
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'spotNm'">
+                        AND upper(replace(a.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+        ) a
+    </select>
+    <select id="getSpotEquipList" parameterType="map"  resultType="camelMap">
+        select a.spot_nm --작업장명
+             , a.spot_tmpr --작업장온도코드
+        from spot_info a join spot_equip b on a.spot_no = b.spot_no and b.equip_no = #{equipNo}
+    </select>
+
+    <select id="getSpotInfo" parameterType="map" resultType="camelMap">
+        SELECT   a.spot_no
+               , a.spot_nm
+               , a.svc_tp
+               , a.spot_rmk
+               , a.file_no
+               , a.scada_api
+               , b.acc_url
+               , b.org_file_nm
+               , case when (select count(mngr_hstr_no)
+                            from equip_mngr_hstr
+                            where to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24MI') = to_char(now(),'YYYY-MM-DD HH24MI') and spot_equip_no = #{spotEquipNo}) = 0 then 'N' else 'Y' end as oper_yn
+        FROM spot_info a left join file_info b on a.file_no = b.file_no
+        WHERE a.spot_no = #{spotNo}
+        and a.used_yn  = 'Y'
+    </select>
+
+
+
+    <select id="getComboSpotEquip" parameterType="map" resultType="camelMap">
+        select 0 as value
+             , '연동장치선택'      as text
+        union
+        select a.spot_equip_no as value
+             , b.equip_nm      as text
+        from spot_equip a join equip_info b on a.equip_no  = b.equip_no
+        where spot_no = #{spotNo}
+        order by value
+    </select>
+
+</mapper>

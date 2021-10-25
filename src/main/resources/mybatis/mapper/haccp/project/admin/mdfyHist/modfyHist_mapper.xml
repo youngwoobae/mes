@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.admin.modfyHist">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+
+        SELECT COUNT(*) AS CNT
+        FROM SHC_REC_MDFY_HIST
+        WHERE 1=1
+        AND CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+		SELECT  B.REC_NO
+				, B.SEQ_NO
+				, B.REG_DATE
+				, B.L_CODE
+				,(SELECT A.L_CODE_NM FROM SHC_REC_MAIN A WHERE A.L_CODE = B.L_CODE)AS L_CODE_NM
+				, B.M_CODE
+				, B.SEQ
+				, B.LMT_ITEM_CODE
+				, B.MEAS_TIME
+				, B.ORG_VAL
+				, B.CHG_VAL
+				, B.CHG_REASON
+				, B.RMK
+				, B.CREATE_ID
+				, STR_TO_DATE(B.CREATE_DT, '%Y-%m-%d') as CREATE_DT
+			 FROM SHC_REC_MDFY_HIST B
+			 WHERE 1=1
+			 AND B.CREATE_DT BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+		LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectInfo" parameterType="map" resultType="camelMap">
+	    	SELECT  B.REC_NO
+				, B.SEQ_NO
+				, B.REG_DATE
+				, B.L_CODE
+				,(SELECT A.L_CODE_NM FROM SHC_REC_MAIN A WHERE A.L_CODE = B.L_CODE)AS L_CODE_NM
+				, B.M_CODE
+				, B.SEQ
+				, B.LMT_ITEM_CODE
+				,(SELECT C.CODE_NM FROM SHC_COMM_CODE C WHERE C.CODE_KIND = 'LMTITM' AND C.CODE = B.LMT_ITEM_CODE) AS LMT_ITEM_CODE_NM
+				, B.MEAS_TIME
+				, B.ORG_VAL
+				, B.CHG_VAL
+				, B.CHG_REASON
+				, B.RMK
+				, B.CREATE_ID
+				, B.CREATE_DT
+			 FROM SHC_REC_MDFY_HIST B
+			 WHERE B.SEQ_NO = #{seqNo}
+    </select>
+
+</mapper>

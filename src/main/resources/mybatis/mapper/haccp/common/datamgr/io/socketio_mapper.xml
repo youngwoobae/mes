@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.common.datamgr.io.SocketIoMapper">
+    <select id="selectEquipInfo" parameterType="str" resultType="camelMap">
+        /* [CCP 소켓 데이터 수신  - 데이터 수신 후 축적 처리 시 설비에 설정된 정보 조회 ] rawdata.ccpcleBreakYn */
+        SELECT EQUIP.L_CODE
+             , EQUIP.M_CODE
+             , EQUIP.M_CODE_NM
+             , CCP.EVENT_YN
+             , STD.LMT_STD_CODE
+             , STD.LMT_STD_NM
+             , STD.VERF_TYPE_CODE
+             , STD.CYCLE
+             , STD.BREAK_RCV_TIME
+             , STD.PRC_TIME
+             , ITEM.LMT_ITEM_CODE_KIND
+             , ITEM.LMT_ITEM_CODE
+             , ITEM.LMT_MIN_VAL
+             , ITEM.LMT_MAX_VAL
+        FROM SHC_CCP_EQUIP EQUIP JOIN SHC_REC_CCP CCP ON EQUIP.M_CODE = CCP.M_CODE
+                                 JOIN SHC_CCP_LMT_STD STD ON CCP.LMT_STD_CODE = STD.LMT_STD_CODE
+                            LEFT JOIN SHC_CCP_LMT_ITEM ITEM ON STD.LMT_STD_CODE = ITEM.LMT_STD_CODE
+        WHERE EQUIP.M_CODE = #{mCode}
+          AND EQUIP.USE_YN = 'Y'
+    </select>
+
+    <select id="selectVerfInfo" parameterType="str" resultType="camelMap">
+        /* [CCP 소켓 데이터 수신  - 수신된 패킷 정보와 한계기준 설정 정보가 맞는지 확인 ] rawdata.ccpcleBreakYn */
+        SELECT CASE WHEN A.STD_CNT > 0 THEN 'Y' ELSE 'N' END AS STD_YN
+        FROM (
+        SELECT COUNT(*) AS STD_CNT
+        FROM SHC_CCP_EQUIP EQUIP
+        INNER JOIN SHC_REC_CCP CCP ON EQUIP.M_CODE = CCP.M_CODE
+        INNER JOIN SHC_CCP_LMT_STD STD ON CCP.LMT_STD_CODE = STD.LMT_STD_CODE
+        WHERE EQUIP.M_CODE = #{mCode}
+        <choose>
+            <when test="functionCode == '01'">
+                AND STD.VERF_TYPE_CODE IN ('H02','H03','C01')
+            </when>
+            <when test="functionCode == '02'">
+                AND STD.VERF_TYPE_CODE = 'H04'
+            </when>
+            <when test="functionCode == '03'">
+                AND STD.VERF_TYPE_CODE = 'H01'
+            </when>
+            <when test="functionCode == '04'">
+                AND STD.VERF_TYPE_CODE = 'D01'
+            </when>
+        </choose>
+        ) A
+    </select>
+</mapper>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.common.datamgr.mondata.MonDataMapper">
+
+    <select id="selectStdCycle" resultType="camelMap" parameterType="str">
+        /* [CCP 데이터 수집 - 설비별 수집 주기 및 검증 코드 조회 ] mondata.selectStdCycle */
+        SELECT STD.CYCLE
+             , VERF_TYPE_CODE
+        FROM SHC_CCP_EQUIP EQUIP
+           ,SHC_REC_CCP CCP
+           ,SHC_CCP_LMT_STD STD
+        WHERE EQUIP.M_CODE = CCP.M_CODE
+          AND CCP.LMT_STD_CODE = STD.LMT_STD_CODE
+          AND EQUIP.M_CODE = #{mCode}
+          AND EQUIP.USE_YN = 'Y'
+          AND CCP.USE_YN = 'Y'
+          AND STD.USE_YN = 'Y'
+          AND (STD.CYCLE IS NOT NULL AND STD.CYCLE != '')
+            LIMIT 1
+    </select>
+
+    <select id="selectMondataEquipList" parameterType="map" resultType="camelMap">
+        /* [CCP 데이터 수집 - 품온, 금속검출을 제외하고 사용 가능한 설비 코드 조회 ] mondata.selectMondataEquipList */
+        SELECT EQUIP.M_CODE
+        FROM SHC_CCP_EQUIP EQUIP
+           ,SHC_REC_CCP CCP
+           ,SHC_CCP_LMT_STD STD
+        WHERE EQUIP.M_CODE = CCP.M_CODE
+          AND CCP.LMT_STD_CODE = STD.LMT_STD_CODE
+          AND VERF_TYPE_CODE NOT IN ('H03','D01')
+          AND EQUIP.USE_YN = 'Y'
+          AND CCP.USE_YN = 'Y'
+          AND STD.USE_YN = 'Y'
+          AND (STD.CYCLE IS NOT NULL AND STD.CYCLE != '')
+    </select>
+
+    <select id="selectLastMonData" parameterType="map" resultType="camelMap">
+        /* [CCP 데이터 수집 - 조회할 설비의 마지막 seq 데이터를 조회 ] mondata.selectLastMonData */
+        SELECT DA.REG_DATE, DA.L_CODE, DA.M_CODE, DA.SEQ, DA.LMT_ITEM_CODE, DA.MEAS_TIME, DA.MEAS_VAL, DA.GATHER_YN, DA.SEQ
+             , (SELECT CCP.LMT_STD_CODE FROM SHC_REC_CCP CCP WHERE CCP.M_CODE = #{mCode}) LMT_STD_CODE, DA.EVENT_YN
+        FROM SHC_CCP_RAW_DATA DA
+           ,(SELECT SEQ
+             FROM SHC_CCP_RAW_DATA
+             WHERE M_CODE = #{mCode}
+               AND REG_DATE = CURDATE()
+             ORDER BY MEAS_TIME DESC
+                 LIMIT 1
+        ) DAT
+        WHERE DA.SEQ = DAT.SEQ
+          AND M_CODE = #{mCode}
+          AND REG_DATE = CURDATE()
+          AND GATHER_YN = 'N'
+    </select>
+
+    <select id="selectLastCCbreakYn" parameterType="map" resultType="camelMap">
+        /* [CCP 데이터 수집 - 설비가 냉장, 냉동인 경우 마지막 수집 데이터의 이탈 여부를 조회] mondata.selectLastCCbreakYn */
+        SELECT CASE WHEN BREAK_YN = 'Y' THEN '이탈' ELSE '정상' END BREAK_YN
+        FROM SHC_REC_CCP_DATA
+        WHERE 1=1
+          AND M_CODE = #{mCode}
+        ORDER BY MEAS_TIME DESC
+            LIMIT 1
+    </select>
+</mapper>

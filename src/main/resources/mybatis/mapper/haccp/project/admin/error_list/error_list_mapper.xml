@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.admin.error_list">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [이탈 - 그리드 페이징 카운트] admin.error_list.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM (
+        SELECT A.REC_NO, A.REG_DATE, (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE ) AS L_CODE_NM, A.L_CODE,
+        (SELECT T1.USER_NAME FROM SHC_USERS T1 WHERE T1.USER_ID = B.REVW) AS REVWER,
+        (SELECT T1.CODE_NM FROM SHC_COMM_CODE T1 WHERE T1.CODE_KIND='APPSTT' AND T1.CODE = B.REVW_STATUS) AS REVW_STATUS,
+        (SELECT T1.USER_NAME FROM SHC_USERS T1 WHERE T1.USER_ID = B.APPR) AS APPROVER,
+        (SELECT T1.CODE_NM FROM SHC_COMM_CODE T1 WHERE T1.CODE_KIND='APPSTT' AND T1.CODE = B.APPR_STATUS) AS APPR_STATUS,
+        <choose>
+            <when test="type == 'CCP'">
+                C.IMPRV AS IMPRV,
+            </when>
+            <when test="type == 'PRE'">
+                C.IMPRV_COMM AS IMPRV,
+            </when>
+        </choose>
+        <choose>
+            <when test="type == 'CCP'">
+                (SELECT COUNT(*) FROM SHC_REC_CCP_IMPRV B WHERE B.REC_NO = A.REC_NO) AS ERRCNT
+                FROM SHC_REC_CCP_LIST A
+            </when>
+            <when test="type == 'PRE'">
+                (SELECT COUNT(*) FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = A.REC_NO) AS ERRCNT
+                FROM SHC_REC_PRE_LIST A
+            </when>
+        </choose>
+
+        LEFT JOIN SHC_APPR_LIST B
+        ON A.REC_NO = B.REC_NO
+        <choose>
+            <when test="type == 'CCP'">
+                LEFT JOIN SHC_REC_CCP_IMPRV C
+                ON A.REC_NO = C.REC_NO
+                AND C.SEQ= (SELECT MIN(SEQ) FROM SHC_REC_CCP_IMPRV WHERE REC_NO=A.REC_NO AND TRIM(IMPRV) !='')
+            </when>
+            <when test="type == 'PRE'">
+                LEFT JOIN SHC_REC_PRE_IMPRV C
+                ON A.REC_NO = C.REC_NO
+                AND C.SEQ= (SELECT MIN(SEQ) FROM SHC_REC_PRE_IMPRV WHERE REC_NO=A.REC_NO AND TRIM(IMPRV_COMM) !='')
+            </when>
+        </choose>
+        WHERE A.REG_DATE BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+        AND A.L_CODE IN
+        <foreach collection="imprvType" item="type"  open="(" close=")" separator=",">
+            #{type.lCode}
+        </foreach>
+        <if test="lCode != ''">
+            AND A.L_CODE = #{lCode}
+        </if>
+        ) A
+        WHERE 1=1
+        <if test="errYn != 'ALL'">
+            AND A.ERRCNT > 0
+        </if>
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [이탈 - 그리드 페이징] admin.error_list.gridPaging */
+        SELECT A.*
+        FROM (
+        SELECT A.REC_NO, A.REG_DATE, (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE ) AS L_CODE_NM, A.L_CODE,
+        (SELECT T1.USER_NAME FROM SHC_USERS T1 WHERE T1.USER_ID = B.REVW) AS REVWER,
+        (SELECT T1.CODE_NM FROM SHC_COMM_CODE T1 WHERE T1.CODE_KIND='APPSTT' AND T1.CODE = B.REVW_STATUS) AS REVW_STATUS,
+        (SELECT T1.USER_NAME FROM SHC_USERS T1 WHERE T1.USER_ID = B.APPR) AS APPROVER,
+        (SELECT T1.CODE_NM FROM SHC_COMM_CODE T1 WHERE T1.CODE_KIND='APPSTT' AND T1.CODE = B.APPR_STATUS) AS APPR_STATUS,
+        <choose>
+            <when test="type == 'CCP'">
+                C.IMPRV AS IMPRV,
+            </when>
+            <when test="type == 'PRE'">
+                C.IMPRV_COMM AS IMPRV,
+            </when>
+        </choose>
+        <choose>
+            <when test="type == 'CCP'">
+                (SELECT COUNT(*) FROM SHC_REC_CCP_IMPRV B WHERE B.REC_NO = A.REC_NO AND SEQ <![CDATA[<>]]> 0) AS ERRCNT
+                FROM SHC_REC_CCP_LIST A
+            </when>
+            <when test="type == 'PRE'">
+                (SELECT COUNT(*) FROM SHC_REC_PRE_IMPRV B WHERE B.REC_NO = A.REC_NO) AS ERRCNT
+                FROM SHC_REC_PRE_LIST A
+            </when>
+        </choose>
+
+        LEFT JOIN SHC_APPR_LIST B
+        ON A.REC_NO = B.REC_NO
+        <choose>
+            <when test="type == 'CCP'">
+                LEFT JOIN SHC_REC_CCP_IMPRV C
+                ON A.REC_NO = C.REC_NO
+                AND C.SEQ= (SELECT MIN(SEQ) FROM SHC_REC_CCP_IMPRV WHERE REC_NO=A.REC_NO AND TRIM(IMPRV) !='')
+            </when>
+            <when test="type == 'PRE'">
+                LEFT JOIN SHC_REC_PRE_IMPRV C
+                ON A.REC_NO = C.REC_NO
+                AND C.SEQ= (SELECT MIN(SEQ) FROM SHC_REC_PRE_IMPRV WHERE REC_NO=A.REC_NO AND TRIM(IMPRV_COMM) !='')
+            </when>
+        </choose>
+        WHERE A.REG_DATE BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s')
+        AND A.L_CODE IN
+        <foreach collection="imprvType" item="type"  open="(" close=")" separator=",">
+            #{type.lCode}
+        </foreach>
+        <if test="lCode != ''">
+            AND A.L_CODE = #{lCode}
+        </if>
+        ) A
+        WHERE 1=1
+        <if test="errYn != 'ALL'">
+            AND A.ERRCNT > 0
+        </if>
+        ORDER BY A.REG_DATE DESC
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="selectImprvManagement" parameterType="map" resultType="camelMap">
+        /* [이탈 - 이탈 내역 코드 조회] codes.selectImprvManagement */
+        <choose>
+            <when test="type == 'CCP'">
+                SELECT L_CODE, L_CODE_NM
+                FROM SHC_REC_MAIN A
+                WHERE 1=1
+                AND USE_YN = 'Y'
+                AND L_CODE LIKE 'C%'
+                <if test="errYn == 'ERR'">
+                    AND EXISTS (SELECT 1
+                    FROM SHC_REC_CCP_LIST Y, SHC_REC_CCP_IMPRV Z
+                    WHERE Y.REC_NO=Z.REC_NO
+                    AND Y.L_CODE=A.L_CODE
+
+                    AND Y.REG_DATE BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s') )
+                </if>
+            </when>
+            <when test="type == 'PRE'">
+                SELECT L_CODE, L_CODE_NM
+                FROM SHC_REC_MAIN A
+                WHERE 1=1
+                AND USE_YN = 'Y'
+                AND L_CODE LIKE 'P%'
+                <if test="errYn == 'ERR'">
+                    AND EXISTS (SELECT 1
+                    FROM SHC_REC_PRE_LIST Y, SHC_REC_PRE_IMPRV Z
+                    WHERE Y.REC_NO=Z.REC_NO
+                    AND Y.L_CODE=A.L_CODE
+                    AND Y.REG_DATE BETWEEN STR_TO_DATE(#{start}, '%Y-%m-%d %H:%i:%s') AND STR_TO_DATE(CONCAT(#{end}, " 23:59:59"), '%Y-%m-%d %H:%i:%s') )
+                </if>
+            </when>
+        </choose>
+    </select>
+</mapper>

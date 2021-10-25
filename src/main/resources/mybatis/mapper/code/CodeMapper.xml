@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.code.mapper.CodeMapper">
+	<insert id="appendCodeInfo" parameterType="map">
+		insert into code_info (
+		 par_code_no
+		 ,code_no
+		 ,code_nm
+		 ,code_alais
+		 ,code_brief
+		 ,code_seq
+		 ,used_yn
+		 ,mod_able_yn
+		 ,reg_id
+		 ,reg_ip
+		 ,reg_dt
+		 ,mod_id
+		 ,mod_ip
+		 ,mod_dt
+		 ) values (
+		 #{parCodeNo}
+		 ,#{codeNo}
+		 ,#{codeNm}
+		 ,#{codeAlais}
+		 ,#{codeBrief}
+		 ,#{codeNo}
+		 ,#{usedYn}
+		 ,#{modAbleYn}
+		 ,#{userId}
+		 ,#{ipaddr}
+		 ,now()
+		  ,#{userId}
+		 ,#{ipaddr}
+		 ,now()
+		 )
+	</insert>
+	<select id="getCodeList" parameterType="map"  resultType="camelMap">
+		WITH recursive cte (
+			  par_code_no
+			, mod_able_yn
+			, code_no
+			, code_nm
+			, code_brief
+			, code_alais
+			, img_yn
+			, level
+			, code_seq
+			, path
+			, used_yn
+		) AS ( SELECT a.par_code_no
+					, a.mod_able_yn
+					, a.code_no
+					, a.code_nm
+					, a.code_brief
+					, a.code_alais
+					, a.img_yn
+					, 1 AS level
+					, a.code_seq
+					, lpad(a.code_no::text,5,'0')
+					, a.used_yn
+					, a.sys_code_yn
+					FROM  code_info a
+	 		WHERE a.par_code_no = 0
+		 	UNION ALL
+			SELECT    b.par_code_no
+					, b.mod_able_yn
+					, b.code_no
+					, b.code_nm
+					, b.code_brief
+					, b.code_alais
+					, b.img_yn
+					, c.level+1 AS level
+					, b.code_seq
+					, path ||lpad(b.code_no::text,5,'0')
+					, b.used_yn
+					, b.sys_code_yn
+					FROM code_info b JOIN cte c ON b.par_code_no = c.code_no
+		    )
+		    SELECT * FROM cte
+		    WHERE used_yn = 'Y'
+-- 		     and sys_code_yn = 'N'
+				<if test="codeNo != null and codeNo != '' and codeNo.size != 0">
+					and code_no in <foreach collection="codeNo" item="codeNo" index="index" open="(" close=")" separator=",">   #{codeNo}   </foreach>
+					and code_no not in ( 0 , 1 )
+					and par_code_no not in (1)
+				</if>
+
+		      <if test="parCodeNo != null and parCodeNo != ''">
+				  and par_code_no = #{parCodeNo}
+			  </if>
+
+				<if test="parCodeList != null and parCodeList.size != 0">
+					and par_code_no in <foreach collection="parCodeList" item="parCodeList" index="index" open="(" close=")" separator=",">   #{parCodeList}   </foreach>
+				</if>
+
+
+				<if test="findSz != null and findSz != ''">
+					<if test="findTp != null and findTp == 'code'">
+						AND upper(replace(code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+					</if>
+					<if test="findTp != null and findTp == 'breif'">
+						AND upper(replace(code_brief,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+					</if>
+					<if test="findTp != null and findTp == 'alais'">
+						AND upper(replace(code_alais,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+					</if>
+				</if>
+				order by path, level, code_seq
+				limit #{pageSz} offset #{pageNo}
+	</select>
+
+	<select id="getCodeListCount" parameterType="map"  resultType="int">
+		SELECT COUNT(a.code_no)
+		FROM ( WITH recursive cte (
+					  par_code_no
+					, code_no
+					, code_nm
+					, code_brief
+					, code_alais
+					, level
+					, code_seq
+					, path
+					, used_yn
+					) AS ( SELECT a.par_code_no
+							, a.code_no
+							, a.code_nm
+							, a.code_brief
+							, a.code_alais
+							, 1 AS level
+							, a.code_seq
+							, a.code_no::text
+							, a.used_yn
+						FROM  code_info a
+						WHERE a.par_code_no = 0
+						UNION ALL
+						SELECT  b.par_code_no
+							, b.code_no
+							, b.code_nm
+							, b.code_brief
+							, b.code_alais
+							, c.level+1 AS level
+							, b.code_seq
+							, path ||b.code_no::text
+							, b.used_yn
+							FROM code_info b JOIN cte c ON b.par_code_no = c.code_no
+					)
+					SELECT * FROM cte
+					WHERE used_yn = 'Y'
+					<if test="codeNo != null and codeNo != '' and codeNo.size != 0">
+						and code_no in <foreach collection="codeNo" item="codeNo" index="index" open="(" close=")" separator=",">   #{codeNo}   </foreach>
+						and code_no not in ( 0 , 1 )
+						and par_code_no not in (1)
+					</if>
+					<if test="parCodeNo != null and parCodeNo != ''">
+						and par_code_no = #{parCodeNo}
+					</if>
+					<if test="findSz != null and findSz != ''">
+						<if test="findTp != null and findTp == 'code'">
+							AND upper(replace(code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+						</if>
+						<if test="findTp != null and findTp == 'breif'">
+							AND upper(replace(code_brief,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+						</if>
+						<if test="findTp != null and findTp == 'alais'">
+							AND upper(replace(code_alais,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+						</if>
+					</if>
+		order by path, level, code_seq
+		) a
+
+	</select>
+
+	<select id="getComboCodeList" parameterType="map"  resultType="camelMap">
+		/*공통코드 검색조건 추출(CodeMapper.getComboCodeList)*/
+		 select    0 as prt_seq
+		         , 0 as value
+                 ,coalesce(#{selectStr},'선택'::varchar) as text
+		         , 0  as code_seq
+		 union
+		 select   1 as prt_seq
+		        , code_no  as value
+				, code_nm as text
+				, code_seq
+		  from code_info
+		  where par_code_no = #{parCodeNo}
+		   and used_yn = 'Y'
+      order by prt_seq,code_seq
+	</select>
+
+
+	<select id="getComboUserDeptList" parameterType="map" resultType="camelMap">
+		select     0 as prt_seq
+			 	 , 0 as value
+		         ,'선택'::varchar as text
+		         , 0  as code_seq
+		union
+		select   1 as prt_seq
+			 	, dept_no  as value
+				, dept_nm as text
+				, prt_seq
+		from dept_info
+		where used_yn = 'Y'
+		order by prt_seq,code_seq
+	</select>
+
+	<select id="getComboWithoutChoiceCodeList" parameterType="map"  resultType="camelMap">
+		select  code_no  as value
+		      , code_nm as text
+		from code_info
+		where par_code_no = #{parCodeNo}
+		  and used_yn = 'Y'
+		order by code_seq
+	</select>
+
+	<update id="Modify" parameterType="map"  >
+     update code_info set code_seq = code_seq+1 where
+     <![CDATA[
+     par_code_no = #{par_code_no} and code_seq   >= #{code_seq}
+     ]]>
+    </update>
+
+	<update id="dropCode" parameterType="map" >
+		update code_info set used_yn = 'N' where code_no = #{codeNo} or par_code_no = #{parCodeNo}
+	</update>
+
+	<select id="getCodeTree" parameterType="map" resultType="camelMap">
+		WITH recursive cte (
+					  par_code_no
+					, mod_able_yn
+					, code_no
+					, code_nm
+					, code_brief
+					, code_alais
+					, img_yn
+					, level
+					, code_seq
+					, path
+					, used_yn
+		            , sys_code_yn
+		) AS ( SELECT a.par_code_no
+					, a.mod_able_yn
+					, a.code_no
+					, a.code_nm
+					, a.code_brief
+					, a.code_alais
+					, a.img_yn
+					, 1 AS level
+					, a.code_seq
+					, lpad(a.code_no::text,5,'0')
+					, a.used_yn
+		            , a.sys_code_yn
+				FROM  code_info a
+				WHERE a.par_code_no = 0
+				UNION ALL
+				SELECT b.par_code_no
+				 	, b.mod_able_yn
+					, b.code_no
+					, b.code_nm
+					, b.code_brief
+					, b.code_alais
+					, b.img_yn
+					, c.level+1 AS level
+					, b.code_seq
+					, path ||lpad(b.code_no::text,5,'0')
+					, b.used_yn
+		            , b.sys_code_yn
+				FROM code_info b JOIN cte c ON b.par_code_no = c.code_no
+		)
+		SELECT * FROM cte
+		WHERE 1 = 1
+		and used_yn = 'Y'
+-- 		and sys_code_yn = 'N'
+-- 		--'N'만 리스트로 뽑아낼 경우 트리 부분에서 에러 발생.
+		<if test="level != null and level != ''">
+			and level = #{level}
+		</if>
+
+		<if test="parCodeNo != null and parCodeNo != ''">
+			and par_code_no = #{parCodeNo}
+		</if>
+		order by path,code_seq
+	</select>
+
+	<update id="updateCcpTpByProcWork" parameterType="map">
+		update code_info
+		set ccp_tp = #{ccp_tp}
+		where code_no = #{proc_cd}
+	</update>
+	<update id="updateCodeNm" parameterType="map">
+		update code_info
+		set code_alais = #{codeAlais},
+			code_brief = #{codeBrief},
+			code_nm = #{codeNm}
+		where code_no = #{codeNo}
+	</update>
+</mapper>

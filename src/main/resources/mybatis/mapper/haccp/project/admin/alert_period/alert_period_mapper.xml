@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.haccp.project.admin.alert_period">
+
+    <select id="gridPagingCnt" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 그리드 페이징 카운트] admin.ap.gridPagingCnt */
+        SELECT COUNT(*) AS CNT
+        FROM (
+        SELECT A.*,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.REF_COMM_CODE AND B.CODE = A.ITEM_CODE  ) AS ITEM_CODE_NM
+        FROM (
+        SELECT
+        A.SEQ, A.L_CODE, A.ITEM_CODE,
+        (SELECT B.USE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS MAIN_USE_YN,
+        (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+        (SELECT B.REF_COMM_CODE FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS REF_COMM_CODE,
+        A.USE_YN, A.START_DATE, A.LST_UPD_DATE, A.CYCLE_TYPE,
+        A.DD_CYCLE, A.WK_CYCLE, A.MON_CYCLE, A.RMK, A.CREATE_DT
+        FROM SHC_CYCLE A
+        WHERE 1=1
+        ) A
+        ) A
+        WHERE 1=1
+        AND A.MAIN_USE_YN = 'Y'
+        <if test="searchValue != ''">
+            <choose>
+                <when test="type == 'lCodeNm'">
+                    AND L_CODE_NM LIKE  CONCAT('%', #{searchValue} , '%')
+                </when>
+                <when test="type == 'itemCodeNm'">
+                    AND ITEM_CODE_NM LIKE CONCAT('%', #{searchValue} , '%')
+                </when>
+            </choose>
+        </if>
+    </select>
+
+    <select id="gridPaging" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 그리드 페이징] admin.ap.gridPaging */
+        SELECT A.*
+        FROM (
+        SELECT A.*,
+        (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.REF_COMM_CODE AND B.CODE = A.ITEM_CODE  ) AS ITEM_CODE_NM
+        FROM (
+        SELECT
+        A.SEQ, A.L_CODE, A.ITEM_CODE,
+        (SELECT B.USE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS MAIN_USE_YN,
+        (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+        (SELECT B.REF_COMM_CODE FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS REF_COMM_CODE,
+        A.USE_YN, A.START_DATE, A.LST_UPD_DATE, A.CYCLE_TYPE,
+        A.DD_CYCLE, A.WK_CYCLE, A.MON_CYCLE, A.RMK, A.CREATE_DT
+        FROM SHC_CYCLE A
+        WHERE 1=1
+        ) A
+        ) A
+        WHERE 1=1
+        AND A.MAIN_USE_YN = 'Y'
+        <if test="searchValue != ''">
+            <choose>
+                <when test="type == 'lCodeNm'">
+                    AND L_CODE_NM LIKE CONCAT('%', #{searchValue} , '%')
+                </when>
+                <when test="type == 'itemCodeNm'">
+                    AND ITEM_CODE_NM LIKE CONCAT('%', #{searchValue} , '%')
+                </when>
+            </choose>
+        </if>
+        ORDER BY A.CREATE_DT DESC
+        LIMIT #{perPage} OFFSET #{offset}
+    </select>
+
+    <select id="getInfo" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 특정 검색] admin.ap.getInfo */
+        SELECT A.*,
+               (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.REF_COMM_CODE AND B.CODE = A.ITEM_CODE ) AS ITEM_CODE,
+               (SELECT B.CODE_NM FROM SHC_COMM_CODE B WHERE B.CODE_KIND = A.REF_COMM_CODE AND B.CODE = A.ITEM_CODE ) AS ITEM_CODE_NM
+        FROM (
+                 SELECT
+                     A.SEQ, A.L_CODE, A.ITEM_CODE,
+                     (SELECT B.L_CODE_NM FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS L_CODE_NM,
+                     (SELECT B.DETAIL_CYCLE_YN FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS DETAIL_CYCLE_YN,
+                     (SELECT B.REF_COMM_CODE FROM SHC_REC_MAIN B WHERE B.L_CODE = A.L_CODE) AS REF_COMM_CODE,
+                     A.USE_YN, A.START_DATE, A.RMK, A.LST_UPD_DATE, A.CYCLE_TYPE,
+                     A.DD_CYCLE, A.WK_CYCLE, A.MON_CYCLE,
+                     CASE WHEN A.DD_CYCLE IS NOT NULL THEN A.DD_CYCLE WHEN A.WK_CYCLE IS NOT NULL THEN A.WK_CYCLE WHEN A.MON_CYCLE IS NOT NULL THEN A.MON_CYCLE END AS PERIOD
+                 FROM SHC_CYCLE A
+                 WHERE 1=1
+                   AND A.SEQ = #{seq}
+             ) A
+    </select>
+
+    <insert id="insertData" parameterType="map">
+        /* [알림 주기 - 등록 ] admin.ap.insertData */
+        INSERT INTO SHC_CYCLE
+        (L_CODE, ITEM_CODE, REF_COMM_CODE, START_DATE, LST_UPD_DATE, USE_YN, CYCLE_TYPE, DD_CYCLE, WK_CYCLE, MON_CYCLE, RMK, CREATE_ID, CREATE_DT)
+        VALUES
+            (#{lCode}, #{itemCode}, #{refCommCode}, #{start}, #{start}, #{useYn}, #{cycleType}, #{ddCycle}, #{wkCycle}, #{monCycle}, #{rmk},#{userId}, STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s') )
+    </insert>
+
+    <update id="updateData" parameterType="map">
+        /* [알림 주기 - 수정] admin.ap.updateData */
+        UPDATE SHC_CYCLE SET
+                             L_CODE = #{lCode}, ITEM_CODE = #{itemCode}, REF_COMM_CODE = #{refCommCode},
+                             START_DATE = #{start}, LST_UPD_DATE = #{start}, CYCLE_TYPE =#{cycleType}, DD_CYCLE = #{ddCycle}, WK_CYCLE = #{wkCycle}, MON_CYCLE = #{monCycle},
+                             USE_YN = #{useYn}, RMK = #{rmk}, MODIFY_ID = #{userId}, MODIFY_DT = STR_TO_DATE(NOW(), '%Y-%m-%d %H:%i:%s')
+        WHERE SEQ = #{seq}
+    </update>
+
+    <delete id="deleteData" parameterType="map">
+        /* [알림 주기 - 삭제] admin.ap.deleteData */
+        DELETE FROM SHC_CYCLE WHERE SEQ = #{seq}
+    </delete>
+
+    <select id="selectLcodeList" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 대분류 코드 가져오기] admin.ap.selectLcodeList */
+        SELECT L_CODE
+             , L_CODE_NM
+             , DETAIL_CYCLE_YN
+             , REF_COMM_CODE
+        FROM (
+                 SELECT D.L_CODE,
+                        (SELECT E.L_CODE_NM FROM SHC_REC_MAIN E WHERE E.L_CODE = D.L_CODE) AS L_CODE_NM,
+                        (SELECT E.DETAIL_CYCLE_YN FROM SHC_REC_MAIN E WHERE E.L_CODE = D.L_CODE) AS DETAIL_CYCLE_YN,
+                        (SELECT E.REF_COMM_CODE FROM SHC_REC_MAIN E WHERE E.L_CODE = D.L_CODE) AS REF_COMM_CODE
+                 FROM SHC_CYCLE D
+                 WHERE 1=1
+                   AND D.SEQ = #{seq}
+                 UNION
+                 SELECT A.L_CODE, A.L_CODE_NM, A.DETAIL_CYCLE_YN, A.REF_COMM_CODE
+                 FROM SHC_REC_MAIN A
+                          LEFT JOIN
+                      SHC_CYCLE B
+                      ON A.L_CODE = B.L_CODE
+                 WHERE B.L_CODE IS NULL
+                   AND A.USE_YN = 'Y'
+                   AND A.CYCLE_YN = 'Y'
+                   AND A.DETAIL_CYCLE_YN = 'N'
+                   AND A.L_CODE NOT LIKE 'C%'
+                   AND A.L_CODE NOT LIKE 'S%'
+                 UNION
+                 SELECT  C.L_CODE, C.L_CODE_NM, C.DETAIL_CYCLE_YN, C.REF_COMM_CODE
+                 FROM SHC_REC_MAIN C
+                 WHERE 1=1
+                   AND C.USE_YN = 'Y'
+                   AND C.CYCLE_YN = 'Y'
+                   AND C.DETAIL_CYCLE_YN = 'Y'
+             ) A
+        ORDER BY A.L_CODE ASC
+    </select>
+
+    <select id="checkDuplicate" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 추가하고자 하는 항목의 중복 여부 확인] admin.ap.checkDuplicate */
+        SELECT COUNT(*) AS CNT, MAX(L_CODE), MAX(ITEM_CODE)
+        FROM SHC_CYCLE
+        WHERE 1=1
+        AND L_CODE = #{lCode}
+        <if test="itemCode != null and itemCode != undefined and itemCode != ''">
+            AND ITEM_CODE = #{itemCode}
+        </if>
+    </select>
+
+    <select id="getLatestCycle" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 추가하고자 하는 항목의 중복 여부 확인] admin.ap.checkDuplicate */
+        SELECT SEQ, L_CODE
+        FROM SHC_CYCLE
+        WHERE 1=1
+          AND L_CODE = #{lCode}
+        ORDER BY CREATE_DT DESC
+            LIMIT 1
+    </select>
+
+    <select id="getRefCommCode" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 리퍼런스 공통 코드 찾기] admin.ap.getRefCommCode */
+        SELECT REF_COMM_CODE
+        FROM SHC_REC_MAIN
+        WHERE 1=1
+          AND USE_YN = 'Y'
+          AND L_CODE = #{lCode}
+    </select>
+
+    <select id="selectItemList" parameterType="map" resultType="camelMap">
+        /* [알림 주기 - 세부 항목 아이템 리스트 포함 관계에 따라서 조회] admin.ap.selectItemList */
+        SELECT A.*
+        FROM (
+        select TA.l_code, TA.seq, TA.m_code_kind, TA.m_code CODE, TB.CODE_NM
+        from SHC_REC_PRE TA
+        inner join SHC_COMM_CODE TB
+        on TA.M_CODE_KIND = TB.CODE_KIND
+        and TA.m_code = TB.CODE
+        where TA.l_code = #{lCode}
+        <choose>
+            <when test="seq !=null and  seq != undefined and seq != '' ">
+                and m_code in (select ITEM_CODE from SHC_CYCLE A where A.seq = #{seq})
+            </when>
+            <otherwise>
+                and m_code not in (select ITEM_CODE from SHC_CYCLE A where A.L_CODE = #{lCode} and A.REF_COMM_CODE = #{codeKind})
+            </otherwise>
+        </choose>
+        UNION
+        select TA.l_code, TA.seq, TA.m_code_kind, TA.m_code CODE, TB.CODE_NM
+        from SHC_REC_PRE TA
+        inner join SHC_COMM_CODE TB
+        on TA.M_CODE_KIND = TB.CODE_KIND
+        and TA.m_code = TB.CODE
+        where TA.l_code = #{lCode}
+        and m_code not in (select ITEM_CODE from SHC_CYCLE A where A.L_CODE = #{lCode} and A.REF_COMM_CODE = #{codeKind})
+        ) A
+        order by A.seq
+    </select>
+</mapper>
