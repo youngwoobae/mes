@@ -54,6 +54,7 @@ public class DdKorServiceImpl implements  DdkorService {
         String tag = "DdKorService.getOperStat => ";
         JSONParser parser = new JSONParser();
         Map<String, Object> equipMap = new HashMap<>();
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         URL url = null;
         String uri = "http://ddk.daedan.com/getData.php";
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
@@ -79,22 +80,20 @@ public class DdKorServiceImpl implements  DdkorService {
                 rmap.put("val", jsonObj.get("val"));
                 rmap.put("prss", jsonObj.get("prss"));
                 rmap.put("kw", jsonObj.get("kw"));
-                rmap.put("add_ea", jsonObj.get("add_ea"));
-                rmap.put("err_ea", jsonObj.get("err_ea"));
-                rmap.put("ok_ea", jsonObj.get("ok_ea"));
+                rmap.put("addEa", jsonObj.get("addEa"));
+                rmap.put("errEa", jsonObj.get("errEa"));
+                rmap.put("okEa", jsonObj.get("okEa"));
                 rmap.put("ea", jsonObj.get("ea"));
-
+                rmap.put("custNo",custNo);
                 /*spotInfo에 있는 spot_nm 가져오기*/
                equipMap = mapper.getEquipName(rmap);
 
                try{
-                   rmap.put("equipNm", equipMap.get("spot_nm"));
+                   rmap.put("equipNm", equipMap.get("spotNm"));
                }catch(NullPointerException ne){
                    rmap.put("equipNm", null);
                }
-
                 list.add(rmap);
-
             }
         } catch (ParseException e) {
             e.printStackTrace();

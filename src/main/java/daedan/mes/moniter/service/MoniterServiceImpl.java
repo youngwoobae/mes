@@ -56,11 +56,15 @@ public class MoniterServiceImpl implements MoniterService{
 
     @Override
     public List<Map<String, Object>> getComboOrderCmpy(Map<String, Object> paraMap) {
+        String tag = "moniterService.getComboOrderCmpy =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getComboOrderCmpy(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getCcpHeatList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getCcpHeatList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getCcpHeatList(paraMap);
     }
     @Override
@@ -70,46 +74,64 @@ public class MoniterServiceImpl implements MoniterService{
 
     @Override
     public List<Map<String, Object>> getEquipProdMove(Map<String, Object> paraMap) {
+        String tag = "moniterService.getEquipProdMove =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getEquipProdMove(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getCcpTexts(Map<String, Object> paraMap) {
+        String tag = "moniterService.getCcpTexts =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getCccpTexts(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getProdIoFileList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getProdIoFileList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getProdIoFileList(paraMap);
     }
 
     @Override
     public int getProdIoFileListCount(Map<String, Object> paraMap) {
+        String tag = "moniterService.getProdIoFileListCount =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getProdIoFileListCount(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getOrdHstList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getOrdHstList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getOrdHstList(paraMap);
     }
 
     @Override
     public int getOrdHstListCount(Map<String, Object> paraMap) {
+        String tag = "moniterService.getOrdHstListCount =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getOrdHstListCount(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getMatrPursHstList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrPursHstList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getMatrPursHstList(paraMap);
     }
 
     @Override
     public int getMatrPursHstListCount(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrPursHstListCount =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getMatrPursHstListCount(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getMatrIwhHstList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrIwhHstList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getMatrIwhHstList(paraMap);
     }
 
@@ -120,6 +142,8 @@ public class MoniterServiceImpl implements MoniterService{
 
     @Override
     public List<Map<String, Object>> getMatrOwhHstList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrOwhHstList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getMatrOwhHstList(paraMap);
     }
 
@@ -130,6 +154,8 @@ public class MoniterServiceImpl implements MoniterService{
 
     @Override
     public List<Map<String, Object>> getProdIwhHstList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getProdIwhHstList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getProdIwhHstList(paraMap);
     }
 
@@ -140,6 +166,8 @@ public class MoniterServiceImpl implements MoniterService{
 
     @Override
     public List<Map<String, Object>> getProdOwhHstList(Map<String, Object> paraMap) {
+        String tag = "moniterService.getProdOwhHstList =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
         return mapper.getProdOwhHstList(paraMap);
     }
 
