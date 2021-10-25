@@ -233,7 +233,7 @@ public class EquipServiceImpl implements EquipService {
         em.setOperText(paraMap.get("operText").toString());
         em.setShape(paraMap.get("shape").toString());
 //
-        OperMast chkvo = operMastRepo.findByOperNo(em.getOperNo());
+        OperMast chkvo = operMastRepo.findByCustNoAndOperNo(custNo,em.getOperNo());
         chkvo.setOperText(paraMap.get("operText").toString());
         chkvo.setShape(paraMap.get("shape").toString());
 //        if (chkvo != null) {

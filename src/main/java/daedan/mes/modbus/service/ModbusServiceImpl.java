@@ -294,7 +294,7 @@ public class ModbusServiceImpl implements  ModbusService {
         mastvo.setFrUnixHms(System.currentTimeMillis() / 1000);
         mastvo.setToUnixHms(0L);
         mastvo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
-        OperMast mastchkvo = operMastRepo.findByCustNoAndSpotEquipNoAndFrUnixHmsAndUsedYn(custNo,mastvo.getSpotEquipNo(), mastvo.getFrUnixHms(),"Y");
+        OperMast mastchkvo = operMastRepo.findByCustNoAndSpotEquipNoAndFrUnixHms(custNo,mastvo.getSpotEquipNo(), mastvo.getFrUnixHms());
         if (mastchkvo != null) {
             mastvo.setOperNo(mastchkvo.getOperNo());
         } else {
@@ -325,7 +325,7 @@ public class ModbusServiceImpl implements  ModbusService {
 
         //mapper.updateOperMastToQty(rmap); //최종수량 설정 Remarked by KMJ AT 21.08.26 17:48
         //SOL AddOn By KMJ AT 21.08.26 17:48
-        OperMast omvo = operMastRepo.findByCustNoAndOperNoAndUsedYn(custNo,Long.parseLong(paraMap.get("operNo").toString()),"Y");
+        OperMast omvo = operMastRepo.findByCustNoAndOperNo(custNo,Long.parseLong(paraMap.get("operNo").toString()));
         if (omvo != null) {
             try {
                 omvo.setMetalQty(Long.parseLong(paraMap.get("metalQty").toString()));
@@ -401,7 +401,7 @@ public class ModbusServiceImpl implements  ModbusService {
 
         rmap.put("indcNo", indcNo);
 
-        omvo = operMastRepo.findByCustNoAndOperNoAndUsedYn(custNo,omvo.getOperNo(),"Y");
+        omvo = operMastRepo.findByCustNoAndOperNo(custNo,omvo.getOperNo());
         Float adjPassWgt = null;
         Long IndcRsltNo = null;
 
@@ -573,7 +573,7 @@ public class ModbusServiceImpl implements  ModbusService {
         mastvo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
 
        // mapper.initOperMoniter(paraMap);
-        OperMast mastchkvo = operMastRepo.findByCustNoAndSpotEquipNoAndUsedYn(custNo,mastvo.getSpotEquipNo(),"Y");
+        OperMast mastchkvo = operMastRepo.findByCustNoAndSpotEquipNo(custNo,mastvo.getSpotEquipNo());
         if (mastchkvo != null) {
             mastvo.setOperNo(mastchkvo.getOperNo());
         }
@@ -694,7 +694,7 @@ public class ModbusServiceImpl implements  ModbusService {
         hstrvo.setCustNo(custNo);
         equipMngrHstrRepo.save(hstrvo);
 
-        OperMast mastvo = operMastRepo.findByCustNoAndOperNoAndUsedYn(custNo,hstrvo.getOperNo(),"Y");
+        OperMast mastvo = operMastRepo.findByCustNoAndOperNo(custNo,hstrvo.getOperNo());
         if (mastvo != null) {
             if (measVal >= 0) {
                 mastvo.setFrQty((float) measVal);
@@ -706,7 +706,7 @@ public class ModbusServiceImpl implements  ModbusService {
         OperMast mastvo = new OperMast();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         mastvo.setOperNo(Long.parseLong(paraMap.get("operNo").toString()));
-        OperMast chkvo = operMastRepo.findByCustNoAndOperNoAndUsedYn(custNo,mastvo.getOperNo(),"Y");
+        OperMast chkvo = operMastRepo.findByCustNoAndOperNo(custNo,mastvo.getOperNo());
         if (chkvo != null) {
             chkvo.setOperTp(Integer.parseInt(paraMap.get("operTp").toString()));
             chkvo.setToUnixHms(System.currentTimeMillis()/1000);
@@ -1051,7 +1051,7 @@ public class ModbusServiceImpl implements  ModbusService {
             metalQty = 0L;
         }
 
-        OperMast omvo = operMastRepo.findByCustNoAndOperNoAndSpotEquipNoAndUsedYn(custNo,operNo,spotEquipNo,"Y");
+        OperMast omvo = operMastRepo.findByCustNoAndOperNoAndSpotEquipNo(custNo,operNo,spotEquipNo);
         if (omvo != null) {
             omvo.setOperNo(operNo);
             omvo.setEquipNo(spotEquipNo);
