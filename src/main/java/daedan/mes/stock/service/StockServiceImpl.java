@@ -446,6 +446,7 @@ public class StockServiceImpl implements  StockService{
         msvo.setStatCd(Long.valueOf(paraMap.get("statCd").toString()));
         msvo.setModId(Long.valueOf(paraMap.get("userId").toString()));
         msvo.setModIp(paraMap.get("ipaddr").toString());
+        msvo.setCustNo(custNo);
         MatrStk chkvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,msvo.getWhNo(), msvo.getMatrNo(),"Y");
         if (chkvo != null) {
             msvo.setMatrStkNo(chkvo.getMatrStkNo());
@@ -524,6 +525,7 @@ public class StockServiceImpl implements  StockService{
         mshvo.setRegDt(DateUtils.getCurrentBaseDateTime());
         mshvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         mshvo.setRegIp(paraMap.get("ipaddr").toString());
+        mshvo.setCustNo(custNo);
         if (orgWhNo != trkWhNo) { //창고이동이 있는 경우
             //기존재고정보를 이동창고재고로 이동
             if (chngResn == Long.parseLong(env.getProperty("code.lose_cd.moveWh"))) {
@@ -674,6 +676,7 @@ public class StockServiceImpl implements  StockService{
                 prsvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
                 prsvo.setModIp(paraMap.get("ipaddr").toString());
             }
+            prsvo.setCustNo(custNo);
             prodStkHstrRepo.save(prsvo);
 
             try{
