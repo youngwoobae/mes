@@ -10,4 +10,5 @@ public interface OrdProdRepository extends JpaRepository<OrdProd, Long> {
     OrdProd findByCustNoAndOrdNoAndProdNoAndUsedYn(Long custNo,Long ordNo, Long prodNo,String yn);
     OrdProd findByCustNoAndOrdNoAndProdNoAndDlvDtAndUsedYn(Long custNo,Long ordNo, Long prodNo, Date owdate, String y);
     OrdProd findByCustNoAndOrdProdNoAndUsedYn(Long custNo,Long ordProdNo, String y);
+    OrdProd findByCustNoAndOrdNoAndUsedYn(Long custNo, Long ordNo, String y);
 }

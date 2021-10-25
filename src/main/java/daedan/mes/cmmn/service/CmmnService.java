@@ -9,8 +9,9 @@ import java.util.Map;
 public interface CmmnService {
     List<Map<String, Object>> getCalDateList(Map<String, Object> Map);
     Date getIntervalDate(Map<String, Object> paraMap);
-    byte[] encryptStr(String sourceStr);
-    String decryptStr(byte[] encStr) throws UnsupportedEncodingException;
+    byte[] encryptStr(Long custNo, String plainText);
+
+    String decryptStr(Long custNo, byte[] encStr) throws UnsupportedEncodingException;
 
     Map<String, Object>  getAuthUserMenuInfo(Map<String, Object> paraMap);
 

@@ -4,5 +4,5 @@ import daedan.mes.user.domain.CustInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CustInfoRepository  extends JpaRepository<CustInfo, Long> {
-    CustInfo findByCustNo(long custNo);
+    CustInfo findByCustNo(Long custNo);
 }

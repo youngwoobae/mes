@@ -11,12 +11,13 @@ import javax.persistence.*;
 public class CustInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "customNo")
-    private Long customNo;
+    @Column(name = "custNo")
+    private Long custNo;
 
-    /* custNo에 따라 로그인 화면 및 초기화면 라우팅이 달라짐*/
+    /* custNo에 따라 로그인 화면 및 초기화면 라우팅이 달라짐
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
+    */
 
     /*로그인후 최초접속 페이지(대쉬보드URL)*/
     @Column(name="frUrl", length = 50)
@@ -31,6 +32,10 @@ public class CustInfo {
 
     @Column(name = "chatPort", columnDefinition = "int default 19080")
     private Integer chatPort;
+
+    /*업체별라이센스코드*/
+    @Column(name="lcnsCd", length = 250)
+    private String lcnsCd;
 
     /*BOM관리여부*/
     @Column(name = "bomYn", columnDefinition = "char(1) default 'N'")
@@ -110,15 +115,15 @@ public class CustInfo {
     private String mngrUnitYn;
 
     /*테블릿AutoSigninID*/
-    @Column(name = "autoSignId",  nullable = false ,length = 20)
+    @Column(name = "autoSignId" ,length = 20)
     private String autoSignId;
 
     /*메일도메인 */
-    @Column(name="mailDomain",nullable = false, length = 50  )
+    @Column(name="mailDomain", length = 50  )
     private String mailDomain;
 
     /*파일적위기준위치*/
-    @Column(name = "fileRoot" , nullable = false, length = 250)
+    @Column(name = "fileRoot", length = 250)
     private String fileRoot;
 
     /*전자태그연동여부(es연구소만 'Y'*/

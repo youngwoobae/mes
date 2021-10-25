@@ -74,8 +74,7 @@ public class CmpyServiceImpl implements  CmpyService {
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long cmpyNo = Long.parseLong(paraMap.get("cmpyNo").toString());
-        Long cmpyTp = Long.parseLong(paraMap.get("cmpyTp").toString());
-        CmpyInfo cmpyvo = cmpyRepository.findByCustNoAndCmpyTpAndCmpyNoAndUsedYn(custNo,cmpyTp,cmpyNo,"Y");
+        CmpyInfo cmpyvo = cmpyRepository.findByCustNoAndCmpyNoAndUsedYn(custNo,cmpyNo,"Y");
         return  (cmpyvo == null) ? null :  StringUtil.voToMap(cmpyvo);
     }
 

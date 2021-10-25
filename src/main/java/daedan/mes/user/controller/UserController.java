@@ -103,9 +103,20 @@ public class UserController {
         String token = "";
         Result result = Result.successInstance();
         log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
+
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
-        uservo.setCustInfo(custInfoRepo.findByCustNo(Long.parseLong(env.getProperty("cust_no"))));
-        log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+        if (uservo != null) {
+            String orgLcnsCd = paraMap.get("lcnsCd").toString();
+            log.info("orgLcnsCd=" + orgLcnsCd);
+            String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
+
+            if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
+                String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
+                Long custNo = Long.parseLong(strCustNo);
+                uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+                log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+            }
+        }
         uservo.setToken(null);
 
         token = jwtService.create("member", uservo, "user");

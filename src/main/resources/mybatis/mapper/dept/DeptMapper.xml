@@ -29,16 +29,19 @@
         )
     </insert>
     <select id="getDeptList" parameterType="map"  resultType="camelMap">
-        --부서
+        /* 부서트리 (deptMapper.getDeptList) */
         WITH recursive cte (
-                          par_dept_no
-                        , dept_no
-                        , dept_nm
-                        , level
-                        , prt_seq
-                        , path
-                        , used_yn
-            ) AS ( SELECT a.par_dept_no
+               cust_no
+            ,  par_dept_no
+            , dept_no
+            , dept_nm
+            , level
+            , prt_seq
+            , path
+            , used_yn
+            ) AS ( SELECT
+                       a.cust_no
+                        ,a.par_dept_no
                         , a.dept_no
                         , a.dept_nm
                         , 1 AS level
@@ -48,7 +51,9 @@
                    FROM  dept_info a
                    WHERE a.par_dept_no = 0
                    UNION ALL
-                   SELECT    b.par_dept_no
+                   SELECT
+                       b.cust_no
+                        , b.par_dept_no
                         , b.dept_no
                         , b.dept_nm
                         , c.level+1 AS level
@@ -58,7 +63,7 @@
                    FROM dept_info b JOIN cte c ON b.par_dept_no = c.dept_no
         )
         SELECT * FROM cte
-        WHERE 1 = 1
+        WHERE cust_no = #{custNo}
         order by path
     </select>
 

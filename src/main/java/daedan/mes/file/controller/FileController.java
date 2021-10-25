@@ -7,6 +7,7 @@ import daedan.mes.file.domain.FileInfo;
 import daedan.mes.file.repository.FileRepository;
 import daedan.mes.file.service.FileService;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.repository.CustInfoRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,8 @@ public class FileController {
     @Autowired
     private CmmnService cmmnService;
 
+    @Autowired
+    private CustInfoRepository custRepo;
 
     @PostMapping(value="/upload")
     public Result file(@RequestPart("file") MultipartFile multipartFile , HttpServletRequest request , HttpSession session) throws IOException {
@@ -49,7 +52,6 @@ public class FileController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
-
         Long fileNo = 0L;
         try {
             fileNo = Long.parseLong(request.getParameter("fileNo").toString());

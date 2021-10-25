@@ -45,7 +45,7 @@ public class SpotController {
     public Result spotList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        paraMap.put("custNo",Long.parseLong(env.getProperty("cust_no")));
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         result.setData(spotService.getSpotList(paraMap));
         result.setTotalCount(spotService.getSpotListCount(paraMap));
 

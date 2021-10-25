@@ -234,9 +234,9 @@ public class UserServiceImpl implements UserService {
 
 		}
 		try {
-			uvo.setCellNo(cmmnService.encryptStr(paraMap.get("cellNo").toString())); //이동전화(암호화사용)
+			uvo.setCellNo(cmmnService.encryptStr(custNo,paraMap.get("cellNo").toString())); //이동전화(암호화사용)
 		} catch (NullPointerException ne) {
-			uvo.setCellNo(cmmnService.encryptStr("010-000-0000"));
+			uvo.setCellNo(cmmnService.encryptStr(custNo, "010-000-0000"));
 		}
 		/*메일주소*/
 		try {
@@ -283,7 +283,7 @@ public class UserServiceImpl implements UserService {
 		UserInfo uvo = userRepo.findByUserIdAndUsedYn(Long.parseLong(paraMap.get("emplId").toString()),"Y");
 		if (uvo != null) {
 			try {
-				strCellNo = cmmnService.decryptStr(uvo.getCellNo());
+				strCellNo = cmmnService.decryptStr(custNo,uvo.getCellNo());
 				rmap = StringUtil.voToMap(uvo);
 				rmap.put("cellNo",strCellNo);
 				log.info(tag + "rmap = " + rmap);

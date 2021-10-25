@@ -16,10 +16,14 @@
               , b.user_nm
               , d.org_file_nm
               , to_char(a.reg_dt, 'yyyy-mm-dd hh24:mi') as reg_dt
-        from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id
-                    left join file_info d on a.file_no = d.file_no
-                    left join ( select bord_no, count(a.user_id) as read_cnt from bord_read a group by bord_no )  c on a.bord_no = c.bord_no
+        from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id and b.cust_no = #{custNo}
+                    left join file_info d on a.file_no = d.file_no  and d.cust_no = #{custNo}
+                    left join ( select bord_no, count(a.user_id) as read_cnt
+                                from bord_read a
+                                where a.cust_no = #{custNo}
+                               group by bord_no )  c on a.bord_no = c.bord_no
         where a.used_yn = 'Y'
+          and a.cust_no = #{custNo}
         and a.bord_tp = #{bordTp}
         <if test="dateFr != null and dateFr != ''">
             and TO_CHAR(NOW(),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)

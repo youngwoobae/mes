@@ -2,7 +2,9 @@ package daedan.mes.cmmn.service;
 
 import daedan.mes.cmmn.mapper.CmmnMapper;
 import daedan.mes.common.service.util.KISA_SEED_CBC;
+import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.user.domain.CustInfo;
+import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,11 +43,11 @@ public class CmmnServiceImpl implements CmmnService {
     }
 
     @Override
-    public byte[] encryptStr(String plainText) {
+    public byte[] encryptStr(Long custNo,String plainText) {
         String tag = "CmmnService.encryptStr => ";
         byte[] encryptedMessage = null;
         byte[] encArray = null;
-        CustInfo custvo = custInfoRepo.findByCustNo(Long.parseLong(env.getProperty("cust_no")));
+        CustInfo custvo = custInfoRepo.findByCustNo(custNo);
         if (custvo != null) {
             byte[] pbszUserKey = custvo.getPbszUserKey().getBytes(StandardCharsets.UTF_8);
             byte[] pbszIv = custvo.getPbszIv().getBytes(StandardCharsets.UTF_8);
@@ -65,9 +67,9 @@ public class CmmnServiceImpl implements CmmnService {
     }
 
     @Override
-    public String decryptStr(byte[] encStr) throws UnsupportedEncodingException {
+    public String decryptStr(Long custNo, byte[] encStr) throws UnsupportedEncodingException {
         String result = "";
-        CustInfo custvo = custInfoRepo.findByCustNo(Long.parseLong(env.getProperty("cust_no").toString()));
+        CustInfo custvo = custInfoRepo.findByCustNo(custNo);
 
         if (encStr != null){
             String tag = "CmmnService.decryptStr => ";

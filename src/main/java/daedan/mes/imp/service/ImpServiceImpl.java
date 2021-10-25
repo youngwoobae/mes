@@ -1302,9 +1302,9 @@ public class ImpServiceImpl implements ImpService {
 
             }
             try {
-                uservo.setCellNo(cmmnService.encryptStr(row.getCell(4).getStringCellValue())); //이동전화(암호화사용)
+                uservo.setCellNo(cmmnService.encryptStr(custNo,row.getCell(4).getStringCellValue())); //이동전화(암호화사용)
             } catch (NullPointerException ne) {
-                uservo.setCellNo(cmmnService.encryptStr("010-000-0000"));
+                uservo.setCellNo(cmmnService.encryptStr(custNo,"010-000-0000"));
             }
 
             //메일주소

@@ -92,6 +92,7 @@ public class PursServiceImpl implements  PursService {
     public Map<String,Object> savePursInfoByVo(PursInfo pivo) {
         String tag = "pursService.savePursInfoByVo => ";
         log.info(tag);
+
         pivo = pir.save(pivo);
         log.info(tag + "pivo to map = " + StringUtil.voToMap(pivo));
         return StringUtil.voToMap(pivo);
@@ -101,8 +102,9 @@ public class PursServiceImpl implements  PursService {
     @Override
     public Map<String, Object> savePursInfo(Map<String, Object> paraMap) {
         String tag = "pursService.savePursInfo => ";
-        log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+
+        log.info(tag + "paraMap = " + paraMap.toString());
         SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         //구매기본정보처리
@@ -182,6 +184,7 @@ public class PursServiceImpl implements  PursService {
             pivo.setRegIp(paraMap.get("ipaddr").toString());
             pivo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         }
+        pivo.setCustNo(custNo);
         pivo = pir.save(pivo);
 
         Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
@@ -189,6 +192,7 @@ public class PursServiceImpl implements  PursService {
         OrdProd ordprod = ordProdRepo.findByCustNoAndOrdNoAndProdNoAndUsedYn(custNo,ordNo,prodNo,"Y");
         if(ordprod != null){
             ordprod.setPursNo(pivo.getPursNo());
+            ordprod.setCustNo(custNo);
             ordProdRepo.save(ordprod);
         }
 
@@ -228,6 +232,7 @@ public class PursServiceImpl implements  PursService {
                 pmvo.setRegIp(paraMap.get("ipaddr").toString());
                 pmvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             }
+            pmvo.setCustNo(custNo);
             pmvo = pmr.save(pmvo);
 
             /*창고별 구매자재 위치관리 설정
@@ -254,14 +259,13 @@ public class PursServiceImpl implements  PursService {
             }
             */
         }
-        /*잠시대기중
-        OrdProd opvo = ordProdRepo.findByOrdNoAndUsedYn(pivo.getOrdNo(), "Y");
+        /*잠시대기중 이라고 씌어 있어서 2021.10.25 주석 삭제함.*/
+        OrdProd opvo = ordProdRepo.findByCustNoAndOrdNoAndUsedYn(custNo,pivo.getOrdNo(), "Y");
         if(opvo != null){
             opvo.setPursNo(pivo.getPursNo());
-
-            ordRepo.save(opvo);
+            opvo.setCustNo(custNo);
+            ordProdRepo.save(opvo);
         }
-        */
         return StringUtil.voToMap(pivo);
     }
 
@@ -339,7 +343,6 @@ public class PursServiceImpl implements  PursService {
         }
         PursInfo infovo = new PursInfo();
         infovo.setUsedYn("Y");
-
 
         infovo.setPursSts(Long.parseLong(paraMap.get("pursSts").toString())); // 검수
 
