@@ -85,13 +85,14 @@ public class SysMenuServiceImpl implements SysMenuService {
     public List<Map<String, Object>> saveHotMenu(Map<String, Object> paraMap) {
         String tag = "SysMenuService.saveHotMenu => ";
         int  hotMenuCounter = sysmenuMapper.getHotMenuCounter(paraMap);
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         SysMenuHot vo = new SysMenuHot();
         vo.setSysMenuNo(Long.parseLong(paraMap.get("sysMenuNo").toString()));
         vo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
         vo.setDispSeq(hotMenuCounter + 1);
         vo.setRegIp((String) paraMap.get("ipaddr"));
         vo.setRegDt(vo.getRegDt());
-
+        vo.setCustNo(custNo);
         sysMenuHotRepository.save(vo);
 
         int ableHotMenuCount = 0;
@@ -109,6 +110,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Override
     public void saveSysMenuInfo(Map<String, Object> passMap) {
         SysMenu sysvo = new SysMenu();
+        Long custNo = Long.parseLong(passMap.get("custNo").toString());
         Map<String, Object> paraMap = (Map<String, Object>) passMap.get("sysMenuInfo");
         sysvo.setSysMenuNo(Long.parseLong(paraMap.get("sys_menu_no").toString()));
         try {
@@ -133,7 +135,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         sysvo.setModDt(sysvo.getModDt());
         sysvo.setModId(Long.parseLong(passMap.get("userId").toString()));
         sysvo.setModIp(passMap.get("ipaddr").toString());
-
+        sysvo.setCustNo(custNo);
         sysmenuRepo.save(sysvo);
     }
     
