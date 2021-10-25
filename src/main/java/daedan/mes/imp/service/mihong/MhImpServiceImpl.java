@@ -89,7 +89,7 @@ public class MhImpServiceImpl implements MhImpService {
 
             String exData = row.getCell(3).getStringCellValue(); // 단위 중량
             Long ordSts = Long.parseLong(env.getProperty("code_base_ord_status"));
-            CodeInfo cdchk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(ordSts, exData.replace(" ", ""), "Y");
+            CodeInfo cdchk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,ordSts, exData.replace(" ", ""), "Y");
             if (cdchk != null) {
                 ordvo.setOrdSts(cdchk.getCodeNo());
             }

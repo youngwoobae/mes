@@ -88,7 +88,7 @@
                      left join code_info x on a.user_posn = x.code_no
                      left join code_info y on a.empl_kind = y.code_no
                      left join dept_info b on a.dept_no = b.dept_no
-         where a.used_yn = 'Y'
+         where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="deptNo != null and deptNo != '' and deptNo.size != 0">
             and a.dept_no in <foreach collection="deptNo" item="deptNo" index="index" open="(" close=")" separator=",">   #{deptNo}   </foreach>
         </if>
@@ -146,7 +146,7 @@
                                 left join code_info x on a.user_posn = x.code_no
                                 left join code_info y on a.empl_kind = y.code_no
                                 left join dept_info b on a.dept_no = b.dept_no
-                    where a.used_yn = 'Y'
+                    where a.used_yn = 'Y' and a.cust_no = #{custNo}
                     <if test="deptNo != null and deptNo != '' and deptNo.size != 0">
                         and a.dept_no in <foreach collection="deptNo" item="deptNo" index="index" open="(" close=")" separator=",">   #{deptNo}   </foreach>
                     </if>

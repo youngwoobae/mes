@@ -397,7 +397,7 @@ public class ImpServiceImpl implements ImpService {
 //                  }
                     svData = row.getCell(3).getStringCellValue();
                     Long lnUnit = Long.parseLong(env.getProperty("code.base.unit"));
-                    CodeInfo unvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(lnUnit, svData.replace(" ", ""), "Y");
+                    CodeInfo unvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,lnUnit, svData.replace(" ", ""), "Y");
                     if (unvo != null) {
                         matrvo.setPursUnit(unvo.getCodeNo()); //단위(KG, EA 등)
                     }
@@ -564,7 +564,7 @@ public class ImpServiceImpl implements ImpService {
                 mvo.setMatrNo(matrvo.getMatrNo()); //자재번호
 
                 //구매단위추출
-                codevo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(Long.parseLong(env.getProperty("code.base.unit")), row.getCell(12).getStringCellValue(), "Y");
+                codevo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,Long.parseLong(env.getProperty("code.base.unit")), row.getCell(12).getStringCellValue(), "Y");
                 if (codevo == null) {
                     log.error(tag + "구매단위코드 검색 실패 LineNo = " + rowindex);
                     continue;
@@ -886,7 +886,7 @@ public class ImpServiceImpl implements ImpService {
                 pvo.setOrdSz(prodvo.getSz() == null ? prodvo.getProdCode() : prodvo.getSz());
 
                 //포장단위추출
-                codevo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(Long.parseLong(env.getProperty("code.base.saleunit")), row.getCell(6).getStringCellValue(), "Y");
+                codevo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,Long.parseLong(env.getProperty("code.base.saleunit")), row.getCell(6).getStringCellValue(), "Y");
                 if (codevo == null) {
                     log.error(tag + "상품포장단위코드 검색 실패 LineNo = " + rowindex);
                     continue;
@@ -1221,7 +1221,7 @@ public class ImpServiceImpl implements ImpService {
 
                     svData = row.getCell(6).getStringCellValue();
                     Long lnUnit = Long.parseLong(env.getProperty("code.base.saleunit"));
-                    CodeInfo unvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(lnUnit, svData.replace(" ", ""), "Y");
+                    CodeInfo unvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,lnUnit, svData.replace(" ", ""), "Y");
                     if (unvo != null) {
                         prodvo.setSaleUnit(unvo.getCodeNo()); //단위(KG, EA 등)
                     } else {
@@ -1279,13 +1279,13 @@ public class ImpServiceImpl implements ImpService {
             log.info(tag + "처리 행번 = " + rowindex);
             UserInfo uservo = new UserInfo();
             //소속
-            DeptInfo deptvo = deptRepo.findByDeptNmAndUsedYn(row.getCell(0).getStringCellValue(), "Y");
+            DeptInfo deptvo = deptRepo.findByCustNoAndDeptNmAndUsedYn(custNo,row.getCell(0).getStringCellValue(), "Y");
             if (deptvo != null) {
                 uservo.setDeptNo(deptvo.getDeptNo());
             }
 
             //직위
-            CodeInfo cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(Long.parseLong(env.getProperty("code.base.user_posn")), row.getCell(1).getStringCellValue(), "Y");
+            CodeInfo cdvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,Long.parseLong(env.getProperty("code.base.user_posn")), row.getCell(1).getStringCellValue(), "Y");
             if (cdvo != null) {
                 uservo.setUserPosn(cdvo.getCodeNo());
                 ;
@@ -1592,7 +1592,7 @@ public class ImpServiceImpl implements ImpService {
 
             exData = row.getCell(6).getStringCellValue();
             Long prodShape = Long.parseLong(env.getProperty("code.base.saleunit"));
-            CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(prodShape, exData.replace(" ", ""), "Y");
+            CodeInfo mgvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,prodShape, exData.replace(" ", ""), "Y");
             if (mgvo != null) {
                 Long prodUnit = mgvo.getCodeNo();
                 prodInfo.setSaleUnit(prodUnit); // 단위

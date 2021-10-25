@@ -14,7 +14,7 @@ import java.util.Map;
 
 public interface UserService {
 
-    void loadRawMatByExcel() throws Exception;
+    void loadRawMatByExcel(Map<String, Object> paraMap) throws Exception;
 
     UserInfo signin(String mailAddr, String password);
 

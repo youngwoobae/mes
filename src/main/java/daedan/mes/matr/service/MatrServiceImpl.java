@@ -1425,7 +1425,7 @@ public class MatrServiceImpl implements MatrService {
                 exData = "";
             }
             Long matrUnit = Long.parseLong(env.getProperty("code.base.purs_unit"));
-            CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrUnit, exData.replace(" ", ""), "Y");
+            CodeInfo mgvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrUnit, exData.replace(" ", ""), "Y");
             if (mgvo != null) {
                 Long Unit = mgvo.getCodeNo();
                 matrInfo.setPursUnit(Unit); // 구매단위
@@ -1452,7 +1452,7 @@ public class MatrServiceImpl implements MatrService {
                 tmpr = "";
             }
             Long matrtmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd"));
-            CodeInfo tmvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrtmpr, tmpr.replace(" ", ""), "Y");
+            CodeInfo tmvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrtmpr, tmpr.replace(" ", ""), "Y");
             if (tmvo != null) {
                 Long savetmpr = tmvo.getCodeNo();
                 matrInfo.setSaveTmpr(savetmpr); // 보관온도
@@ -1463,7 +1463,7 @@ public class MatrServiceImpl implements MatrService {
                 madein = "";
             }
             Long matrmade = Long.parseLong(env.getProperty("code.base.madein"));
-            CodeInfo mavo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrmade, madein.replace(" ", ""), "Y");
+            CodeInfo mavo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrmade, madein.replace(" ", ""), "Y");
             if (mavo != null) {
                 Long matrMadeIn = tmvo.getCodeNo();
                 matrInfo.setMadein(matrMadeIn); // 원산지
@@ -1699,7 +1699,7 @@ public class MatrServiceImpl implements MatrService {
                 exData ="";
             }
             Long matrUnit = Long.parseLong(env.getProperty("code.base.purs_unit"));
-            CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrUnit, exData.replace(" ", ""), "Y");
+            CodeInfo mgvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrUnit, exData.replace(" ", ""), "Y");
             if (mgvo != null) {
                 Long Unit = mgvo.getCodeNo();
                 matrInfo.setPursUnit(Unit); // 구매단위
@@ -1718,7 +1718,7 @@ public class MatrServiceImpl implements MatrService {
                 tmpr = "";
             }
             Long matrtmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd"));
-            CodeInfo tmvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrtmpr, tmpr.replace(" ", ""), "Y");
+            CodeInfo tmvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrtmpr, tmpr.replace(" ", ""), "Y");
             if (tmvo != null) {
                 Long savetmpr = tmvo.getCodeNo();
                 matrInfo.setSaveTmpr(savetmpr); // 보관온도
@@ -1730,7 +1730,7 @@ public class MatrServiceImpl implements MatrService {
                 madein = "";
             }
             Long matrmade = Long.parseLong(env.getProperty("code.base.madein"));
-            CodeInfo mavo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrmade, madein.replace(" ", ""), "Y");
+            CodeInfo mavo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrmade, madein.replace(" ", ""), "Y");
             if (mavo != null) {
                 Long matrMadeIn = tmvo.getCodeNo();
                 matrInfo.setMadein(matrMadeIn); // 원산지

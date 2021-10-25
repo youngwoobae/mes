@@ -79,6 +79,7 @@ public class UserController {
         paraMap.put("secrtNo",env.getProperty("autoword"));
         //paraMap.put("mailAddr","aa@aa.com");
         //paraMap.put("secrtNo","adm");
+        log.info("licCd=" + BCrypt.hashpw(paraMap.get("licCd").toString(), BCrypt.gensalt()));
         log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
         uservo.setIndsTp(IndsType.valueOf(env.getProperty("industry_type"))); //산업구분(산업구분에따라 표시되는 필드조정됨: 매우중요)
@@ -124,6 +125,7 @@ public class UserController {
         String token = "";
         Result result = Result.successInstance();
         UserInfo uservo = userService.getUserInfByToken(paraMap);
+        paraMap.put("custNo", uservo.getCustInfo().getCustNo());
         if (uservo == null) {
 
         }

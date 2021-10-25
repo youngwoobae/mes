@@ -60,9 +60,10 @@ public class CodeServiceImpl implements CodeService {
     }
 
     @Override
-    public CodeInfo findByParCodeNoAndCodeNmAndUsedYn(long l, String fileExtNm,String yn) {
-        return codeRepo.findByParCodeNoAndCodeNmAndUsedYn(l,fileExtNm,yn);
+    public CodeInfo findByCustNoAndParCodeNoAndCodeNmAndUsedYn(Long custNo,long l, String fileExtNm,String yn) {
+        return codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,l,fileExtNm,yn);
     }
+
     @Transactional
     @Override
     public void codeModify(Map<String, Object> paraMap) {
@@ -91,10 +92,11 @@ public class CodeServiceImpl implements CodeService {
     @Override
     public Map<String, Object> getCodeInfo(Map<String, Object> paraMap) {
         String tag = "vsvc.CodeService.getCodeInfo";
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         log.info(tag + "paraMap = " +paraMap.toString());
         CodeInfo cvo = new CodeInfo();
         cvo.setCodeNo(Long.parseLong(paraMap.get("codeNo").toString()));
-        CodeInfo rvo = codeRepo.findByCodeNmAndUsedYn(cvo.getCodeNm(),"Y");
+        CodeInfo rvo = codeRepo.findByCustNoAndCodeNmAndUsedYn(custNo,cvo.getCodeNm(),"Y");
         return StringUtil.voToMap(rvo);
     }
 

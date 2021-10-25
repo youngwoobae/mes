@@ -11,7 +11,7 @@ public interface CodeService {
     List<Map<String, Object>> getComboCodeList(Map<String, Object> paraMap);
     List<Map<String, Object>> getComboWithoutChoiceCodeList(Map<String, Object> paraMap);
 
-    CodeInfo findByParCodeNoAndCodeNmAndUsedYn(long l, String fileExtNm,String yn);
+    CodeInfo findByCustNoAndParCodeNoAndCodeNmAndUsedYn(Long custNo,long l, String fileExtNm,String yn);
 
     List<Map<String, Object>> getCodeList(Map<String, Object> paraMap);
     int getCodeListCount(Map<String, Object> paraMap);

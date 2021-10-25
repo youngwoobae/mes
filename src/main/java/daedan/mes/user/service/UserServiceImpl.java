@@ -91,11 +91,11 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public int getUserListCount(Map<String, Object> paraMap) {
 		return mapper.getUserListCount(paraMap);
-
 	}
 
 	@Override
 	public UserInfo signin( String mailAddr, String password) {
+//		대기중
 		UserInfo userInfo = ur.findByMailAddrAndUsedYn(mailAddr,"Y");
 		if (userInfo != null) {
 			userInfo.setToken(null);
@@ -151,12 +151,13 @@ public class UserServiceImpl implements UserService {
 		UserInfo uvo = new UserInfo();
 		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
 		uvo.setUserId(Long.parseLong(paraMap.get("emplId").toString()));
-		UserInfo chkvo = ur.findByUserIdAndUsedYn(uvo.getUserId(),"Y");
+		UserInfo chkvo = ur.findByUserIdAndUsedYn(uvo.getUserId(),"Y");;
 		if (chkvo != null) {
 			chkvo.setUsedYn("N");
 			chkvo.setModDt(chkvo.getRegDt());
 			chkvo.setModIp(chkvo.getRegIp());
 			chkvo.setModId(chkvo.getRegId());
+			chkvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
 			ur.save(chkvo);
 		}
 	}
@@ -268,6 +269,7 @@ public class UserServiceImpl implements UserService {
 //			String password = paraMap.get("user_nm").toString();
 			uvo.setSecrtNo(BCrypt.hashpw("mes", BCrypt.gensalt()));
 		}
+		uvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
 		ur.save(uvo);
 	}
 
@@ -334,10 +336,10 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	@Transactional
-	public void loadRawMatByExcel() throws Exception {
+	public void loadRawMatByExcel(Map<String, Object> paraMap) throws Exception {
 		String tag = "MatrService.loadRawMatByExcel => ";
 		StringBuffer buf = new StringBuffer();
-
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
 		//String fileRoot = env.getProperty("file.root.path");
 		String fileRoot= File.separator;
 		buf.setLength(0);
@@ -380,10 +382,10 @@ public class UserServiceImpl implements UserService {
 			CodeInfo codeInfo = new CodeInfo();
 
 			String deptNm = row.getCell(3).getStringCellValue();
-			deptInfo = dr.findByDeptNmAndUsedYn(deptNm,"Y");
+			deptInfo = dr.findByCustNoAndDeptNmAndUsedYn(custNo,deptNm,"Y");
 
 			String codeNm = row.getCell(4).getStringCellValue();
-			codeInfo = cr.findByCodeNmAndUsedYn(codeNm,"Y");
+			codeInfo = cr.findByCustNoAndCodeNmAndUsedYn(custNo,codeNm,"Y");
 			String beforeDate = row.getCell(5).getStringCellValue();
 
 			DateFormat sdFormat = new SimpleDateFormat("yyyy/MM/dd");
@@ -429,6 +431,7 @@ public class UserServiceImpl implements UserService {
 //			log.info("머냐?"+chkvo);
 //
 //			if (chkvo == null) {
+				userInfo.setCustInfo(custInfoRepo.findByCustNo(custNo));
 				ur.save(userInfo);
 //			}
 //					dr.save(deptInfo);
@@ -680,6 +683,7 @@ public class UserServiceImpl implements UserService {
 	public void setLastAccPath(Map<String, Object> paraMap) {
 		String tag = "UserService.setLastAccPath => ";
 		log.info(tag + "paraMap = " + paraMap.toString());
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
 		UserInfo chkvo = ur.findByUserIdAndUsedYn(Long.parseLong(paraMap.get("userId").toString()), "Y");
 		if(chkvo != null){
 			chkvo.setAccPath(paraMap.get("sysMenuNm").toString());
@@ -691,7 +695,7 @@ public class UserServiceImpl implements UserService {
 	public UserInfo getUserInfByToken(HashMap<String, Object> paraMap) {
 		String tag = "UserService.getUserInfByToken => ";
 		log.info(tag + "paraMap = " + paraMap.toString());
-
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
 		UserInfo userInfo = ur.findByToken(paraMap.get("token").toString());
 		if (userInfo != null) {
 			userRepo.save(userInfo);
