@@ -10,7 +10,7 @@
             , a.svc_tp   --설비연동서비스타입
             , a.scada_api --scada api
        from spot_info a
-       where a.used_yn = 'Y'
+       where a.used_yn = 'Y' and a.cust_no = #{custNo}
        <if test="spotNo != null and  spotNo != ''">
            AND a.spot_no = #{spotNo}
        </if>
@@ -30,7 +30,7 @@
               ,a.scada_api --scada api
               ,a.scada_api --scada_api
         FROM spot_info a
-        WHERE a.used_yn  = 'Y'
+        WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
         <if test="spotNo != null and  spotNo != ''">
             AND a.spot_no = #{spotNo}
         </if>
@@ -46,7 +46,7 @@
         SELECT COUNT(spot_no)
         FROM ( SELECT a.spot_no --센서번호
                 FROM spot_info a
-                where a.used_yn  = 'Y'
+                where a.used_yn  = 'Y' and a.cust_no = #{custNo}
                 <if test="spotNo != null and  spotNo != ''">
                     AND a.spot_no = #{spotNo}
                 </if>
@@ -60,7 +60,8 @@
     <select id="getSpotEquipList" parameterType="map"  resultType="camelMap">
         select a.spot_nm --작업장명
              , a.spot_tmpr --작업장온도코드
-        from spot_info a join spot_equip b on a.spot_no = b.spot_no and b.equip_no = #{equipNo}
+        from spot_info a join spot_equip b on a.spot_no = b.spot_no and b.equip_no = #{equipNo} and b.cust_no = #{custNo}
+        where a.cust_no = #{custNo}
     </select>
 
     <select id="getSpotInfo" parameterType="map" resultType="camelMap">
@@ -74,9 +75,9 @@
                , b.org_file_nm
                , case when (select count(mngr_hstr_no)
                             from equip_mngr_hstr
-                            where to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24MI') = to_char(now(),'YYYY-MM-DD HH24MI') and spot_equip_no = #{spotEquipNo}) = 0 then 'N' else 'Y' end as oper_yn
-        FROM spot_info a left join file_info b on a.file_no = b.file_no
-        WHERE a.spot_no = #{spotNo}
+                            where to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24MI') = to_char(now(),'YYYY-MM-DD HH24MI') and spot_equip_no = #{spotEquipNo} and cust_no = #{custNo}) = 0 then 'N' else 'Y' end as oper_yn
+        FROM spot_info a left join file_info b on a.file_no = b.file_no and b.cust_no = #{custNo}
+        WHERE a.spot_no = #{spotNo} and a.cust_no = #{custNo}
         and a.used_yn  = 'Y'
     </select>
 
@@ -88,8 +89,8 @@
         union
         select a.spot_equip_no as value
              , b.equip_nm      as text
-        from spot_equip a join equip_info b on a.equip_no  = b.equip_no
-        where spot_no = #{spotNo}
+        from spot_equip a join equip_info b on a.equip_no  = b.equip_no and b.cust_no = #{custNo}
+        where spot_no = #{spotNo} and a.cust_no = #{custNo}
         order by value
     </select>
 

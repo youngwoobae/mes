@@ -9,9 +9,9 @@
              , a.sys_menu_no --연관메뉴번호
              , b.sys_menu_nm --연관메뉴명
              , z.code_nm as role_nm --역할명
-        from role_info a join sys_menu b on a.sys_menu_no = b.sys_menu_no
-                         join code_info z on a.role_code = z.code_no
-        where a.user_yn = 'Y'
+        from role_info a join sys_menu b on a.sys_menu_no = b.sys_menu_no and b.cust_no = #{custNo}
+                         join code_info z on a.role_code = z.code_no and z.cust_no = #{custNo}
+        where a.user_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'roleNm'">
             AND upper(replace(z.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -23,9 +23,9 @@
     <select id="getRoleListCount" parameterType="map"  resultType="int">
         select count(a.role_no)
         from (  select a.role_no   --역할번호
-                from role_info a join sys_menu b on a.sys_menu_no = b.sys_menu_no
-                                 join code_info z on a.role_code = z.code_no
-                where a.user_yn = 'Y'
+                from role_info a join sys_menu b on a.sys_menu_no = b.sys_menu_no and b.cust_no = #{custNo}
+                                 join code_info z on a.role_code = z.code_no and z.cust_no = #{custNo}
+                where a.user_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'roleNm'">
                         AND upper(replace(z.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -41,13 +41,13 @@
              , a.sys_menu_no --연관메뉴번호
              , b.sys_menu_nm --연관메뉴명
              , z.code_nm as role_nm --역할명
-        from role_info a join sys_menu b on a.sys_menu_no = b.sys_menu_no
-                         join code_info z on a.role_code = z.code_no
-        where a.role_no = #{roleNo}
+        from role_info a join sys_menu b on a.sys_menu_no = b.sys_menu_no and b.cust_no = #{custNo}
+                         join code_info z on a.role_code = z.code_no and z.cust_no = #{custNo}
+        where a.role_no = #{roleNo} and a.cust_no = #{custNo}
     </select>
 
     <update id="dropRoleInfo" parameterType="map">
-        update role_info set used_yn = 'N' where role_no = #{roleNo}
+        update role_info set used_yn = 'N' where role_no = #{roleNo} and cust_no = #{custNo}
     </update>
 
     <select id="getRoleUserList" parameterType="map"  resultType="camelMap">
@@ -58,11 +58,11 @@
                 , c.sys_menu_nm --연관메뉴명
                 , d.user_nm --사용자명
                 , z.code_nm as role_nm --역할명
-        from role_user a join role_info b on a.role_no = b.role_no
-                         join sys_menu  c on b.sys_menu_no = c.sys_menu_no
-                         join user_info d on a.user_id = d.user_id
-                         join code_info z on b.role_code = z.code_no
-        where a.used_yn = 'Y'
+        from role_user a join role_info b on a.role_no = b.role_no and b.cust_no = #{custNo}
+                         join sys_menu  c on b.sys_menu_no = c.sys_menu_no and c.cust_no = #{custNo}
+                         join user_info d on a.user_id = d.user_id and d.cust_no = #{custNo}
+                         join code_info z on b.role_code = z.code_no and z.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'roleNm'">
                 AND upper(replace(z.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -74,11 +74,11 @@
     <select id="getRoleUserListCount" parameterType="map"  resultType="camelMap">
         select count(a.user_id)
         from ( select    a.user_id --사용자ID
-                from role_user a join role_info b on a.role_no = b.role_no
-                                 join sys_menu  c on b.sys_menu_no = c.sys_menu_no
-                                 join user_info d on a.user_id = d.user_id
-                                 join code_info z on b.role_code = z.code_no
-                where a.used_yn = 'Y'
+                from role_user a join role_info b on a.role_no = b.role_no and b.cust_no = #{custNo}
+                                 join sys_menu  c on b.sys_menu_no = c.sys_menu_no and c.cust_no = #{custNo}
+                                 join user_info d on a.user_id = d.user_id and d.cust_no = #{custNo}
+                                 join code_info z on b.role_code = z.code_no and z.cust_no = #{custNo}
+                where a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'roleNm'">
                         AND upper(replace(z.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -96,11 +96,11 @@
                 , c.sys_menu_nm --연관메뉴명
                 , d.user_nm --사용자명
                 , z.code_nm as role_nm --역할명
-        from role_user a join role_info b on a.role_no = b.role_no
-                         join sys_menu  c on b.sys_menu_no = c.sys_menu_no
-                         join user_info d on a.user_id = d.user_id
-                         join code_info z on b.role_code = z.code_no
-        where a.user_role_no = #{userRoleNo}
+        from role_user a join role_info b on a.role_no = b.role_no and b.cust_no = #{custNo}
+                         join sys_menu  c on b.sys_menu_no = c.sys_menu_no and c.cust_no = #{custNo}
+                         join user_info d on a.user_id = d.user_id and d.cust_no = #{custNo}
+                         join code_info z on b.role_code = z.code_no and z.cust_no = #{custNo}
+        where a.user_role_no = #{userRoleNo} and a.cust_no = #{custNo}
     </select>
     <select id="getRoleMenuList" parameterType="map" resultType="camelMap">
 		select x.sys_menu_no
@@ -110,21 +110,21 @@
                     , case when b.role_code = 0 then 'N' else 'Y' end as sale_yn
                     , case when c.role_code = 0 then 'N' else 'Y' end as make_yn
                     , case when d.role_code = 0 then 'N' else 'Y' end as supt_yn
-        from  sys_menu x left join ( select a.role_code , a.sys_menu_no from role_info a  where a.role_code  = #{roleCdAdmin}) a  on a.sys_menu_no = x.sys_menu_no
-                         left join ( select a.role_code , a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSale}) b  on b.sys_menu_no = x.sys_menu_no
-                         left join ( select a.role_code , a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdMake}) c  on c.sys_menu_no = x.sys_menu_no
-                         left join ( select a.role_code , a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSupt}) d  on d.sys_menu_no = x.sys_menu_no
-        where  x.par_sys_menu_no = #{sysMenuNo} or x.sys_menu_no = #{sysMenuNo}
+        from  sys_menu x left join ( select a.role_code , a.sys_menu_no from role_info a  where a.role_code  = #{roleCdAdmin} and a.cust_no = #{custNo}) a  on a.sys_menu_no = x.sys_menu_no
+                         left join ( select a.role_code , a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSale} and a.cust_no = #{custNo}) b  on b.sys_menu_no = x.sys_menu_no
+                         left join ( select a.role_code , a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdMake} and a.cust_no = #{custNo}) c  on c.sys_menu_no = x.sys_menu_no
+                         left join ( select a.role_code , a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSupt} and a.cust_no = #{custNo}) d  on d.sys_menu_no = x.sys_menu_no
+        where  x.par_sys_menu_no = #{sysMenuNo} or x.sys_menu_no = #{sysMenuNo} and x.cust_no = #{custNo}
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getRoleMenuListCount" parameterType="map" resultType="int">
         select count(a.sys_menu_no)
         from (  select x.sys_menu_no
-                from  sys_menu x left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdAdmin}) a  on a.sys_menu_no = x.sys_menu_no
-                                 left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSale}) b  on b.sys_menu_no = x.sys_menu_no
-                                 left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdMake}) c  on c.sys_menu_no = x.sys_menu_no
-                                 left join  ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSupt}) d  on d.sys_menu_no = x.sys_menu_no
-        WHERE 1 = 1 AND x.par_sys_menu_no = #{sysMenuNo} or x.sys_menu_no = #{sysMenuNo}
+                from  sys_menu x left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdAdmin} and a.cust_no = #{custNo}) a  on a.sys_menu_no = x.sys_menu_no
+                                 left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSale} and a.cust_no = #{custNo}) b  on b.sys_menu_no = x.sys_menu_no
+                                 left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdMake} and a.cust_no = #{custNo}) c  on c.sys_menu_no = x.sys_menu_no
+                                 left join  ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSupt} and a.cust_no = #{custNo}) d  on d.sys_menu_no = x.sys_menu_no
+        WHERE 1 = 1 and a.cust_no = #{custNo} AND x.par_sys_menu_no = #{sysMenuNo} or x.sys_menu_no = #{sysMenuNo}
          ) a
     </select>
 
@@ -136,11 +136,11 @@
                 , case when b.sys_menu_no is null then 'N' else 'Y' end as sale_yn
                 , case when c.sys_menu_no is null then 'N' else 'Y' end as make_yn
                 , case when d.sys_menu_no is null then 'N' else 'Y' end as supt_yn
-    from  sys_menu x left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdAdmin}) a  on a.sys_menu_no = x.sys_menu_no
-                     left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSale}) b  on b.sys_menu_no = x.sys_menu_no
-                     left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdMake}) c  on c.sys_menu_no = x.sys_menu_no
-                     left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSupt}) d  on d.sys_menu_no = x.sys_menu_no
-                     join role_info z on x.sys_menu_no = z.sys_menu_no
-    where  x.sys_menu_no = #{sysMenuNo} and z.role_no = #{roleNo}
+    from  sys_menu x left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdAdmin} and a.cust_no = #{custNo}) a  on a.sys_menu_no = x.sys_menu_no
+                     left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSale} and a.cust_no = #{custNo}) b  on b.sys_menu_no = x.sys_menu_no
+                     left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdMake} and a.cust_no = #{custNo}) c  on c.sys_menu_no = x.sys_menu_no
+                     left join ( select a.sys_menu_no  from role_info a  where a.role_code  = #{roleCdSupt} and a.cust_no = #{custNo}) d  on d.sys_menu_no = x.sys_menu_no
+                     join role_info z on x.sys_menu_no = z.sys_menu_no and z.cust_no = #{custNo}
+    where  x.sys_menu_no = #{sysMenuNo} and z.role_no = #{roleNo} and a.cust_no = #{custNo}
     </select>
 </mapper>

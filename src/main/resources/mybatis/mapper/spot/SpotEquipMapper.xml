@@ -11,9 +11,9 @@
                 ,a.min_lmt_val --최저임계값
                 ,c.spot_nm   -- 작업장명
                 ,c.spot_rmk --작업장비고
-        FROM spot_equip a join equip_info b on a.equip_no = b.equip_no
-                          join spot_info c on a.spot_no  = c.spot_no
-        WHERE a.used_yn  = 'Y'
+        FROM spot_equip a join equip_info b on a.equip_no = b.equip_no and b.cust_no = #{custNo}
+                          join spot_info c on a.spot_no  = c.spot_no and c.cust_no = #{custNo}
+        WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
         <if test="equipNo != null and  equipNo != ''">
             AND a.equip_no = #{equipNo}
         </if>
@@ -33,8 +33,8 @@
     <select id="getSpotEquipListCount" parameterType="map"  resultType="int">
         SELECT COUNT(a.equip_no)
         FROM ( SELECT a.equip_no --센서번호
-                FROM spot_equip a join equip_info b on a.equip_no = b.equip_no
-                WHERE a.used_yn  = 'Y'
+                FROM spot_equip a join equip_info b on a.equip_no = b.equip_no and b.cust_no = #{custNo}
+                WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
                 <if test="equipNo != null and  equipNo != ''">
                     AND a.equip_no = #{equipNo}
                 </if>
@@ -67,10 +67,10 @@
                 ,c.spot_rmk --작업장비고
                 ,c.scada_api
                 ,d.org_file_nm --작업장파일명
-        FROM spot_equip a join spot_info c on a.spot_no  = c.spot_no
-                    left join  file_info d on c.file_no = d.file_no
-                    left join equip_info b on a.equip_no = b.equip_no
-        WHERE a.spot_equip_no = #{spotEquipNo}
+        FROM spot_equip a join spot_info c on a.spot_no  = c.spot_no and c.cust_no = #{custNo}
+                    left join  file_info d on c.file_no = d.file_no and d.cust_no = #{custNo}
+                    left join equip_info b on a.equip_no = b.equip_no and b.cust_no = #{custNo}
+        WHERE a.spot_equip_no = #{spotEquipNo} and a.cust_no = #{custNo}
     </select>
 
 </mapper>
