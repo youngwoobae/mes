@@ -25,12 +25,12 @@
              , d.saup_nm --회사명
              , e.dept_nm --부서명
              , a.pms_cont --요청내용
-        from pms_ord a join user_info b on a.req_id = b.user_id
-                       join code_info c on a.proc_stat = c.code_no
-                  left join pms_saup d on a.saup_no = d.saup_no
-                  left join dept_info e on b.dept_no  = e.dept_no
-                  left join (select ord_no, count(recv_id) from pms_who where used_yn = 'Y' group by ord_no) f on a.ord_no = f.ord_no
-        where a.used_yn = 'Y'
+        from pms_ord a join user_info b on a.req_id = b.user_id and b.cust_no = #{custNo}
+                       join code_info c on a.proc_stat = c.code_no and c.cust_no = #{custNo}
+                  left join pms_saup d on a.saup_no = d.saup_no and d.cust_no = #{custNo}
+                  left join dept_info e on b.dept_no  = e.dept_no and e.cust_no = #{custNo}
+                  left join (select ord_no, count(recv_id) from pms_who where used_yn = 'Y' and cust_no = #{custNo} group by ord_no) f on a.ord_no = f.ord_no
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="ordNo != null and ordNo != ''">
             and a.ord_no = #{ordNo}
         </if>
@@ -78,12 +78,12 @@
                  , b.user_nm --요청자명
                  , d.saup_nm --회사명
                  , e.dept_nm --부서명
-            from pms_ord a join user_info b on a.req_id = b.user_id
-                           join code_info c on a.proc_stat = c.code_no
-                      left join pms_saup d on a.saup_no = d.saup_no
-                      left join dept_info e on b.dept_no  = e.dept_no
-                      left join (select ord_no, count(recv_id) from pms_who where used_yn = 'Y' group by ord_no) f on a.ord_no = f.ord_no
-            where a.used_yn = 'Y'
+            from pms_ord a join user_info b on a.req_id = b.user_id and b.cust_no = #{custNo}
+                           join code_info c on a.proc_stat = c.code_no and c.cust_no = #{custNo}
+                      left join pms_saup d on a.saup_no = d.saup_no and d.cust_no = #{custNo}
+                      left join dept_info e on b.dept_no  = e.dept_no and e.cust_no = #{custNo}
+                      left join (select ord_no, count(recv_id) from pms_who where used_yn = 'Y' and cust_no = #{custNo} group by ord_no) f on a.ord_no = f.ord_no
+            where a.used_yn = 'Y' and a.cust_no = #{custNo}
             <if test="ordNo != null and ordNo != ''">
                 and a.ord_no = #{ordNo}
             </if>
@@ -127,9 +127,9 @@
              , a.proc_stat --처리상태
              , a.file_no --파일번호
              , c.save_file_nm --저장파일명
-        from pms_ord a join user_info b on a.req_id = b.user_id
-                       left join file_info c on a.file_no = c.file_no
-        where a.used_yn = 'Y'
+        from pms_ord a join user_info b on a.req_id = b.user_id and b.cust_no = #{custNo}
+                       left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.ord_no = #{ordNo}
     </select>
 
@@ -143,11 +143,11 @@
              , a.recv_id -- 담당자
              , c.user_nm -- 담당자명
              , z.code_nm as proc_stat_nm --처리상태명
-        from pms_who a join pms_ord b on a.ord_no = b.ord_no
-                       join user_info c on a.recv_id = c.user_id
-                  left join code_info z on a.proc_stat = z.code_no
-                  left join pms_saup d on b.saup_no = d.saup_no
-        where a.used_yn = 'Y'
+        from pms_who a join pms_ord b on a.ord_no = b.ord_no and b.cust_no = #{custNo}
+                       join user_info c on a.recv_id = c.user_id and c.cust_no = #{custNo}
+                  left join code_info z on a.proc_stat = z.code_no and z.cust_no = #{custNo}
+                  left join pms_saup d on b.saup_no = d.saup_no and d.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.ord_no = #{ordNo}
     </select>
 </mapper>

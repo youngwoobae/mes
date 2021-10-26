@@ -12,7 +12,7 @@
              , c.code_nm as proc_unit_nm --생산단위명
         from proc_info a join code_info b on a.proc_cd = b.code_no  and b.used_yn = 'Y'
                          join code_info c on a.proc_unit = c.code_no
-        where 1 = 1
+        where 1 = 1 and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'procNm'">
                 and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -27,7 +27,7 @@
                  select a.proc_cd --공정코드
                  from proc_info a join code_info b on a.proc_cd = b.code_no  and b.used_yn = 'Y'
                                   join code_info c on a.proc_unit = c.code_no
-                where 1 = 1
+                where 1 = 1 and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'procNm'">
                         and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -47,8 +47,8 @@
              , coalesce (c.next_step_val,0) as next_step_val --다음공정STEP(다음공정시작일 = 직전공정 종료일 + next_step_val)
              , d.code_nm as proc_grp_nm --인력투입그룹명
              , a.ccp_tp --관리공정
-        from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y'
-                    left join proc_brnch c on b.proc_cd = c.proc_cd
+        from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                    left join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
                          <if test="brnchNo != null and brnchNo != ''">
                             and c.brnch_no = #{brnchNo}
                          </if>
@@ -70,8 +70,8 @@
     <select id="getProcBrnchListCount" parameterType="map" resultType="int">
         select count(a.code_no)
         from (  select a.code_no
-                from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y'
-                            left join proc_brnch c on b.proc_cd = c.proc_cd
+                from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                            left join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
                                 <if test="brnchNo != null and brnchNo != ''">
                                     and c.brnch_no = #{brnchNo}
                                     </if>
@@ -100,8 +100,8 @@
              , a.proc_unit
              , #{baseUrl} || c.acc_url as acc_url-- 원자재사진 경로
         from  proc_info a join code_info b on a.proc_cd = b.code_no
-                     left join  file_info c on a.file_no = c.file_no
-        where a.proc_cd =  #{procCd}
+                     left join  file_info c on a.file_no = c.file_no and c.cust_no = #{custNo}
+        where a.proc_cd =  #{procCd} and a.cust_no = #{custNo}
     </select>
 
     <select id="getProcList" parameterType="map" resultType="camelMap">
@@ -112,7 +112,7 @@
               , c.code_nm as proc_unit_nm --일간생산량단위
         from proc_info a join code_info b on a.proc_cd = b.code_no
                          join code_info c on a.proc_unit = c.code_no
-        where a.used_yn = 'Y'
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'procNm'">
                 and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -131,7 +131,7 @@
                      , c.code_nm as proc_unit_nm --일간생산량단위
                     from proc_info a join code_info b on a.proc_cd = b.code_no
                                      join code_info c on a.proc_unit = c.code_no
-                    where a.used_yn = 'Y'
+                    where a.used_yn = 'Y' and a.cust_no = #{custNo}
                     <if test="findSz != null and findSz != ''">
                         <if test="findTp != null and findTp == 'procNm'">
                             and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -151,7 +151,7 @@
                 , a.used_mp_lvlm --숙련도(중) 필요인원수
                 , a.used_mp_lvlb --숙련도(하) 필요인원수
          from proc_info a join code_info b on a.proc_cd = b.code_no and b.par_code_no = #{parCodeNo}
-        where a.used_yn = 'Y'
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'procNm'">
                 and upper(replace(code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -165,7 +165,7 @@
         select count(a.proc_cd)
         from (select a.proc_cd
               from proc_info a join code_info b on a.proc_cd = b.code_no and b.par_code_no = #{parCodeNo}
-              where a.used_yn = 'Y'
+              where a.used_yn = 'Y' and a.cust_no = #{custNo}
               <if test="findSz != null and findSz != ''">
                 <if test="findTp != null and findTp == 'code'">
                     and upper(replace(code_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -175,7 +175,7 @@
     </select>
 
     <update id="dropProcStd" parameterType="map">
-        update proc_info set used_yn = 'N' where proc_cd = #{procCd}
+        update proc_info set used_yn = 'N' where proc_cd = #{procCd} and cust_no = #{custNo}
     </update>
 
     <select id="getPopProcList" parameterType="map" resultType="camelMap">
@@ -187,10 +187,10 @@
              , a.make_fr_dt --생산시작일자
              , a.make_to_dt --생산종료일자
              , to_char(a.indc_dt, 'YYYY-MM-DD') as indc_dt --생산지시일자
-        from make_indc a join prod_info b on a.prod_no = b.prod_no
-                         join proc_info c on a.proc_cd = c.proc_cd
+        from make_indc a join prod_info b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
+                         join proc_info c on a.proc_cd = c.proc_cd and c.cust_no = #{custNo}
                          join code_info z on c.proc_cd = z.code_no
-        where a.used_yn = 'Y'
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null || findSz != ''">
             <if test="findTp != null and findTp == 'prodNm'">
                 AND upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -203,10 +203,10 @@
     <select id="getPopProcListCount" parameterType="map" resultType="int">
         select count(a.prod_no)
         from (   select a.prod_no
-                 from make_indc a join prod_info b on a.prod_no = b.prod_no
-                                  join proc_info c on a.proc_cd = c.proc_cd
+                 from make_indc a join prod_info b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
+                                  join proc_info c on a.proc_cd = c.proc_cd and c.cust_no = #{custNo}
                                   join code_info z on c.proc_cd = z.code_no
-                 where a.used_yn = 'Y'
+                 where a.used_yn = 'Y' and a.cust_no = #{custNo}
                     <if test="findSz != null || findSz != ''">
                         <if test="findTp != null and findTp == 'prodNm'">
                             AND upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -220,8 +220,8 @@
              , a.user_id
              , a.user_nm
              , case when b.proc_grp_cd is null then 'N' else 'Y' end as memb_yn
-        from user_info a left join proc_mp b on a.user_id = b.user_id and b.proc_grp_cd = #{procGrpCd} and b.used_yn = 'Y'
-        where a.used_yn = 'Y'
+        from user_info a left join proc_mp b on a.user_id = b.user_id and b.proc_grp_cd = #{procGrpCd} and b.used_yn = 'Y' and b.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.ocpn_kind = #{ocpnKind}
         <if test="findSz != null || findSz != ''">
             <if test="findTp != null and findTp == 'user_nm'">
@@ -244,11 +244,11 @@
     </select>
 
     <delete id="dropProcMpByProcGrpCd" parameterType="map" >
-        delete from proc_mp where proc_grp_cd = #{proc_grp_cd}
+        delete from proc_mp where proc_grp_cd = #{proc_grp_cd} and cust_no = #{custNo}
     </delete>
 
     <update id="getUpdateUsedyn" parameterType="map" >
-            update proc_mp set used_yn = 'N' where proc_grp_cd = #{procGrpCd}
+            update proc_mp set used_yn = 'N' where proc_grp_cd = #{procGrpCd} and cust_no = #{custNo}
     </update>
 
 </mapper>

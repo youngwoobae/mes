@@ -35,22 +35,22 @@
              , (select coalesce(sum(owh_qty),0) from prod_owh op where op.ord_no = a.ord_no) as owh_qty
         FROM ord_info a join code_info b ON a.ord_sts = b.code_no
                         join code_info c ON a.ord_tp = c.code_no
-                        join cmpy_info d on a.cmpy_no = d.cmpy_no
+                        join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
                    left join (select max(d.prod_no) as prod_no
                                    , count(d.prod_no) -1 as ord_cnt
                                    , d.ord_no
-                                from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
-                                where d.used_yn = 'Y'
+                                from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                where d.used_yn = 'Y' and d.cust_no = #{custNo}
                                 group by d.ord_no
                              ) f on a.ord_no = f.ord_no
-                   left join prod_info g on g.prod_no = f.prod_no
+                   left join prod_info g on g.prod_no = f.prod_no and g.cust_no = #{custNo}
                    left join code_info e on a.trk_cmpy_no = e.code_no
-                   left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
-                   left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
+                   left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) k on a.ord_no = k.ord_no
+                   left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) m on a.ord_no = m.ord_no
                     <if test="prodNo != null and prodNo != ''">
-                        join ord_prod h on h.ord_no = a.ord_no
+                        join ord_prod h on h.ord_no = a.ord_no and h.cust_no = #{custNo}
                     </if>
-        WHERE a.used_yn = 'Y'
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != ''">AND a.cmpy_no = #{cmpyNo}</if>
         <if test="ordTp != null and ordTp != ''">AND a.ord_tp = #{ordTp}</if>
         <if test="ordNo != null and ordNo != ''">AND a.ord_no = #{ordNo}</if>
@@ -80,24 +80,24 @@
     <select id="getOrdListCount" parameterType="map" resultType="int">
         SELECT count(a.cmpy_no)
         FROM ( SELECT a.cmpy_no
-                 FROM ord_info a join code_info b ON a.ord_sts = b.code_no
-                                 join code_info c ON a.ord_tp = c.code_no
-                                 join cmpy_info d on a.cmpy_no = d.cmpy_no
-                            left join (select max(d.prod_no) as prod_no
-                                            , count(d.prod_no) -1 as ord_cnt
-                                            , d.ord_no
-                                         from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
-                                        where d.used_yn = 'Y'
-                                        group by d.ord_no
-                                      ) f on a.ord_no = f.ord_no
-                            left join prod_info g on g.prod_no = f.prod_no
-                            left join code_info e on a.trk_cmpy_no = e.code_no
-                            left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
-                            left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
-        <if test="prodNo != null and prodNo != ''">
-                    join ord_prod h on h.ord_no = a.ord_no
-                </if>
-                WHERE a.used_yn = 'Y'
+                FROM ord_info a join code_info b ON a.ord_sts = b.code_no
+                                join code_info c ON a.ord_tp = c.code_no
+                                join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
+                                left join (select max(d.prod_no) as prod_no
+                                                , count(d.prod_no) -1 as ord_cnt
+                                                , d.ord_no
+                                           from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                where d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                group by d.ord_no
+                                           ) f on a.ord_no = f.ord_no
+                                left join prod_info g on g.prod_no = f.prod_no and g.cust_no = #{custNo}
+                                left join code_info e on a.trk_cmpy_no = e.code_no
+                                left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) k on a.ord_no = k.ord_no
+                                left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) m on a.ord_no = m.ord_no
+                                <if test="prodNo != null and prodNo != ''">
+                                    join ord_prod h on h.ord_no = a.ord_no and h.cust_no = #{custNo}
+                                </if>
+                WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
 
                 <if test="cmpyNo != null and cmpyNo != ''">AND a.cmpy_no = #{cmpyNo}</if>
                 <if test="ordTp != null and ordTp != ''">AND a.ord_tp = #{ordTp}</if>
@@ -152,25 +152,27 @@
               , b.code_nm as ord_path_nm --주문경로명
         FROM ord_info a join code_info b ON a.ord_sts = b.code_no
                         join code_info c ON a.ord_tp = c.code_no
-                        join cmpy_info d on a.cmpy_no = d.cmpy_no
+                        join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
                    left join code_info e on a.trk_cmpy_no = e.code_no
                   left join (select  to_char(max(h.owh_dt),'YYYY-MM-DD') as dlv_dt
                                     , ord_no
                             from prod_owh h
                             where used_yn = 'Y'
+                            and cust_no = #{custNo}
                             group by ord_no
                             ) h on h.ord_no = a.ord_no
                    left join (select max(d.prod_no) as prod_no
                                     , count(d.prod_no) -1 as ord_cnt
                                     , d.ord_no
-                                from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                                from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                 where d.used_yn = 'Y'
+                                and d.cust_no = #{custNo}
                                 group by d.ord_no
                               ) f on a.ord_no = f.ord_no
-                   left join prod_info g on g.prod_no = f.prod_no
-                   left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
-                   left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
-        WHERE a.used_yn = 'Y'
+                   left join prod_info g on g.prod_no = f.prod_no and g.cust_no = #{custNo}
+                   left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) k on a.ord_no = k.ord_no
+                   left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) m on a.ord_no = m.ord_no
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.ord_tp = #{ordTp}
         <if test="ordSts != null and ordSts != ''">
             and a.ord_sts = #{ordSts}
@@ -196,25 +198,27 @@
         from (  SELECT a.ord_no
                 FROM ord_info a join code_info b ON a.ord_sts = b.code_no
                                 join code_info c ON a.ord_tp = c.code_no
-                                join cmpy_info d on a.cmpy_no = d.cmpy_no
+                                join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
                            left join code_info e on a.trk_cmpy_no = e.code_no
                           left join (select  to_char(max(h.owh_dt),'YYYY-MM-DD') as dlv_dt
                                             , ord_no
                                     from prod_owh h
                                     where used_yn = 'Y'
+                                    and cust_no = #{custNo}
                                     group by ord_no
                                     ) h on h.ord_no = a.ord_no
                            left join (select max(d.prod_no) as prod_no
                                            , count(d.prod_no) -1 as ord_cnt
                                            , d.ord_no
-                                        from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                                        from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                         where d.used_yn = 'Y'
+                                        and d.cust_no = #{custNo}
                                         group by d.ord_no
                                      ) f on a.ord_no = f.ord_no
                            left join prod_info g on g.prod_no = f.prod_no
-                           left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' group by ord_no ) k on a.ord_no = k.ord_no
-                           left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' group by ord_no ) m on a.ord_no = m.ord_no
-                WHERE a.used_yn = 'Y'
+                           left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) k on a.ord_no = k.ord_no
+                           left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) m on a.ord_no = m.ord_no
+                WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
                   and a.ord_tp = #{ordTp}
                 <if test="ordSts != null and ordSts != ''">
                     and a.ord_sts = #{ordSts}
@@ -252,16 +256,17 @@
              , coalesce(a.trk_amt,0)  as trk_amt --운송요금
              , coalesce(a.trk_cmpy_no,0) as trk_cmpy_no --운송사
              , a.ord_sts --주문상태
-        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no
+        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no and b.cust_no = #{custNo}
                         join (select max(d.prod_no) as prod_no
                                    , count(d.prod_no) -1 as ord_cnt
                                    , d.ord_no
-                              from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y'
+                              from  ord_prod d join ord_info c on d.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                               where d.used_yn = 'Y'
+                              and d.cust_no = #{custNo}
                               group by d.ord_no
                               ) f on a.ord_no = f.ord_no
-                        join prod_info c on f.prod_no = c.prod_no
-        where a.ord_no = #{ordNo}
+                        join prod_info c on f.prod_no = c.prod_no and c.cust_no = #{custNo}
+        where a.ord_no = #{ordNo} and a.cust_no = #{custNo}
           and a.used_yn = 'Y'
     </select>
 
@@ -285,9 +290,9 @@
               , d.fax_no --대표팩스
               , d.tel_no --대표전화
               , d.hp     --홈페이지
-        FROM ord_info a join cmpy_info d on a.cmpy_no = d.cmpy_no
+        FROM ord_info a join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
                         join code_info c on a.ord_sts = c.code_no
-         AND  a.ord_no = #{ordNo}
+         AND  a.ord_no = #{ordNo} and a.cust_no = #{custNo}
     </select>
 
     <select id="getPrjOrdInfo" parameterType="map" resultType="camelMap">
@@ -310,10 +315,10 @@
               , d.fax_no --대표팩스
               , d.tel_no --대표전화
               , d.hp     --홈페이지
-        FROM ord_info a join cmpy_info d on a.cmpy_no = d.cmpy_no
+        FROM ord_info a join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
                         join code_info c on a.ord_sts = c.code_no
                    left join code_info b on a.ord_path = b.code_no
-         AND  a.ord_no = #{ordNo}
+         AND  a.ord_no = #{ordNo} and a.cust_no = #{custNo}
     </select>
 
     <select id="getOrdInfoCart" parameterType="map" resultType="camelMap">
@@ -331,10 +336,11 @@
               , d.fax_no
               , d.tel_no
               , d.hp
-        FROM ord_info_cart a JOIN cmpy_info d on a.cmpy_no = d.cmpy_no
+        FROM ord_info_cart a JOIN cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
                              JOIN code_info c on a.ord_sts = c.code_no
         WHERE A.user_id = #{userId}
          AND  A.cmpy_no = #{cmpyNo}
+         and a.cust_no = #{custNo}
     </select>
 
 
@@ -356,14 +362,14 @@
               , b.prod_nm     --주문상품
               , b.erp_prod_nm
               , ci.code_nm as mngr_unit_nm --관리단위명
-        FROM ord_prod a join prod_info b ON a.prod_no = b.prod_no and b.used_yn = 'Y'
+        FROM ord_prod a join prod_info b ON a.prod_no = b.prod_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join code_info c on a.sale_unit = c.code_no
-                        join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y'
+                        join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         <if test="cmpyNo != null and cmpyNo != ''">
                             and d.cmpy_no = #{cmpyNo}
                         </if>
                    left join code_info ci on ci.code_no = b.mngr_unit
-        WHERE a.used_yn = 'Y'
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="ordNo != null and ordNo != ''">
           AND a.ord_no = #{ordNo}
         </if>
@@ -377,13 +383,13 @@
     <select id="getOrdProdListCount" parameterType="map" resultType="int">
         SELECT COUNT(a.ord_prod_no)
         FROM ( SELECT  a.ord_prod_no
-                FROM ord_prod a join prod_info b ON a.prod_no = b.prod_no and b.used_yn = 'Y'
+                FROM ord_prod a join prod_info b ON a.prod_no = b.prod_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 join code_info c on a.sale_unit = c.code_no
-                                join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y'
+                                join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                 <if test="cmpyNo != null and cmpyNo != ''">
                                     and d.cmpy_no = #{cmpyNo}
                                 </if>
-                WHERE a.used_yn = 'Y'
+                WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="ordNo != null and ordNo != ''">
                     AND a.ord_no = #{ordNo}
                 </if>
@@ -406,9 +412,9 @@
               , coalesce (a.sale_unit,b.sale_unit)       as sale_unit --판단위코드
               , coalesce( a.qty_per_pkg, b.qty_per_pkg) as qty_per_pkg --포장당수량
               , d.code_nm as sale_unit_nm
-        FROM ord_prod_cart a join prod_info b ON a.prod_no = b.prod_no
+        FROM ord_prod_cart a join prod_info b ON a.prod_no = b.prod_no and b.cust_no = #{custNo}
                              join code_info d on coalesce (a.sale_unit,b.sale_unit)= d.code_no
-        WHERE a.user_id = #{userId}
+        WHERE a.user_id = #{userId} and a.cust_no = #{custNo}
 
 
     </select>
@@ -416,9 +422,9 @@
     <select id="getOrdProdCartListCount" parameterType="map" resultType="int">
         SELECT COUNT(a.prod_no)
         FROM ( select a.prod_no
-                FROM  ord_prod_cart a join prod_info b ON a.prod_no = b.prod_no
+                FROM  ord_prod_cart a join prod_info b ON a.prod_no = b.prod_no and b.cust_no = #{custNo}
                                       join code_info d on coalesce (a.sale_unit,b.sale_unit)= d.code_no
-               WHERE  a.user_id = #{userId}
+               WHERE  a.user_id = #{userId} and a.cust_no = #{custNo}
         ) a
     </select>
 
@@ -438,14 +444,14 @@
              , coalesce (g.stk_qty,0) as stk_qty --자재 재고
              , coalesce(p.purs_qty ,0) as purs_qty --구매수량
              , z.code_nm as purs_unit_nm --구매단위명
-        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
-                         join matr_info c on b.matr_no = c.matr_no
+        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                         join matr_info c on b.matr_no = c.matr_no and c.cust_no = #{custNo}
                          join code_info d on c.matr_tp = d.code_no
-                         join ord_prod  f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
-                         left join matr_stk g on c.matr_no = g.matr_no
-                         left join ord_info  h on f.ord_no = h.ord_no
-                         left join purs_info k on h.purs_no = k.purs_no
-                         left join purs_matr p on k.purs_no = p.purs_no and p.matr_no = c.matr_no
+                         join ord_prod  f on a.prod_no = f.prod_no and f.ord_no = #{ordNo} and f.cust_no = #{custNo}
+                         left join matr_stk g on c.matr_no = g.matr_no and g.cust_no = #{custNo}
+                         left join ord_info  h on f.ord_no = h.ord_no and h.cust_no = #{custNo}
+                         left join purs_info k on h.purs_no = k.purs_no and k.cust_no = #{custNo}
+                         left join purs_matr p on k.purs_no = p.purs_no and p.matr_no = c.matr_no and p.cust_no = #{custNo}
                          left join code_info z on p.purs_unit = z.code_no
                     left join ( select matr_no
                                     , case when to_char(now(),'mm') = '01'  then jan_stk_qty
@@ -462,8 +468,9 @@
                                           when to_char(now(),'mm') = '12'  then dec_stk_qty
                                     end as safe_stk_qty
                                 from matr_safe_stk
+                                where cust_no = #{custNo}
                                ) e on c.matr_no = e.matr_no
-        where a.prod_no = #{prodNo}
+        where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
         order by c.matr_nm
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -471,15 +478,15 @@
     <select id="getOrdProdBomListCount" parameterType="map"  resultType="int">
         select count(a.prod_no)
         from ( select a.prod_no --품번
-               from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
-                                join matr_info c on b.matr_no = c.matr_no
-                                join code_info d on c.matr_tp = d.code_no
-                                join ord_prod  f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
-                                left join matr_stk g on c.matr_no = g.matr_no
-                                left join ord_info  h on f.ord_no = h.ord_no
-                                left join purs_info k on h.purs_no = k.purs_no
-                                left join purs_matr p on k.purs_no = p.purs_no and p.matr_no = c.matr_no
-                                left join code_info z on p.purs_unit = z.code_no
+               from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                         join matr_info c on b.matr_no = c.matr_no and c.cust_no = #{custNo}
+                         join code_info d on c.matr_tp = d.code_no
+                         join ord_prod  f on a.prod_no = f.prod_no and f.ord_no = #{ordNo} and f.cust_no = #{custNo}
+                         left join matr_stk g on c.matr_no = g.matr_no and g.cust_no = #{custNo}
+                         left join ord_info  h on f.ord_no = h.ord_no and h.cust_no = #{custNo}
+                         left join purs_info k on h.purs_no = k.purs_no and k.cust_no = #{custNo}
+                         left join purs_matr p on k.purs_no = p.purs_no and p.matr_no = c.matr_no and p.cust_no = #{custNo}
+                         left join code_info z on p.purs_unit = z.code_no
                                 left join ( select matr_no
                                                  , case when to_char(now(),'mm') = '01'  then jan_stk_qty
                                                         when to_char(now(),'mm') = '02'  then feb_stk_qty
@@ -495,8 +502,9 @@
                                                         when to_char(now(),'mm') = '12'  then dec_stk_qty
                        end as safe_stk_qty
                                             from matr_safe_stk
+                                            where cust_no = #{custNo}
                ) e on c.matr_no = e.matr_no
-               where a.prod_no = #{prodNo}
+               where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
         ) a
     </select>
 
@@ -516,14 +524,14 @@
              , coalesce (g.stk_qty,0) as stk_qty --자재 재고
              , coalesce(p.purs_qty ,0) as purs_qty --구매수량
              , z.code_nm as purs_unit_nm --구매단위명
-        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
-                         join matr_info c on b.matr_no = c.matr_no
+        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                         join matr_info c on b.matr_no = c.matr_no and c.cust_no = #{custNo}
                          join code_info d on c.matr_tp = d.code_no
-                         join ord_prod_cart f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
-                         left join matr_stk g on c.matr_no = g.matr_no
-                         left join ord_info  h on f.ord_no = h.ord_no
-                         left join purs_info k on h.purs_no = k.purs_no
-                         left join purs_matr p on k.purs_no = p.purs_no  and p.matr_no = c.matr_no
+                         join ord_prod_cart f on a.prod_no = f.prod_no and f.ord_no = #{ordNo} and f.cust_no = #{custNo}
+                         left join matr_stk g on c.matr_no = g.matr_no and g.cust_no = #{custNo}
+                         left join ord_info  h on f.ord_no = h.ord_no and h.cust_no = #{custNo}
+                         left join purs_info k on h.purs_no = k.purs_no and k.cust_no = #{custNo}
+                         left join purs_matr p on k.purs_no = p.purs_no  and p.matr_no = c.matr_no and p.cust_no = #{custNo}
                          left join code_info z on p.purs_unit = z.code_no
                     left join ( select matr_no
                                     , case when to_char(now(),'mm') = '01'  then jan_stk_qty
@@ -540,8 +548,9 @@
                                           when to_char(now(),'mm') = '12'  then dec_stk_qty
                                     end as safe_stk_qty
                                 from matr_safe_stk
+                                where cust_no = #{custNo}
                                ) e on c.matr_no = e.matr_no
-        where a.prod_no = #{prodNo}
+        where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
         order by c.matr_nm
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -549,14 +558,14 @@
     <select id="getOrdProdCartBomListCount" parameterType="map"  resultType="int">
         select count(a.prod_no)
         from ( select a.prod_no --품번
-                from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y'
-                                 join matr_info c on b.matr_no = c.matr_no
+                from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                                 join matr_info c on b.matr_no = c.matr_no and c.cust_no = #{custNo}
                                  join code_info d on c.matr_tp = d.code_no
-                                 join ord_prod_cart f on a.prod_no = f.prod_no and f.ord_no = #{ordNo}
-                                 left join matr_stk g on c.matr_no = g.matr_no
-                                 left join ord_info  h on f.ord_no = h.ord_no
-                                 left join purs_info k on h.purs_no = k.purs_no
-                                 left join purs_matr p on k.purs_no = p.purs_no  and p.matr_no = c.matr_no
+                                 join ord_prod_cart f on a.prod_no = f.prod_no and f.ord_no = #{ordNo} and f.cust_no = #{custNo}
+                                 left join matr_stk g on c.matr_no = g.matr_no and g.cust_no = #{custNo}
+                                 left join ord_info  h on f.ord_no = h.ord_no and h.cust_no = #{custNo}
+                                 left join purs_info k on h.purs_no = k.purs_no and k.cust_no = #{custNo}
+                                 left join purs_matr p on k.purs_no = p.purs_no  and p.matr_no = c.matr_no and p.cust_no = #{custNo}
                                  left join code_info z on p.purs_unit = z.code_no
                             left join ( select matr_no
                                             , case when to_char(now(),'mm') = '01'  then jan_stk_qty
@@ -573,8 +582,9 @@
                                                   when to_char(now(),'mm') = '12'  then dec_stk_qty
                                             end as safe_stk_qty
                                         from matr_safe_stk
+                                        where cust_no = #{custNo}
                                        ) e on c.matr_no = e.matr_no
-                where a.prod_no = #{prodNo}
+                where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
         ) a
     </select>
 
@@ -584,11 +594,11 @@
            SET ord_qty = #{ordQty}
              , sale_unit = #{saleUnit}
              , qty_per_pkg = #{qtyPerPkg}
-         WHERE user_id = #{userId} AND prod_no = #{prodNo}
+         WHERE user_id = #{userId} AND prod_no = #{prodNo} and cust_no = #{custNo}
     </update>
 
     <delete id="dropOrdProdCart" parameterType="map">
-        DELETE FROM ord_prod_cart WHERE user_id = #{userId}
+        DELETE FROM ord_prod_cart WHERE user_id = #{userId} and cust_no = #{custNo}
         <if test="prodNo != null and prodNo != ''">AND prod_no = #{prodNo}</if>
     </delete>
 
@@ -599,11 +609,11 @@
 
     <update id="dropOrdProd" parameterType="map">
         update ord_prod set used_yn = 'N'
-        where ord_prod_no = #{ordProdNo}
+        where ord_prod_no = #{ordProdNo} and cust_no = #{custNo}
     </update>
 
     <delete id="renewalOrdProd" parameterType="map">
-        DELETE FROM ord_prod WHERE ord_no = #{ordNo}
+        DELETE FROM ord_prod WHERE ord_no = #{ordNo} and cust_no = #{custNo}
         <if test="prodNos != null and prodNos != ''">
             and prod_no not in <foreach collection="prodList" item="prodNos" index="index" open="(" close=")" separator=",">   #{prodNos}   </foreach>
         </if>
@@ -616,6 +626,7 @@
 		  from cmpy_dlv_plc
 		  where used_yn = 'Y'
 		   and cmpy_no = #{cmpyNo}
+		   and cust_no = #{custNo}
       order by base_plc_yn desc, plc_nm
 	</select>
 
@@ -624,9 +635,9 @@
         select c.matr_no
               ,round( ( sum(coalesce(b.qty_per_pkg,0) * c.need_qty * b.ord_qty ))::decimal,2) as owh_wait_detl_qty
               ,round(ceil( ( sum(coalesce(b.qty_per_pkg,0) * c.need_qty * b.ord_qty )) )::decimal)  as owh_wait_qty
-        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn  = 'Y'
-                        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
-        where a.used_yn  = 'Y'
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn  = 'Y' and b.cust_no = #{custNo}
+                        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+        where a.used_yn  = 'Y' and a.cust_no = #{custNo}
         and  a.ord_sts = #{ordSts}
         <if test="ordNo != null and ordNo != ''">  AND a.ord_no = #{ordNo}</if>
         <if test="pursNo != null and pursNo != ''">  AND a.purs_no = #{pursNo}</if>
@@ -636,11 +647,12 @@
     <select id="getOwhWaitMatrListCount" parameterType="map" resultType="camelMap">
         select count(a.ord_no)
         from ( select c.matr_no
-        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
-        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y'
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
+        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where a.used_yn = 'Y'
         and a.purs_no is null
         and a.ord_sts = #{ordSts}
+        and a.cust_no = #{custNo}
         <if test="ordNo != null and ordNo != ''">AND a.ord_no = #{ordNo}</if>
         <if test="pursNo != null and pursNo != ''">AND a.purs_no = #{pursNo}</if>
         group by c.matr_no
@@ -655,13 +667,13 @@
              , mod_id = #{userId}
              , mod_ip = #{ipaddr}
              , mod_dt = now()
-        where stk_no = #{stkNo}
+        where stk_no = #{stkNo} and cust_no = #{custNo}
     </update>
 
     <!--출고대기 자재수량 추가-->
     <insert id="addOnMatrStk" parameterType="map">
         <selectKey resultType="long" keyProperty="stkNo" order="BEFORE">
-            SELECT coalesce (max(stk_no +1 ),1) stkNo from matr_stk
+            SELECT coalesce (max(stk_no +1 ),1) stkNo from matr_stk where cust_no = #{custNo}
         </selectKey>
         insert into matr_stk ( stk_no
         , matr_no
@@ -686,27 +698,28 @@
         , #{ipaddr}
         , now()
         )
+        where cust_no = #{custNo}
     </insert>
 
     <!--출고대기자재목록-->
     <select id="getJustInCreatedOrdNo" parameterType="map" resultType="long">
-        select max(ord_no) as ord_no from ord_info where cmpy_no = #{cmpy_no} and reg_id = #{userId}
+        select max(ord_no) as ord_no from ord_info where cmpy_no = #{cmpy_no} and cust_no = #{custNo} and reg_id = #{userId}
     </select>
 
     <update id="saveOwhWaitQty" parameterType="map">
-        update matr_stk set owh_wait_qty = #{owhWaitQty}, mod_id = #{modId}, mod_ip = #{modIp}, mod_dt = now() where stk_no = #{stkNo}
+        update matr_stk set owh_wait_qty = #{owhWaitQty}, mod_id = #{modId}, mod_ip = #{modIp}, mod_dt = now() where stk_no = #{stkNo} and cust_no = #{custNo}
     </update>
 
     <update id="resetPursNo" parameterType="map">
-        update ord_info set purs_no = #{pursNo}, mod_id = #{modId}, mod_ip = #{modIp}, mod_dt = now() where ord_no = #{ordNo}
+        update ord_info set purs_no = #{pursNo}, mod_id = #{modId}, mod_ip = #{modIp}, mod_dt = now() where ord_no = #{ordNo} and cust_no = #{custNo}
     </update>
 
     <delete id = "initPursProd" parameterType="map" >
-        delete from purs_matr where purs_no = (select purs_no from ord_info where ord_no = #{ordNo})
+        delete from purs_matr where purs_no = (select purs_no from ord_info where ord_no = #{ordNo}) and cust_no = #{custNo}
     </delete>
 
     <delete id = "initOrdProdCart" parameterType="map" >
-        delete from ord_prod_cart where user_id =  #{userId}
+        delete from ord_prod_cart where user_id =  #{userId} and cust_no = #{custNo}
     </delete>
 
     <insert id = "createOrdrProdCart" parameterType="map" >
@@ -728,7 +741,7 @@
              , ord_sz
              , #{userId}
         from ord_prod
-        where ord_no =  #{ordNo}
+        where ord_no =  #{ordNo} and cust_no = #{custNo}
     </insert>
 
     <select id="getOrdProdInfo" parameterType="map" resultType="camelMap">
@@ -740,8 +753,8 @@
              , ceil(case when a.mess = 0 then b.ord_qty else b.ord_qty / a.mess end) as org_qty --주문수량
              , a.sale_unit --판매단위
              , a.qty_per_pkg --판매단위(포장당)수량
-        from prod_info a join ord_prod b on a.prod_no = b.prod_no
-        where b.ord_prod_no  = #{ordProdNo}
+        from prod_info a join ord_prod b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
+        where b.ord_prod_no  = #{ordProdNo} and a.cust_no = #{custNo}
     </select>
 
     <select id="getExOrdProdList" parameterType="map" resultType="camelMap">
@@ -761,8 +774,8 @@
         from prod_info a left join code_info b on a.sale_unit = b.code_no
                          left join code_info c on a.mngr_unit = c.code_no
                          left join code_info d on a.prod_shape = d.code_no
-        where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
-          AND a.brnch_no is not null and  a.used_yn = 'Y'
+        where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
+          AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != ''">
             AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
         </if>
@@ -786,8 +799,8 @@
         from ( select a.prod_no
                from prod_info a left join code_info b on a.sale_unit = b.code_no
                                 left join code_info c on a.mngr_unit = c.code_no
-                where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
-                 AND a.brnch_no is not null and  a.used_yn = 'Y'
+                where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
+                 AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="cmpyNo != null and cmpyNo != ''">
                     AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
                 </if>
@@ -811,11 +824,12 @@
 				, plc_nm as text
 		  from cmpy_dlv_plc
 		  where cmpy_no = #{cmpyNo}
+		    and cust_no = #{custNo}
       order by base_plc_yn desc, plc_nm
 	</select>
 
     <select id="updateOrdProdQty" parameterType="map" >
-        update ord_prod set ord_qty = #{ordQty} where ord_no = #{ordNo} and prod_no = #{prodNo}
+        update ord_prod set ord_qty = #{ordQty} where ord_no = #{ordNo} and prod_no = #{prodNo} and cust_no = #{custNo}
     </select>
 
     <!-- 월실적보고서 - 상반기   -->
@@ -839,14 +853,15 @@
 
                  , round(coalesce(jun.ord_qty::numeric,0)/1000,3)::numeric as jun_ord_qty -- 6월 주문수량
                  , round(coalesce(jun.owh_qty::numeric,0)/1000,3)::numeric as jun_owh_qty -- 6월 출고수량
-        from ord_prod a join prod_info b on a.prod_no = b.prod_no
-                        join exchg_unit c on a.sale_unit = c.unit_no
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
+                        join exchg_unit c on a.sale_unit = c.unit_no and c.cust_no = #{custNo}
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                 where b.used_yn = 'Y'
+                                and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '01'
                                 group by b.prod_no
@@ -854,9 +869,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no
-                                           left join prod_owh d on c.ord_no = d.ord_no
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '02'
                                 group by b.prod_no
@@ -864,9 +879,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '03'
                                 group by b.prod_no
@@ -874,9 +889,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '04'
                                 group by b.prod_no
@@ -884,9 +899,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '05'
                                 group by b.prod_no
@@ -894,14 +909,14 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '06'
                                 group by b.prod_no
                              ) jun on a.prod_no = jun.prod_no
-        where 1 = 1
+        where 1 = 1 and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'prod_nm'">
                 and (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -915,14 +930,14 @@
     <select id="getFirstHalfPerformListCount" parameterType="map" resultType="int">
         select count(a.prod_no)
             from( select a.prod_no
-                        from ord_prod a join prod_info b on a.prod_no = b.prod_no
-                                        join exchg_unit c on a.sale_unit = c.unit_no
+                        from ord_prod a join prod_info b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
+                                        join exchg_unit c on a.sale_unit = c.unit_no and c.cust_no = #{custNo}
                                    left join (select  b.prod_no
                                                     , sum(b.ord_qty) as ord_qty
                                                     , sum(d.owh_qty) as owh_qty
-                                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                                where b.used_yn = 'Y'
+                                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                                 and to_char(d.owh_dt,'MM') = '01'
                                                 group by b.prod_no
@@ -930,9 +945,9 @@
                                    left join (select  b.prod_no
                                                     , sum(b.ord_qty) as ord_qty
                                                     , sum(d.owh_qty) as owh_qty
-                                               from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                          left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                                where b.used_yn = 'Y'
+                                               from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                          left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                                 and to_char(d.owh_dt,'MM') = '02'
                                                 group by b.prod_no
@@ -940,9 +955,9 @@
                                    left join (select  b.prod_no
                                                     , sum(b.ord_qty) as ord_qty
                                                     , sum(d.owh_qty) as owh_qty
-                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                              where b.used_yn = 'Y'
+                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                              where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                               and to_char(d.owh_dt,'YYYY') = #{procYy}
                                               and to_char(d.owh_dt,'MM') = '03'
                                               group by b.prod_no
@@ -950,9 +965,9 @@
                                    left join (select   b.prod_no
                                                     , sum(b.ord_qty) as ord_qty
                                                     , sum(d.owh_qty) as owh_qty
-                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                                where b.used_yn = 'Y'
+                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                                 and to_char(d.owh_dt,'MM') = '04'
                                                 group by b.prod_no
@@ -960,9 +975,9 @@
                                    left join (select   b.prod_no
                                                     , sum(b.ord_qty) as ord_qty
                                                     , sum(d.owh_qty) as owh_qty
-                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                                where b.used_yn = 'Y'
+                                              from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                         left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                                 and to_char(d.owh_dt,'MM') = '05'
                                                 group by b.prod_no
@@ -970,14 +985,14 @@
                                    left join (select   b.prod_no
                                                     , sum(b.ord_qty) as ord_qty
                                                     , sum(d.owh_qty) as owh_qty
-                                             from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                        left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                                where b.used_yn = 'Y'
+                                             from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                        left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                                 and to_char(d.owh_dt,'MM') = '06'
                                                 group by b.prod_no
                                              ) jun on a.prod_no = jun.prod_no
-            where 1 = 1
+            where 1 = 1 and a.cust_no = #{custNo}
             <if test="findSz != null and findSz != ''">
                 <if test="findTp != null and findTp == 'prod_nm'">
                     and (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -1009,14 +1024,14 @@
 
              , round(coalesce(dece.ord_qty::numeric,0)/1000,3)::numeric as dec_ord_qty -- 12월 주문수량
              , round(coalesce(dece.owh_qty::numeric,0)/1000,3)::numeric as dec_owh_qty -- 12월 출고수량
-        from ord_prod a join prod_info b on a.prod_no = b.prod_no
-                        join exchg_unit c on a.sale_unit = c.unit_no
+        from ord_prod a join prod_info b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
+                        join exchg_unit c on a.sale_unit = c.unit_no and c.cust_no = #{custNo}
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                   from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                              left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                    where b.used_yn = 'Y'
+                                   from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                              left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                    where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                     and to_char(d.owh_dt,'YYYY') = #{procYy}
                                     and to_char(d.owh_dt,'MM') = '07'
                                     group by b.prod_no
@@ -1024,9 +1039,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '08'
                                 group by b.prod_no
@@ -1034,9 +1049,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '09'
                                 group by b.prod_no
@@ -1044,9 +1059,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and a.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '10'
                                 group by b.prod_no
@@ -1054,9 +1069,9 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '11'
                                 group by b.prod_no
@@ -1064,16 +1079,17 @@
                    left join (select  b.prod_no
                                     , sum(b.ord_qty) as ord_qty
                                     , sum(d.owh_qty) as owh_qty
-                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                where b.used_yn = 'Y'
+                                from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                           left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '12'
                                 group by b.prod_no
                              ) dece on a.prod_no = dece.prod_no
+        where  a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'prod_nm'">
-                where (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                 (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 or upper(replace(erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 )
             </if>
@@ -1089,9 +1105,9 @@
                                left join (select  b.prod_no
                                                 , sum(b.ord_qty) as ord_qty
                                                 , sum(d.owh_qty) as owh_qty
-                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                            where b.used_yn = 'Y'
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                            where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             and to_char(d.owh_dt,'YYYY') = #{procYy}
                                             and to_char(d.owh_dt,'MM') = '07'
                                             group by b.prod_no
@@ -1099,9 +1115,9 @@
                                left join (select  b.prod_no
                                                 , sum(b.ord_qty) as ord_qty
                                                 , sum(d.owh_qty) as owh_qty
-                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                            where b.used_yn = 'Y'
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                            where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             and to_char(d.owh_dt,'YYYY') = #{procYy}
                                             and to_char(d.owh_dt,'MM') = '08'
                                             group by b.prod_no
@@ -1109,9 +1125,9 @@
                                left join (select  b.prod_no
                                                 , sum(b.ord_qty) as ord_qty
                                                 , sum(d.owh_qty) as owh_qty
-                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                            where b.used_yn = 'Y'
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                            where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             and to_char(d.owh_dt,'YYYY') = #{procYy}
                                             and to_char(d.owh_dt,'MM') = '09'
                                             group by b.prod_no
@@ -1119,9 +1135,9 @@
                                left join (select  b.prod_no
                                                 , sum(b.ord_qty) as ord_qty
                                                 , sum(d.owh_qty) as owh_qty
-                                           from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                      left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                            where b.used_yn = 'Y'
+                                           from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                      left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                            where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             and to_char(d.owh_dt,'YYYY') = #{procYy}
                                             and to_char(d.owh_dt,'MM') = '10'
                                             group by b.prod_no
@@ -1129,9 +1145,9 @@
                                left join (select  b.prod_no
                                                 , sum(b.ord_qty) as ord_qty
                                                 , sum(d.owh_qty) as owh_qty
-                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                            where b.used_yn = 'Y'
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                            where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             and to_char(d.owh_dt,'YYYY') = #{procYy}
                                             and to_char(d.owh_dt,'MM') = '11'
                                             group by b.prod_no
@@ -1139,16 +1155,17 @@
                                left join (select  b.prod_no
                                                 , sum(b.ord_qty) as ord_qty
                                                 , sum(d.owh_qty) as owh_qty
-                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y'
-                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y'
-                                            where b.used_yn = 'Y'
+                                            from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                                       left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                            where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             and to_char(d.owh_dt,'YYYY') = #{procYy}
                                             and to_char(d.owh_dt,'MM') = '12'
                                             group by b.prod_no
                                          ) dece on a.prod_no = dece.prod_no
+                    where  a.cust_no = #{custNo}
                     <if test="findSz != null and findSz != ''">
                         <if test="findTp != null and findTp == 'prod_nm'">
-                            where (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            (   upper(replace(prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                                    or upper(replace(erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                                   )
                         </if>
@@ -1161,8 +1178,8 @@
              , b.wh_nm
              , a.stk_qty
              , a.prod_no
-        from prod_stk a join wh_info b on a.wh_no = b.wh_no
-        where a.prod_no = #{prodNo} and a.stk_qty <![CDATA[ > ]]> 0
+        from prod_stk a join wh_info b on a.wh_no = b.wh_no and b.cust_no = #{custNo}
+        where a.prod_no = #{prodNo} and a.stk_qty <![CDATA[ > ]]> 0 and a.cust_no = #{custNo}
     </select>
 
 
@@ -1170,14 +1187,15 @@
         select count(a.prod_no)
         from (
              select a.prod_no
-             from prod_stk a join wh_info b on a.wh_no = b.wh_no
-             where a.prod_no = #{prodNo}
+             from prod_stk a join wh_info b on a.wh_no = b.wh_no and b.cust_no = #{custNo}
+             where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
         ) a
     </select>
     <select id="geOwhDateList" parameterType="map" resultType="camelMap">
         select distinct to_char(owh_dt,'YYYY')      as value
              , concat(to_char(owh_dt,'YYYY'),'년도') as text
         from prod_owh
+        where cust_no = #{custNo}
         order by value
     </select>
 
@@ -1197,16 +1215,18 @@
                     then to_char(e.owh_dt, 'MMDD') || '-0' || row_number() over(order by a.ord_no)
                     else to_char(e.owh_dt, 'MMDD') || '-' || row_number() over(order by a.ord_no)
                     end as owh_no --출고번호
-        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no and b.used_yn = 'Y'
-                        join ord_prod c on a.ord_no = c.ord_no and c.used_yn = 'Y'
-                        join prod_info d on c.prod_no = d.prod_no and d.used_yn = 'Y'
+        from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                        join ord_prod c on a.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                        join prod_info d on c.prod_no = d.prod_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                    left join (select po.ord_no
                                    , po.prod_no
                                    , max(po.owh_no) as owh_no
                                    , max(po.owh_dt) as owh_dt
                                 from prod_owh po
+                                where cust_no = #{custNo}
                                 group by po.prod_no, po.ord_no) e on c.ord_no = e.ord_no and c.prod_no = e.prod_no
         where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
         and e.owh_no is not null
         and a.ord_no in <foreach collection="ordList" item="ordNo" index="index" open="(" close=")" separator=",">   #{ordNo}   </foreach>
         order by a.dlv_req_dt, a.ord_no
