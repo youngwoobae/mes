@@ -20,12 +20,12 @@
              , d.equip_nm  --설비유혐명
              , e.code_nm AS protocol_nm --통신프로토콜명
              , f.sys_menu_nm --연관메뉴명
-        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no and b.cust_no = #{custNo}
                            JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
-                           JOIN equip_info d ON b.equip_no = d.equip_no
+                           JOIN equip_info d ON b.equip_no = d.equip_no and d.cust_no = #{custNo}
                       LEFT JOIN code_info e ON a.protocol = e.code_no
-                      LEFT JOIN sys_menu f ON a.sys_menu_no = f.sys_menu_no
-        WHERE a.used_yn = 'Y'
+                      LEFT JOIN sys_menu f ON a.sys_menu_no = f.sys_menu_no and f.cust_no = #{custNo}
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
         <if test="equipNo != null and equipNo != ''"> and b.equip_no = #{equipNo} </if>
         order by spot_nm
@@ -37,12 +37,12 @@
         select count(a.mobl_no)
         from (
             SELECT a.mobl_no   --테블릿 관리번호
-            FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+            FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no and b.cust_no = #{custNo}
                                JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
-                               JOIN equip_info d ON b.equip_no = d.equip_no
-                          LEFT JOIN code_info e ON a.protocol = e.code_no
-                          LEFT JOIN sys_menu f ON a.sys_menu_no = f.sys_menu_no
-            WHERE a.used_yn = 'Y'
+                               JOIN equip_info d ON b.equip_no = d.equip_no and d.cust_no = #{custNo}
+                               LEFT JOIN code_info e ON a.protocol = e.code_no
+                               LEFT JOIN sys_menu f ON a.sys_menu_no = f.sys_menu_no and f.cust_no = #{custNo}
+            WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
             <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
             <if test="equipNo != null and equipNo != ''"> and b.equip_no = #{equipNo} </if>
         ) a
@@ -61,11 +61,11 @@
              ,c.spot_nm --설치작업장명
              ,d.equip_nm  --설비유혐명
              ,e.code_nm AS protocol_nm --통신프로토콜명
-        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no and b.cust_no = #{custNo}
                            JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
-                           JOIN equip_info d ON b.equip_no = d.equip_no
+                           JOIN equip_info d ON b.equip_no = d.equip_no and d.cust_no = #{custNo}
                            LEFT JOIN code_info e ON a.protocol = e.code_no
-        where a.mobl_no = #{moblNo}
+        where a.mobl_no = #{moblNo} and a.cust_no = #{custNo}
     </select>
 
     <select id="getComboSpot" parameterType="map"  resultType="camelMap">
@@ -92,7 +92,7 @@
              ,  equip_no
              , equip_nm
         from equip_info
-        where used_yn = 'Y'
+        where used_yn = 'Y' and a.cust_no = #{custNo}
         order by seq, text
     </select>
     <select id="getComboTabletMenuList" parameterType="map"  resultType="camelMap">
@@ -106,6 +106,7 @@
         from sys_menu
         where mobl_yn = 'Y'
           and used_yn ='Y'
+          and a.cust_no = #{custNo}
         order by ord, value
     </select>
 
@@ -129,12 +130,12 @@
              ,c.spot_nm --설치작업장명
              ,d.equip_no --장치관리번호
              ,d.equip_nm  --장치유혐명
-        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no
+        FROM mobile_info a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no and b.cust_no = #{custNo}
                            JOIN spot_info C ON b.spot_no = c.spot_no AND c.cust_no = #{custNo}
-                           JOIN equip_info d ON b.equip_no = d.equip_no
+                           JOIN equip_info d ON b.equip_no = d.equip_no and d.cust_no = #{custNo}
                            join code_info f on b.meas_unit = f.code_no
                            LEFT JOIN code_info e ON a.protocol = e.code_no
-        where a.used_yn = 'Y'
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.sys_menu_no = #{sysMenuNo}
     </select>
 
@@ -152,8 +153,8 @@
              , #{baseUrl} ||'prod/' || a.prod_no::varchar || '.png' as bar_code_url
              , c.indc_no
         from prod_info a join code_info b on a.sale_unit = b.code_no
-                         left join make_indc c on a.prod_no = c.prod_no and c.par_indc_no = 0  and c.indc_sts = 2403
-        WHERE a.used_yn = 'Y'
+                         left join make_indc c on a.prod_no = c.prod_no and c.par_indc_no = 0  and c.indc_sts = 2403 and c.cust_no = #{custNo}
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
         <choose>
             <when test="findTp != null and findTp == 'en'">
                 and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
@@ -206,12 +207,12 @@
              , to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI') as date_fr
              , to_char(to_timestamp(unix_hms),'YYYY-MM-DD HH24:MI')      as chk_dt
              , to_char(to_timestamp(d.to_unix_hms),'YYYY-MM-DD HH24:MI') as date_to
-        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
-                                join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.cust_no = #{custNo}
+                                join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                 <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
-                                join equip_info e on b.equip_no = e.equip_no
-                                join oper_mast d on a.oper_no  = d.oper_no
-        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+                                join equip_info e on b.equip_no = e.equip_no and e.cust_no = #{custNo}
+                                join oper_mast d on a.oper_no  = d.oper_no and d.cust_no = #{custNo}
+        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between #{dateFr} and #{dateTo} and a.cust_no = #{custNo}
         and   to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI')  is not null
         group by a.spot_equip_no
                , a.oper_no
@@ -227,12 +228,12 @@
         select count(a.spot_equip_no)
         from (
             select a.spot_equip_no
-            from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no
-                                    join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
+            from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.cust_no = #{custNo}
+                                    join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                     <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
-                                    join equip_info e on b.equip_no = e.equip_no
-                                    join oper_mast d on a.oper_no  = d.oper_no
-            where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+                                    join equip_info e on b.equip_no = e.equip_no and e.cust_no = #{custNo}
+                                    join oper_mast d on a.oper_no  = d.oper_no and d.cust_no = #{custNo}
+            where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') between #{dateFr} and #{dateTo} and a.cust_no = #{custNo}
             and   to_char(to_timestamp(d.fr_unix_hms),'YYYY-MM-DD HH24:MI')  is not null
             group by a.spot_equip_no
                    , a.oper_no
@@ -250,10 +251,10 @@
         , e.equip_nm --설비유형명
         , max(round(a.meas_val::numeric,1)) as meas_val --측정값
         , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24:MI')      as chk_dt
-        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.spot_equip_no  = #{spotEquipNo}
-        join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
-        join equip_info e on b.equip_no = e.equip_no
-        where 1 = 1
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.spot_equip_no  = #{spotEquipNo} and b.cust_no = #{custNo}
+                                join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                join equip_info e on b.equip_no = e.equip_no and e.cust_no = #{custNo}
+        where 1 = 1 and a.cust_no = #{custNo}
         and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
         <if test="maxYn != null and maxYn != ''">
             and a.mngr_hstr_no = (select max(mngr_hstr_no) from equip_mngr_hstr where spot_equip_no = #{spotEquipNo})
@@ -275,10 +276,10 @@
         , e.equip_nm --설비유형명
         , max(round(a.meas_val::numeric,1)) as meas_val --측정값
         , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD HH24:MI')      as chk_dt
-        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.spot_equip_no  = #{spotEquipNo}
-        join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y'
-        join equip_info e on b.equip_no = e.equip_no
-        where 1 = 1
+        from  equip_mngr_hstr a join spot_equip b on a.spot_equip_no  = b.spot_equip_no and b.spot_equip_no  = #{spotEquipNo} and b.cust_no = #{custNo}
+                                join spot_info c on b.spot_no  = c.spot_no  and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                join equip_info e on b.equip_no = e.equip_no and e.cust_no = #{custNo}
+        where 1 = 1 and a.cust_no = #{custNo}
         and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
         <if test="maxYn != null and maxYn != ''">
             and a.mngr_hstr_no = (select max(mngr_hstr_no) from equip_mngr_hstr where spot_equip_no = #{spotEquipNo})
@@ -296,10 +297,12 @@
         update equip_mngr_hstr
         set oper_no = #{operNo}
         where spot_equip_no = #{spotEquipNo}
+          and cust_no = #{custNo}
           and to_char(to_timestamp(unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
           and mngr_hstr_no = ( select max(emh2.mngr_hstr_no)
                                from equip_mngr_hstr emh2
                                where spot_equip_no = #{spotEquipNo}
+                                 and a.cust_no = #{custNo}
                                  and to_char(to_timestamp(unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD'))
     </update>
 
@@ -308,15 +311,16 @@
         set oper_no = #{operNo}
         where mngr_hstr_no in (select max(mngr_hstr_no)
                                from equip_mngr_hstr a
-                               where spot_equip_no = #{spotEquipNo}
+                               where spot_equip_no = #{spotEquipNo} and a.cust_no = #{custNo}
                                  and mngr_hstr_no between (select mngr_hstr_no
                                                            from equip_mngr_hstr
                                                            where oper_no = #{operNo}
+                                                           and cust_no = #{custNo}
                                                            and used_yn = 'Y')
                                    and
                                    (select max(a.mngr_hstr_no) as mngr_hstr_no
-                                    from equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no
-                                    where a.spot_equip_no = #{spotEquipNo}
+                                    from equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no and b.cust_no = #{custNo}
+                                    where a.spot_equip_no = #{spotEquipNo} and a.cust_no = #{custNo}
                                       and to_char(to_timestamp(a.unix_hms), 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
                                    )
         )
@@ -326,6 +330,7 @@
         select (to_unix_hms - fr_unix_hms) as sterTime
         from oper_mast
         where oper_no = #{operNo}
+          and cust_no = #{custNo}
           and indc_no = #{indcNo}
     </select>
 
@@ -333,6 +338,7 @@
         update oper_mast
         set (to_unix_hms, to_qty, weight_qty, metal_qty)  = ( #{toUnixHms} , #{passQty}, #{weightQty}, #{metalQty} )
         where oper_no = #{operNo}
+        and cust_no = #{custNo}
     </update>
 
 
@@ -343,6 +349,7 @@
              , spot_equip_no
         from equip_mngr_hstr
         where oper_no = #{operNo}
+          and cust_no = #{custNo}
           and mngr_hstr_no = ( select max(mngr_hstr_no) from equip_mngr_hstr where oper_no = #{operNo} )
     </select>
 
@@ -356,6 +363,7 @@
           , adj_qty = #{adjQty}::numeric
           , to_unix_hms = #{toUnixHms}
         where oper_no = #{operNo}
+        and cust_no = #{custNo}
     </update>
 
 </mapper>
