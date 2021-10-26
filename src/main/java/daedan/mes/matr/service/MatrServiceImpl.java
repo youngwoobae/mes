@@ -167,10 +167,7 @@ public class MatrServiceImpl implements MatrService {
                 rmap.put("matrAttr", mavo);
             }
         }
-
-        log.info("rmap => " + rmap);
         return rmap;
-
     }
 
     @Transactional

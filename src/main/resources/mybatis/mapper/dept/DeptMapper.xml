@@ -8,6 +8,7 @@
           par_dept_no
         , dept_no
         , dept_nm
+        , cust_no
         , used_yn
         , reg_id
         , reg_ip
@@ -19,6 +20,7 @@
           #{parDeptNo}
         , #{deptNo}
         , #{deptNm}
+        , #{custNo}
         , #{usedYn}
          ,#{userId}
 		 ,#{ipaddr}
@@ -78,6 +80,7 @@
                             , prt_seq
                             , path
                             , used_yn
+                            , cust_no
                 ) AS ( SELECT a.par_dept_no
                             , a.dept_no
                             , a.dept_nm
@@ -85,6 +88,7 @@
                             , a.prt_seq
                             , lpad(a.dept_no::text,5,'0')
                             , a.used_yn
+                            , a.cust_no
                        FROM  dept_info a
                        WHERE a.par_dept_no = 0
                        UNION ALL
@@ -95,10 +99,12 @@
                             , b.prt_seq
                             , path ||lpad(b.dept_no::text,5,'0')
                             , b.used_yn
+                            , b.cust_no
                        FROM dept_info b JOIN cte c ON b.par_dept_no = c.dept_no
             )
             SELECT * FROM cte
             WHERE 1 = 1
+             and cte.cust_no = #{custNo}
             order by path
         ) a
         --부서
@@ -115,6 +121,7 @@
                         , prt_seq
                         , path
                         , used_yn
+                        , cust_no
             ) AS ( SELECT a.par_dept_no
                         , a.dept_no
                         , a.dept_nm
@@ -122,6 +129,7 @@
                         , a.prt_seq
                         , lpad(a.dept_no::text,5,'0')
                         , a.used_yn
+                        , a.cust_no
                    FROM  dept_info a
                    WHERE a.par_dept_no = 0
                    UNION ALL
@@ -132,12 +140,14 @@
                         , b.prt_seq
                         , path ||lpad(b.dept_no::text,5,'0')
                         , b.used_yn
+                        , b.cust_no
                    FROM dept_info b JOIN cte c ON b.par_dept_no = c.dept_no
         )
         SELECT dept_no as value
              , dept_nm as text
         FROM cte
         WHERE 1 = 1
+         and cte.cust_no = #{custNo}
         order by path
     </select>
 

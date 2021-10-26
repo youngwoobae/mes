@@ -4,7 +4,9 @@
 
 <mapper namespace="daedan.mes.file.mapper.FileMapper">
     <update id="revivalFileUsed" parameterType="map"  >
-      update file_info set used_yn = 'Y' , tmp_yn = 'N' where file_no = #{file_no}
+      update file_info set used_yn = 'Y' , tmp_yn = 'N'
+      where file_no = #{file_no}
+      and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
 

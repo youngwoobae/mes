@@ -100,12 +100,12 @@
                 , d.code_nm as purs_unit_nm --구매단위명
                 , f.code_nm as save_tmpr_nm --보관온도
                 , #{baseUrl} || c.acc_url as save_file_nm-- 원자재사진 경로
-        from matr_info a join code_info b on a.matr_tp = b.code_no and  b.cust_no = #{custNo} and b.used_yn ='Y'
+        from matr_info a join code_info b on a.matr_tp = b.code_no
                          join matr_cmpy g on a.matr_no  = g.matr_no and  g.cust_no = #{custNo} and g.used_yn = 'Y'
                          join cmpy_info k on g.cmpy_no  = k.cmpy_no and  k.cust_no = #{custNo} and k.used_yn ='Y'
                     left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn ='Y'
-                    left join code_info d on a.purs_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
-                    left join code_info f on a.save_tmpr = f.code_no and f.cust_no = #{custNo} and f.used_yn  ='Y'
+                    left join code_info d on a.purs_unit = d.code_no
+                    left join code_info f on a.save_tmpr = f.code_no
                     left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
         where a.used_yn ='Y'
         and  a.cust_no = #{custNo}
@@ -127,12 +127,12 @@
     <select id="getMatrWithCmpyListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from (  select a.matr_no --자재번호
-                  from matr_info a join code_info b on a.matr_tp = b.code_no and b.cust_no = #{custNo} and b.used_yn = 'Y'
+                  from matr_info a join code_info b on a.matr_tp = b.code_no
                                    join matr_cmpy g on a.matr_no  = g.matr_no and g.cust_no = #{custNo} and g.used_yn = 'Y'
                                    join cmpy_info k on g.cmpy_no  = k.cmpy_no and k.cust_no = #{custNo} and k.used_yn = 'Y'
                               left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                              left join code_info d on a.purs_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
-                              left join code_info f on a.save_tmpr = f.code_no and f.cust_no = #{custNo} and f.used_yn = 'Y'
+                              left join code_info d on a.purs_unit = d.code_no
+                              left join code_info f on a.save_tmpr = f.code_no
                               left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
 
         where a.used_yn ='Y'
@@ -177,13 +177,13 @@
             , e.code_nm as mngr_unit_nm --관리기준
             , g.code_nm as madein_nm --원산지명
             , a.spga
-        from matr_info a join code_info b on a.matr_tp = b.code_no and b.cust_no = #{custNo} and b.used_yn = 'Y'
+        from matr_info a join code_info b on a.matr_tp = b.code_no
                     left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                    left join code_info d on a.purs_unit = d.code_no  and d.cust_no = #{custNo} and d.used_yn = 'Y'
-                    left join code_info f on a.save_tmpr = f.code_no  and f.cust_no = #{custNo} and f.used_yn = 'Y'
+                    left join code_info d on a.purs_unit = d.code_no
+                    left join code_info f on a.save_tmpr = f.code_no
                     left join file_info c on a.file_no = c.file_no  and c.cust_no = #{custNo} and c.used_yn = 'Y'
-                    left join code_info e on a.mngr_unit = e.code_no  and e.cust_no = #{custNo} and e.used_yn = 'Y'
-                    left join code_info g on a.madein = g.code_no  and g.cust_no = #{custNo} and g.used_yn = 'Y'
+                    left join code_info e on a.mngr_unit = e.code_no
+                    left join code_info g on a.madein = g.code_no
         where a.used_yn ='Y'
           and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != '0'">
@@ -213,13 +213,13 @@
 
     <select id="getMatrListCount" parameterType="map"  resultType="int">
         select count(a.matr_no) --자재번호
-                 from matr_info a join code_info b on a.matr_tp = b.code_no  and b.cust_no = #{custNo} and b.used_yn = 'Y'
+                 from matr_info a join code_info b on a.matr_tp = b.code_no
                              left join brnch_info h on a.brnch_no = h.brnch_no  and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                             left join code_info d on a.purs_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
+                             left join code_info d on a.purs_unit = d.code_no
                              left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
-                             left join code_info f on a.save_tmpr = f.code_no and f.cust_no = #{custNo} and f.used_yn = 'Y'
-                             left join code_info e on a.mngr_unit = e.code_no and e.cust_no = #{custNo} and e.used_yn = 'Y'
-                             left join code_info g on a.madein = g.code_no and g.cust_no = #{custNo} and g.used_yn = 'Y'
+                             left join code_info f on a.save_tmpr = f.code_no
+                             left join code_info e on a.mngr_unit = e.code_no
+                             left join code_info g on a.madein = g.code_no
         where a.used_yn ='Y'
         and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != ''">
@@ -269,14 +269,14 @@
                 , c.org_file_nm as 원본파일
                 , b.code_nm as 자재구분명
                 , f.code_nm as 보관온도
-        from matr_info a join code_info b on a.matr_tp = b.code_no and b.cust_no = #{custNo} and b.used_yn = 'Y'
+        from matr_info a join code_info b on a.matr_tp = b.code_no
                     left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                    left join code_info d on a.purs_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
-                    left join code_info f on a.save_tmpr = f.code_no and f.cust_no = #{custNo} and f.used_yn = 'Y'
+                    left join code_info d on a.purs_unit = d.code_no
+                    left join code_info f on a.save_tmpr = f.code_no
                     left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
                     left join matr_cmpy m on a.matr_no = m.matr_no and m.cust_no = #{custNo} and m.used_yn = 'Y'
                     left join cmpy_info z on m.cmpy_no = z.cmpy_no and z.used_yn = 'Y' and z.cust_no = #{custNo} and z.used_yn = 'Y'
-                    left join code_info aa on a.madein = aa.code_no and aa.cust_no = #{custNo} and aa.used_yn = 'Y'
+                    left join code_info aa on a.madein = aa.code_no
         where a.used_yn ='Y'
           and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != '0'">
@@ -331,12 +331,12 @@
              , a.base_cal_yn --AddOn By KMJ AT 21.08.05 23:00 --하담푸드 원육여부 설정 : 지시량이 총량베이스가 아니고 원윩베이스이브로 make_indc_rslt 생성시 need_qty 계신식이 달라짐 (원육여부 확인용)
              , a.matr_attr_matr_attr_no  --원료속성
              , #{baseUrl} || c.acc_url as acc_url
-        from matr_info a join code_info b on a.matr_tp = b.code_no and b.cust_no = #{custNo}  and b.used_yn = 'Y'
+        from matr_info a join code_info b on a.matr_tp = b.code_no
                          left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                         left join code_info d on a.purs_unit = d.code_no  and d.cust_no = #{custNo} and d.used_yn = 'Y'
+                         left join code_info d on a.purs_unit = d.code_no
                          left join file_info c on a.file_no = c.file_no  and c.cust_no = #{custNo} and c.used_yn = 'Y'
-                         left join code_info f on a.save_tmpr = f.code_no  and f.cust_no = #{custNo} and f.used_yn = 'Y'
-                         left join code_info g on a.madeby = g.code_no  and g.cust_no = #{custNo} and g.used_yn = 'Y'
+                         left join code_info f on a.save_tmpr = f.code_no
+                         left join code_info g on a.madeby = g.code_no
                          left join ( select matr_no
                                           , case when to_char(now(),'mm') = '01'  then jan_stk_qty
                                                  when to_char(now(),'mm') = '02'  then feb_stk_qty
@@ -422,7 +422,7 @@
         SELECT b.matr_no    as value
            , b.matr_nm || '(' || c.code_nm || ')' as text
         FROM   matr_cmpy a join matr_info b on a.matr_no = b.matr_no  and b.cust_no = #{custNo}  and b.used_yn = 'Y'
-            join code_info c on b.matr_tp = c.code_no  and c.cust_no = #{custNo}  and c.used_yn = 'Y'
+            join code_info c on b.matr_tp = c.code_no
         WHERE  a.used_yn = 'Y'
           AND  a.cmpy_no = #{cmpyNo}
           and a.cust_no = #{custNo}
@@ -470,7 +470,7 @@
                 , e.sep_stk_qty
         from prod_bom a join prod_info b on a.prod_no = b.prod_no  and b.cust_no = #{custNo}  and b.used_yn = 'Y'
                         join matr_info c on a.matr_no = c.matr_no  and c.cust_no = #{custNo} and c.used_yn = 'Y'
-                        join code_info d on b.sale_unit = d.code_no  and d.cust_no = #{custNo} and d.used_yn = 'Y'
+                        join code_info d on b.sale_unit = d.code_no
                     left join matr_safe_stk e on c.matr_no = e.matr_no  and e.cust_no = #{custNo} and e.used_yn = 'Y'
                     left join brnch_info h on c.brnch_no = h.brnch_no  and h.cust_no = #{custNo} and h.used_yn = 'Y'
         where a.used_yn  = 'Y'
@@ -490,7 +490,7 @@
         from ( select  a.bom_no
                 from prod_bom a join prod_info b on a.prod_no = b.prod_no and b.cust_no = #{custNo}  and b.used_yn = 'Y'
                                 join matr_info c on a.matr_no = c.matr_no  and c.cust_no = #{custNo} and c.used_yn = 'Y'
-                                join code_info d on b.sale_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
+                                join code_info d on b.sale_unit = d.code_no
                             left join matr_safe_stk e on c.matr_no = e.matr_no and e.cust_no = #{custNo} and e.used_yn = 'Y'
                             left join brnch_info h on c.brnch_no = h.brnch_no  and h.cust_no = #{custNo} and h.used_yn = 'Y'
                 where a.used_yn  = 'Y'
@@ -569,7 +569,7 @@
             , b.save_file_nm --저장파일명
             , b.org_file_nm --원본파일명
             , z.code_nm as sale_unit_nm --판매단위
-        from prod_info a join code_info z on a.sale_unit = z.code_no  and z.used_yn = 'Y' and z.cust_no = #{custNo}
+        from prod_info a join code_info z on a.sale_unit = z.code_no
                     left join file_info b on a.file_no = b.file_no  and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.used_yn ='Y'
         and a.prod_no not in (select prod_no
@@ -589,7 +589,7 @@
 
     <select id="getProdMatrListCount" parameterType="map"  resultType="int">
         select count(a.prod_no) --자재번호
-        from prod_info a join code_info z on a.sale_unit = z.code_no  and z.used_yn ='Y' and z.cust_no = #{custNo}
+        from prod_info a join code_info z on a.sale_unit = z.code_no
                     left join file_info b on a.file_no = b.file_no  and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.used_yn ='Y'
         and a.prod_no not in ( select prod_no
@@ -989,7 +989,7 @@
         from prod_info a join make_indc b on a.prod_no = b.prod_no and b.proc_cd = 999 and b.used_yn ='Y' and  b.cust_no = #{custNo}
                          join proc_brnch c on a.brnch_no = c.brnch_no and  c.cust_no = #{custNo} and c.used_yn ='Y'
                          join proc_info d on d.proc_cd = c.proc_cd and  d.cust_no = #{custNo}   and d.used_yn = 'Y'
-                         join code_info g on c.brnch_no = g.code_no and  g.cust_no = #{custNo} and  g.used_yn = 'Y'
+                         join code_info g on c.brnch_no = g.code_no
                          join make_indc_rslt i on b.indc_no = i.indc_no and  i.cust_no = #{custNo} and i.used_yn ='Y'
                     left join (select  prod_no
                                      , sum(stk_qty) as stk_qty
@@ -1044,8 +1044,8 @@
                         , f.code_nm as proc_nm
         from make_indc a join prod_info e on a.prod_no = e.prod_no and  e.cust_no = #{custNo}
                         join proc_info c on a.proc_cd = c.proc_cd and  c.cust_no = #{custNo}
-                        join code_info d on c.proc_cd = d.code_no and  d.cust_no = #{custNo}
-                        join code_info f on f.code_no = c.proc_unit and  f.cust_no = #{custNo}
+                        join code_info d on c.proc_cd = d.code_no
+                        join code_info f on f.code_no = c.proc_unit
                    left join (select par_indc_no, make_to_dt from make_indc
                               where used_yn = 'Y'
                                and  cust_no = #{custNo}
@@ -1109,7 +1109,6 @@
         from code_info a
         where par_code_no = #{parCodeNo}
         and a.used_yn = 'Y'
-        and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'code_nm'">
                 and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -1124,7 +1123,6 @@
                  from code_info a
                 where par_code_no = #{parCodeNo}
                  and a.used_yn = 'Y'
-                and  a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'matrNm'">
                 and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -1151,8 +1149,8 @@
              , coalesce (b.oct_stk_qty,0) as oct_stk_qty
              , coalesce (b.nov_stk_qty,0) as nov_stk_qty
              , coalesce (b.dec_stk_qty,0) as dec_stk_qty
-        from matr_info a join code_info c on a.matr_tp = c.code_no and  c.cust_no = #{custNo} and c.used_yn ='Y'
-                         join code_info d on a.purs_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
+        from matr_info a join code_info c on a.matr_tp = c.code_no
+                         join code_info d on a.purs_unit = d.code_no
                     left join matr_safe_stk b on a.matr_no = b.matr_no and  b.cust_no = #{custNo} and b.used_yn ='Y'
         where a.used_yn = 'Y'
         and  a.cust_no = #{custNo}
@@ -1173,8 +1171,8 @@
 
     <select id="getSafeStkMatrListCount" resultType="int" parameterType="map">
         select count(a.matr_no)
-        from matr_info a join code_info c on a.matr_tp = c.code_no and  c.cust_no = #{custNo} and c.used_yn = 'Y'
-                         join code_info d on a.purs_unit = d.code_no and d.cust_no = #{custNo} and d.used_yn = 'Y'
+        from matr_info a join code_info c on a.matr_tp = c.code_no
+                         join code_info d on a.purs_unit = d.code_no
                     left join matr_safe_stk b on a.matr_no = b.matr_no and  b.cust_no = #{custNo} and b.used_yn = 'Y'
         where a.used_yn = 'Y'
          and  a.cust_no = #{custNo}

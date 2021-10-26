@@ -4,19 +4,26 @@
 
 <mapper namespace="daedan.mes.purs.mapper.PursMapper">
     <delete id="initTempPursMatr" parameterType="map" >
-        delete from purs_matr where purs_no = 0 and reg_id = #{userId}
+        delete from purs_matr where purs_no = 0 and cust_no= #{custNo} and reg_id = #{userId}
     </delete>
 
     <select id="isAbleCnfmPurs" parameterType="map"  resultType="java.lang.String">
         select case when min(coalesce(a.cmpy_no,0)) = 0 then 'N' else 'Y' end
         from ( select  a.cmpy_no --구매처번
-               from purs_matr a join matr_info b on a.matr_no = b.matr_no
+               from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'  and b.cust_no= #{custNo}
                                 join code_info z on a.purs_unit  = z.code_no
-                                join purs_info d on a.purs_no = d.purs_no and d.purs_sts = #{pursSts}
-                                join ord_info e on d.purs_no = e.purs_no and e.ord_no = #{ordNo}
-                           left join cmpy_info f on a.cmpy_no = f.cmpy_no
+                                join purs_info d on a.purs_no = d.purs_no
+                                                and d.purs_sts = #{pursSts}
+                                                and d.cust_no= #{custNo}
+                                                and d.used_yn = 'Y'
+                                join ord_info e on d.purs_no = e.purs_no
+                                               and e.ord_no = #{ordNo}
+                                               and e.cust_no= #{custNo}
+                                               and e.used_yn ='Y'
+                                left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y' and f.cust_no= #{custNo}
                where a.used_yn  = 'Y'
-                group by a.cmpy_no
+                 and a.cust_no= #{custNo}
+               group by a.cmpy_no
         ) a
 
     </select>
@@ -31,11 +38,17 @@
              , b.matr_cnt --구매자재건수
              , c.cmpy_nm  --구매처명
              , z.code_nm as purs_sts_nm  --구매상태명
-          from purs_info a join (select purs_no, count(matr_no) as matr_cnt from purs_matr where used_yn = 'Y' group by purs_no) b on a.purs_no = b.purs_no
-                           join cmpy_info      c on a.cmpy_no = c.cmpy_no
-                     left join code_info       z on a.purs_sts = z.code_no
+          from purs_info a join (select purs_no, count(matr_no) as matr_cnt
+                                 from purs_matr
+                                 where used_yn = 'Y'
+                                 and cust_no= #{custNo}
+                                group by purs_no
+                              ) b on a.purs_no = b.purs_no
+                           join cmpy_info  c on a.cmpy_no = c.cmpy_no and c.used_yn = 'Y'  and c.cust_no= #{custNo}
+                      left join code_info  z on a.purs_sts = z.code_no
           where a.used_yn = 'Y'
-          <if test="cmpyNo != null and cmpyNo != ''">
+           and a.cust_no= #{custNo}
+            <if test="cmpyNo != null and cmpyNo != ''">
                and a.cmpy_no = #{cmpyNo}
           </if>
 
@@ -50,10 +63,16 @@
 
   <select id="getPursListCount" parameterType="map"  resultType="int">
     select count(a.purs_no)
-      from purs_info a join (select purs_no, count(matr_no) as matr_cnt from purs_matr where used_yn = 'Y' group by purs_no) b on a.purs_no = b.purs_no
-                       join cmpy_info      c on a.cmpy_no = c.cmpy_no
-                  left join code_info      z on a.purs_sts = z.code_no
+      from purs_info a join (select purs_no, count(matr_no) as matr_cnt
+                             from purs_matr
+                             where used_yn = 'Y'
+                              and cust_no= #{custNo}
+                              group by purs_no
+                           ) b on a.purs_no = b.purs_no
+                       join cmpy_info      c on a.cmpy_no = c.cmpy_no and c.used_yn ='Y'  and c.cust_no= #{custNo}
+                  left join code_info   z on a.purs_sts = z.code_no
       where a.used_yn = 'Y'
+        and a.cust_no= #{custNo}
         <if test="cmpyNo != null and cmpyNo != ''">
             and a.cmpy_no = #{cmpyNo}
         </if>
@@ -84,15 +103,16 @@
              , c.cmpy_nm  --구매처명
              , e.make_unit --생산단위
              , h.ord_no -- 주문정보
-        from purs_info a join purs_matr b on a.purs_no = b.purs_no and b.used_yn = 'Y'
-                         join matr_info      d on b.matr_no = d.matr_no
-                         join make_indc      e on a.indc_no = e.indc_no
+        from purs_info a join purs_matr b on a.purs_no = b.purs_no and b.used_yn = 'Y' and b.cust_no= #{custNo}
+                         join matr_info      d on b.matr_no = d.matr_no and d.used_yn = 'Y' and d.cust_no= #{custNo}
+                         join make_indc      e on a.indc_no = e.indc_no and e.used_yn = 'Y' and e.cust_no= #{custNo}
                          join code_info      x on d.matr_tp  = x.code_no
                     left join code_info      y on b.purs_unit = y.code_no
-                     left join cmpy_info     c on b.cmpy_no = c.cmpy_no
+                     left join cmpy_info     c on b.cmpy_no = c.cmpy_no and c.used_yn = 'Y' and c.cust_no= #{custNo}
                     left join code_info      z on a.purs_sts = z.code_no
-                    left join ord_info       h on h.ord_no = a.ord_no
+                    left join ord_info       h on h.ord_no = a.ord_no and h.used_yn = 'Y' and h.cust_no= #{custNo}
         where a.used_yn = 'Y'
+         and a.cust_no= #{custNo}
         <if test="pursNo != null and pursNo != ''"> and a.purs_no = #{pursNo}</if>
         <if test="cmpyNo != null and cmpyNo != ''"> and b.cmpy_no = #{cmpyNo} </if>
         <if test="findSz != null and findSz != ''">
@@ -132,16 +152,19 @@
                 , coalesce (f.cmpy_nm,'구매처미상') as cmpy_nm-- 구매처
                 , y.code_nm AS purs_sts_nm --구매상태명
                 , d.purs_no --구매의뢰번호
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y'
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y' and b.cust_no= #{custNo}
                          join code_info z on a.purs_unit  = z.code_no
-                         join purs_info d on a.purs_no = d.purs_no and d.used_yn = 'Y'
+                         join purs_info d on a.purs_no = d.purs_no
+                                          and d.used_yn = 'Y'
+                                          and d.cust_no= #{custNo}
+                                          and d.purs_sts not in (166)
                          join code_info y ON d.purs_sts = y.code_no
-                    left join make_indc x on d.indc_no  = x.indc_no and x.used_yn = 'Y'
-                    left join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y'
-                    left join ord_prod k on e.ord_no = k.ord_no and k.used_yn = 'Y'
-                    left join prod_info w on k.prod_no = w.prod_no and w.used_yn  = 'Y'
-                    left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
-                    left join prod_info h on x.prod_no = h.prod_no
+                    left join make_indc x on d.indc_no  = x.indc_no and x.used_yn = 'Y' and x.cust_no= #{custNo}
+                    left join ord_info e on d.purs_no = e.purs_no and e.used_yn = 'Y' and e.cust_no= #{custNo}
+                    left join ord_prod k on e.ord_no = k.ord_no and k.used_yn = 'Y' and k.cust_no= #{custNo}
+                    left join prod_info w on k.prod_no = w.prod_no and w.used_yn = 'Y' and w.cust_no= #{custNo}
+                    left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y' and f.cust_no= #{custNo}
+                    left join prod_info h on x.prod_no = h.prod_no and h.used_yn = 'Y' and h.cust_no= #{custNo}
                     left join ( select mi.par_indc_no
                                      , mi.indc_no
                                      , mi.indc_dt
@@ -149,10 +172,11 @@
                                      , mi.prod_no
                                     from make_indc mi
                                     where mi.used_yn = 'Y'
+                                     and mi.cust_no= #{custNo}
                                     and mi.proc_cd = 999
                               ) c on x.indc_no = c.par_indc_no
         where a.used_yn  = 'Y'
-        and d.purs_sts not in (166)
+        and a.cust_no= #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
             and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)
         </if>
@@ -172,19 +196,30 @@
     <select id="getpursInfoListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
             from (select a.matr_no
-                    from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y'
+                    from purs_matr a join matr_info b on a.matr_no = b.matr_no
+
+                                                      and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                      join code_info z on a.purs_unit  = z.code_no
-                                     join purs_info d on a.purs_no = d.purs_no and d.used_yn = 'Y'
+                                     join purs_info d on a.purs_no = d.purs_no
+                                                     and d.used_yn = 'Y'
+                                                     and d.cust_no = #{custNo}
+        and                                          and d.purs_sts not in (166)
                                      join code_info y ON d.purs_sts = y.code_no
-                                left join make_indc x on d.indc_no  = x.indc_no and x.used_yn = 'Y'
-                                left join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y'
-                                left join ord_prod k on e.ord_no = k.ord_no and k.used_yn = 'Y'
-                                left join prod_info w on k.prod_no = w.prod_no and w.used_yn  = 'Y'
-                                left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
+                                left join make_indc x on d.indc_no  = x.indc_no and x.used_yn = 'Y' and x.cust_no =#{custNo}
+                                left join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y' and e.cust_no =#{custNo}
+                                left join ord_prod k on e.ord_no = k.ord_no and k.used_yn = 'Y'  and k.cust_no =#{custNo}
+                                left join prod_info w on k.prod_no = w.prod_no and w.used_yn  = 'Y' and w.cust_no =#{custNo}
+                                left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'  and f.cust_no =#{custNo}
         where a.used_yn  = 'Y'
+         and a.cust_no =#{custNo}
         and d.purs_sts not in (166)
         <if test="cmpyNo != null and cmpyNo != 0">
-            and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)
+            and  #{cmpyNo} in (select cmpy_no
+                                from matr_cmpy
+                                where matr_no = a.matr_no
+                                 and cust_no =#{custNo}
+                                 and used_yn = 'Y'
+                               )
         </if>
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'matrNm'">
@@ -209,12 +244,13 @@
                         , c.valid_term --유통기한
                         , e.code_nm    -- 구매단위
                         , b.purs_qty --구매 수량
-        FROM purs_info a join purs_matr b on a.purs_no = b.purs_no
-                         JOIN matr_info c ON b.matr_no = c.matr_no
+        FROM purs_info a join purs_matr b on a.purs_no = b.purs_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                         JOIN matr_info c ON b.matr_no = c.matr_no and c.used_yn ='Y' and c.cust_no = #{custNo}
                          JOIN code_info d ON c.matr_tp = d.code_no
                          join code_info e on c.purs_unit = e.code_no
-                    left join prod_bom f on b.matr_no = f.matr_no and f.purs_yn = 'Y'
+                    left join prod_bom f on b.matr_no = f.matr_no and f.purs_yn = 'Y' and f.used_yn ='Y' andf.cust_no = #{custNo}
         WHERE a.purs_no = #{pursNo}
+          and a.used_yn ='Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getpursInfoMatrListCount" parameterType="map"  resultType="int">
@@ -227,12 +263,15 @@
                                , c.valid_term --유통기한
                                , e.code_nm    -- 구매단위
                                , b.purs_qty --구매 수량
-                FROM purs_info a join purs_matr b on a.purs_no = b.purs_no
-                                 JOIN matr_info c ON b.matr_no = c.matr_no
+                FROM purs_info a join purs_matr b on a.purs_no = b.purs_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                                 JOIN matr_info c ON b.matr_no = c.matr_no and c.used_yn ='Y' and c.cust_no = #{custNo}
                                  JOIN code_info d ON c.matr_tp = d.code_no
                                  join code_info e on c.purs_unit = e.code_no
-                            left join prod_bom f on b.matr_no = f.matr_no and f.purs_yn = 'Y'
+                            left join prod_bom f on b.matr_no = f.matr_no
+                                                and f.purs_yn = 'Y'
+                                                and f.used_yn ='Y' and f.cust_no = #{custNo}
                 WHERE a.purs_no = #{pursNo}
+                  and a.used_yn ='Y' and a.cust_no = #{custNo}
                 ) a
     </select>
 
@@ -240,14 +279,15 @@
     <select id="getPursMatrListCount" parameterType="map"  resultType="int">
         select count(a.purs_no)
         from ( select a.purs_no
-               from purs_info a join purs_matr b on a.purs_no = b.purs_no and b.used_yn = 'Y'
-                                join matr_info      d on b.matr_no = d.matr_no
+               from purs_info a join purs_matr b on a.purs_no = b.purs_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                                join matr_info      d on b.matr_no = d.matr_no and d.used_yn ='Y' and d.cust_no = #{custNo}
                                 join code_info      x on d.matr_tp  = x.code_no
-                                join make_indc      e on a.indc_no = e.indc_no
+                                join make_indc      e on a.indc_no = e.indc_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                            left join code_info      y on b.purs_unit = y.code_no
-                           left join cmpy_info      c on b.cmpy_no = c.cmpy_no
+                           left join cmpy_info      c on b.cmpy_no = c.cmpy_no and c.used_yn ='Y' and c.cust_no = #{custNo}
                            left join code_info       z on a.purs_sts = z.code_no
                where a.used_yn = 'Y'
+                 and a.cust_no = #{custNo}
                <if test="pursNo != null and pursNo != ''"> and a.purs_no = #{pursNo} </if>
                <if test="cmpyNo != null and cmpyNo != ''"> and b.cmpy_no = #{cmpyNo}</if>
                <if test="findSz != null and findSz != ''">
@@ -272,8 +312,9 @@
            , c.cmpy_nm --구매처명
            , b.code_nm as purs_sts_nm --구매상태명
       from purs_info a join code_info b on a.purs_sts = b.code_no
-                  left join cmpy_info c on a.cmpy_no = c.cmpy_no
+                  left join cmpy_info c on a.cmpy_no = c.cmpy_no and c.used_yn ='Y' and c.cust_no = #{custNo}
       where a.purs_no = #{pursNo}
+        and a.used_yn ='Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getPursMatrInfo" parameterType="map"  resultType="camelMap">
@@ -293,10 +334,11 @@
           , b.indc_no --연관지시번호
           , c.cmpy_nm --구매처명
           , b.purs_sts
-      from purs_matr a join purs_info b on a.purs_no = b.purs_no
-                       join matr_info d on a.matr_no = d.matr_no
-                  left join cmpy_info c on a.cmpy_no = c.cmpy_no
+      from purs_matr a join purs_info b on a.purs_no = b.purs_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                       join matr_info d on a.matr_no = d.matr_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                  left join cmpy_info c on a.cmpy_no = c.cmpy_no and c.used_yn ='Y' and c.cust_no = #{custNo}
      where a.purs_matr_no = #{pursMatrNo}
+       and a.used_yn ='Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getComboPursCmpy" parameterType="map"  resultType="camelMap">
@@ -308,8 +350,9 @@
         select 2 prt_seq
              , a.cmpy_no as value
              , a.cmpy_nm as text
-        from cmpy_info a join matr_cmpy b on a.cmpy_no = b.cmpy_no and b.used_yn = 'Y'
+        from cmpy_info a join matr_cmpy b on a.cmpy_no = b.cmpy_no  and b.used_yn ='Y' and b.cust_no = #{custNo}
         where a.used_yn = 'Y'
+         and a.cust_no = #{custNo}
         and   a.mngr_gbn_cd = #{mngrGbnCd}
         <if test="matrNo != null and matrNo != ''">
           and b.matr_no = #{matrNo}
@@ -322,8 +365,9 @@
        select   a.cmpy_no as value
               , a.cmpy_nm as text
               , b.default_yn --기본구매처여부
-        from cmpy_info a join matr_cmpy b on a.cmpy_no = b.cmpy_no
+        from cmpy_info a join matr_cmpy b on a.cmpy_no = b.cmpy_no and b.used_yn ='Y' and b.cust_no = #{custNo}
         where a.used_yn = 'Y'
+           and a.cust_no = #{custNo}
         and b.matr_no = #{matrNo}
         group by a.cmpy_no, a.cmpy_nm, b.default_yn
         order by default_yn, text
@@ -345,23 +389,25 @@
              , a.purs_qty - coalesce (c.iwh_qty,0) as rest_qty --미입고
              , e.user_nm  --등록자
              , d.purs_sts
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no
-                         join purs_info d on a.purs_no = d.purs_no
-                         join user_info e on coalesce (a.mod_id,a.reg_id) = e.user_id
-                    left join matr_iwh  c on a.purs_no = c.purs_no and c.used_yn ='Y'
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                         join purs_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                         join user_info e on coalesce (a.mod_id,a.reg_id) = e.user_id and e.used_yn ='Y' and e.cust_no = #{custNo}
+                    left join matr_iwh  c on a.purs_no = c.purs_no  and c.used_yn ='Y' and c.cust_no = #{custNo}
         where a.used_yn = 'Y'
           and a.purs_no = #{pursNo}
+          and a.cust_no = #{custNo}
           and c.purs_matr_no = #{pursMatrNo}
     </select>
     <select id="getPursMatrIwhListCount" parameterType="map" resultType="int">
         select count(a.purs_matr_no)
         from (
             select a.purs_matr_no --구매자재관리번호
-            from purs_matr a join matr_info b on a.matr_no = b.matr_no
-                             join purs_info d on a.purs_no = d.purs_no
-                             join user_info e on coalesce (a.mod_id,a.reg_id) = e.user_id
-                        left join matr_iwh  c on a.purs_no = c.purs_no and c.used_yn ='Y'
+            from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                             join purs_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                             join user_info e on coalesce (a.mod_id,a.reg_id) = e.user_id and e.used_yn ='Y' and e.cust_no = #{custNo}
+                        left join matr_iwh  c on a.purs_no = c.purs_no  and c.used_yn ='Y' and c.cust_no = #{custNo}
             where a.used_yn = 'Y'
+               and a.cust_no = #{custNo}
             and a.purs_no = #{pursNo}
             and c.purs_matr_no = #{pursMatrNo}
         ) a
@@ -383,7 +429,7 @@
              , coalesce(e.purs_no,0) as purs_no--구매번호
              , f.cmpy_nm --구매처명
              , y.code_nm as purs_unit_nm --구매단위명
-        from matr_info a join matr_stk b on a.matr_no = b.matr_no
+        from matr_info a join matr_stk b on a.matr_no = b.matr_no and b.used_yn ='Y' and b.cust_no = #{custNo}
                          join code_info z on a.matr_tp  = z.code_no
                          join code_info y on a.purs_unit  = y.code_no
                     left join (select matr_no
@@ -401,11 +447,13 @@
                                           when to_char(now(),'mm') = '12'  then dec_stk_qty
                                       end as safe_stk_qty
                                from matr_safe_stk
+                              where used_yn ='Y' and cust_no = #{custNo}
                     ) c on a.matr_no = c.matr_no
-                   left join purs_matr d on a.matr_no  =  d.matr_no and d.used_yn = 'Y'
-                   left join purs_info e on d.purs_no = e.purs_no and e.used_yn = 'Y'
-                   left join cmpy_info f on d.cmpy_no = f.cmpy_no
-        where c.safe_stk_qty <![CDATA[ > ]]> (b.stk_qty + iwh_wait_qty - owh_wait_qty )
+                     and c.safe_stk_qty <![CDATA[ > ]]> (b.stk_qty + iwh_wait_qty - owh_wait_qty )
+                   left join purs_matr d on a.matr_no  =  d.matr_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                   left join purs_info e on d.purs_no = e.purs_no  and e.used_yn ='Y' and e.cust_no = #{custNo}
+                   left join cmpy_info f on d.cmpy_no = f.cmpy_no and f.used_yn ='Y' and f.cust_no = #{custNo}
+        where and a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != ''">
             and a.matr_tp = #{matrTp}
         </if>
@@ -425,7 +473,7 @@
     <select id="getNeedPursListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from ( select a.matr_no
-               from matr_info a join matr_stk b on a.matr_no = b.matr_no
+               from matr_info a join matr_stk b on a.matr_no = b.matr_no and b.used_yn ='Y' and b.cust_no = #{custNo}
                                 join code_info z on a.matr_tp  = z.code_no
                                 join code_info y on a.purs_unit  = y.code_no
                            left join (select matr_no
@@ -443,8 +491,10 @@
                                                   when to_char(now(),'mm') = '12'  then dec_stk_qty
                                              end as safe_stk_qty
                                       from matr_safe_stk
+                                     where used_yn ='Y' and cust_no = #{custNo}
                            ) c on a.matr_no = c.matr_no
-               where c.safe_stk_qty <![CDATA[ > ]]> (b.stk_qty + iwh_wait_qty - owh_wait_qty )
+                         and c.safe_stk_qty <![CDATA[ > ]]> (b.stk_qty + iwh_wait_qty - owh_wait_qty )
+               where  a.used_yn ='Y' and a.cust_no = #{custNo}
                 <if test="matrTp != null and matrTp != ''">
                     and a.matr_tp = #{matrTp}
                 </if>
@@ -475,29 +525,29 @@
              , b.qty_per_pkg --주문단위 인입수량
              , z.code_nm as sale_unit_nm --주문단위
              , round( ( coalesce (b.qty_per_pkg,0) * c.need_qty * b.ord_qty) ::decimal , 2) as need_qty
-        from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn  = 'Y'
-                        join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.matr_no= #{matrNo}
-                        join prod_info d on c.prod_no = d.prod_no
-                        join cmpy_info e on a.cmpy_no  = e.cmpy_no
+        from ord_info a join ord_prod b on a.ord_no = b.ord_no  and b.used_yn ='Y' and b.cust_no = #{custNo}
+                        join prod_bom c on b.prod_no = c.prod_no  and c.used_yn ='Y' and c.cust_no = #{custNo} and c.matr_no= #{matrNo}
+                        join prod_info d on c.prod_no = d.prod_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                        join cmpy_info e on a.cmpy_no  = e.cmpy_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                         join code_info z on b.sale_unit  = z.code_no
-        where a.used_yn  = 'Y'
+        where  and a.used_yn ='Y' and a.cust_no = #{custNo}
         and a.ord_sts = #{ordSts}f
     </select>
 
     <select id="getNeedMatrOrderListCount" parameterType="map"  resultType="int">
         select count(a.prod_no)
         from ( select b.prod_no --품번
-               from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn  = 'Y'
-                               join prod_bom c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.matr_no= #{matrNo}
-                               join prod_info d on c.prod_no = d.prod_no
-                               join cmpy_info e on a.cmpy_no  = e.cmpy_no
+               from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+                               join prod_bom c on b.prod_no = c.prod_no and c.used_yn ='Y' and c.cust_no = #{custNo} and c.matr_no= #{matrNo}
+                               join prod_info d on c.prod_no = d.prod_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                               join cmpy_info e on a.cmpy_no  = e.cmpy_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                                join code_info z on b.sale_unit  = z.code_no
-               where a.used_yn  = 'Y'
+               where  and a.used_yn ='Y' and a.cust_no = #{custNo}
                and a.ord_sts = #{ordSts}
         ) a
     </select>
     <update id="dropPursInfo" parameterType="map">
-        update purs_info set used_yn = 'N' where purs_no = #{pursNo}
+        update purs_info set used_yn = 'N' where purs_no = #{pursNo}   and cust_no = #{custNo}
     </update>
 
 
@@ -525,13 +575,13 @@
         , coalesce (f.cmpy_nm,'구매처미상') as cmpy_nm-- 구매처
         , y.code_nm AS purs_sts_nm --구매상태명
         , d.purs_no --구매의뢰번호
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y'
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no  and b.used_yn ='Y' and b.cust_no = #{custNo}
         join code_info z on a.purs_unit  = z.code_no
-        join purs_info d on a.purs_no = d.purs_no and d.used_yn = 'Y'
+        join purs_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
         join code_info y ON d.purs_sts = y.code_no
-        left join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y'
-        left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
-        where a.used_yn  = 'Y'
+        left join ord_info e on d.purs_no = e.purs_no  and e.used_yn ='Y' and e.cust_no = #{custNo}
+        left join cmpy_info f on a.cmpy_no = f.cmpy_no  and f.used_yn ='Y' and f.cust_no = #{custNo}
+        where  and a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
             and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)
         </if>
@@ -550,13 +600,13 @@
     <select id="getPursReqListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from (select a.matr_no
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn  = 'Y'
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no and  and b.used_yn ='Y' and b.cust_no = #{custNo}
         join code_info z on a.purs_unit  = z.code_no
-        join purs_info d on a.purs_no = d.purs_no and d.used_yn = 'Y'
+        join purs_info d on a.purs_no = d.purs_no  and d.used_yn ='Y' and d.cust_no = #{custNo}
         join code_info y ON d.purs_sts = y.code_no
-        left join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y'
-        left join cmpy_info f on a.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
-        where a.used_yn  = 'Y'
+        left join ord_info e on d.purs_no = e.purs_no  and e.used_yn ='Y' and e.cust_no = #{custNo}
+        left join cmpy_info f on a.cmpy_no = f.cmpy_no  and f.used_yn ='Y' and f.cust_no = #{custNo}
+        where and a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
             and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)
         </if>
@@ -586,12 +636,12 @@
              , z.code_nm as purs_unit_nm --구매단위
              , coalesce (e.iwh_qty ,b.purs_qty ) as iwh_qty --입고(예정)수량
              , e.iwh_dt --입고일
-        from purs_info a join purs_matr b on a.purs_no = b.purs_no and b.matr_no = #{matrNo}
-                         join matr_info c on b.matr_no = c.matr_no
+        from purs_info a join purs_matr b on a.purs_no = b.purs_no and b.matr_no = #{matrNo} and b.used_yn ='Y' and b.cust_no = #{custNo}
+                         join matr_info c on b.matr_no = c.matr_no and c.used_yn ='Y' and c.cust_no = #{custNo}
                          join code_info z on b.purs_unit = z.code_no
-                    left join cmpy_info d on b.cmpy_no  = d.cmpy_no
-                    left join matr_iwh e on b.purs_matr_no  = e.purs_matr_no
-        where a.purs_no = #{pursNo}
+                    left join cmpy_info d on b.cmpy_no  = d.cmpy_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                    left join matr_iwh e on b.purs_matr_no  = e.purs_matr_no and e.used_yn ='Y' and e.cust_no = #{custNo}
+        where a.purs_no = #{pursNo}  and a.used_yn ='Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getPursReqIndcList" parameterType="map"  resultType="camelMap">
@@ -609,11 +659,14 @@
              , a.indc_wgt --지시중량
              ,case when e.mess = 0 then a.indc_wgt else (a.indc_wgt * 1000 ) / e.mess  ::numeric end  as indc_qty --지시수랑(kg->EA단위로 환산)
              , b.make_wgt --생산량 (제품별 제고공정(proc_info)에 따라 중량 또는 수량으로 인식해야함에 주의 할 것.
-        from make_indc a join prod_info e on a.prod_no = e.prod_no
+        from make_indc a join prod_info e on a.prod_no = e.prod_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                          join code_info h on a.stat_cd  = h.code_no
-                         left join (select * from make_indc where used_yn = 'Y' and proc_cd = 999) g on a.indc_no = g.par_indc_no
-                         left join make_indc_rslt b on g.par_indc_no = b.indc_no
-        where a.indc_no = #{indcNo}
+                         left join (select * from make_indc
+                                    where e.used_yn ='Y' and e.cust_no = #{custNo}
+                                    and proc_cd = 999
+                                  ) g on a.indc_no = g.par_indc_no
+                         left join make_indc_rslt b on g.par_indc_no = b.indc_no  and b.used_yn ='Y' and b.cust_no = #{custNo}
+        where a.indc_no = #{indcNo} and a.used_yn ='Y' and a.cust_no = #{custNo}
             limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -621,18 +674,22 @@
         select count(a.indc_no)
         from (
             select a.indc_no
-            from make_indc a join prod_info e on a.prod_no = e.prod_no
+            from make_indc a join prod_info e on a.prod_no = e.prod_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                              join code_info h on a.stat_cd  = h.code_no
-                        left join (select * from make_indc where used_yn = 'Y' and proc_cd = 999) g on a.indc_no = g.par_indc_no
-                        left join make_indc_rslt b on g.par_indc_no = b.indc_no
-        where a.indc_no = #{indcNo}
+                        left join (select * from make_indc
+                                   where used_yn = 'Y'
+                                     and proc_cd = 999
+                                     and  used_yn ='Y' and cust_no = #{custNo}
+                            ) g on a.indc_no = g.par_indc_no
+                        left join make_indc_rslt b on g.par_indc_no = b.indc_no and b.used_yn ='Y' and b.cust_no = #{custNo}
+        where a.indc_no = #{indcNo} and a.used_yn ='Y' and a.cust_no = #{custNo}
         ) a
     </select>
 
     <select id="isDeadPurs" parameterType="map"  resultType="str">
         select case when count(matr_no) = 0 then 'Y' else 'N' end
         from purs_matr
-        where used_yn = 'Y'
+        where  and used_yn ='Y' and cust_no = #{custNo}
           and purs_no = #{pursNo}
     </select>
 
@@ -650,23 +707,23 @@
              , f.prod_no --주문상품번
              , f.prod_nm --주문상품명
              , z.code_nm as sale_unit_nm --판매단위명
-        from purs_info a join ord_info d on a.purs_no = d.purs_no
-                         join ord_prod e on d.ord_no = e.ord_no
-                         join prod_info f on e.prod_no = f.prod_no
-                         join cmpy_info c on d.cmpy_no = c.cmpy_no
+        from purs_info a join ord_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                         join ord_prod e on d.ord_no = e.ord_no and e.used_yn ='Y' and e.cust_no = #{custNo}
+                         join prod_info f on e.prod_no = f.prod_no and f.used_yn ='Y' and f.cust_no = #{custNo}
+                         join cmpy_info c on d.cmpy_no = c.cmpy_no and c.used_yn ='Y' and c.cust_no = #{custNo}
                          join code_info z on e.sale_unit = z.code_no
-        where a.purs_no = #{pursNo}
+        where a.purs_no = #{pursNo} and a.used_yn ='Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getPursReqOrdListCount" parameterType="map"  resultType="int">
         select count(a.purs_no)
         from ( select a.purs_no
-                from purs_info a join ord_info d on a.purs_no = d.purs_no
-                                 join ord_prod e on d.ord_no = e.ord_no
-                                 join prod_info f on e.prod_no = f.prod_no
-                                 join cmpy_info c on d.cmpy_no = c.cmpy_no
+                from purs_info a join ord_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                                 join ord_prod e on d.ord_no = e.ord_no and e.used_yn ='Y' and e.cust_no = #{custNo}
+                                 join prod_info f on e.prod_no = f.prod_no and f.used_yn ='Y' and f.cust_no = #{custNo}
+                                 join cmpy_info c on d.cmpy_no = c.cmpy_no and d.used_yn ='Y' and d.cust_no = #{custNo}
                                  join code_info z on e.sale_unit = z.code_no
-                where a.purs_no = #{pursNo}
+                where a.purs_no = #{pursNo} and a.used_yn ='Y' and a.cust_no = #{custNo}
         ) a
     </select>
 
@@ -676,16 +733,20 @@
                           , mod_dt = now()
                           , mod_id = #{userId}
                           , mod_ip = #{ipaddr}
-         where purs_matr_no = #{pursMatrNo}
-
+         where purs_matr_no = #{pursMatrNo} and cust_no = #{custNo}
     </update>
 
     <update id="resetPursStatusEnd" parameterType="map">
         update purs_info
         set purs_sts = #{pursSts}
-        where purs_no = #{pursNo}
-          and (  (select coalesce(count(purs_qty),0) from purs_matr where purs_no = #{pursNo} and used_yn = 'Y')
-               = (select count(a) from  ( select count(purs_no) from matr_iwh where purs_no = #{pursNo} and used_yn = 'Y'  and wh_no <![CDATA[ > ]]> 0 group by cmpy_no , matr_no ,purs_no) a)
+        where purs_no = #{pursNo} and used_yn ='Y' and cust_no = #{custNo}
+          and (  (select coalesce(count(purs_qty),0)
+                  from purs_matr w
+                  here purs_no = #{pursNo}  and used_yn ='Y' and cust_no = #{custNo})
+               = (select count(a) from  ( select count(purs_no) from matr_iwh
+                                          where purs_no = #{pursNo}
+                                            and used_yn ='Y' and cust_no = #{custNo}
+                                            and wh_no <![CDATA[ > ]]> 0 group by cmpy_no , matr_no ,purs_no) a)
               )
     </update>
 
@@ -693,8 +754,13 @@
         update purs_info
         set purs_sts = #{pursSts}
         where purs_no = #{pursNo}
-          and (  (select coalesce(count(purs_qty),0) from purs_matr where purs_no = #{pursNo} and used_yn = 'Y')
-            <![CDATA[ > ]]> (select count(a) from  ( select count(purs_no) from matr_iwh where purs_no = #{pursNo} and used_yn = 'Y'  and wh_no <![CDATA[ > ]]> 0 group by cmpy_no , matr_no ,purs_no) a)
+          and (  (select coalesce(count(purs_qty),0)
+                  from purs_matr
+                  where purs_no = #{pursNo}  and used_yn ='Y' and cust_no = #{custNo})
+            <![CDATA[ > ]]> (select count(a) from  ( select count(purs_no) from matr_iwh
+                                                      where purs_no = #{pursNo}
+                                                        and used_yn ='Y' and cust_no = #{custNo}
+                                                        and wh_no <![CDATA[ > ]]> 0 group by cmpy_no , matr_no ,purs_no) a)
             )
     </update>
 
@@ -702,7 +768,10 @@
         update purs_info
         set purs_sts = #{pursSts}
         where purs_no = #{pursNo}
-          and (select coalesce(count(retn_qty),0)  from matr_iwh where purs_no = #{pursNo} and used_yn = 'Y'  and wh_no <![CDATA[>]]>  0) <![CDATA[>]]> 1
+          and (select coalesce(count(retn_qty),0)
+               from matr_iwh where purs_no = #{pursNo}
+                               and used_yn ='Y' and cust_no = #{custNo}
+                               and wh_no <![CDATA[>]]>  0) <![CDATA[>]]> 1
     </update>
 
     <update id="resetPursCmpy" parameterType="map">
@@ -711,7 +780,7 @@
               , mod_id = #{userId}
               , mod_ip = #{ipaddr}
               , mod_dt = now()
-        where purs_matr_no =#{pursMatrNo}
+        where purs_matr_no =#{pursMatrNo} and used_yn ='Y' and cust_no = #{custNo}
     </update>
     <update id="resetPursCmpyQty" parameterType="map">
         update  purs_matr
@@ -720,10 +789,11 @@
               , mod_id = #{userId}
               , mod_ip = #{ipaddr}
               , mod_dt = now()
-        where purs_matr_no =#{pursMatrNo}
+        where purs_matr_no =#{pursMatrNo} and used_yn ='Y' and cust_no = #{custNo}
     </update>
     <update id="resetDlvReqDt" parameterType="map">
-        update purs_info set dlv_req_dt = to_date(#{dlv_req_dt},'YYYY-MM-DD') where purs_no = #{purs_no}
+        update purs_info set dlv_req_dt = to_date(#{dlv_req_dt},'YYYY-MM-DD')
+        where purs_no = #{purs_no} and used_yn ='Y' and cust_no = #{custNo}
     </update>
 
     <select id="getPursHstrList" parameterType="map"  resultType="camelMap">
@@ -741,15 +811,15 @@
              , to_char(k.iwh_dt ,'YYYY-MM-DD') as iwh_dt --입고일자
              , coalesce (k.iwh_qty,0) as iwh_qty --입고수량
              , coalesce (k.retn_qty,0) as retn_qty --반품수량
-        from purs_info a join ord_info d on a.purs_no = d.purs_no
-                         join ord_prod g on d.ord_no = g.ord_no
-                         join prod_info h on g.prod_no = h.prod_no
-                         join purs_matr e on d.purs_no = e.purs_no
-                         join matr_info f on e.matr_no = f.matr_no
-                         join cmpy_info c on e.cmpy_no = c.cmpy_no
+        from purs_info a join ord_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                         join ord_prod g on d.ord_no = g.ord_no and g.used_yn ='Y' and g.cust_no = #{custNo}
+                         join prod_info h on g.prod_no = h.prod_no and h.used_yn ='Y' and h.cust_no = #{custNo}
+                         join purs_matr e on d.purs_no = e.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                         join matr_info f on e.matr_no = f.matr_no and f.used_yn ='Y' and f.cust_no = #{custNo}
+                         join cmpy_info c on e.cmpy_no = c.cmpy_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                          join code_info z on  e.purs_unit = z.code_no
-                    left join matr_iwh k on e.purs_matr_no  = k.purs_matr_no
-        where a.used_yn = 'Y'
+                    left join matr_iwh k on e.purs_matr_no  = k.purs_matr_no and k.used_yn ='Y' and k.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
         and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = e.matr_no)
         </if>
@@ -780,15 +850,15 @@
     <select id="getPursHstrListCount" parameterType="map"  resultType="int">
         select count(a.purs_no)
         from ( select a.purs_no
-               from purs_info a join ord_info d on a.purs_no = d.purs_no
-                                join ord_prod g on d.ord_no = g.ord_no
-                                join prod_info h on g.prod_no = h.prod_no
-                                join purs_matr e on d.purs_no = e.purs_no
-                                join matr_info f on e.matr_no = f.matr_no
-                                join cmpy_info c on e.cmpy_no = c.cmpy_no
+               from purs_info a join ord_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
+                                join ord_prod g on d.ord_no = g.ord_no and g.used_yn ='Y' and g.cust_no = #{custNo}
+                                join prod_info h on g.prod_no = h.prod_no and h.used_yn ='Y' and h.cust_no = #{custNo}
+                                join purs_matr e on d.purs_no = e.purs_no and e.used_yn ='Y' and e.cust_no = #{custNo}
+                                join matr_info f on e.matr_no = f.matr_no and f.used_yn ='Y' and f.cust_no = #{custNo}
+                                join cmpy_info c on e.cmpy_no = c.cmpy_no and c.used_yn ='Y' and c.cust_no = #{custNo}
                                 join code_info z on  e.purs_unit = z.code_no
                            left join matr_iwh k on e.purs_matr_no  = k.purs_matr_no
-                where a.used_yn = 'Y'
+                where a.used_yn = 'Y' and a.used_yn ='Y' and a.cust_no = #{custNo}
                 <if test="cmpyNo != null and cmpyNo != 0">
                     and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = e.matr_no)
                 </if>
@@ -814,7 +884,7 @@
         ) a
     </select>
     <select id="getWhList" parameterType="map"  resultType="camelMap">
-        select wh_nm from wh_info
+        select wh_nm from wh_info and used_yn ='Y' and cust_no = #{custNo}
     </select>
 </mapper>
 

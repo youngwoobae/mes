@@ -9,9 +9,9 @@
         from wh_info a join code_info z on a.save_tmpr = z.code_no
                        join code_info y on a.wh_tp    =  y.code_no
         <if test="prodNo != null and prodNo != ''">
-            JOIN prod_stk b on a.wh_no = b.wh_no
+            JOIN prod_stk b on a.wh_no = b.wh_no and used_yn = 'Y' and cust_no = #{custNo}
         </if>
-        where a.used_yn = 'Y'
+        where  and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="whTp != null and whTp != ''">
             and a.wh_tp = #{whTp}
         </if>
@@ -21,12 +21,13 @@
     </select>
     <!--선택된 자재가 적재된 창고추출-->
     <select id="getComboMatrWhList" parameterType="map"  resultType="camelMap">
+        /*선택된 자재가 적재된 창고 추출 (ioMapper.getComboMatrWhList) */
         select a.wh_no as value
              , a.wh_nm  || '(' || z.code_nm  || ')'as text
         from wh_info a join code_info z on a.save_tmpr = z.code_no
                        join code_info y on a.wh_tp    =  y.code_no
-                       join matr_stk b on a.wh_no = b.wh_no and b.used_yn = 'Y'
-        where a.used_yn = 'Y'
+                       join matr_stk b on a.wh_no = b.wh_no  and b.used_yn = 'Y' and b.cust_no = #{custNo}
+        where and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and b.matr_no = #{matrNo}
     </select>
 
@@ -39,9 +40,10 @@
         select 2
              , a.cmpy_no as value
              , b.cmpy_nm as text
-        from matr_cmpy a join cmpy_info b on a.cmpy_no = b.cmpy_no
-                         left join purs_matr c on a.matr_no = c.matr_no
-        where a.used_yn = 'Y'
+        from matr_cmpy a join cmpy_info b on a.cmpy_no = b.cmpy_no and b.used_yn = 'Y' and b.cust_no = #{custNo
+                    left join purs_matr c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.matr_no = #{matrNo}
     </select>
 
@@ -49,14 +51,17 @@
         /* 제품번호로 창고구성 (ioMapper.getComboEmbIwhWhInfo) */
         select b.wh_nm as text
                 ,b.wh_no as value
-        from prod_info a join wh_info b on a.save_tmpr = b.save_tmpr and b.used_yn = 'Y'
-        where a.used_yn = 'Y'
+        from prod_info a join wh_info b on a.save_tmpr = b.save_tmpr
+                                     and  b.used_yn = 'Y' and b.cust_no = #{custNo}
+        where 1 = 1
+          and a``.used_yn = 'Y' and a.cust_no = #{custNo}
           and b.wh_tp = #{whTp}
           and a.prod_no = #{prodNo}
     </select>
     <!-- and c.matr_no = #{matrNo}-->
     <!--출고일 정보-->
     <select id="getComboOwhReqDtList" parameterType="map"  resultType="camelMap">
+        /* 출고요청일정보 (ioMapper.getComboOwhReqDtList) */
         select 1 as disp_seq
              , '' as value
              ,'출고요청일 선택' as text
@@ -65,12 +70,14 @@
              , to_char(a.owh_req_dt,'YYYY-MM-DD')
              , to_char(a.owh_req_dt,'YYYY-MM-DD')
         from matr_owh a
-        where a.used_yn = 'Y'
+        where 1 =1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
         group by to_char(a.owh_req_dt,'YYYY-MM-DD')
         order by disp_seq, text
     </select>
     <!--창고리스트-->
     <select id="getWhList" parameterType="map"  resultType="camelMap">
+        /*창고목록 (ioMapper.getWhList) */
         select a.wh_no
              , a.wh_nm
              , a.wh_tp
@@ -79,7 +86,8 @@
              , y.code_nm as wh_tp_nm
         from wh_info a join code_info z on a.save_tmpr = z.code_no
                        join code_info y on a.wh_tp    =  y.code_no
-        where a.used_yn = 'Y'
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="whTp != null and whTp != ''">
           and a.wh_tp = #{whTp}
         </if>
@@ -96,7 +104,8 @@
         from (  select a.wh_no
                 from wh_info a join code_info z on a.save_tmpr = z.code_no
                                join code_info y on a.wh_tp    =  y.code_no
-                where a.used_yn = 'Y'
+                where 1 = 1
+                and a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="whTp != null and whTp != ''">
                     and a.wh_tp = #{whTp}
                 </if>
@@ -116,10 +125,13 @@
              , a.save_tmpr
         from wh_info a
         where a.wh_no = #{whNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
     <!--창고정보삭제-->
     <update id="dropWhInfo" parameterType="map">
-        update wh_info set used_yn = 'N', mod_id = #{modId}, mod_ip = #{ipaddr} , mod_dt = now() where wh_no = #{whNo}
+        update wh_info set used_yn = 'N', mod_id = #{modId}, mod_ip = #{ipaddr} , mod_dt = now()
+        where wh_no = #{whNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
     <!--자재별 구매의뢰 리스트-->
     <select id="getWaitMatrIwhList" parameterType="map"  resultType="camelMap">
@@ -135,13 +147,18 @@
              , case when coalesce (a.cmpy_no,0) = 0 then '' else f.cmpy_nm end as purs_cmpy_nm
              , e.cmpy_no as ord_cmpy_no --관련주분정보/주문거래처번
              , a.cmpy_no --구매처번
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no
+                                         and b.used_yn = 'Y' and b.cust_no = #{custNo}
                          join code_info z on a.purs_unit  = z.code_no
-                         join purs_info d on a.purs_no = d.purs_no and d.purs_sts = #{pursSts}
+                         join purs_info d on a.purs_no = d.purs_no
+                                        and d.purs_sts = #{pursSts}
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                          join ord_info e on d.purs_no = e.purs_no
+                                        and e.used_yn = 'Y' and e.cust_no = #{custNo}
                     left join cmpy_info f on a.cmpy_no = f.cmpy_no
-
+                                         and f.used_yn = 'Y' and f.cust_no = #{custNo}
         where a.used_yn  = 'Y'
+         and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.purs_matr_no not in (select purs_matr_no from matr_iwh)
         <if test="dlvReqDt != null and dlvReqDt != ''">
             and  to_char(d.dlv_req_dt,'YYYY-MM-DD') = #{dlvReqDt}
@@ -159,13 +176,18 @@
     <select id="getWaitMatrIwhListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from (  select a.matr_no  --자재번호
-                from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                from purs_matr a join matr_info b on a.matr_no = b.matr_no
+                                                 and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                  join code_info z on a.purs_unit  = z.code_no
-                                 join purs_info d on a.purs_no = d.purs_no and d.purs_sts = #{pursSts}
+                                 join purs_info d on a.purs_no = d.purs_no
+                                                 and d.purs_sts = #{pursSts}
+                                                 and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                  join ord_info e on d.purs_no = e.purs_no
+                                                and e.used_yn = 'Y' and e.cust_no = #{custNo}
                             left join cmpy_info f on a.cmpy_no = f.cmpy_no
-
-        where a.used_yn  = 'Y'
+                                                 and f.used_yn = 'Y' and f.cust_no = #{custNo}
+        where 1 = 1
+        and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.purs_matr_no not in (select purs_matr_no from matr_iwh)
         <if test="dlvReqDt != null and dlvReqDt != ''">
             and  to_char(d.dlv_req_dt,'YYYY-MM-DD') = #{dlvReqDt}
@@ -196,11 +218,15 @@
              , d.matr_nm  --자재
         from matr_iwh a join wh_info b on a.wh_no = b.wh_no
                         join purs_matr c on a.purs_matr_no = c.purs_matr_no
+                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join purs_info e on c.purs_no = e.purs_no
-                        join matr_info d on c.matr_no = d.matr_no and d.used_yn = 'Y'
+                                        and e.used_yn = 'Y' and e.cust_no = #{custNo}
+                        join matr_info d on c.matr_no = d.matr_no
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join code_info z on b.save_tmpr = z.code_no
                    left join code_info y on a.retn_resn = y.code_no
-        where a.used_yn = 'Y'
+        where 1 = 1
+        and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="pursMatrNo != null and pursMatrNo != ''">
             and  a.purs_matr_no = #{pursMatrNo}
         </if>
@@ -226,13 +252,18 @@
     <select id="getMatrIwhListCount" parameterType="map"  resultType="int">
         select count(a.iwh_no)
         from (  select a.iwh_no
-                from matr_iwh a join wh_info b on a.wh_no = b.wh_no
+                from matr_iwh a join wh_info b on a.wh_no = b.
+                                              and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 join purs_matr c on a.purs_matr_no = c.purs_matr_no
+                                                and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                 join purs_info e on c.purs_no = e.purs_no
-                                join matr_info d on c.matr_no = d.matr_no and d.used_yn = 'Y'
+                                                and e.used_yn = 'Y' and e.cust_no = #{custNo}
+                                join matr_info d on c.matr_no = d.matr_no
+                                                and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                 join code_info z on b.save_tmpr = z.code_no
                            left join code_info y on a.retn_resn = y.code_no
-                where a.used_yn = 'Y'
+                where 1 = 1
+                and a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="pursMatrNo != null and pursMatrNo != ''">
                     and  a.purs_matr_no = #{pursMatrNo}
                 </if>
@@ -275,26 +306,35 @@
             , to_char(d.purs_dt,'YYYY-MM-DD') as purs_dt --구매일자
             , to_char(d.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --입고요청일자
             , e.cmpy_nm --구매처명
-        from matr_iwh a join wh_info b on a.wh_no = b.wh_no
+        from matr_iwh a join wh_info b on a.wh_no = b.wh_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join purs_matr c on a.purs_matr_no = c.purs_matr_no
+                                   and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join purs_info d on c.purs_no = d.purs_no
+                                        and dused_yn = 'Y' and d.cust_no = #{custNo}
                         join cmpy_info e on c.cmpy_no = e.cmpy_no
+                                        and e.used_yn = 'Y' and e.cust_no = #{custNo}
                         join code_info x on c.purs_unit = x.code_no
                         join code_info z on b.save_tmpr = z.code_no
                    left join code_info y on a.retn_resn = y.code_no
         where a.iwh_no = #{iwhNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
    </select>
 
     <select id="getCnfmAbleIwh" parameterType="map"  resultType="str">
         select case when count(a.purs_matr_no ) = count(c.purs_matr_no) then 'Y' else 'N' end as able_cnfm_iwh
-        from purs_matr a join purs_info b on a.purs_no = b.purs_no and b.used_yn  = 'Y'
+        from purs_matr a join purs_info b on a.purs_no = b.purs_no
+                                         and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                          and to_char(b.dlv_req_dt,'YYYY-MM-DD') = #{dlvReqDt}
                     left join matr_iwh c on a.purs_matr_no = c.purs_matr_no
+                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <update id="cnfmIwh" parameterType="map">
-        update purs_info set purs_sts = #{pursSts} where purs_no = #{pursNo}
+        update purs_info set purs_sts = #{pursSts}
+        where purs_no = #{pursNo}
+          and b.used_yn = 'Y' and b.cust_no = #{custNo}
     </update>
 
     <select id="getMatrStkList" parameterType="map"  resultType="camelMap">
@@ -313,10 +353,10 @@
                          join code_info x on a.madein  = x.code_no
                          join code_info y on a.save_tmpr  = y.code_no
                          join code_info z on a.purs_unit  = z.code_no
-                    left join matr_iwh b on a.matr_no  = b.matr_no
-                    left join  matr_owh c on a.matr_no = c.matr_no
+                    left join matr_iwh b on a.matr_no  = b.matr_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                    left join  matr_owh c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where 1= 1
-        and a.used_yn = 'Y'
+        and  and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != ''">  and a.matr_tp = #{matrTp}   </if>
         <if test="madein != null and madein != ''"> and a.madein = #{madein} </if>
         <if test="saveTmpr != null and saveTmpr != ''"> and a.save_tmpr = #{saveTmpr} </if>

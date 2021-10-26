@@ -19,10 +19,12 @@
                     , b.part_no     --부품번
                     , b.file_no     --이미지번호
                     , d.code_nm AS purs_unit_nm   --구매단위명
-               FROM equip_bom a JOIN equip_matr b ON a.matr_no = b.matr_no   AND b.used_yn = 'Y'
+               FROM equip_bom a JOIN equip_matr b ON a.matr_no = b.matr_no  and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 JOIN equip_info c ON a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+                                                 and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                 JOIN code_info  d ON b.purs_unit = d.code_no
-               WHERE 1 = 1 and c.equip_no = #{equipNo}
+               WHERE 1 = 1 and a.equip_no = #{equipNo}
+                 and a.used_yn = 'Y' and a.cust_no = #{custNo}
                <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'matrNm'">
                     AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -34,10 +36,14 @@
     <select id="getEquipBomListCount" parameterType="map"  resultType="int">
         SELECT COUNT(a.matr_no)
         FROM ( SELECT  a.matr_no
-               FROM equip_bom a JOIN equip_matr b ON a.matr_no = b.matr_no   AND b.used_yn = 'Y'
-                                JOIN equip_info c ON a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+               FROM equip_bom a JOIN equip_matr b ON a.matr_no = b.matr_no
+                                                and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                JOIN equip_info c ON a.equip_no = c.equip_no
+                                                AND c.equip_no = #{equipNo}
+                                                and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                 JOIN code_info  d ON b.purs_unit = d.code_no
                WHERE 1 = 1
+                and a.used_yn = 'Y' and a.cust_no = #{custNo}
                <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'matrNm'">
                         AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -61,9 +67,15 @@
             , b.part_no     --부품번호
             , b.file_no     --이미지번호
             , d.code_nm AS purs_unit_nm   --구매단위명
-                   FROM equip_bom a JOIN equip_matr b on a.matr_no = b.matr_no and b.matr_no = #{matrNo}
-                                          JOIN equip_info c on a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+        FROM equip_bom a JOIN equip_matr b on a.matr_no = b.matr_no
+                                                    and b.matr_no = #{matrNo}
+                                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                          JOIN equip_info c on a.equip_no = c.equip_no
+                                                          AND c.equip_no = #{equipNo}
+                                                          and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                           JOIN code_info d on b.purs_unit = d.code_no
+        where 1= 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getEquipBomCartInfo" parameterType="map"  resultType="camelMap">
@@ -81,10 +93,16 @@
             , b.part_no     --부품번호
             , b.file_no     --이미지번호
             , d.code_nm AS purs_unit_nm   --구매단위명
-                   FROM equip_bom_cart a JOIN equip_matr b on a.matr_no = b.matr_no and b.matr_no = #{matrNo}
-                                          JOIN equip_info c on a.equip_no = c.equip_no AND c.equip_no = #{equipNo}
+                   FROM equip_bom_cart a JOIN equip_matr b on a.matr_no = b.matr_no
+                                                          and b.matr_no = #{matrNo}
+                                                          and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                          JOIN equip_info c on a.equip_no = c.equip_no
+                                                           AND c.equip_no = #{equipNo}
+                                                           and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                           JOIN code_info d on b.purs_unit = d.code_no
         WHERE a.user_id = #{userId}
+          and a.cust_no = #{custNo}
+
     </select>
 
 </mapper>
