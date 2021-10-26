@@ -8,6 +8,7 @@
              , indc_rmk
         from daily_indc di
         where di.used_yn = 'Y'
+
         <choose>
             <when test="type != null and type != '' and type == 'daily' ">
                 and to_char(indc_dt, 'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1days', 'YYYY-MM-DD' )
