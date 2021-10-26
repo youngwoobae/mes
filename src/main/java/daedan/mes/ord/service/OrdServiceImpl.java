@@ -971,7 +971,8 @@ public class OrdServiceImpl implements  OrdService {
     public void ordIndfoByExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "OrdService.ordIndfoByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));

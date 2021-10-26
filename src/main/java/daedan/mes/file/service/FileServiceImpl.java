@@ -98,11 +98,10 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public String getFileInfo(Long fileNo) {
+    public String getFileInfo(String fileRoot, Long fileNo) {
         StringBuffer buf = new StringBuffer();
         FileInfo fileEntity = fileRepository.getOne(fileNo);
-        Long custNo = fileEntity.getCustNo();
-        String fileRoot = env.getProperty("file.root.path");
+
         buf.setLength(0);
         buf.append(fileRoot)
                 .append(fileEntity.getRegId()).append(File.separator)

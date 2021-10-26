@@ -1153,10 +1153,11 @@ public class MatrServiceImpl implements MatrService {
     @Transactional
     public List<Map<String, Object>> matrExcelIwh(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.DaedongIndcByExcel => ";
-        String fileRoot = env.getProperty("file.root.path");
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         log.info("FilePath" + fileRoot);
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("file_no").toString()));
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
 
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -1352,7 +1353,9 @@ public class MatrServiceImpl implements MatrService {
     @Transactional
     public void matrSaveExcelUpLoad(Map<String, Object> paraMap)throws Exception {
         String tag = "ProdService.prodIndcExcel => ";
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("file_no").toString()));
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -1627,7 +1630,9 @@ public class MatrServiceImpl implements MatrService {
     @Transactional
     public void svMatrSaveExcelUpLoad(Map<String, Object> paraMap)throws Exception {
         String tag = "ProdService.prodIndcExcel => ";
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("file_no").toString()));
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);

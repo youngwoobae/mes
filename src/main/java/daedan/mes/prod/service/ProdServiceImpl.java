@@ -735,10 +735,12 @@ public class ProdServiceImpl implements  ProdService {
         String tag = "ProdService.saveProdBom => ";
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+
 
         buf.setLength(0);
-        buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
+        buf.append(paraMap.get("fileRoot").toString())
+           .append(File.separator)
+           .append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
         log.info(tag + " absFilePath = " + absFilePath);
 
@@ -929,7 +931,7 @@ public class ProdServiceImpl implements  ProdService {
     public void ProdIndcByExcel(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.ProdIndcByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
@@ -1248,12 +1250,11 @@ public class ProdServiceImpl implements  ProdService {
 
 
     // 대동 고려삼 작업지시 엑셀
-
     @Override
-    public void DaedongIndcByExcel(HashMap<String, Object> paraMap) throws Exception {
+    public void daedongIndcByExcel(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.DaedongIndcByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
@@ -1596,8 +1597,9 @@ public class ProdServiceImpl implements  ProdService {
     @Override
     public List<Map<String, Object>> prodExcelOwh(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.prodExcelOwh => ";
-        String fileRoot = env.getProperty("file.root.path");
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("fileNo").toString()));
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -1809,8 +1811,9 @@ public class ProdServiceImpl implements  ProdService {
     @Override
     public List<Map<String, Object>> stsProdExcelIwh(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.prodExcelOwh => ";
-        String fileRoot = env.getProperty("file.root.path");
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("fileNo").toString()));
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
 
         FileInputStream file = new FileInputStream(filePath);
@@ -1930,9 +1933,11 @@ public class ProdServiceImpl implements  ProdService {
     @Override
     public List<Map<String, Object>> stsMatrExcelIwh(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.stsMatrExcelIwh => ";
-        String fileRoot = env.getProperty("file.root.path");
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("fileNo").toString()));
+        log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);
 
@@ -2082,8 +2087,9 @@ public class ProdServiceImpl implements  ProdService {
     @Override
     public List<Map<String, Object>> stsMatrExcelOwh(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.stsMatrExcelIwh => ";
-        String fileRoot = env.getProperty("file.root.path");
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("fileNo").toString()));
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -2478,7 +2484,7 @@ public class ProdServiceImpl implements  ProdService {
     public long prodInfoExcel(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.prodIndcExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));

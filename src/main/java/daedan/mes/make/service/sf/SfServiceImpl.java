@@ -63,9 +63,10 @@ public class SfServiceImpl implements  SfService {
     @Override
     public Map<String, Object> getXsl2Hmtl(Map<String, Object> paraMap){
         String tag = "SfService.getDailyIndcHtml => ";
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String filePath = fileService.getFileInfo(fileNo);
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         FileInfo fileEntity = fileRepo.findByCustNoAndFileNoAndUsedYn(custNo,fileNo,"Y");
         Map<String, Object> rmap = new HashMap<String, Object>();
         try {
@@ -120,12 +121,13 @@ public class SfServiceImpl implements  SfService {
         String tag = "SfService.makeDailyIndc => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
         //FileInfo fileEntity = fileRepo.findByFileNoAndUsedYn(fileNo,"Y");
         FileInputStream excelFile = null;
 
         SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd");
         try {
-            excelFile = new FileInputStream(fileService.getFileInfo(fileNo));
+            excelFile = new FileInputStream(fileService.getFileInfo(fileRoot,fileNo));
             XSSFWorkbook workbook = null;
             workbook = new XSSFWorkbook(excelFile);
 

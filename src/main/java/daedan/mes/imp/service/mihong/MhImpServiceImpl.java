@@ -53,7 +53,7 @@ public class MhImpServiceImpl implements MhImpService {
     public void ordInfoByExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "ProdService.ordInfoByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));

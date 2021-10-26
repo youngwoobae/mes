@@ -41,7 +41,7 @@ public class ExcelMakeController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
         try {
             excelservice.makeBomByExcel(paraMap);
@@ -57,7 +57,7 @@ public class ExcelMakeController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
         try {
             excelservice.makeMakeIndcMpByExcel(paraMap);

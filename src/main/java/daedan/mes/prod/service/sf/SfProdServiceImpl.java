@@ -66,7 +66,7 @@ public class SfProdServiceImpl implements SfProdService {
     public String makeSeoulFoodMakeIndcByExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "sf.ProdService.makeSeoulFoodMakeIndcByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         log.info(tag + "paraMap = " + paraMap.toString());
 
@@ -188,8 +188,9 @@ public class SfProdServiceImpl implements SfProdService {
     @Transactional
     @Override
     public void seoulProdBomByExcel(HashMap<String, Object> paraMap) throws Exception {
-
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("file_no").toString()));
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);

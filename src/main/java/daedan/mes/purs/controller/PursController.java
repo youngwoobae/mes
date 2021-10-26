@@ -202,6 +202,7 @@ public class PursController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         result.setData(pursService.savePursInfo(paraMap));
         return result;

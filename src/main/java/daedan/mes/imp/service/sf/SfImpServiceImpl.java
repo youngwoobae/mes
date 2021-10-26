@@ -53,9 +53,10 @@ public class SfImpServiceImpl implements SfImpService {
     public ArrayList<List<Map<String, Object>>> chkProdExist(HashMap<String, Object> paraMap) throws Exception {
         String tag = "ProdService.chkProdExist => ";
         StringBuffer buf = new StringBuffer();
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long FileNo = Long.parseLong(paraMap.get("fileNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String filePath = fileService.getFileInfo(FileNo);
+        String filePath = fileService.getFileInfo(fileRoot,FileNo);
 
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -133,7 +134,7 @@ public class SfImpServiceImpl implements SfImpService {
         chkList.add(prodList);
 
         //업로드용 엑셀의 원료정보와 가지고 있는 원료정보 비교
-        List<Map<String, Object>> matrExistList = this.chkMatrExist(ProdFirstindex, rows, custNo, FileNo);
+        List<Map<String, Object>> matrExistList = this.chkMatrExist(ProdFirstindex, rows, custNo, FileNo,fileRoot);
         chkList.add(matrExistList);
         chkList.add(bomList);
 
@@ -149,7 +150,7 @@ public class SfImpServiceImpl implements SfImpService {
         return buf.toString().replaceAll("(\r|\n|\r\n|\n\r)", " ");
     }
 
-    public List<Map<String, Object>> chkMatrExist(int firstIndex, int rows, Long custNo,Long fileNo) throws Exception {
+    public List<Map<String, Object>> chkMatrExist(int firstIndex, int rows, Long custNo,Long fileNo,String fileRoot) throws Exception {
         log.info("sfImpServiceImpl.chkMatrExist => " );
 
         List<Map<String, Object>> matrChkList = new ArrayList<>();
@@ -157,7 +158,7 @@ public class SfImpServiceImpl implements SfImpService {
         StringBuffer buf = new StringBuffer();
 
 
-        String filePath = fileService.getFileInfo(fileNo);
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
 
         FileInputStream file = new FileInputStream(filePath);
         XSSFWorkbook workbook = new XSSFWorkbook(file);

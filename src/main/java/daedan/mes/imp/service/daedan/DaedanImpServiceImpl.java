@@ -117,7 +117,7 @@ public class DaedanImpServiceImpl implements  DaedanImpService {
 
 //        Long userId = Long.parseLong(paraMap.get("userId").toString());
         Long userId = 0L;
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -630,7 +630,7 @@ public class DaedanImpServiceImpl implements  DaedanImpService {
 
 //        Long userId = Long.parseLong(paraMap.get("userId").toString());
         Long userId = 0L;
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();

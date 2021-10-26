@@ -93,7 +93,7 @@ public interface ProdService {
     void matchBrnch(Map<String, Object> paraMap);
 
     @Transactional
-    void DaedongIndcByExcel(HashMap<String, Object> paraMap)  throws Exception;
+    void daedongIndcByExcel(HashMap<String, Object> paraMap)  throws Exception;
     @Transactional
     void DaedongmakeExcel(List<Map<String, Object>> paraMap) throws Exception;
 

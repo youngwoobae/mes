@@ -209,9 +209,10 @@ public class StockServiceImpl implements  StockService{
     }
     /*구매일괄 창고적재 처리*/
     @Override
-    public void savePursMatrPos(Map<String,Object> paraMap)  {
+    public void savePursMatrPos(Map<String, Object> paraMap)  {
         String tag = "StockService.savePursMaprPos => ";
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
         Integer pursQty = Integer.parseInt(paraMap.get("pursQty").toString());
         StringBuffer buf = new StringBuffer();
         for (int idx = 0; idx < pursQty; idx++) {
@@ -256,7 +257,7 @@ public class StockServiceImpl implements  StockService{
 
             try {
                 buf.setLength(0);
-                buf.append(env.getProperty("file.root.path")).append("purs/");
+                buf.append(fileRoot).append("purs/");
                 File file = new File( buf.toString());
                 File rootPath = file.getAbsoluteFile();
                 log.info(tag + "현재 프로젝트의 경로 : "+rootPath );

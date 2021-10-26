@@ -2015,13 +2015,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public void loadMpByExcel(HashMap<String, Object> paraMap) throws Exception {
         String tag = "MatrService.loadRawMatByExcel => ";
         StringBuffer buf = new StringBuffer();
-        Properties properties = new Properties();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
         FileInfo fileEntity = fr.findByCustNoAndFileNoAndUsedYn(custNo,fileNo,"Y");
 
-
-        String fileRoot = properties.getProperty("file.root.path");
         buf.setLength(0);
         buf.append(fileRoot)
                 .append(fileEntity.getRegId()).append(File.separator)

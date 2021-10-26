@@ -473,22 +473,22 @@ public class MakeController {
 
     /*엑셀기반 부자재생성*/
     @PostMapping(value="/mpByExcel") //부자재정보저장
-    public Result MpByExcel(@RequestBody HashMap<String, Object> paraMap , HttpServletRequest request) {
+    public Result MpByExcel(@RequestBody HashMap<String, Object> paraMap , HttpServletRequest request, HttpSession session) {
         String tag = "MatrController.makeRawMatByExcel => ";
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-
-
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Result result = Result.successInstance();
 
         String resource = "config/mes.properties";
         Properties properties = new Properties();
         try {
+            String fileRoot = uvo.getCustInfo().getFileRoot();
             Reader reader = Resources.getResourceAsReader(resource);
             properties.load(reader);
             paraMap.put("matrTp", Integer.parseInt(properties.getProperty("rawmatr_cd")));
+            paraMap.put(fileRoot,fileRoot);
             moService.loadMpByExcel(paraMap);
-            result.setData("OK");
-        } catch (Exception e) {
+             } catch (Exception e) {
             e.printStackTrace();
             Objects.requireNonNull(null, properties.getProperty("property_file_not_found"));
         }

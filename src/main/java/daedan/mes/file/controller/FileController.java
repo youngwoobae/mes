@@ -86,7 +86,7 @@ public class FileController {
 
         fileEntity = fileRepo.findByCustNoAndFileNoAndUsedYn(custNo,Long.parseLong(rmap.get("fileNo").toString()),"Y");
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = uvo.getCustInfo().getFileRoot();
         buf.setLength(0);
         buf.append(fileRoot)
            .append(userId).append(File.separator)
@@ -126,7 +126,7 @@ public class FileController {
         paraMap.put("custNo", custNo);
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         FileInfo filevo = fileService.getFileVo(custNo,fileNo);
-        buf.append(env.getProperty("file.root.path"))
+        buf.append(uvo.getCustInfo().getFileRoot())
                 .append(File.separator)
                 .append(filevo.getAccUrl())
                 .append(filevo.getSaveFileNm());
@@ -181,7 +181,7 @@ public class FileController {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         FileInfo filevo = fileService.getFileVo(custNo,fileNo);
-        buf.append(env.getProperty("file.root.path"))
+        buf.append(uvo.getCustInfo().getFileRoot())
                       .append(filevo.getAccUrl())
                       .append(filevo.getSaveFileNm());
         log.info(tag + "downLoadPath = " + buf.toString());

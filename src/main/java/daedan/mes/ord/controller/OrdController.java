@@ -481,7 +481,7 @@ public class OrdController {
                                , HttpServletRequest request, HttpSession session) throws Exception{
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("cmpyTp",env.getProperty("code.cmpytp.purs")); //매입
         paraMap.put("mngrGbnCd", env.getProperty("code.mngrgb.cmpy")); //법인

@@ -92,7 +92,7 @@ public class YyjgImpServiceImpl implements YyjgImpService {
         FileInfo filevo = new FileInfo();
         filevo.setFileNo(Long.parseLong(paraMap.get("fileNo").toString()));
         filevo = fileRepo.findByCustNoAndFileNoAndUsedYn(custNo,filevo.getFileNo(),"Y");
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(filevo.getAccUrl()).append(filevo.getSaveFileNm());
         String absFilePath = buf.toString();

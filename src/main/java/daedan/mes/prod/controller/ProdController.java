@@ -250,6 +250,7 @@ public class ProdController {
     public Result makeSeoulFoodMakeIndcByExcel(@RequestBody HashMap<String, Object> paraMap,HttpSession session, HttpServletRequest request) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr",NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
@@ -294,6 +295,7 @@ public class ProdController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         paraMap.put("session", session);
@@ -318,8 +320,8 @@ public class ProdController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         try {
             prodService.ProdIndcByExcel(paraMap);
         } catch (Exception e) {
@@ -327,16 +329,17 @@ public class ProdController {
         }
         return result;
     }
-    @PostMapping(value="/DaedongIndcByExcel") //대동고려삼 작업지시 생성
-    public Result DaedongIndcByExcel(@RequestBody HashMap<String, Object> paraMap, HttpServletRequest request,HttpSession session) {
+    @PostMapping(value="/daedongIndcByExcel") //대동고려삼 작업지시 생성
+    public Result daedongIndcByExcel(@RequestBody HashMap<String, Object> paraMap, HttpServletRequest request,HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr",NetworkUtil.getClientIp(request));
 
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
         try {
-            prodService.DaedongIndcByExcel(paraMap);
+            prodService.daedongIndcByExcel(paraMap);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -581,6 +584,7 @@ public class ProdController {
         String tag = "ProdController.stsprodExcelIwh => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(prodService.stsProdExcelIwh(paraMap));
         return result;
@@ -593,6 +597,7 @@ public class ProdController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("fileRoot",uvo.getCustInfo().getCustNo());
         result.setData(prodService.prodExcelOwh(paraMap));
         return result;
     }
@@ -604,6 +609,7 @@ public class ProdController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(prodService.stsMatrExcelIwh(paraMap));
         return result;
@@ -612,9 +618,9 @@ public class ProdController {
     /*자재 출고 처리 (Excel) */
     @PostMapping(value="/stsMatrExcelOwh")
     public Result stsMatrExcelOwh(@RequestBody HashMap<String, Object> paraMap  , HttpSession session )throws Exception {
-        String tag = "ProdController.stsMatrExcelIwh => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(prodService.stsMatrExcelOwh(paraMap));
         return result;

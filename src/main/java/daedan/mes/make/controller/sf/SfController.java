@@ -4,6 +4,7 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.make.service.hdfd.HdfdService;
 import daedan.mes.make.service.sf.SfService;
+import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 @RestController
@@ -27,9 +29,12 @@ public class SfController {
     private SfService sfService;
 
     @PostMapping(value = "/getXsl2Hmtl")
-    public Result getDailyIndcHtml(@RequestBody Map<String, Object> paraMap){
+    public Result getDailyIndcHtml(@RequestBody Map<String, Object> paraMap, HttpSession session){
         String tag = "vsvc.SfController.getXsl2Hmtl =>";
         log.info(tag + "paraMap = " + paraMap.toString());
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         Result result = Result.successInstance();
         result.setData(sfService.getXsl2Hmtl(paraMap));
         return result;

@@ -103,7 +103,7 @@ public class PursServiceImpl implements  PursService {
     public Map<String, Object> savePursInfo(Map<String, Object> paraMap) {
         String tag = "pursService.savePursInfo => ";
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-
+        String fileRoot = paraMap.get("fileRoot").toString();
         log.info(tag + "paraMap = " + paraMap.toString());
         SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -241,6 +241,7 @@ public class PursServiceImpl implements  PursService {
                 posmap.put("whNm", el.get("wh_nm").toString());
                 posmap.put("ipaddr",pursMap.get("ipaddr").toString());
                 posmap.put("userId",pursMap.get("userId").toString());
+                posmap.put("fileRoot",fileRoot);
                 stockService.savePursMatrPos(posmap);
             }
 

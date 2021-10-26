@@ -308,8 +308,8 @@ public class MatrController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("fileRoot",uvo.getCustInfo().getCustNo());
         matrService.saveProdBom(paraMap);
         result.setData(matrService.getMatrProdList(paraMap));
         result.setTotalCount(matrService.getMatrProdListCount(paraMap));
@@ -532,7 +532,7 @@ public class MatrController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         matrService.matrExcelIwh(paraMap);
         result.setData( matrService.matrExcelIwh(paraMap));
         return result;
@@ -570,7 +570,7 @@ public class MatrController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("userId",Long.parseLong(paraMap.get("userId").toString()));
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         matrService.matrSaveExcelUpLoad(paraMap);
@@ -583,7 +583,7 @@ public class MatrController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("userId",Long.parseLong(paraMap.get("userId").toString()));
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         matrService.svMatrSaveExcelUpLoad(paraMap);

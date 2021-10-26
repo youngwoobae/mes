@@ -155,7 +155,7 @@ public class ImpServiceImpl implements ImpService {
         String tag = "ImptoolService.makeCodeInfoByExcel => ";
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -200,7 +200,9 @@ public class ImpServiceImpl implements ImpService {
     public void makeCmpyByExcel(Map<String, Object> paraMap) {
         String tag = "ImptoolService.makeCmpyByExcel => ";
 
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("fileNo").toString()));
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         try {
             FileInputStream file = new FileInputStream(filePath);
@@ -339,9 +341,10 @@ public class ImpServiceImpl implements ImpService {
     @Override
     public void makeMatrByNormalExcel(Map<String, Object> paraMap) {
         String tag = "ImptoolService.makeMatrByExcel => ";
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("file_no").toString()));
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
 
 //        StringBuffer buf = new StringBuffer();
 //
@@ -424,7 +427,7 @@ public class ImpServiceImpl implements ImpService {
     public void makeMatrByBriefExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "ImptoolService.makeMatrByBriefExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Map<String, Object> Map = new HashMap<String, Object>();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
@@ -495,7 +498,7 @@ public class ImpServiceImpl implements ImpService {
         String tag = "ImptoolService.makeMatrByExcel => ";
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -601,7 +604,7 @@ public class ImpServiceImpl implements ImpService {
     @Transactional
     public void makeProdByExcel(Map<String, Object> paraMap) {
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
@@ -655,9 +658,8 @@ public class ImpServiceImpl implements ImpService {
     public void makeProdBomByExcel(Map<String, Object> paraMap) {
         String tag = "ImptoolService.makeProdBomByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String extr_data = "";
-        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String fileRoot = env.getProperty("file.root.path");
+         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -751,7 +753,7 @@ public class ImpServiceImpl implements ImpService {
         String tag = "ImptoolService.makeOrdByExcel => ";
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -835,7 +837,7 @@ public class ImpServiceImpl implements ImpService {
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         OrdInfo ovo = null;
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -923,7 +925,7 @@ public class ImpServiceImpl implements ImpService {
         String tag = "ProdService.prodIndcExcel => ";
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -1094,7 +1096,7 @@ public class ImpServiceImpl implements ImpService {
     public void prodBomExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "ProdService.prodIndcExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Map<String, Object> Map = new HashMap<String, Object>();
 
@@ -1161,19 +1163,11 @@ public class ImpServiceImpl implements ImpService {
     public void prodExcel(Map<String, Object> paraMap) throws Exception {
 
         String tag = "ImptoolService.prodExcel => ";
-        String fileRoot = env.getProperty("file.root.path");
-        String filePath = fileService.getFileInfo(Long.parseLong(paraMap.get("file_no").toString()));
+        String fileRoot = paraMap.get("fileRoot").toString();;
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        Integer fileNo = prodMapper.getFileNo();
-        ++fileNo;
-
-//        String fileRoot = env.getProperty("file.root.path");
-//        buf.setLength(0);
-//        buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
-//        String absFilePath = buf.toString();
-
         FileInputStream file = null;
-        String exData = "";
         String svData = "";
         try {
             file = new FileInputStream(filePath);
@@ -1258,7 +1252,7 @@ public class ImpServiceImpl implements ImpService {
     public void makeUserByExcel(Map<String, Object> paraMap) throws IOException {
         String tag = "ProdService.makeUserByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
@@ -1458,7 +1452,7 @@ public class ImpServiceImpl implements ImpService {
     public void prodCodeBomExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "ProdService.prodCodeBomExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Map<String, Object> Map = new HashMap<String, Object>();
 
@@ -1531,7 +1525,7 @@ public class ImpServiceImpl implements ImpService {
     public void prodInfoExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "ProdService.prodIndcExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));

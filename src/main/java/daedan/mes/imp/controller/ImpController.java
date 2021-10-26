@@ -58,7 +58,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makeCodeInfoByExcel(paraMap);
@@ -72,7 +72,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
 
@@ -127,7 +127,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         if (szPath.equals("brief")) {
@@ -147,7 +147,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makePursByExcel(paraMap);
@@ -162,7 +162,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makeProdByExcel(paraMap);
@@ -175,6 +175,7 @@ public class ImpController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("session", session);
 
@@ -195,7 +196,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
         try {
             impService.prodIndcExcel(paraMap);
@@ -209,9 +210,9 @@ public class ImpController {
     @PostMapping(value="/prodInfoExcel")
     public Result prodInfoExcel(@RequestBody HashMap<String, Object> paraMap, HttpSession session) {
         String tag = "ProdController.prodInfoExcel => ";
-        log.info(tag + "ipaddr  = " +  paraMap.get("ipaddr"));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         try {
             impService.prodInfoExcel(paraMap);
@@ -227,7 +228,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
         try {
             impService.prodBomExcel(paraMap);
@@ -244,6 +245,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
         try {
             impService.prodCodeBomExcel(paraMap);
@@ -264,7 +266,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makeProdBomByExcel(paraMap);
@@ -280,7 +282,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makeOrdByExcel(paraMap);
@@ -293,7 +295,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         try {
             impService.prodExcel(paraMap);
@@ -313,7 +315,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makeUserByExcel(paraMap);
@@ -360,7 +362,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
 
@@ -374,6 +376,7 @@ public class ImpController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("session", session);
         result.setData(daedanImpService.makeMatrStkByExcel(paraMap));
         return result;
@@ -384,6 +387,7 @@ public class ImpController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("session", session);
         mhService.ordInfoByExcel(paraMap);

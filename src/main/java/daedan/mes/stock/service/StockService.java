@@ -10,8 +10,10 @@ public interface StockService {
 
     void resetMatrStock(Map<String, Object> paraMap);
 
+     void saveMatrPos(Map<String, Object> paraMap); //단품처리
+
+    /*구매일괄 창고적재 처리*/
     void savePursMatrPos(Map<String, Object> paraMap);
-    void saveMatrPos(Map<String, Object> paraMap); //단품처리
 
     List<Map<String,Object>> getComboWh(Map<String, Object> paraMap);
 

@@ -556,7 +556,8 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
     public void makeBomByExcel(HashMap<String, Object> paraMap) throws Exception {
         String tag = "makeIndcService.makeBomByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();;
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());;
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
@@ -1046,7 +1047,7 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
     public void makeMakeIndcMpByExcel(Map<String, Object> paraMap) throws Exception {
         String tag = "MakeIndcService.makeMakeIndcMpByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = env.getProperty("file.root.path");
+        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
