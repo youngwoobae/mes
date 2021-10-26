@@ -354,10 +354,10 @@
                          join code_info y on a.save_tmpr  = y.code_no
                          join code_info z on a.purs_unit  = z.code_no
                     left join matr_iwh b on a.matr_no  = b.matr_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
-                    left join  matr_owh c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
-        where 1= 1
-        and  and a.used_yn = 'Y' and a.cust_no = #{custNo}
-        <if test="matrTp != null and matrTp != ''">  and a.matr_tp = #{matrTp}   </if>
+                    left join matr_owh c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="matrTp != null and matrTp != ''"> and a.matr_tp = #{matrTp}   </if>
         <if test="madein != null and madein != ''"> and a.madein = #{madein} </if>
         <if test="saveTmpr != null and saveTmpr != ''"> and a.save_tmpr = #{saveTmpr} </if>
         <if test="findSz != null and findSz != ''">
@@ -378,7 +378,9 @@
                                  join code_info y on a.save_tmpr  = y.code_no
                                  join code_info z on a.purs_unit  = z.code_no
                             left join matr_iwh b on a.matr_no  = b.matr_no
+                                                and b.used_yn = 'Y' and b.cust_no = #{custNo}
                             left join  matr_owh c on a.matr_no = c.matr_no
+                                                and c.used_yn = 'Y' and c.cust_no = #{custNo}
                 where 1= 1
                 and a.used_yn = 'Y'
                 <if test="matrTp != null and matrTp != ''">  and a.matr_tp = #{matrTp}   </if>
@@ -415,9 +417,13 @@
                                             join code_info y on a.save_tmpr  = y.code_no
                                             join code_info z on a.purs_unit  = z.code_no
                                             join matr_iwh  b on a.matr_no  = b.matr_no
-                                            join wh_info    c on b.wh_no = c.wh_no
-                                      left join purs_matr d on b.purs_matr_no = d.purs_matr_no
-                where a.matr_no = #{matrNo} and c.used_yn  = 'Y'
+                                                            and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                            join wh_info   c on b.wh_no = c.wh_no
+                                                            and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                      left join purs_matr d on  b.purs_matr_no = d.purs_matr_no
+                                                           and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                where a.matr_no = #{matrNo}
+                  and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getMatrStkIwhListCount" parameterType="map"  resultType="int">
@@ -428,9 +434,13 @@
                                             join code_info y on a.save_tmpr  = y.code_no
                                             join code_info z on a.purs_unit  = z.code_no
                                             join matr_iwh  b on a.matr_no  = b.matr_no
+                                                            and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                             join wh_info    c on b.wh_no = c.wh_no
+                                                             and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                       left join purs_matr d on b.purs_matr_no = d.purs_matr_no
+                                                           and d.used_yn = 'Y' and d.cust_no = #{custNo}
                 where a.matr_no = #{matrNo}
+                  and a.used_yn = 'Y' and a.cust_no = #{custNo}
         ) a
     </select>
     <!--자재별 출고상세-->
@@ -464,7 +474,9 @@
 			                        join code_info y on a.save_tmpr  = y.code_no
 			                        join code_info z on a.purs_unit  = z.code_no
 			                        join matr_owh  b on a.matr_no  = b.matr_no
-			                        join wh_info    c on b.wh_no = c.wh_no
+                                                    and b.used_yn = 'Y' and b.cust_no = #{custNo}
+			                        join wh_info   c on b.wh_no = c.wh_no
+                                                    and c.used_yn = 'Y' and c.cust_no = #{custNo}
 			             where a.matr_no = #{matrNo}
         ) a
     </select>
@@ -488,21 +500,27 @@
              , round(a.owh_qty::numeric,3) owh_qty --출고수량
              , z.code_nm as owh_unit_nm --출고단위명
         from matr_owh a join matr_info b on a.matr_no = b.matr_no
+                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join code_info z on a.owh_unit  = z.code_no
                         join make_indc f on a.indc_no  = f.indc_no and f.used_yn = 'Y'
+                                        and f.used_yn = 'Y' and f.cust_no = #{custNo}
                    left join wh_info  d on a.wh_no = d.wh_no
+                                       and d.used_yn = 'Y' and d.cust_no = #{custNo}
                    left join (select wh_no
                                     ,matr_no
                                     , sum(stk_qty) as stk_qty
                               from matr_stk
-                             where used_yn = 'Y'
+                             where used_yn = 'Y' and cust_no = #{custNo}
                              group by wh_no, matr_no
                              ) c on a.wh_no = c.wh_no and a.matr_no = c.matr_no
                    left join (select j.indc_no, k.matr_no, k.purs_qty
-                               from purs_info j join purs_matr k on j.purs_no = k.purs_no and k.used_yn = 'Y'
-                               where j.used_yn = 'Y'
+                               from purs_info j join purs_matr k on j.purs_no = k.purs_no
+                                                                and k.used_yn = 'Y' and k.cust_no = #{custNo}
+                               where 1 = 1
+                                and j.used_yn = 'Y' and j.cust_no = #{custNo}
                               ) e on f.indc_no  = e.indc_no and a.matr_no = e.matr_no
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="reqYn != null and reqYn == 'Y'">
             and a.owh_dt  is null
         </if>
@@ -513,23 +531,31 @@
         select count(a.owh_no)
         from ( select a.owh_no
                from matr_owh a join matr_info b on a.matr_no = b.matr_no
+                                               and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                join code_info z on a.owh_unit  = z.code_no
-                               join make_indc f on a.indc_no  = f.indc_no  and f.used_yn = 'Y'
-                               join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                               join make_indc f on a.indc_no  = f.indc_no
+                                                 and f.used_yn = 'Y' and f.cust_no = #{custNo}
+                               join matr_stk c on a.matr_no = c.matr_no
+                                               and c.used_yn = 'Y' and c.cust_no = #{custNo}
                           left join wh_info  d on a.wh_no = d.wh_no
+                                              and d.used_yn = 'Y' and d.cust_no = #{custNo}
                           left join (select wh_no
                                            , matr_no
                                            , sum(stk_qty) as stk_qty
                                      from matr_stk
-                                     where used_yn = 'Y'
+                                     where 1 = 1
+                                       and used_yn = 'Y' and cust_no = #{custNo}
                                      group by wh_no, matr_no
                                     ) c on a.wh_no = c.wh_no and a.matr_no = c.matr_no
                           left join (select j.indc_no, k.matr_no, k.purs_qty
-                                      from purs_info j join purs_matr k on j.purs_no = k.purs_no and k.used_yn = 'Y'
-                                      where a.used_yn = 'Y'
+                                      from purs_info j join purs_matr k on j.purs_no = k.purs_no
+                                                                       and k.used_yn = 'Y' and k.cust_no = #{custNo}
+                                      where 1 = 1
+                                       and j.used_yn = 'Y' and j.cust_no = #{custNo}
                                     ) e on f.indc_no  = e.indc_no and a.matr_no = e.matr_no
 
-               where a.used_yn = 'Y'
+               where 1 = 1
+                 and a.used_yn = 'Y' and a.cust_no = #{custNo}
                <if test="reqYn != null and reqYn == 'Y'">
                 and a.owh_dt  is null
                </if>
@@ -552,13 +578,19 @@
                 , coalesce (d.stk_qty,0) as stk_qty_re -- 재고수량
         from matr_owh a join code_info z on a.owh_unit = z.code_no
                         join matr_info b on a.matr_no = b.matr_no
+                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join make_indc c on a.indc_no = c.indc_no
+                                   and c.used_yn = 'Y' and c.cust_no = #{custNo}
                    left join matr_stk d  on a.matr_no = d.matr_no and d.used_yn = 'Y'
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
         where a.matr_no = #{matrNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
     <!--자재별 출고정보 삭제-->
     <update id="dropMatrOwh" parameterType="map" >
-        update matr_owh set used_yn = 'N' , mod_id = #{modId}, mod_dt = now(), mod_ip = #{modIp} where owh_no = #{owhNo}
+        update matr_owh set used_yn = 'N' , mod_id = #{modId}, mod_dt = now(), mod_ip = #{modIp}
+        where owh_no = #{owhNo}
+          and cust_no = #{custNo}
     </update>
 
     <select id="getReqMatrIwhSumList" parameterType="map" resultType="camelMap">
@@ -566,20 +598,23 @@
         select a.matr_no --자재번호
              , b.matr_nm --자재명
         from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                         and b.used_yn = 'Y' and b.cust_no = #{custNo}
                          join purs_info c on a.purs_no = c.purs_no and c.used_yn = 'Y'
+                                         and c.used_yn = 'Y' and c.cust_no = #{custNo}
         <if test="indcNo != null and indcNo != ''">
             and c.indc_no = #{indcNo}
         </if>
-        left join (select  sum(iwh_qty) as iwh_qty
-        , matr_no
-        , purs_no
-        from matr_iwh
-        where used_yn = 'Y'
-        group by  matr_no  , purs_no
-        ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
-        where a.used_yn = 'Y'
-        and a.purs_sts = #{pursSts}
-        and a.purs_qty - coalesce (d.iwh_qty,0) <![CDATA[>=]]> 0
+        left join (select sum(iwh_qty) as iwh_qty
+                        , matr_no
+                        , purs_no
+                    from matr_iwh
+                    where used_yn = 'Y' and cust_no = #{custNo}
+                    group by  matr_no  , purs_no
+                    ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a.purs_sts = #{pursSts}
+          and a.purs_qty - coalesce (d.iwh_qty,0) <![CDATA[>=]]> 0
         <if test="findTp != null and findTp != ''">
             <if test="findSz != null and findSz != ''">
                 AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -593,22 +628,26 @@
     <select id="getReqMatrIwhSumListCount" parameterType="map" resultType="int">
         select count(a.matr_no)
         from (  select a.matr_no --자재번호
-        , b.matr_nm --자재명
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                     , b.matr_nm --자재명
+                from purs_matr a join matr_info b on a.matr_no = b.matr_no
+                                                 and b.used_yn = 'Y' and b.cust_no = #{custNo}
         join purs_info c on a.purs_no = c.purs_no and c.used_yn = 'Y'
+                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
         <if test="indcNo != null and indcNo != ''">
             and c.indc_no = #{indcNo}
         </if>
-        left join (select  sum(iwh_qty) as iwh_qty
-        , matr_no
-        , purs_no
-        from matr_iwh
-        where used_yn = 'Y'
-        group by  matr_no  , purs_no
+        left join (select sum(iwh_qty) as iwh_qty
+                        , matr_no
+                        , purs_no
+                    from matr_iwh
+                    where 1 = 1
+                     and used_yn = 'Y' and cust_no = #{custNo}
+                    group by  matr_no  , purs_no
         ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
-        where a.used_yn = 'Y'
-        and a.purs_qty - coalesce (d.iwh_qty,0) <![CDATA[>=]]> 0
-        and c.purs_sts = #{pursSts}
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a.purs_qty - coalesce (d.iwh_qty,0) <![CDATA[>=]]> 0
+          and c.purs_sts = #{pursSts}
         <if test="findTp != null and findTp != ''">
             <if test="findSz != null and findSz != ''">
                 AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -635,12 +674,22 @@
              , f.wh_no --적재창고번호
              , f.wh_nm --적재창고명
              , c.purs_sts
-        from purs_info c join purs_matr a on a.purs_no = c.purs_no and a.used_yn = 'Y'
-                         join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+        from purs_info c join purs_matr a on c.purs_no = a.purs_no
+                                         and a.used_yn = 'Y' and a.cust_no = #{custNo}
+                         join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                     left join cmpy_info e on a.cmpy_no = e.cmpy_no
-                         join wh_info f on f.save_tmpr = b.save_tmpr and f.wh_tp = 192 and f.used_yn = 'Y'
-                    left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no  from matr_iwh where used_yn = 'Y' group by cmpy_no , matr_no , purs_matr_no , purs_no) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
+                                    and e.used_yn = 'Y' and e.cust_no = #{custNo}
+                         join wh_info f on f.save_tmpr = b.save_tmpr
+                                       and f.wh_tp = 192
+                                       and f.used_yn = 'Y' and f.cust_no = #{custNo}
+                    left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
+                               from matr_iwh
+                               where and used_yn = 'Y' and cust_no = #{custNo}
+                                group by cmpy_no , matr_no , purs_matr_no , purs_no
+                             ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
         where a.purs_matr_no = #{pursMatrNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getReqMatrIwhInfo" parameterType="map" resultType="camelMap">
@@ -660,13 +709,24 @@
              , f.wh_nm --적재창고명
              , g.iwh_no --입고번호
              , coalesce (g.iwh_qty) as iwh_qty --입고수량
-        from purs_info c join purs_matr a on a.purs_no = c.purs_no and a.used_yn = 'Y'
+        from purs_info c join purs_matr a on a.purs_no = c.purs_no
+                                         and a.used_yn = 'Y' and a.cust_no = #{custNo}
                          join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+                                         and b.used_yn = 'Y' and b.cust_no = #{custNo}
                          join cmpy_info e on a.cmpy_no = e.cmpy_no
-                         join wh_info f on f.save_tmpr = b.save_tmpr and f.wh_tp = 192 and f.used_yn = 'Y'
-                         join matr_iwh g on a.purs_matr_no = g.purs_matr_no and g.used_yn = 'Y'
-                    left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no  from matr_iwh where used_yn = 'Y' group by cmpy_no , matr_no , purs_matr_no , purs_no) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
-        where g.iwh_no = #{iwhNo}
+                                         and e.used_yn = 'Y' and e.cust_no = #{custNo}
+                         join wh_info f on f.save_tmpr = b.save_tmpr
+                                       and f.wh_tp = 192
+                                       and f.used_yn = 'Y' and f.cust_no = #{custNo}
+                         join matr_iwh g on a.purs_matr_no = g.purs_matr_no
+                                        and g.used_yn = 'Y' and g.cust_no = #{custNo}
+                                        and g.iwh_no = #{iwhNo}
+                    left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
+                               from matr_iwh
+                                where used_yn = 'Y' and cust_no = #{custNo}
+                                group by cmpy_no , matr_no , purs_matr_no , purs_no) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
+        where 1 = 1
+          and c.used_yn = 'Y' and c.cust_no = #{custNo}
     </select>
     <select id="getIwhHsrt" parameterType="map" resultType="camelMap">
         /* 제품입고(제품관리 -> 제품입고) : ioMapper.getIwhHsrt */
@@ -682,22 +742,31 @@
              , d.ord_no --주문번호
              , e.user_nm -- 사용자 이름
         from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                               and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                join prod_info b on d.prod_no = b.prod_no
+                                               and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                join user_info e on coalesce (a.mod_id,a.reg_id) = e.user_id
-                               left join prod_iwh c on a.indc_rslt_no = c.indc_rslt_no and c.used_yn = 'Y'
+                          left join prod_iwh c on a.indc_rslt_no = c.indc_rslt_no
+                                                and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where a.used_yn ='Y'
           and a.indc_rslt_no = #{indcRsltNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
+
     <select id="getIwhHsrtCount" parameterType="map" resultType="int">
         select count(a.indc_rslt_no)
         from ( select
                    a.indc_rslt_no
                  from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                         join prod_info b on d.prod_no = b.prod_no
+                                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                         join user_info e on coalesce (a.mod_id,a.reg_id) = e.user_id
-                                        left join prod_iwh c on a.indc_rslt_no = c.indc_rslt_no and c.used_yn = 'Y'
+                                   left join prod_iwh c on a.indc_rslt_no = c.indc_rslt_no
+                                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
                  where a.used_yn ='Y'
                    and a.indc_rslt_no = #{indcRsltNo}
+                   and a.used_yn = 'Y' and a.cust_no = #{custNo}
              ) a
     </select>
 
@@ -714,11 +783,20 @@
             , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt -- 납품요청일
             , f.wh_no --입고창고번호
             , f.wh_nm --입고창고명
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                         join wh_info f on f.save_tmpr = b.save_tmpr and f.wh_tp = 192 and f.used_yn = 'Y'
-                         join purs_info c on a.purs_no = c.purs_no and c.used_yn = 'Y'
-                    left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no  from matr_iwh where used_yn = 'Y' group by cmpy_no , matr_no , purs_matr_no , purs_no) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no
+                                         and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                         join wh_info f on f.save_tmpr = b.save_tmpr
+                                       and f.wh_tp = 192
+                                       and f.used_yn = 'Y' and f.cust_no = #{custNo}
+                         join purs_info c on a.purs_no = c.purs_no
+                                         and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                    left join ( select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
+                                from matr_iwh
+                                where used_yn = 'Y' and cust_no = #{custNo}
+                                group by cmpy_no , matr_no , purs_matr_no , purs_no
+                              ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
         where a.used_yn = 'Y'
+        and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.matr_no = #{matrNo}
         and c.purs_sts = #{pursSts}
         and a.purs_qty - coalesce (d.iwh_qty,0)   <![CDATA[ >= ]]> 0
@@ -756,13 +834,20 @@
                     , b.valid_term --유효기간
                     , a.purs_qty - coalesce (d.iwh_qty,0) as rest_qty --미입고중량
                     , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt -- 납품요청일
-                from purs_matr a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                                 join purs_info c on a.purs_no = c.purs_no and c.used_yn = 'Y'
-                            left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no  from matr_iwh where used_yn = 'Y' group by cmpy_no , matr_no , purs_matr_no , purs_no) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
+                from purs_matr a join matr_info b on a.matr_no = b.matr_no
+                                                 and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                 join purs_info c on a.purs_no = c.purs_no
+                                                 and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                            left join ( select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
+                                        from matr_iwh
+                                        where b.used_yn = 'Y' and cust_no = #{custNo}
+                                        group by cmpy_no , matr_no , purs_matr_no , purs_no
+                                       ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
                 where a.used_yn = 'Y'
-                and a.matr_no = #{matrNo}
-                and c.purs_sts = #{pursSts}
-                and a.purs_qty - coalesce (d.iwh_qty,0)   <![CDATA[ >= ]]> 0
+                 and a.used_yn = 'Y' and a.cust_no = #{custNo}
+                 and a.matr_no = #{matrNo}
+                 and c.purs_sts = #{pursSts}
+                 and a.purs_qty - coalesce (d.iwh_qty,0)   <![CDATA[ >= ]]> 0
                 <if test="initialFindSz != null and initialFindSz != ''">
                     AND case when b.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
                     when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
@@ -791,9 +876,13 @@
              , b.matr_nm
              , sum(a.stk_qty) as stk_qty
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
-                        join make_indc e on d.indc_no = e.indc_no and e.used_yn = 'Y'
+                                             and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                        join make_indc e on d.indc_no = e.indc_no
+                                        and e.used_yn = 'Y' and e.cust_no = #{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and e.indc_sts = #{indcSts}
           and a.stk_qty <![CDATA[>]]> 0
         <if test="findSz != null and findSz != ''">
@@ -810,9 +899,13 @@
         select count(a.matr_no)
         from (  select a.matr_no --자재번호
                 from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                                and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
-                                join make_indc e on d.indc_no = e.indc_no and e.used_yn = 'Y'
+                                                      and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                join make_indc e on d.indc_no = e.indc_no
+                                                and e.used_yn = 'Y' and e.cust_no = #{custNo}
                 where a.used_yn = 'Y'
+                  and a.used_yn = 'Y' and a.cust_no = #{custNo}
                   and e.indc_sts = #{indcSts}
                   and a.stk_qty <![CDATA[>]]> 0
                 <if test="findSz != null and findSz != ''">
@@ -835,12 +928,17 @@
              , ceil(d.need_qty ) as need_qty --필요수량
              , to_char(e.make_fr_dt , 'YYYY-MM-DD') as dlv_req_dt --요청일자
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join wh_info c on a.wh_no = c.wh_no
+                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join make_indc e on d.indc_no = e.indc_no
+                                        and e.used_yn = 'Y' and e.cust_no = #{custNo}
         where a.used_yn = 'Y'
-        and a.stk_qty <![CDATA[>]]> 0
-        and e.indc_sts = #{indcSts}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a.stk_qty <![CDATA[>]]> 0
+          and e.indc_sts = #{indcSts}
         <if test="matrNo != null and matrNo != ''">
             and a.matr_no = #{matrNo}
         </if>
@@ -872,14 +970,20 @@
         order by e.make_fr_dt, b.matr_nm
         limit #{pageSz} offset #{pageNo}
     </select>
+
     <select id="getReqMatrOwhListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from ( select a.matr_no --자재번호
                 from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                                and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 join wh_info c on a.wh_no = c.wh_no
+                                              and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                 join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
+                                                     and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                 join make_indc e on d.indc_no = e.indc_no
+                                                and e.used_yn = 'Y' and e.cust_no = #{custNo}
                 where a.used_yn = 'Y'
+                and a.used_yn = 'Y' and a.cust_no = #{custNo}
                 and a.stk_qty <![CDATA[>]]> 0
                 and e.indc_sts = #{indcSts}
                 <if test="matrNo != null and matrNo != ''">
@@ -925,8 +1029,11 @@
              ,a.purs_matr_no
              ,a.iwh_seq
         from matr_pos a join matr_info b on a.matr_no =b.matr_no
+                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join wh_info c on a.wh_no = c.wh_no
+                                      and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where a.matr_pos_no = #{matrPosNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getMatrPosList" parameterType="map"  resultType="camelMap">
@@ -939,21 +1046,30 @@
              , c.wh_nm
         from matr_pos a join (select wh_no, matr_no, sum(stk_qty) as stk_qty
                               from  matr_stk
-                                where used_yn = 'Y'
-                              group by wh_no, matr_no) b on a.matr_no = b.matr_no
+                                where 1 = 1
+                                 and used_yn = 'Y' and cust_no = #{custNo}
+                              group by wh_no, matr_no
+                             ) b on a.matr_no = b.matr_no
                         join wh_info c on b.wh_no = c.wh_no
-        where a.stair_idx * a.row_idx * a.col_idx <![CDATA[ != ]]> 0
+                                      and c.used_yn = 'Y' and c.cust_no = #{custNo}
+        where 1= 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a.stair_idx * a.row_idx * a.col_idx <![CDATA[ != ]]> 0
           and a.matr_no = #{matrNo}
           and a.matr_qty <![CDATA[ != ]]> 0
         group by a.matr_no, a.stair_idx, a.col_idx , a.row_idx , b.stk_qty, a.wh_no , c.wh_nm
         limit #{pageSz} offset #{pageNo}
     </select>
+
     <select id="getMatrPosListCount" parameterType="map"  resultType="int">
         select count(a.wh_no)
         from ( select a.wh_no
                from matr_pos a join matr_info b on a.matr_no =b.matr_no
+                                               and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                join wh_info c on a.wh_no = c.wh_no
-                where a.used_yn  = 'Y'
+                                             and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                where 1 = 1
+                 and a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="matrNo != null and matrNo != ''">
                     and a.matr_no = #{matrNo}
                 </if>
@@ -966,21 +1082,35 @@
 
     <select id="pursStsCount" parameterType="map" resultType="str">
         select  case when a.purs_qty = b.iwh_qty and a.purs_qty * b.iwh_qty <![CDATA[ > ]]> 0 then 'Y' else 'N' end as complet_yn --완료여부확인
-          	from  (select sum(purs_qty) as purs_qty from purs_matr where used_yn = 'Y' and purs_no = #{pursNo}) a
-          	     ,(select sum(iwh_qty)  as iwh_qty  from matr_iwh  where used_yn = 'Y' and purs_no = #{pursNo} and coalesce (wh_no,0)  <![CDATA[ > ]]> 0) b
+          	from  (select sum(purs_qty) as purs_qty
+          	        from purs_matr
+          	        where used_yn = 'Y' and cust_no = #{custNo}
+          	          and purs_no = #{pursNo}
+          	       ) a
+          	     ,(select sum(iwh_qty)  as iwh_qty
+          	       from matr_iwh
+          	       where used_yn = 'Y' and cust_no = #{custNo}
+          	         and purs_no = #{pursNo} and coalesce (wh_no,0)  <![CDATA[ > ]]> 0) b
     </select>
     <update id="updatePursStatus" parameterType="map" >
-        update purs_info set purs_sts = #{pursSts} where purs_no = #{pursNo}
+        update purs_info set purs_sts = #{pursSts}
+        where purs_no = #{pursNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <update id="dropMatrIwh" parameterType="map" >
         /* 원료입고정보 삭제 (ioMapper.dropMatrIwh) */
-        update matr_iwh set used_yn = 'N' , mod_id = #{modId}, mod_dt = now(), mod_ip = #{modIp} where iwh_no = #{iwhNo}
+        update matr_iwh set used_yn = 'N' , mod_id = #{modId}, mod_dt = now(), mod_ip = #{modIp}
+        where iwh_no = #{iwhNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <update id="resetMatrStk" parameterType="map" >
         /* 원료재고Adjust (ioMapper.resetMatrStk) */
-        update matr_stk set stk_qty = stk_qty - #{iwhQty} where wh_no = #{whNo} and matr_no = #{matrNo}
+        update matr_stk set stk_qty = stk_qty - #{iwhQty}
+        where wh_no = #{whNo}
+          and matr_no = #{matrNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <select id="getReqProdIwhSumList" parameterType="map" resultType="camelMap">
@@ -988,15 +1118,21 @@
         select d.prod_no -- 상품번호
               , b.prod_nm-- 품명
               , b.erp_prod_nm --Epr 품명
-              ,sum(coalesce (a.make_qty,0)) as make_qty --생산수량
---               , coalesce ((select sum(ps.stk_qty) from prod_stk ps where ps.used_yn = 'Y' and ps.prod_no = d.prod_no),0) as stk_qty -- 재고수량
-        from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no and d.proc_cd  = 999
+              , sum(coalesce (a.make_qty,0)) as make_qty --생산수량
+        from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                               and d.proc_cd  = 999
+                                               and d.used_yn = 'Y' and d.cust_no = #{custNo}
                           join prod_info b on d.prod_no  =b.prod_no
+                                          and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.used_yn = 'Y'
-        and a.make_dt is not null
-        and ceil(a.make_qty) <![CDATA[ != ]]> coalesce ((select ceil(sum(coalesce(p.iwh_qty,0)))
-                                                     from prod_iwh p
-                                                    where used_yn = 'Y' and d.prod_no = p.prod_no and p.indc_rslt_no = a.indc_rslt_no),0)
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a.make_dt is not null
+          and ceil(a.make_qty) <![CDATA[ != ]]> coalesce (( select ceil(sum(coalesce(p.iwh_qty,0)))
+                                                            from prod_iwh p
+                                                             where d.prod_no = p.prod_no
+                                                               and p.used_yn = 'Y' and p.cust_no = #{custNo}
+                                                               and p.indc_rslt_no = a.indc_rslt_no
+                                                            ),0)
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'prodNm'">
                 and  upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -1006,18 +1142,26 @@
         having  sum(coalesce (a.make_qty,0)) <![CDATA[ > ]]> 0
         limit #{pageSz} offset #{pageNo}
     </select>
+
     <select id="getReqProdIwhSumListCount" parameterType="map" resultType="int">
         select count(a.prod_no)
         from (   select d.prod_no, -- 상품번호
                         b.prod_nm, -- 품명
                         sum(coalesce (a.make_qty,0)) as make_qty --생산수량
-                 from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no and d.proc_cd  = 999
-                                        join prod_info b on d.prod_no  =b.prod_no
+                 from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                                   and d.proc_cd  = 999
+                                                   and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                        join prod_info b on d.prod_no  = b.prod_no
+                                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
                  where a.used_yn = 'Y'
+                   and a.used_yn = 'Y' and a.cust_no = #{custNo}
                    and a.make_dt is not null
                    and ceil(a.make_qty) <![CDATA[ != ]]> coalesce ((select ceil(sum(coalesce(p.iwh_qty,0)))
-                                                                from prod_iwh p
-                                                                where used_yn = 'Y' and d.prod_no = p.prod_no and p.indc_rslt_no = a.indc_rslt_no),0)
+                                                                    from prod_iwh p
+                                                                    where p.indc_rslt_no = a.indc_rslt_n
+                                                                    and p.used_yn = 'Y' and p.cust_no = #{custNo}
+                                                                    and d.prod_no = p.prod_no
+                                                                    ),0)
                  <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'prodNm'">
                         and  upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -1037,29 +1181,54 @@
             <choose>
                 <when test="custNo != null and custNo != ''and custNo == 6 ">
                     , coalesce(a.make_qty / b.qty_per_pkg,0)  as make_qty  --생산수량
-                    , coalesce ((select sum(ceil(mim.make_qty / b.qty_per_pkg)) from make_indc_rslt mim where mim.used_yn = 'Y' and mim.indc_no = d.indc_no ),0)
-                    - coalesce ((select  sum(ceil(coalesce(mo.iwh_qty / b.qty_per_pkg,0))) from prod_iwh mo where mo.used_yn = 'Y' and mo.prod_no = d.prod_no and mo.indc_rslt_no = a.indc_rslt_no),0) as rest_qty --미입고수량
+                    , coalesce ((select sum(ceil(mim.make_qty / case when b.qty_per_pkg = 0 then 1 else b.qty_per_pkg end))
+                                 from make_indc_rslt mim
+                                 where mim.used_yn = 'Y' and mim.cust_no = #{custNo}
+                                   and mim.indc_no = d.indc_no
+                                 ),0)
+                    - coalesce ((select  sum(ceil(coalesce(mo.iwh_qty / case when b.qty_per_pkg = 0 then 1 else b.qty_per_pkg end ,0)))
+                                 from prod_iwh mo
+                                 where mo.used_yn = 'Y' and mo.cust_no = #{custNo}
+                                   and mo.prod_no = d.prod_no
+                                   and mo.indc_rslt_no = a.indc_rslt_no
+                                 ),0) as rest_qty --미입고수량
                 </when>
                 <otherwise >
                     , coalesce(a.make_qty,0)  as make_qty  --생산수량
-                    , coalesce ((select sum(ceil(mim.make_qty)) from make_indc_rslt mim where mim.used_yn = 'Y' and mim.indc_no = d.indc_no ),0)
-                    - coalesce ((select  sum(ceil(coalesce(mo.iwh_qty,0))) from prod_iwh mo where mo.used_yn = 'Y' and mo.prod_no = d.prod_no and mo.indc_rslt_no = a.indc_rslt_no),0) as rest_qty --미입고수량
+                    , coalesce ((select sum(ceil(mim.make_qty))
+                                 from make_indc_rslt mim
+                                  where mim.used_yn = 'Y' and mim.cust_no = #{custNo}
+                                   and mim.indc_no = d.indc_no
+                                ),0)
+                    - coalesce ((select  sum(ceil(coalesce(mo.iwh_qty,0)))
+                                 from prod_iwh mo
+                                 where mo.used_yn = 'Y' and mo.cust_no = #{custNo}
+                                   and mo.prod_no = d.prod_no
+                                   and mo.indc_rslt_no = a.indc_rslt_no
+                                ),0) as rest_qty --미입고수량
                 </otherwise>
             </choose>
              , b.mess --단위중량
              , d.ord_no --주문번호
              , f.wh_no
              , f.wh_nm
-        from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no and d.proc_cd  = 999
+        from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                               and d.proc_cd  = 999
+                                               and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                join prod_info b on d.prod_no = b.prod_no
-                               join wh_info f on b.save_tmpr = f.save_tmpr and f.wh_tp = 192 and f.used_yn = 'Y'
---                           left join prod_stk c on d.prod_no  = c.prod_no
+                                               and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                               join wh_info f on b.save_tmpr = f.save_tmpr
+                                              and f.wh_tp = 192
+                                              and f.used_yn = 'Y' and f.cust_no = #{custNo}
                           left join code_info e on b.save_tmpr = e.code_no
---                           left join wh_info f on c.wh_no = f.wh_no and f.used_yn = 'Y'
+                                               and e.used_yn = 'Y' and e.cust_no = #{custNo}
         where a.used_yn ='Y'
+        and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.make_qty <![CDATA[ <> ]]> coalesce ((select sum(coalesce(p.iwh_qty,0))
                                                     from prod_iwh p
-                                                    where used_yn = 'Y' and d.prod_no = p.prod_no and p.indc_rslt_no = a.indc_rslt_no),0)
+                                                    where p.used_yn = 'Y' and p.cust_no = #{custNo}
+                                                     and d.prod_no = p.prod_no and p.indc_rslt_no = a.indc_rslt_no
+                                                  ),0)
         and a.make_dt is not null
         and coalesce (a.make_qty,0) <![CDATA[ > ]]> 0
         <if test="prodNo != null and prodNo != ''">
@@ -1101,14 +1270,19 @@
     <select id="getProdIwhListCount" parameterType="map" resultType="int">
         select count(a.indc_no)
         from ( select a.indc_no
-               from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no and d.proc_cd  = 999
+               from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                                      and d.proc_cd  = 999
+                                                      and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                       join prod_info b on d.prod_no  =b.prod_no
+                                                      and d.used_yn = 'Y' and d.cust_no = #{custNo}
                                  left join code_info e on b.save_tmpr = e.code_no
                where a.used_yn ='Y'
+               and a.used_yn = 'Y' and a.cust_no = #{custNo}
                and a.make_dt is not null
                and a.make_qty <![CDATA[ != ]]> coalesce ((select sum(coalesce(p.iwh_qty,0))
                                                             from prod_iwh p
-                                                            where used_yn = 'Y' and d.prod_no = p.prod_no and p.indc_rslt_no = a.indc_rslt_no),0)
+                                                            where p.used_yn = 'Y' and p.cust_no = #{custNo}
+                                                            and d.prod_no = p.prod_no and p.indc_rslt_no = a.indc_rslt_no),0)
                and coalesce (a.make_qty,0) <![CDATA[ > ]]> 0
                 <if test="prodNo != null and prodNo != ''">
                     and d.prod_no = #{prodNo}
@@ -1153,56 +1327,76 @@
              , a.ord_qty * b.exchg_rt as ord_qty
              , c.cmpy_no
              , d.prod_cnt
-        from ord_prod a join exchg_unit  b on a.sale_unit = b.unit_no
-                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y' and c.ord_sts = #{ordSts}
-                        join (select ord_no, count(prod_no) as prod_cnt from ord_prod where used_yn = 'Y' group by ord_no) d on c.ord_no = d.ord_no
+        from ord_prod a join ord_info c on a.ord_no = c.ord_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                       and c.ord_sts = #{ordSts}
+                        join (select ord_no, count(prod_no) as prod_cnt
+                              from ord_prod
+                              where  used_yn = 'Y' and cust_no = #{custNo}
+                              group by ord_no
+                              ) d on c.ord_no = d.ord_no
         where a.used_yn = 'Y'
-        and  a.prod_no = #{prodNo}
-        and ( a.ord_qty * b.exchg_rt )  <![CDATA[ <= ]]>  ( select coalesce ( sum(coalesce(a.stk_qty,0) * c.exchg_rt) ,0)
-                                                            from prod_stk a join prod_info b on a.prod_no = b.prod_no
-                                                                            join exchg_unit c on b.sale_unit = c.unit_no
-                                                            where a.prod_no = #{prodNo}
-                                                           )
-
-    </select>
+        and   a.used_yn = 'Y' and a.cust_no = #{custNo}
+        and   a.prod_no = #{prodNo}
+        and ( a.ord_qty * b.exchg_rt )
+                <![CDATA[ <= ]]>
+              ( select coalesce ( sum(coalesce(a.stk_qty,0) * c.exchg_rt) ,0)
+                from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                               and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                join exchg_unit c on b.sale_unit = c.unit_no
+                                               and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                where a.prod_no = #{prodNo}
+              )
+   </select>
 
     <select id="getOrdProdList" parameterType="map" resultType="camelMap">
         /*주문정보(ioMapper.getOrdProdList)*/
         select a.ord_no
              , a.ord_nm
         from ord_info a join ord_prod op on a.ord_no = op.ord_no
-        where a.used_yn = 'Y'
-          and op.prod_no = #{prodNo}
+                                       and op.prod_no = #{prodNo}
+                                       and op.used_yn = 'Y' and op.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getOrdProdListCount" parameterType="map" resultType="int">
         select count(a.ord_no)
-        from ord_info a join ord_prod op on a.ord_no = op.ord_no
-        where a.used_yn = 'Y'
-          and op.prod_no = #{prodNo}
+         from ord_info a join ord_prod op on a.ord_no = op.ord_no
+                                          and op.prod_no = #{prodNo}
+                                          and op.used_yn = 'Y' and op.cust_no = #{custNo}
+        where a.used_yn = 'y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getOwhWaitOrdCondition" parameterType="map" resultType="boolean">
         select case when a.prod_no is not null then true else false end
-        from ord_prod a join exchg_unit  b on a.sale_unit = b.unit_no
-                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y' and c.ord_sts = #{ordSts}
-                        join (select ord_no, count(prod_no) as prod_cnt from ord_prod where used_yn = 'Y' group by ord_no) d on c.ord_no = d.ord_no
+        from ord_prod a join ord_info c on a.ord_no = c.ord_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                       and c.ord_sts = #{ordSts}
+                        join (select ord_no, count(prod_no) as prod_cnt
+                              from ord_prod
+                              where used_yn = 'Y' and cust_no = #{custNo}
+                              group by ord_no
+                            ) d on c.ord_no = d.ord_no
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and  a.prod_no = #{prodNo}
-          and ( a.ord_qty * b.exchg_rt )  <![CDATA[ <= ]]>  ( select coalesce ( sum(a.stk_qty * c.exchg_rt) ,0)
-                                                                from prod_stk a join prod_info b on a.prod_no = b.prod_no
-                                                                                join exchg_unit c on b.sale_unit = c.unit_no
-                                                                where a.prod_no = #{prodNo}
-                                                             )
+          and  a.ord_qty
+                 <![CDATA[ <= ]]>
+                ( select coalesce ( sum(a.stk_qty) ,0)
+                    from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                                    and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                    where a.prod_no = #{prodNo}
+                      and a.used_yn = 'Y' and a.cust_no = #{custNo}
+                 )
         group by a.prod_no
     </select>
 
     <select id="getTransStkQty" parameterType="map" resultType="camelMap">
-        select a.stk_qty * c.exchg_rt as stk_qty
+        select a.stk_qty
         from prod_stk a join prod_info b on a.prod_no = b.prod_no
-                        join exchg_unit c on b.sale_unit = c.unit_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.prod_no = #{prodNo}
-          and a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <!--  제품입고시 ord_info의 ord_sts 가 바뀌지 않는 경우로 인해 사용 중지 - 21.06.30  -->
@@ -1232,13 +1426,22 @@
         update ord_info
         set ord_sts = #{ordSts}
         where ord_no = #{ordNo}
-        and ( (select coalesce(make_qty, 0) from make_indc_rslt where indc_rslt_no = #{indcRsltNo} and used_yn = 'Y')
-                = (select sum(coalesce(iwh_qty, 0 )) from prod_iwh where indc_rslt_no = #{indcRsltNo} and used_yn = 'Y')
+        and ( (select coalesce(make_qty, 0)
+               from make_indc_rslt
+               where indc_rslt_no = #{indcRsltNo}
+                 and used_yn = 'Y' and cust_no = #{custNo}
+               )
+             = (select sum(coalesce(iwh_qty, 0 ))
+                from prod_iwh
+                where indc_rslt_no = #{indcRsltNo}
+                  and c.used_yn = 'Y' and cust_no = #{custNo}
+                )
             )
     </update>
 
     <!--상품입고 저장 상세정보 -->
     <select id="getProdIwhInfo" parameterType="map" resultType="camelMap">
+        /*상품입고 저장 상세정보(ioMapper.getProdIwhInfo) */
         select distinct
               c.prod_no
              ,c.prod_nm
@@ -1250,29 +1453,33 @@
              ,a.szn_qty
              ,a.wgt_qty
         from oper_mast a join oper_data b on a.oper_no = b.oper_no
+                                         and b.used_yn = 'Y' and b.cust_no = #{custNo}
                          join prod_info c on a.prod_no = c.prod_no
-        where 1=1
+                                         and c.used_yn = 'Y' and c.cust_no = #{custNo}
+        where 1 = 1
         and a.prod_no = #{prodNo}
+        and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.indc_no = #{indcNo}
         and b.recv_cd = #{recvCd}
-        and c.used_yn = 'Y'
     </select>
 
 
-    <!--상품출고처리용 품목별 합계 목록 -->
+    <!---->
     <select id="getReqProdOwhSumList" parameterType="map" resultType="camelMap">
+        /*상품출고처리용 품목별 합계 목록(ipMpper.getReqProdOwhSumList) */
         select a.prod_no
                 , sum(a.stk_qty) as stk_qty
                 , b.prod_nm
                 , max( c.ord_qty )- max(a.stk_qty) as not_owh_qty
                 , max(ord_qty) as ord_qty
                 , b.erp_prod_nm
-        from prod_stk a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+        from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                    left join (select prod_no ,sum(coalesce(ord_qty,0)) as ord_qty
                                  from ord_prod op
-                                where op.used_yn = 'Y'
-                                group by prod_no ) c on a.prod_no = c.prod_no
-        where a.used_yn = 'Y'
+                                where op.used_yn = 'Y' and op.cust_no = #{custNo}
+        group by prod_no ) c on a.prod_no = c.prod_no
+        where  a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.stk_qty   <![CDATA[ > ]]>  0
         group by a.prod_no, b.prod_nm, b.erp_prod_nm
         <if test="findSz != null and findSz != ''">
@@ -1289,12 +1496,15 @@
                       , sum(a.stk_qty) as stk_qty
                       , b.prod_nm
                       , max( c.ord_qty )- max(a.stk_qty) as not_owh_qty
-                 from prod_stk a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                 from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                                 and b.used_yn = 'Y' and b.cust_no = #{custNo}
                             left join (select prod_no ,sum(coalesce(ord_qty,0)) as ord_qty
                                          from ord_prod op
-                                        where op.used_yn = 'Y'
-                                        group by prod_no ) c on a.prod_no = c.prod_no
+                                        where op.used_yn = 'Y' and op.cust_no = #{custNo}
+                                        group by prod_no
+                                       ) c on a.prod_no = c.prod_no
                  where a.used_yn = 'Y'
+                 and a.used_yn = 'Y' and a.cust_no = #{custNo}
                  and a.stk_qty   <![CDATA[ > ]]>  0
                  group by a.prod_no, b.prod_nm
                 <if test="findSz != null and findSz != ''">
@@ -1453,42 +1663,46 @@
              , g.wh_no --창고번호
              , g.wh_nm --창고명
              , to_char(d.ord_dt,'YYYY-MM-DD') as ord_dt -- 주문일
-    <choose>
-        <when test="custNo != null and custNo != ''and custNo == 6 ">
-            , coalesce(a.stk_qty / b.qty_per_pkg,0) as stk_qty --재고수량
-            , coalesce(c.ord_qty / b.qty_per_pkg , 0) as pkg_ord_qty --주문수량
-            , coalesce(c.ord_qty / b.qty_per_pkg , 0)  - coalesce(po.owh_qty / b.qty_per_pkg ,0) as not_owh_qty --미출고
-            , ( coalesce(c.ord_qty / b.qty_per_pkg , 0)  - coalesce(po.owh_qty / b.qty_per_pkg ,0) ) as ord_qty --잔여량
-            , coalesce(po.owh_qty/ b.qty_per_pkg ,0) as owh_qty --출고
-        </when>
-        <otherwise >
-            , a.stk_qty as stk_qty --현재고
-            , c.ord_qty --주문수량
-            , c.ord_qty - coalesce(po.owh_qty ,0) as not_owh_qty --미출고
-            , coalesce(po.owh_qty,0) as owh_qty --출고
-        </otherwise>
-    </choose>
+        <choose>
+            <when test="custNo != null and custNo != ''and custNo == 6 ">
+                , coalesce(a.stk_qty / b.qty_per_pkg,0) as stk_qty --재고수량
+                , coalesce(c.ord_qty / b.qty_per_pkg , 0) as pkg_ord_qty --주문수량
+                , coalesce(c.ord_qty / b.qty_per_pkg , 0)  - coalesce(po.owh_qty / b.qty_per_pkg ,0) as not_owh_qty --미출고
+                , ( coalesce(c.ord_qty / b.qty_per_pkg , 0)  - coalesce(po.owh_qty / b.qty_per_pkg ,0) ) as ord_qty --잔여량
+                , coalesce(po.owh_qty/ b.qty_per_pkg ,0) as owh_qty --출고
+            </when>
+            <otherwise >
+                , a.stk_qty as stk_qty --현재고
+                , c.ord_qty --주문수량
+                , c.ord_qty - coalesce(po.owh_qty ,0) as not_owh_qty --미출고
+                , coalesce(po.owh_qty,0) as owh_qty --출고
+            </otherwise>
+        </choose>
             , c.ord_no --주문번호
             , h.code_nm as ord_sts_nm --주문상태명
             , a.reg_dt --등록일자
-        from prod_stk a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                        join wh_info g on a.wh_no = g.wh_no
-                        join ord_prod c on b.prod_no = c.prod_no  and c.used_yn = 'Y'
-                        join ord_info d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+        from prod_stk a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                        join wh_info g on a.wh_no = g.wh_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
+                        join ord_prod c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                        join ord_info d on c.ord_no = d.ord_no and d.used_yn = 'Y'and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join code_info h on d.ord_sts = h.code_no
                         join code_info k on b.prod_tp = k.code_no
-                   left join cmpy_info f on b.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
-                   left join cmpy_info j on d.cmpy_no = j.cmpy_no and j.used_yn = 'Y'
+                   left join cmpy_info f on b.cmpy_no = f.cmpy_no and f.used_yn = 'Y' and f.used_yn = 'Y' and f.cust_no = #{custNo}
+                   left join cmpy_info j on d.cmpy_no = j.cmpy_no and j.used_yn = 'Y' and j.used_yn = 'Y' and j.cust_no = #{custNo}
                    left join (select sum(po.owh_qty) as owh_qty
                                    , po.prod_no
                                    , po.wh_no
                                    , po.ord_no
                                    , po.cmpy_no
-                                from ord_prod op join prod_owh po on op.prod_no = po.prod_no and op.ord_no = po.ord_no and po.used_yn = 'Y'
+                                from ord_prod op join prod_owh po on op.prod_no = po.prod_no
+                                                                 and op.ord_no = po.ord_no
+                                                                 and po.used_yn = 'Y' and po.cust_no = #{custNo}
                                 where op.used_yn = 'Y'
+                                 and op.used_yn = 'Y' and op.cust_no = #{custNo}
                                 group by po.prod_no, po.wh_no, po.ord_no, po.cmpy_no
                             ) po on po.cmpy_no = f.cmpy_no and po.prod_no = a.prod_no and po.ord_no = d.ord_no
         where a.used_yn = 'Y'
+         and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and d.ord_sts in ( 143, 144 )
         <choose>
             <when test="prodTp != null and  prodTp != ''">
@@ -1538,16 +1752,29 @@
             , c.ord_no --주문번호
             , h.code_nm as ord_sts_nm --주문상태명
             , a.reg_dt --등록일자
-        from prod_stk a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                        join wh_info g on a.wh_no = g.wh_no
-                        join ord_prod c on b.prod_no = c.prod_no  and c.used_yn = 'Y'
-                        join ord_info d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+        from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                        join wh_info g on a.wh_no = g.wh_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
+                        join ord_prod c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                        join ord_info d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join code_info h on d.ord_sts = h.code_no
                         join code_info k on b.prod_tp = k.code_no
-                   left join cmpy_info f on b.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
-                   left join cmpy_info j on d.cmpy_no = j.cmpy_no and j.used_yn = 'Y'
-                   left join prod_owh po on po.cmpy_no = f.cmpy_no and po.prod_no = a.prod_no and po.used_yn = 'Y'
+                    left join cmpy_info f on b.cmpy_no = f.cmpy_no and f.used_yn = 'Y' and f.cust_no = #{custNo}
+                    left join cmpy_info j on d.cmpy_no = j.cmpy_no and j.used_yn = 'Y' and j.cust_no = #{custNo}
+                    left join (select sum(po.owh_qty) as owh_qty
+                                    , po.prod_no
+                                    , po.wh_no
+                                    , po.ord_no
+                                    , po.cmpy_no
+                                from ord_prod op join prod_owh po on op.prod_no = po.prod_no
+                                                                 and op.ord_no = po.ord_no
+                                                                 and po.used_yn = 'Y' and po.cust_no = #{custNo}
+                                where op.used_yn = 'Y'
+                                and op.used_yn = 'Y' and op.cust_no = #{custNo}
+                                group by po.prod_no, po.wh_no, po.ord_no, po.cmpy_no
+        ) po on po.cmpy_no = f.cmpy_no and po.prod_no = a.prod_no and po.ord_no = d.ord_no
         where a.used_yn = 'Y'
+        and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and d.ord_sts in ( 143, 144 )
         <choose>
             <when test="prodTp != null and  prodTp != ''">
@@ -1560,11 +1787,12 @@
                 and d.cmpy_no <![CDATA[ >= ]]> 0
             </otherwise>
         </choose>
+
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'prodNm'">
-                and (   upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-                     or upper(replace(b.erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-                    )
+                and (  upper(replace(b.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                or upper(replace(b.erp_prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                )
             </if>
             <if test="findTp != null and findTp == 'cmpyNm'">
                 and upper(replace(f.cmpy_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -1679,7 +1907,9 @@
 
     <update id="saveProdStkQty" parameterType="map">
         update prod_stk set stk_qty = stk_qty + #{stkQty}
-        where prod_no = #{prodNo} and wh_no = #{whNo}
+        where prod_no = #{prodNo}
+          and wh_no = #{whNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <!--키오스크 자재출고-->
@@ -1691,13 +1921,16 @@
              , a.purs_unit
              , a.matr_no
              , ci.code_nm
-        from purs_matr a join matr_info mi on a.matr_no = mi.matr_no
+        from purs_matr a join matr_info mi on a.matr_no = mi.matr_no and mi.used_yn = 'Y' and mi.cust_no = #{custNo}
                          left join code_info ci on a.purs_unit = ci.code_no
-                         left join matr_iwh b on a.purs_no = b.purs_no and a.matr_no = b.matr_no
-                         left join matr_stk c on a.wh_no = c.wh_no and c.used_yn = 'Y'
+                                             and ci.used_yn = 'Y' and ci.cust_no = #{custNo}
+                         left join matr_iwh b on a.purs_no = b.purs_no
+                                             and a.matr_no = b.matr_no
+                                             and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                         left join matr_stk c on a.wh_no = c.wh_no and c.wh_no is null
+                                             and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where 1 = 1
-        and c.wh_no is null
-        and a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
     <select id="getKioMatrIwhListCount" parameterType="map" resultType="int">
         select count(cnt.purs_matr_no)
@@ -1705,12 +1938,14 @@
                  select a.purs_matr_no
                  from purs_matr a
                           join matr_info mi on a.matr_no = mi.matr_no
+                                           and mi.used_yn = 'Y' and mi.cust_no = #{custNo}
                           left join code_info ci on a.purs_unit = ci.code_no
                           left join matr_iwh b on a.purs_no = b.purs_no and a.matr_no = b.matr_no
-                          left join matr_stk c on a.wh_no = c.wh_no and c.used_yn = 'Y'
+                                              and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                          left join matr_stk c on a.wh_no = c.wh_no and c.wh_no is null
+                                              and c.used_yn = 'Y' and c.cust_no = #{custNo}
                  where 1 = 1
-                   and c.wh_no is null
-                   and a.used_yn = 'Y'
+                   and a.used_yn = 'Y' and a.cust_no = #{custNo}
              ) cnt
     </select>
     <update id="saveKioMatrStk" parameterType="map" >
@@ -1718,7 +1953,10 @@
     </update>
 
     <delete id="initTempMatrPos" parameterType="map"  >
-        delete from matr_pos where purs_matr_no = #{pursMatrNo} and row_idx = 0 and col_idx = 0 and stair_idx = 0
+        delete from matr_pos
+        where purs_matr_no = #{pursMatrNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
+          and row_idx = 0 and col_idx = 0 and stair_idx = 0
     </delete>
 
     <select id="getProdOutPlanList"  parameterType="map" resultType="camelMap" >
@@ -1729,10 +1967,15 @@
              , to_char(a.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
              , d.prod_nm ||'[' || b.cmpy_nm || '(' || to_char(a.dlv_req_dt,'YYYY-MM-DD') || ') ]' as plan_nm
         from ord_info a join cmpy_info b on a.cmpy_no  = b.cmpy_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join ord_prod  c on a.ord_no =c.ord_no
+                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join prod_info d on c.prod_no = d.prod_no
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join prod_stk f on c.prod_no = f.prod_no and f.stk_qty >= c.ord_qty
+                                       and f.used_yn = 'Y' and f.cust_no = #{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and to_char(a.dlv_req_dt,'YYYY-MM') = #{planYm}
     </select>
 
@@ -1745,8 +1988,11 @@
     </select>
 
     <select id="saveMatrStkPosList" parameterType="map" resultType="camelMap">
-        update matr_pos set matr_pos_no = #{matr_pos_no} where matr_pos_no = #{matr_pos_no}
+        update matr_pos set matr_pos_no = #{matr_pos_no}
+        where matr_pos_no = #{matr_pos_no}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </select>
+
     <select id="getMatrStkPosList" parameterType="map" resultType="camelMap">
         select distinct a.matr_pos_no
                       , a.matr_no
@@ -1760,14 +2006,20 @@
                       , a.wh_no
                       , c.iwh_qty
         from matr_pos a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join matr_iwh c on b.matr_no = c.matr_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where a.matr_no = #{matr_no}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
     <select id="getMatrStkPosListCount" parameterType="map" resultType="int">
         select count( distinct a.matr_pos_no)
         from matr_pos a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join matr_iwh c on b.matr_no = c.matr_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
         where a.matr_no = #{matr_no}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
     <select id="getMatchPosList" parameterType="map" resultType="camelMap">
         select    a.matr_no
@@ -1777,14 +2029,19 @@
                 , b.col_idx
                 , b.row_idx
         from matr_stk a join matr_pos b on a.wh_no = b.wh_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.matr_no = #{matr_no}
           and a.wh_no = #{wh_no}
     </select>
+
     <select id="getMatchPosListCount" parameterType="map" resultType="int">
         select  count(a.matr_no)
         from matr_stk a join matr_pos b on a.wh_no = b.wh_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.matr_no = #{matr_no}
     </select>
 
@@ -1792,10 +2049,15 @@
         update matr_stk
         set stk_qty = (select sum(matr_qty)
                        from matr_pos
-                       where matr_no = #{matr_no} and wh_no = #{wh_no} and matr_stat = #{matr_stat} and used_yn = 'Y'
+                       where matr_no = #{matr_no}
+                         and wh_no = #{wh_no}
+                         and matr_stat = #{matr_stat}
+                         and used_yn = 'Y' cust_no = #{custNo}
         )
           , stat_trf_dt = now()
-        where wh_no = #{wh_no} and matr_no = #{matr_no}
+        where wh_no = #{wh_no}
+          and matr_no = #{matr_no}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
 
@@ -1803,30 +2065,46 @@
         update matr_iwh
         set iwh_qty = (select sum(iwh_qty) + #{iwh_qty}
                        from matr_iwh
-                       where matr_no = #{matr_no} and purs_no = #{purs_no} and wh_no = #{wh_no} and used_yn = 'Y'
+                       where matr_no = #{matr_no}
+                         and purs_no = #{purs_no}
+                         and wh_no = #{wh_no}
+                         and used_yn = 'Y' and cust_no = #{custNo}
         )
           , mod_dt = now()
-        where wh_no = #{wh_no} and matr_no = #{matr_no} and purs_no = #{purs_no}
+        where wh_no = #{wh_no}
+          and matr_no = #{matr_no}
+          and purs_no = #{purs_no}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <update id="renewalPursMatr" parameterType="map">
         update purs_matr
         set purs_qty = case when (select sum (purs_qty) - #{iwh_qty}
                                   from purs_matr
-                                  where matr_no = #{matr_no} and purs_no = #{purs_no} and used_yn = 'Y'
+                                  where matr_no = #{matr_no}
+                                    and purs_no = #{purs_no}
+                                    and used_yn = 'Y' and cust_no = #{custNo}
                                  ) > 0 then purs_qty
                             else 0
             end
-        where purs_no = #{purs_no} and matr_no = #{matr_no} and cmpy_no = #{cmpy_no}
+        where purs_no = #{purs_no}
+          and matr_no = #{matr_no}
+          and cmpy_no = #{cmpy_no}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <update id="updateMatrOwhStk" parameterType="map">
         update matr_stk
         set stk_qty =  (select sum(matr_qty)
                                    from matr_pos
-                                  where matr_no = #{matrNo} and wh_no = #{whNo} and used_yn = 'Y' and matr_stat = #{statCd}
+                                  where matr_no = #{matrNo}
+                                    and wh_no = #{whNo}
+                                    and matr_stat = #{statCd}
+                                    and used_yn = 'Y' and cust_no = #{custNo}
                                 )
-        where wh_no = #{whNo} and matr_no = #{matrNo}
+        where wh_no = #{whNo}
+          and matr_no = #{matrNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <select id="getMatrIndcNo" parameterType="map" resultType="camelMap">
@@ -1838,18 +2116,25 @@
                 , d.purs_matr_no
                 , z.code_alais
         from make_indc_matr a join matr_info b on a.matr_no = b.matr_no
+                                              and b.used_yn = 'Y' and b.cust_no = #{custNo}
                               join make_indc c on a.indc_no = c.indc_no
+                                               and c.used_yn = 'Y' and c.cust_no = #{custNo}
                               join purs_matr d on a.matr_no = d.matr_no
+                                              and d.used_yn = 'Y' dnd c.cust_no = #{custNo}
                               join code_info z on c.make_unit = z.code_no
         where a.matr_no =  #{matr_no}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getMatrIndcNoCount" parameterType="map" resultType="int">
         select   count(a.matr_no)
         from make_indc_matr a join matr_info b on a.matr_no = b.matr_no
+                                              and b.used_yn = 'Y' and b.cust_no = #{custNo}
                               join make_indc c on a.indc_no = c.indc_no
+                                              and c.used_yn = 'Y' and c.cust_no = #{custNo}
                               join code_info z on c.make_unit = z.code_no
         where a.matr_no =  #{matr_no}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <select id="getMatrStkImpoList" parameterType="map" resultType="camelMap">
@@ -1864,15 +2149,16 @@
                , c.indc_no
                , c.make_to_dt
                , ceil(case when f.mess = 0 then b.need_qty else b.need_qty / f.mess end) as need_qty
-               , g.unit_no
         from matr_pos a join make_indc_matr b on a.matr_no = b.matr_no
+                                             and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join make_indc c on b.indc_no = c.indc_no
+                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join prod_info d on c.prod_no = d.prod_no
-                        --join proc_brnch e on d.brnch_no = e.brnch_no
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         left join matr_info f on a.matr_no = f.matr_no
-                        left join exchg_unit g on f.purs_unit = g.unit_no
-        where  1 =1
-          -- and    e.proc_seq = 1
+                                        and f.used_yn = 'Y' and f.cust_no = #{custNo}
+        where  1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.matr_no = #{matr_no}
           and a.wh_no = #{wh_no}
           and c.indc_no = #{indc_no}
@@ -1883,13 +2169,15 @@
     <select id="getMatrStkImpoListCount" parameterType="map" resultType="int">
         select  count(a.matr_no)
         from matr_pos a join make_indc_matr b on a.matr_no = b.matr_no
+                                             and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join make_indc c on b.indc_no = c.indc_no
+                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join prod_info d on c.prod_no = d.prod_no
-                        --join proc_brnch e on d.brnch_no = e.brnch_no
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         left join matr_info f on a.matr_no = f.matr_no
-                        left join exchg_unit g on f.purs_unit = g.unit_no
+                                         and f.used_yn = 'Y' and f.cust_no = #{custNo}
         where 1 = 1
-          --and e.proc_seq = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.matr_no = #{matr_no}
           and a.wh_no = #{wh_no}
           and c.indc_no = #{indc_no}
@@ -1908,9 +2196,12 @@
              , a.ord_sts --주문상태
              , c.code_nm as ord_sts_nm --주문상태명
         from ord_info a join cmpy_info b on a.cmpy_no = b.cmpy_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join code_info c on a.ord_sts = c.code_no
                    left join cmpy_dlv_plc d on a.cmpy_no = a.cmpy_no and a.plc_no = d.plc_no
+                                           and d.used_yn = 'Y' and d.cust_no = #{custNo}
         where  a.ord_no = #{ordNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <!--상품입고대상합계-->
@@ -1920,23 +2211,27 @@
              , c.prod_nm --품명
              , sum(b.make_qty) make_qty
         from make_indc a join make_indc_rslt b on a.indc_no  = b.indc_no and b.used_yn  = 'Y'
+                                              and b.used_yn = 'Y' and b.cust_no = #{custNo}
                          join prod_info c on a.prod_no = c.prod_no
-        where a.used_yn  = 'Y'
+                                         and c.used_yn = 'Y' and c.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.proc_cd  = 999
         group by prod_no, c.prod_cd
     </select>
 
     <!--상품입고대상합계-->
     <select id="getForImprotProdSumListCount" parameterType="map" resultType="int">
-
         select count(a.prod_no
         from (select a.prod_no --품번
                    , c.prod_cd --상품코드
                    , c.prod_nm --품명
                    , sum(b.make_qty) make_qty
-            from make_indc a join make_indc_rslt b on a.indc_no  = b.indc_no and b.used_yn  = 'Y'
+            from make_indc a join make_indc_rslt b on a.indc_no  = b.indc_no
+                                                  and b.used_yn = 'Y' and b.cust_no = #{custNo}
                              join prod_info c on a.prod_no = c.prod_no
-            where a.used_yn  = 'Y'
+                                             and c.used_yn = 'Y' and c.cust_no = #{custNo}
+            where 1 = 1
+              and a.used_yn = 'Y' and a.cust_no = #{custNo}
               and a.proc_cd  = 999
         group by prod_no, c.prod_cd
        ) a
@@ -1949,24 +2244,31 @@
              , c.prod_nm --품명
              , a.indc_wgt --지시중량
              , b.make_wgt --생산수량 (일반적으로 중량이나 여기서는 제좋공정이 완료품입고(999) 이므로 수량으로 관리됨
-        from make_indc a join make_indc_rslt b on a.indc_no  = b.indc_no and b.used_yn  = 'Y'
+        from make_indc a join make_indc_rslt b on a.indc_no  = b.indc_no
+                                              and b.used_yn = 'Y' and b.cust_no = #{custNo}
                          join prod_info c on a.prod_no = c.prod_no
-        where a.used_yn  = 'Y'
+                                         and c.used_yn = 'Y' and c.cust_no = #{custNo}
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.proc_cd  = 999
     </select>
     <select id="getForImprotProdListCount" parameterType="map" resultType="int">
         select coutn(a.prod_no)
         from (select a.prod_no --품번
               from make_indc a
-                       join make_indc_rslt b on a.indc_no = b.indc_no and b.used_yn = 'Y'
+                       join make_indc_rslt b on a.indc_no = b.indc_no
+                                            and b.used_yn = 'Y' and b.cust_no = #{custNo}
                        join prod_info c on a.prod_no = c.prod_no
-              where a.used_yn = 'Y'
+                                            and c.used_yn = 'Y' and c.cust_no = #{custNo}
+              where 1 = 1
+                and a.used_yn = 'Y' and a.cust_no = #{custNo}
                 and a.proc_cd = 999
              ) a
     </select>
 
     <!--상품출고정보-->
     <select id="getExportExecInfo" parameterType="map" resultType="camelMap">
+        /*상품출고정보 (ioMapper.getExportExecInfo) */
         select a.cmpy_no --거래처번호
              , b.cmpy_nm --거래처명
              , d.plc_nm  --납풒장소
@@ -1983,9 +2285,12 @@
              , a.ord_sts
         from ord_info a join code_info c on a.ord_sts = c.code_no
                    left join cmpy_info b on a.cmpy_no = b.cmpy_no
+                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                    left join code_info e on a.ord_path = e.code_no
                    left join cmpy_dlv_plc d on a.cmpy_no = a.cmpy_no and a.plc_no = d.plc_no
-        where  a.ord_no = #{ordNo}
+                                       and d.used_yn = 'Y' and d.cust_no = #{custNo}
+        where a.ord_no = #{ordNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <!--출고상품목록-->
@@ -1999,72 +2304,104 @@
              , d.wh_nm   --재고창고명
              , pi.prod_nm
         from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
+                                       and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join prod_stk c on b.prod_no = c.prod_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join wh_info d on c.wh_no = d.wh_no
+                                       and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join prod_info pi on pi.prod_no = b.prod_no
+                                        and pi.used_yn = 'Y' and pi.cust_no = #{custNo}
         where  a.ord_no = #{ordNo} and c.stk_qty <![CDATA[ > ]]> 0
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <update id="ordStkCmpyNoUpdate" parameterType="map">
         update ord_info set (trk_cmpy_no, take_no, trk_no) = (#{trkCmpyNo}, #{takeNo}, #{trkNo})
-                                                                where ord_no = #{ordNo}   and used_yn = 'Y '
+         where ord_no = #{ordNo}
+         and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
 
-    <!-- 상품출고 출고대기상태목록   -->
     <select id="getOwhCompleteOrdList" parameterType="map" resultType="camelMap">
+        /* 상품출고 출고대기상태목록  (ioMapper.getOwnCompleteOrdList) */
         select a.ord_no
              , a.prod_no
              , a.ord_qty * b.exchg_rt as ord_qty
              , d.prod_cnt
              , c.cmpy_no
-        from ord_prod a join exchg_unit  b on a.sale_unit = b.unit_no
-                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y' and c.ord_sts = #{ordSts}
-                        join (select ord_no, count(prod_no) as prod_cnt from ord_prod where used_yn = 'Y' group by ord_no) d on c.ord_no = d.ord_no
+        from ord_prod a join ord_info c on a.ord_no = c.ord_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                        and c.ord_sts = #{ordSts}
+                        join ( select ord_no, count(prod_no) as prod_cnt
+                               from ord_prod
+                                where used_yn = 'Y' cust_no = #{custNo}
+                                group by ord_no
+                               d on c.ord_no = d.ord_no
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and  a.prod_no = #{prodNo}
-          and ( a.ord_qty * b.exchg_rt )  <![CDATA[ <= ]]>  ( select coalesce ( sum(a.owh_qty * c.exchg_rt) ,0)
-                                                              from prod_owh a join prod_info b on a.prod_no = b.prod_no
-                                                                              join exchg_unit c on b.sale_unit = c.unit_no
-                                                              where a.prod_no = #{prodNo}
+          and  a.ord_qty
+              <![CDATA[ <= ]]>
+              ( select coalesce ( sum(a.owh_qty) ,0)
+                  from prod_owh a join prod_info b on a.prod_no = b.prod_no
+                                                  and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                  where a.prod_no = #{prodNo}
+                  and a.used_yn = 'Y' and a.cust_no = #{custNo}
         )
     </select>
 
     <select id="getOwhCompleteOrdCondition" parameterType="map" resultType="boolean">
         select case when a.prod_no is not null then true else false end
-        from ord_prod a join exchg_unit  b on a.sale_unit = b.unit_no
-                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y' and c.ord_sts = #{ordSts}
-                        join (select ord_no, count(prod_no) as prod_cnt from ord_prod where used_yn = 'Y' group by ord_no) d on c.ord_no = d.ord_no
+        from ord_prod a join ord_info c on a.ord_no = c.ord_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                       and c.ord_sts = #{ordSts}
+                        join (select ord_no, count(prod_no) as prod_cnt from ord_prod
+                              where used_yn = 'Y' and cust_no = #{custNo}
+                               group by ord_no
+                            ) d on c.ord_no = d.ord_no
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.prod_no = #{prodNo}
           and a.ord_no = #{ordNo}
-          and ( a.ord_qty * b.exchg_rt )  <![CDATA[ <= ]]>  ( select coalesce ( sum(a.owh_qty * c.exchg_rt) ,0)
-                                                              from prod_owh a join prod_info b on a.prod_no = b.prod_no
-                                                                              join exchg_unit c on b.sale_unit = c.unit_no
-                                                              where a.prod_no = #{prodNo}
+          and ( a.ord_qty)
+                <![CDATA[ <= ]]>
+              ( select coalesce ( sum(a.owh_qty * c.exchg_rt) ,0)
+                  from prod_owh a join prod_info b on a.prod_no = b.prod_no
+                                                  and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                  where a.prod_no = #{prodNo}
+                    and a.used_yn = 'Y' and a.cust_no = #{custNo}
         )
     </select>
 
     <select id="getOwhCompleteOneOrdCondition" parameterType="map" resultType="boolean">
         select case when a.prod_no is not null then true else false end
-        from ord_prod a join exchg_unit  b on a.sale_unit = b.unit_no
-                        join ord_info c on a.ord_no = c.ord_no and c.used_yn = 'Y' and c.ord_sts = #{ordSts}
-                        join (select ord_no, count(prod_no) as prod_cnt from ord_prod where used_yn = 'Y' group by ord_no) d on c.ord_no = d.ord_no
+        from ord_prod a join ord_info c on a.ord_no = c.ord_no
+                                       and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                                       and c.ord_sts = #{ordSts}
+                        join ( select ord_no, count(prod_no) as prod_cnt
+                               from ord_prod
+                               where d.used_yn = 'Y' and d.cust_no = #{custNo}
+                               group by ord_no
+                              ) d on c.ord_no = d.ord_no
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.prod_no = #{prodNo}
-          and ( a.ord_qty * b.exchg_rt )  <![CDATA[ <= ]]>  ( select coalesce ( sum(a.owh_qty * c.exchg_rt) ,0)
-                                                              from prod_owh a join prod_info b on a.prod_no = b.prod_no
-                                                                              join exchg_unit c on b.sale_unit = c.unit_no
-                                                              where a.prod_no = #{prodNo}
+          and a.ord_qty
+              <![CDATA[ <= ]]>
+              ( select coalesce ( sum(a.owh_qty * c.exchg_rt) ,0)
+                  from prod_owh a join prod_info b on a.prod_no = b.prod_no
+                                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                  where a.prod_no = #{prodNo}
+                    and a.used_yn = 'Y' and a.cust_no = #{custNo}
         )
     </select>
 
     <select id="getTransOwhQty" parameterType="map" resultType="camelMap">
         select a.owh_qty * c.exchg_rt as owh_qty
         from prod_owh a join prod_info b on a.prod_no = b.prod_no
-                        join exchg_unit c on b.sale_unit = c.unit_no
+                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.prod_no = #{prodNo}
-          and a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
     <!-- 제품 출고 시 ord_info - ord_sts가 바뀌지 않는 경우로 인하여 사용 중지 - 21.06.30   -->
@@ -2121,36 +2458,53 @@
     update ord_info set ord_sts = #{ordSts} -- 145(고객인도)
     ,dlv_dt = now()
     where ord_no = #{ordNo}
-    and (1 <![CDATA[ >=  ]]> (select count(*) from ord_prod op where ord_no = #{ordNo} and owh_chk = true))
+      and used_yn = 'Y'
+      and cust_no = #{custNo}
+      and (1 <![CDATA[ >=  ]]> (select count(*)
+                                from ord_prod op
+                                where ord_no = #{ordNo}
+                                  and used_yn = 'Y' and cust_no = #{custNo}
+                                  and owh_chk = true)
+                               )
     </update>
-
-
 
     <select id="getOrdProdOwhNo" parameterType="map" resultType="camelMap">
         select a.ord_prod_no
         from ord_prod a left join prod_owh b on a.ord_no = b.ord_no  and a.prod_no = b.prod_no
+                                            and b.used_yn = 'Y' and b.cust_no = #{custNo}
         where a.ord_no = #{ordNo}
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
         and coalesce(b.owh_qty , 0) = 0
     </select>
 
     <update id="updateOrdProdUsedYn" parameterType="map">
         update ord_prod set used_yn = 'N'
         where ord_prod_no = #{ord_prod_no}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <update id="resetProdStk" parameterType="map">
         update prod_stk set stk_qty = #{owhQty}
-        where prod_no = #{prodNo} and wh_no = #{whNo} and used_yn = 'Y'
+        where prod_no = #{prodNo}
+          and wh_no = #{whNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <select id="getPursMatrNo" parameterType="map" resultType="camelMap">
         select purs_matr_no
-        from purs_matr where matr_no = #{matr_no} and purs_no = #{purs_no} and cmpy_no = #{cmpy_no}
+        from purs_matr
+        where matr_no = #{matr_no}
+          and purs_no = #{purs_no}
+          and cmpy_no = #{cmpy_no}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </select>
 
     <update id="updatePursMatrWhNo" parameterType="map">
         update purs_matr set wh_no = #{whNo}
-        where purs_no = #{pursNo} and matr_no = #{matrNo} and cmpy_no = #{cmpyNo} and used_yn = 'Y'
+        where purs_no = #{pursNo}
+          and matr_no = #{matrNo}
+          and cmpy_no = #{cmpyNo}
+          and used_yn = 'Y' and cust_no = #{custNo}
     </update>
 
     <update id="checkMatrSts" parameterType="map">
@@ -2158,48 +2512,64 @@
         where purs_no in (select purs_no
                           from purs_matr group by purs_no having count(matr_no) = (select count(a.iwh_no)
                                                                                    from matr_iwh a join purs_matr b on a.matr_no = b.matr_no
+                                                                                                                   and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                                                    where b.purs_no = #{pursNo}
-                                                                                     and (select sum(a.iwh_qty * c.exchg_rt) from matr_iwh a join matr_info b on a.matr_no = b.matr_no
-                                                                                                                                             join purs_matr d on a.matr_no = d.matr_no
-                                                                                                                                             join exchg_unit c on b.purs_unit = c.unit_no
-                                                                                          where d.purs_no = #{pursNo}
+                                                                                     and (select sum(a.iwh_qty * c.exchg_rt)
+                                                                                          from matr_iwh a join matr_info b on a.matr_no = b.matr_no
+                                                                                                                          and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                                                                                                         join purs_matr d on a.matr_no = d.matr_no
+                                                                                                                         and d.purs_no = #{pursNo}
+                                                                                                                         and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                                                                                          where a.used_yn = 'Y' and a.cust_no = #{custNo}
                                                                                          ) >= (select sum(a.purs_qty * c.exchg_rt )
                                                                                                from purs_matr a join matr_info b on a.matr_no = b.matr_no
-                                                                                                                join exchg_unit c on b.purs_unit = c.unit_no
+                                                                                                                                and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                                                                                where a.purs_no = #{pursNo}
+                                                                                                 and a.used_yn = 'Y' and a.cust_no = #{custNo}
                                                                                          )
                                                                                   )
                           )
     </update>
     <update id="updateTabletPursMatr" parameterType="map">
         update purs_matr set purs_qty = purs_qty - #{iwhWgt}
-        where matr_no = #{matrNo} and purs_no = #{pursNo} and cmpy_no = #{cmpyNo}
+        where matr_no = #{matrNo}
+          and purs_no = #{pursNo}
+          and cmpy_no = #{cmpyNo}
+          and used_yn ='Y' and cust_no =#{custNo}
     </update>
 
     <update id="updateTabletPursSts" parameterType="map">
         update purs_info a set purs_sts = #{pursSts}
-        where (select sum(purs_qty) from purs_matr where purs_no = #{pursNo}) <![CDATA[ = ]]> 0
-          and purs_no = #{pursNo}
-          and used_yn = 'Y'
+        where (select sum(purs_qty) from purs_matr
+              where purs_no = #{pursNo}) <![CDATA[ = ]]> 0
+              and purs_no = #{pursNo}
+              and used_yn ='Y' and cust_no =#{custNo}
+              )
     </update>
 
     <select id="getTabletWhNoAndMatrUnit" parameterType="map" resultType="camelMap">
         select distinct a.wh_no
                        ,b.purs_unit as matr_unit
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
         where a.matr_no = #{matrNo}
-          and a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
     </select>
 
     <select id="getIndcRsltNo" parameterType="map" resultType="camelMap">
-        select indc_rslt_no from make_indc_rslt mir where indc_no = #{indcNo}
+        select indc_rslt_no
+        from make_indc_rslt mir
+        where indc_no = #{indcNo}
+          and used_yn ='Y' and cust_no =#{custNo}
     </select>
 
     <update id="renewalProdStockByIOwh" parameterType="map">
         update prod_stk
         set stk_qty = stk_qty - #{owhQty}::numeric --형변환필요
           , stat_trf_dt = now()
-        where wh_no = #{whNo} and prod_no = #{prodNo}
+        where wh_no = #{whNo}
+          and prod_no = #{prodNo}
+          and used_yn ='Y' and cust_no =#{custNo}
     </update>
 
     <insert id="saveMatrIwh" parameterType="map">
@@ -2218,12 +2588,19 @@
               , e.wh_nm
               , b.wh_no
               , f.wh_no as tmpr_wh_no
-        from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr and f.used_yn = 'Y' and f.wh_tp = 191
-                    left join matr_stk b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+        from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr
+                                       and f.wh_tp = 191
+                                       and f.used_yn ='Y' and f.cust_no =#{custNo}
+                    left join matr_stk b on a.matr_no = b.matr_no
+                                       and b.used_yn ='Y' and b.cust_no =#{custNo}
                     left join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
+                                        and c.used_yn ='Y' and c.cust_no =#{custNo}
                     left join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
+                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
                     left join wh_info e on b.wh_no = e.wh_no and e.used_yn = 'Y'
+                                        and e.used_yn ='Y' and e.cust_no =#{custNo}
     where a.used_yn = 'Y'
+      and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
@@ -2263,11 +2640,16 @@
     <select id="getMatrForIwhListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from ( select distinct a.matr_no
-                 from matr_info a left join matr_stk b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                                  left join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
-                                  left join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
-                                  left join wh_info e on b.wh_no = e.wh_no and e.used_yn = 'Y'
+                 from matr_info a left join matr_stk b on a.matr_no = b.matr_no
+                                                      and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                  left join purs_matr c on b.matr_no = c.matr_no
+                                                      and c.used_yn ='Y' and c.cust_no =#{custNo}
+                                  left join purs_info d on c.purs_no = d.purs_no
+                                                      and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                  left join wh_info e on b.wh_no = e.wh_no
+                                                      and e.used_yn ='Y' and e.cust_no =#{custNo}
                 where a.used_yn = 'Y'
+                 and a.used_yn ='Y' and a.cust_no =#{custNo}
                 <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
                 <if test="findStr != null and findStr != ''">
                     AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
@@ -2314,9 +2696,13 @@
              , a.wh_no
              , b.purs_unit
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
                         join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
-                   left join make_indc_matr c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                                      and e.used_yn ='Y' and e.cust_no =#{custNo}
+                   left join make_indc_matr c on a.matr_no = c.matr_no
+                                             and c.used_yn ='Y' and c.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         and a.stk_qty <![CDATA[ > ]]> 0
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2357,9 +2743,13 @@
         select count(a.matr_no)
         from ( select a.matr_no
                  from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                                 and b.used_yn ='Y' and b.cust_no =#{custNo}
                                  join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
-                            left join make_indc_matr c on a.matr_no = c.matr_no and c.used_yn = 'Y'
+                                               and e.used_yn ='Y' and e.cust_no =#{custNo}
+                            left join make_indc_matr c on a.matr_no = c.matr_no
+                                                      and c.used_yn ='Y' and c.cust_no =#{custNo}
                 where a.used_yn = 'Y'
+                and a.used_yn ='Y' and a.cust_no =#{custNo}
                 and a.stk_qty <![CDATA[ > ]]> 0
                 <if test="findStr != null and findStr != ''">
                     AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2405,11 +2795,17 @@
              , d.wh_nm
              , c.wh_no
              , e.wh_no as tmpr_wh_no
-        from prod_info a join wh_info e on a.save_tmpr = e.save_tmpr and e.used_yn = 'Y' and e.wh_tp = 192
-                    left join make_indc b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+        from prod_info a join wh_info e on a.save_tmpr = e.save_tmpr
+                                       and e.wh_tp = 192
+                                       and e.used_yn ='Y' and e.cust_no =#{custNo}
+                    left join make_indc b on a.prod_no = b.prod_no
+                                       and b.used_yn ='Y' and b.cust_no =#{custNo}
                     left join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+                                        and c.used_yn ='Y' and c.cust_no =#{custNo}
                     left join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
+                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         and a.prod_no not in (select prod_no from prod_iwh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2449,12 +2845,21 @@
     <select id="getProdForIwhListCount" parameterType="map"  resultType="int">
         select count(a.prod_no)
         from ( select distinct a.prod_no
-               from prod_info a join wh_info e on a.save_tmpr = e.save_tmpr and e.used_yn = 'Y' and e.wh_tp = 192
-                           left join make_indc b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                           left join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
+               from prod_info a join wh_info e on a.save_tmpr = e.save_tmpr
+                                              and e.wh_tp = 192
+                                              and e.used_yn ='Y' and e.cust_no =#{custNo}
+                           left join make_indc b on a.prod_no = b.prod_no
+                                              and b.used_yn ='Y' and b.cust_no =#{custNo}
+                           left join prod_stk c on a.prod_no = c.prod_no
+                                              and c.used_yn ='Y' and c.cust_no =#{custNo}
                            left join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
+                                              and d.used_yn ='Y' and d.cust_no =#{custNo}
                 where a.used_yn = 'Y'
-                and a.prod_no not in (select prod_no from prod_iwh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
+                  and a.used_yn ='Y' and a.cust_no =#{custNo}
+                  and a.prod_no not in (select prod_no
+                                        from prod_iwh
+                                        where used_yn ='Y' and cust_no =#{custNo}
+                                          and coalesce (wh_no, 0 ) = 0)
                 <if test="findStr != null and findStr != ''">
                     AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
                 </if>
@@ -2497,11 +2902,17 @@
              , case when b.indc_no is not null then 'Y' else 'N' end as indc_yn
              , d.wh_nm
              , c.wh_no
-        from prod_info a left join make_indc b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                         join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
-                         join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
+        from prod_info a left join make_indc b on a.prod_no = b.prod_no
+                                              and b.used_yn ='Y' and b.cust_no =#{custNo}
+                         join prod_stk c on a.prod_no = c.prod_no
+                                          and c.used_yn ='Y' and c.cust_no =#{custNo}
+                         join wh_info d on c.wh_no = d.wh_no
+                                       and d.used_yn ='Y' and d.cust_no =#{custNo}
         where a.used_yn = 'Y'
-        and a.prod_no not in (select prod_no from prod_owh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
+        and a.prod_no not in (select prod_no from prod_owh
+                             where used_yn ='Y' and cust_no =#{custNo}
+                               and coalesce (wh_no, 0 ) = 0)
         and c.stk_qty <![CDATA[>]]> 0
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2540,11 +2951,18 @@
     <select id="getProdForOwhListCount" parameterType="map"  resultType="int">
         select count(a.prod_no)
         from ( select distinct a.prod_no
-                from prod_info a left join make_indc b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                                 join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
-                                 join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
+                from prod_info a left join make_indc b on a.prod_no = b.prod_no
+                                                      and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                 join prod_stk c on a.prod_no = c.prod_no
+                                                and c.used_yn ='Y' and c.cust_no =#{custNo}
+                                 join wh_info d on c.wh_no = d.wh_no
+                                                and d.used_yn ='Y' and d.cust_no =#{custNo}
                 where a.used_yn = 'Y'
-                and a.prod_no not in (select prod_no from prod_owh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
+                 and a.used_yn ='Y' and a.cust_no =#{custNo}
+                and a.prod_no not in (select prod_no
+                                       from prod_owh
+                                       where used_yn ='Y' and cust_no =#{custNo}
+                                        and coalesce (wh_no, 0 ) = 0)
                 and c.stk_qty <![CDATA[>]]> 0
                 <if test="findStr != null and findStr != ''">
                     AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2580,13 +2998,17 @@
                 ) a
     </select>
 
-    <!--자재입고 목록 -->
     <select id="getStsMatrIwhList" parameterType="map" resultType="camelMap">
+        /*자재입고목록 (ioMapper.getStsmatrIwhList) */
         select distinct
                a.iwh_no --입고번호
               ,coalesce ( (select sum(ab.iwh_qty )
                             from matr_iwh ab
-                            where ab.iwh_dt = a.iwh_dt and ab.matr_no = b.matr_no and ab.wh_no = d.wh_no),0) as iwh_qty
+                            where ab.iwh_dt = a.iwh_dt
+                              and ab.used_yn ='Y' and ab.cust_no =#{custNo}
+                              and ab.matr_no = b.matr_no
+                              and ab.wh_no = d.wh_no
+                         ),0) as iwh_qty
               ,to_char(a.iwh_dt,'YYYY-MM-DD')  AS iwh_dt --입고 일자
               ,to_char(a.iwh_dt,'YYYY-MM-DD HH24:MI:SS')  AS iwh_time --입고 일자
               ,to_char(a.date_manufacture, 'YYYY-MM-DD') as date_manufacture --제조일자
@@ -2601,15 +3023,29 @@
               ,coalesce (k.stk_qty,0) as stk_qty --마감재고
               ,coalesce (j.stk_qty,0) as now_stk_qty --현재고
               ,case when coalesce (g.purs_no,0) = 0  then '재고조정' else '발주처리' end as purs_tp --발주구분
-        from matr_iwh a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                        join (select wh_no, matr_no, max(iwh_no) as iwh_no from matr_iwh where used_yn ='Y' group by wh_no, matr_no) h on a.iwh_no = h.iwh_no
-                        join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                        join code_info f on b.purs_unit = f.code_no and f.used_yn = 'Y'
-                   left join cmpy_info c on a.cmpy_no = c.cmpy_no and c.used_yn = 'Y'
+        from matr_iwh a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join (select wh_no, matr_no, max(iwh_no) as iwh_no
+                              from matr_iwh
+                              where used_yn ='Y'
+                                and b.cust_no =#{custNo}
+                        group by wh_no, matr_no) h on a.iwh_no = h.iwh_no
+                        join wh_info d on a.wh_no  = d.wh_no
+                                      and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join code_info f on b.purs_unit = f.code_no
+                   left join cmpy_info c on a.cmpy_no = c.cmpy_no
+                                        and c.used_yn ='Y' and c.cust_no =#{custNo}
                    left join purs_info g on a.purs_no = g.purs_no and g.used_yn = 'Y'
+                                        and g.used_yn ='Y' and g.cust_no =#{custNo}
                    left join matr_stk j on b.matr_no = j.matr_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                   left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no from matr_stk_clos msc where msc.used_yn = 'Y' group by msc.matr_no) k on b.matr_no = k.matr_no
+                                       and b.used_yn ='Y' and b.cust_no =#{custNo}
+                   left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no
+                                from matr_stk_clos msc
+                                where msc.used_yn ='Y' and msc.cust_no =#{custNo}
+                               group by msc.matr_no
+                             ) k on b.matr_no = k.matr_no
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.iwh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
@@ -2638,15 +3074,30 @@
     <select id="getStsMatrIwhListCount" parameterType="map" resultType="int">
         select count(a.iwh_no)
                     from (select a.iwh_no --입고 수량
-                         from matr_iwh a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                                         join (select wh_no, matr_no, max(iwh_no) as iwh_no from matr_iwh where used_yn ='Y' group by wh_no, matr_no) h on a.iwh_no = h.iwh_no
-                                         join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                                         join code_info f on b.purs_unit = f.code_no and f.used_yn = 'Y'
-                                    left join cmpy_info c on a.cmpy_no = c.cmpy_no and c.used_yn = 'Y'
-                                    left join purs_info g on a.purs_no = g.purs_no and g.used_yn = 'Y'
-                                    left join matr_stk j on b.matr_no = j.matr_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                                    left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no from matr_stk_clos msc where msc.used_yn = 'Y' group by msc.matr_no) k on b.matr_no = k.matr_no
+                         from matr_iwh a join matr_info b on a.matr_no = b.matr_no
+                                                         and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                         join ( select wh_no, matr_no, max(iwh_no) as iwh_no
+                                                from matr_iwh
+                                                where used_yn ='Y' and cust_no =#{custNo}
+                                                group by wh_no, matr_no
+                                               ) h on a.iwh_no = h.iwh_no
+                                         join wh_info d on a.wh_no  = d.wh_no
+                                                       and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                         join code_info f on b.purs_unit = f.code_no
+                                    left join cmpy_info c on a.cmpy_no = c.cmpy_no
+                                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
+                                    left join purs_info g on a.purs_no = g.purs_no
+                                                        and g.used_yn ='Y' and g.cust_no =#{custNo}
+                                    left join matr_stk j on b.matr_no = j.matr_no
+                                                        and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                                        and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
+                                    left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no
+                                                 from matr_stk_clos msc
+                                                  where msc.used_yn ='Y' and msc.cust_no =#{custNo}
+                                                group by msc.matr_no
+                                                ) k on b.matr_no = k.matr_no
                          where a.used_yn = 'Y'
+                           and a.used_yn ='Y' and a.cust_no =#{custNo}
                         <if test="dateFr != null and dateFr != ''">
                             and to_char(a.iwh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
                         </if>
@@ -2678,25 +3129,43 @@
         select  distinct
                  coalesce ( (select sum(ab.owh_qty )
                                 from matr_owh ab
-                                where ab.owh_dt = a.owh_dt and ab.matr_no = b.matr_no and ab.wh_no = d.wh_no),0) as owh_qty
+                                where ab.owh_dt = a.owh_dt
+                                  and ab.matr_no = b.matr_no
+                                  and ab.wh_no = d.wh_no
+                                   and used_yn ='Y' and cust_no =#{custNo}
+                               ),0) as owh_qty
                 ,to_char(a.owh_dt,'YYYY-MM-DD')  AS owh_dt
                 ,b.matr_nm --원자재명
                 ,to_char(a.owh_req_dt,'YYYY-MM-DD') as req_dt
                 , coalesce ( (select sum(ms.owh_req_qty )
                                  from matr_owh ms
-                                where ms.owh_dt = a.owh_dt and ms.matr_no = b.matr_no and ms.wh_no = d.wh_no),0) as owh_req_qty
+                                where ms.owh_dt = a.owh_dt
+                                  and ms.matr_no = b.matr_no
+                                  and ms.wh_no = d.wh_no
+                                   and ms.used_yn ='Y' and ms.cust_no =#{custNo}
+                               ),0) as owh_req_qty
                 ,d.wh_nm  -- 입고 창고
                 ,c.code_nm --출고단위
                 , a.matr_no --자재번호
                 , b.matr_tp --자재구분
                 ,coalesce (k.stk_qty,0) as stk_qty --마감재고
                 ,coalesce (j.stk_qty,0) as now_stk_qty --현재고
-        from matr_owh a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                        join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                        join code_info c on b.purs_unit = c.code_no and c.used_yn = 'Y'
-                   left join matr_stk j on b.matr_no = j.matr_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                   left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no from matr_stk_clos msc where msc.used_yn = 'Y' group by msc.matr_no) k on b.matr_no = k.matr_no
+        from matr_owh a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join wh_info d on a.wh_no  = d.wh_no
+                                      and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join code_info c on b.purs_unit = c.code_no
+                                        and c.used_yn ='Y' and c.cust_no =#{custNo}
+                   left join matr_stk j on b.matr_no = j.matr_no
+                                       and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                       and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD')
+                                       and j.wh_no = d.wh_no
+                   left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no
+                                from matr_stk_clos msc
+                                where msc.used_yn ='Y' and msc.cust_no =#{custNo}
+                               group by msc.matr_no) k on b.matr_no = k.matr_no
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.owh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
@@ -2724,23 +3193,41 @@
                 from ( select  distinct
                             coalesce ( (select sum(ab.owh_qty )
                                         from matr_owh ab
-                                        where ab.owh_dt = a.owh_dt and ab.matr_no = b.matr_no and ab.wh_no = d.wh_no),0) as owh_qty
+                                        where ab.owh_dt = a.owh_dt
+                                          and ab.matr_no = b.matr_no
+                                          and ab.wh_no = d.wh_no
+                                          and ab.used_yn ='Y' and ab.cust_no =#{custNo}
+                                       ),0) as owh_qty
                             ,to_char(a.owh_dt,'YYYY-MM-DD')  AS owh_dt
                             ,b.matr_nm --원자재명
                             ,to_char(a.owh_req_dt,'YYYY-MM-DD') as req_dt
                             , coalesce ( (select sum(ms.owh_req_qty )
                                             from matr_owh ms
-                                            where ms.owh_dt = a.owh_dt and ms.matr_no = b.matr_no and ms.wh_no = d.wh_no),0) as owh_req_qty
+                                            where ms.owh_dt = a.owh_dt
+                                              and ms.matr_no = b.matr_no
+                                              and ms.wh_no = d.wh_no
+                                              and ms.used_yn ='Y' and ms.cust_no =#{custNo}
+                                           ),0) as owh_req_qty
                             ,d.wh_nm  -- 입고 창고
                             ,c.code_nm --출고단위
                             , a.matr_no --자재번호
                             , b.matr_tp --자재구분
-                        from matr_owh a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y'
-                                        join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
+                        from matr_owh a join matr_info b on a.matr_no = b.matr_no
+                                                       and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                        join wh_info d on a.wh_no  = d.wh_no
+                                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
                                         join code_info c on b.purs_unit = c.code_no and c.used_yn = 'Y'
-                                   left join matr_stk j on b.matr_no = j.matr_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                                   left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no from matr_stk_clos msc where msc.used_yn = 'Y' group by msc.matr_no) k on b.matr_no = k.matr_no
+                                   left join matr_stk j on b.matr_no = j.matr_no
+                                                       and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                                       and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD')
+                                                       and j.wh_no = d.wh_no
+                                   left join ( select max(msc.stk_qty) as stk_qty, msc.matr_no
+                                               from matr_stk_clos msc
+                                               where msc.used_yn ='Y' and msc.cust_no =#{custNo}
+                                               group by msc.matr_no
+                                              ) k on b.matr_no = k.matr_no
                         where a.used_yn = 'Y'
+                          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.owh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
@@ -2790,17 +3277,23 @@
                                 ,coalesce (j.stk_qty,0) as now_stk_qty --현재고
                             </otherwise>
                         </choose>
-        from prod_iwh a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                        join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                        join code_info c on b.sale_unit = c.code_no and c.used_yn = 'Y'
-                        join code_info e on d.save_tmpr = e.code_no and e.used_yn = 'Y'
-                   left join prod_stk j on b.prod_no = j.prod_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                   left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no from prod_stk_clos psc where psc.used_yn = 'Y' group by psc.prod_no) k on b.prod_no = k.prod_no
+        from prod_iwh a join prod_info b on a.prod_no = b.prod_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join wh_info d on a.wh_no  = d.wh_no
+                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join code_info c on b.sale_unit = c.code_no
+                        join code_info e on d.save_tmpr = e.code_no
+                   left join prod_stk j on b.prod_no = j.prod_no
+                                       and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                       and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD')
+                                       and j.wh_no = d.wh_no
+                   left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no
+                                 from prod_stk_clos psc
+                                where psc.used_yn ='Y' and psc.cust_no =#{custNo}
+                               group by psc.prod_no
+                              ) k on b.prod_no = k.prod_no
         where a.used_yn = 'Y'
-<!--        <if test="prodNo != null and prodNo != ''">-->
-<!--            and a.prod_no = #{prodNo}-->
-<!--        </if>-->
-
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.iwh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
@@ -2820,17 +3313,23 @@
     <select id="getStsProdIwhListCount" parameterType="map" resultType="int">
         select count(a.prod_nm)
         from (select b.prod_nm
-                from prod_iwh a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                                join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                                join code_info c on b.sale_unit = c.code_no and c.used_yn = 'Y'
-                                join code_info e on d.save_tmpr = e.code_no and e.used_yn = 'Y'
-                           left join prod_stk j on b.prod_no = j.prod_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                           left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no from prod_stk_clos psc where psc.used_yn = 'Y' group by psc.prod_no) k on b.prod_no = k.prod_no
+                from prod_iwh a join prod_info b on a.prod_no = b.prod_no
+                                                and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                join wh_info d on a.wh_no  = d.wh_no
+                                                 and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                join code_info c on b.sale_unit = c.code_no
+                                join code_info e on d.save_tmpr = e.code_no
+                           left join prod_stk j on b.prod_no = j.prod_no
+                                               and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                               and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD')
+                                               and j.wh_no = d.wh_no
+                           left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no
+                                       from prod_stk_clos psc
+                                       where psc.used_yn ='Y' and psc.cust_no =#{custNo}
+                                       group by psc.prod_no
+                                      ) k on b.prod_no = k.prod_no
                 where a.used_yn = 'Y'
-<!--                <if test="prodNo != null and prodNo != ''">-->
-<!--                    and a.prod_no = #{prodNo}-->
-<!--                </if>-->
-
+                    and a.used_yn ='Y' and a.cust_no =#{custNo}
                 <if test="dateFr != null and dateFr != ''">
                     and to_char(a.iwh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
                 </if>
@@ -2847,8 +3346,8 @@
         ) a
     </select>
 
-    <!--제품출고현황 목록-->
     <select id="getStsProdOwhList" parameterType="map" resultType="camelMap">
+        /*제품출고현황 목록 (iomapper.getStsProdOwhList) */
         select  to_char(a.owh_dt,'YYYY-MM-DD')  AS owh_dt --출고일자
                ,b.prod_nm --출고제품
                ,b.prod_no --품번
@@ -2864,13 +3363,24 @@
                    ))  as not_owh_qty -- 미출고량
                ,ceil( coalesce (k.stk_qty / b.qty_per_pkg,0)) as stk_qty --마감재고
                ,ceil( coalesce (j.stk_qty / b.qty_per_pkg,0)) as now_stk_qty --현재고
-        from prod_owh a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                        join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                        join code_info c on a.owh_unit = c.code_no and c.used_yn = 'Y'
-                   left join cmpy_info e on a.cmpy_no = e.cmpy_no and e.used_yn = 'Y'
-                   left join prod_stk j on b.prod_no = j.prod_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                   left join ( select sum(stk_qty) as stk_qty, prod_no from prod_stk_clos where used_yn = 'Y' group by prod_no) k on b.prod_no = k.prod_no
+        from prod_owh a join prod_info b on a.prod_no = b.prod_no
+                                   and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join wh_info d on a.wh_no  = d.wh_no
+                                      and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join code_info c on a.owh_unit = c.code_no
+                   left join cmpy_info e on a.cmpy_no = e.cmpy_no
+                                        and e.used_yn ='Y' and e.cust_no =#{custNo}
+                   left join prod_stk j on b.prod_no = j.prod_no
+                                       and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                       and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD')
+                                       and j.wh_no = d.wh_no
+                   left join ( select sum(stk_qty) as stk_qty, prod_no
+                               from prod_stk_clos
+                               where used_yn ='Y' and cust_no =#{custNo}
+                               group by prod_no
+                              ) k on b.prod_no = k.prod_no
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.owh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
@@ -2913,13 +3423,24 @@
                     ,to_char(a.owh_req_dt,'YYYY-MM-DD') req_dt -- 요청일자
                     ,a.owh_req_qty -- 요청수량
                     ,c.code_nm
-        from prod_owh a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
-                        join wh_info d on a.wh_no  = d.wh_no and d.used_yn = 'Y'
-                        join code_info c on a.owh_unit = c.code_no and c.used_yn = 'Y'
-                   left join cmpy_info e on a.cmpy_no = e.cmpy_no and e.used_yn = 'Y'
-                   left join prod_stk j on b.prod_no = j.prod_no and j.used_yn ='Y' and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD') and j.wh_no = d.wh_no
-                   left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no from prod_stk_clos psc where psc.used_yn = 'Y' group by psc.prod_no) k on b.prod_no = k.prod_no
+        from prod_owh a join prod_info b on a.prod_no = b.prod_no
+                                   and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join wh_info d on a.wh_no  = d.wh_no
+                                    and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join code_info c on a.owh_unit = c.code_no
+                   left join cmpy_info e on a.cmpy_no = e.cmpy_no
+                                   and e.used_yn ='Y' and e.cust_no =#{custNo}
+                   left join prod_stk j on b.prod_no = j.prod_no
+                                       and j.used_yn ='Y' and j.cust_no =#{custNo}
+                                       and to_char(j.mod_dt,'YYYY-MM-DD')  = to_char(now(),'YYYY-MM-DD')
+                                        and j.wh_no = d.wh_no
+                   left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no
+                                from prod_stk_clos psc
+                                where psc.used_yn ='Y' and psc..cust_no =#{custNo}
+                               group by psc.prod_no
+                             ) k on b.prod_no = k.prod_no
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.owh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
@@ -2948,26 +3469,45 @@
             </if>
         ) a
     </select>
-    <!--원출고창고 목록-->
+
     <select id="getMatrOwhWhNm" parameterType="map" resultType="camelMap">
         /*원료출고 > 원출고창고 목록 (ioMapper.getMatrOwhWhNm) */
         select distinct b.wh_nm
                        ,a.wh_no
         from matr_stk a join wh_info b on a.wh_no = b.wh_no
-                        join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
-                        join make_indc e on d.indc_no = e.indc_no and e.used_yn = 'Y'
-                              and e.indc_no = #{indcNo}
+                                      and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join make_indc_matr d on a.matr_no = d.matr_no
+                                             and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join make_indc e on d.indc_no = e.indc_no
+                                        and e.used_yn ='Y' and e.cust_no =#{custNo}
+                                        and e.indc_no = #{indcNo}
             and a.stk_qty <![CDATA[ > ]]> 0 and e.indc_sts in (2401,2402) -- 추후 수정 해줘야해요
             and a.wh_no in (
                             select a.wh_no --창고번호
                             from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                                            and b.used_yn ='Y' and b.cust_no =#{custNo}
                                             join wh_info c on a.wh_no = c.wh_no
-                                            join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
-                                            join make_indc e on d.indc_no = e.indc_no and e.used_yn ='Y'
+                                                          and c.used_yn ='Y' and c.cust_no =#{custNo}
+                                            join make_indc_matr d on a.matr_no = d.matr_no
+                                                                 and d.matr_sts = 'N'
+                                                                 and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                            join make_indc e on d.indc_no = e.indc_no
+                                                            and e.used_yn ='Y' and e.cust_no =#{custNo}
                             where a.used_yn = 'Y'
+                              and a.used_yn ='Y' and a.cust_no =#{custNo}
                               and e.indc_no = #{indcNo}
-                              and  coalesce ((select sum(ceil(mim.need_qty)) from make_indc_matr mim where mim.matr_no = a.matr_no and mim.indc_no = e.indc_no) ,0)
-                                 - coalesce ((select  sum(coalesce(mo.owh_qty,0)) from matr_owh mo where mo.matr_no = a.matr_no and mo.indc_no = e.indc_no ),0)   <![CDATA[ > ]]>   0
+                              and  coalesce ((select sum(ceil(mim.need_qty))
+                                              from make_indc_matr mim
+                                              where mim.matr_no = a.matr_no
+                                                and mim.indc_no = e.indc_no
+                                                and mim.used_yn ='Y' and mim.cust_no =#{custNo}
+                                           ) ,0)
+                                 - coalesce ((select  sum(coalesce(mo.owh_qty,0))
+                                              from matr_owh mo
+                                              where mo.matr_no = a.matr_no
+                                                and mo.indc_no = e.indc_no
+                                                and mo.used_yn ='Y' and mo.cust_no =#{custNo}
+                                               ),0)   <![CDATA[ > ]]>   0
                            )
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -2986,21 +3526,50 @@
              , ceil(d.need_qty ) as need_qty --필요수량
              , to_char(e.make_fr_dt , 'YYYY-MM-DD') as dlv_req_dt --요청일자
              , coalesce (a.stk_qty,0) as owh_qty --재고량
-             , coalesce ((select sum(ceil(mim.need_qty)) from make_indc_matr mim where mim.matr_no = a.matr_no and mim.indc_no = e.indc_no),0)
-                - coalesce ((select  sum(coalesce(mo.owh_qty,0)) from matr_owh mo where mo.matr_no = a.matr_no and mo.indc_no = e.indc_no),0)   as need_owh_qty
+             ,     coalesce ((select sum(ceil(mim.need_qty))
+                              from make_indc_matr mim
+                              where mim.matr_no = a.matr_no
+                               and mim.indc_no = e.indc_no
+                                and mim.used_yn ='Y' and mim.cust_no =#{custNo}
+                            ),0)
+                - coalesce ((select  sum(coalesce(mo.owh_qty,0))
+                             from matr_owh mo
+                             where mo.matr_no = a.matr_no
+                               and mo.indc_no = e.indc_no
+                               and mo.used_yn ='Y' and mo.cust_no =#{custNo}
+                             ),0)   as need_owh_qty
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
                         join wh_info c on a.wh_no = c.wh_no
-                        join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
-                        join make_indc e on d.indc_no = e.indc_no and e.used_yn = 'Y'
+                                      and c.used_yn ='Y' and c.cust_no =#{custNo}
+                        join make_indc_matr d on a.matr_no = d.matr_no
+                                             and d.matr_sts = 'N'
+                                             and d.used_yn ='Y' and d.cust_no =#{custNo}
+                        join make_indc e on d.indc_no = e.indc_no
+                                        and e.used_yn ='Y' and e.cust_no =#{custNo}
                    left join ord_info f on e.ord_no  = f.ord_no
+                                       and e.used_yn ='Y' and e.cust_no =#{custNo}
                    left join cmpy_info g on f.cmpy_no = g.cmpy_no
+                                      and g.used_yn ='Y' and g.cust_no =#{custNo}
                    left join matr_owh m on e.indc_no = m.indc_no
+                                       and m.used_yn ='Y' and m.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         and a.stk_qty <![CDATA[ > ]]>  0
         and c.wh_no = #{whNo}
         and e.indc_no = #{indcNo}
-        and  coalesce ((select sum(ceil(mim.need_qty)) from make_indc_matr mim where mim.matr_no = a.matr_no and mim.indc_no = e.indc_no ) ,0)
-           - coalesce ((select  sum(coalesce(mo.owh_qty,0)) from matr_owh mo where mo.matr_no = a.matr_no and mo.indc_no = e.indc_no ),0) <![CDATA[ > ]]> 0
+        and  coalesce ((select sum(ceil(mim.need_qty))
+                        from make_indc_matr mim
+                        where mim.matr_no = a.matr_no
+                         and mim.indc_no = e.indc_no
+                         and mim.used_yn ='Y' and mim.cust_no =#{custNo}
+                      ) ,0)
+           - coalesce ((select  sum(coalesce(mo.owh_qty,0))
+                        from matr_owh mo
+                        where mo.matr_no = a.matr_no
+                          and mo.indc_no = e.indc_no
+                          and mo.used_yn ='Y' and mo.cust_no =#{custNo}
+                       ),0) <![CDATA[ > ]]> 0
 
         <if test="findStr != null and findStr != ''"><!--PC용 검색문자열 처리-->
             <if test="findTp != null and findTp == 'matrNm'">
@@ -3023,18 +3592,37 @@
                 , to_char(e.make_fr_dt , 'YYYY-MM-DD') as dlv_req_dt --요청일자
                 , coalesce (a.stk_qty,0) as owh_qty --재고량
             from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                            and b.used_yn ='Y' and b.cust_no =#{custNo}
                             join wh_info c on a.wh_no = c.wh_no
-                            join make_indc_matr d on a.matr_no = d.matr_no and d.matr_sts = 'N'
-                            join make_indc e on d.indc_no = e.indc_no and e.used_yn ='Y'
+                                          and c.used_yn ='Y' and c.cust_no =#{custNo}
+                            join make_indc_matr d on a.matr_no = d.matr_no
+                                                 and d.matr_sts = 'N'
+                                                 and d.used_yn ='Y' and d.cust_no =#{custNo}
+                            join make_indc e on d.indc_no = e.indc_no
+                                            and e.used_yn ='Y' and e.cust_no =#{custNo}
                        left join ord_info f on e.ord_no  = f.ord_no
+                                           and f.used_yn ='Y' and f.cust_no =#{custNo}
                        left join cmpy_info g on f.cmpy_no = g.cmpy_no
+                                            and g.used_yn ='Y' and g.cust_no =#{custNo}
                        left join matr_owh m on e.indc_no = m.indc_no
+                                           and m.used_yn ='Y' and m.cust_no =#{custNo}
             where a.used_yn = 'Y'
+             and a.used_yn ='Y' and a.cust_no =#{custNo}
             and a.stk_qty <![CDATA[ > ]]>  0
             and c.wh_no = #{whNo}
             and e.indc_no = #{indcNo}
-            and  coalesce ((select sum(ceil(mim.need_qty)) from make_indc_matr mim where mim.matr_no = a.matr_no and mim.indc_no = e.indc_no) ,0)
-               - coalesce ((select  sum(coalesce(mo.owh_qty,0)) from matr_owh mo where mo.matr_no = a.matr_no and mo.indc_no = e.indc_no ),0) <![CDATA[ > ]]> 0
+            and  coalesce ((select sum(ceil(mim.need_qty))
+                             from make_indc_matr mim
+                             where mim.matr_no = a.matr_no
+                               and mim.indc_no = e.indc_no
+                               and mim.used_yn ='Y' and mim.cust_no =#{custNo}
+                           ) ,0)
+               - coalesce ((select  sum(coalesce(mo.owh_qty,0))
+                            from matr_owh mo
+                            where mo.matr_no = a.matr_no
+                            and mo.indc_no = e.indc_no
+                            and mo.used_yn ='Y' and mo.cust_no =#{custNo}
+                           ),0) <![CDATA[ > ]]> 0
             <if test="findStr != null and findStr != ''"><!--PC용 검색문자열 처리-->
                 <if test="findTp != null and findTp == 'matrNm'">
                     and upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -3044,7 +3632,11 @@
     </select>
 
     <select id="getProdOwhCount" parameterType="map" resultType="camelMap">
-        select sum(owh_qty) as owh_qty from prod_owh where prod_no = #{prodNo} and wh_no = #{whNo} and ord_no = #{ordNo}
+        select sum(owh_qty) as owh_qty from prod_owh
+         where prod_no = #{prodNo}
+           and wh_no = #{whNo}
+           and ord_no = #{ordNo}
+           and used_yn ='Y' and cust_no =#{custNo}
     </select>
 
     <select id="getProdOwHstrList" parameterType="map" resultType="camelMap">
@@ -3064,14 +3656,22 @@
              , e.erp_prod_nm --제품번호
              , g.wh_nm --출고창
              , h.code_nm
-        from prod_owh a join cmpy_info b on a.cmpy_no =b.cmpy_no and b.used_yn = 'Y'
-                        join prod_info e on a.prod_no  = e.prod_no and e.used_yn = 'Y'
-                        join wh_info g on a.wh_no  = g.wh_no and g.used_yn = 'Y'
+        from prod_owh a join cmpy_info b on a.cmpy_no =b.cmpy_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
+                        join prod_info e on a.prod_no  = e.prod_no
+                                        and e.used_yn ='Y' and e.cust_no =#{custNo}
+                        join wh_info g on a.wh_no  = g.wh_no
+                                      and g.used_yn ='Y' and g.cust_no =#{custNo}
                         join code_info h on a.owh_unit = h.code_no and h.used_yn ='Y'
                    left join user_info c on a.reg_id = c.user_id
-                   left join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y' and d.ord_no  <![CDATA[> ]]> 0
-                   left join ord_prod f on d.ord_no = f.ord_no and e.prod_no = f.prod_no and f.used_yn ='Y'
+                   left join ord_info d on a.ord_no = d.ord_no
+                                       and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                       and d.ord_no  <![CDATA[> ]]> 0
+                   left join ord_prod f on d.ord_no = f.ord_no
+                                       and e.prod_no = f.prod_no
+                                       and f.used_yn ='Y' and f.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
           and to_char(a.owh_dt,'YYYY-MM-DD') = substring(#{owhDt},1,10)
           and a.prod_no = #{prodNo}
         limit #{pageSz} offset #{pageNo}
@@ -3095,14 +3695,22 @@
                      , e.erp_prod_nm --제품번호
                      , g.wh_nm --출고창
                      , h.code_nm
-                 from prod_owh a join cmpy_info b on a.cmpy_no =b.cmpy_no and b.used_yn = 'Y'
-                                 join prod_info e on a.prod_no  = e.prod_no and e.used_yn = 'Y'
-                                 join wh_info g on a.wh_no  = g.wh_no and g.used_yn = 'Y'
-                                 join code_info h on a.owh_unit = h.code_no and h.used_yn ='Y'
+                 from prod_owh a join cmpy_info b on a.cmpy_no =b.cmpy_no
+                                               and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                 join prod_info e on a.prod_no  = e.prod_no
+                                               and e.used_yn ='Y' and e.cust_no =#{custNo}
+                                 join wh_info g on a.wh_no  = g.wh_no
+                                               and g.used_yn ='Y' and g.cust_no =#{custNo}
+                                 join code_info h on a.owh_unit = h.code_no
                             left join user_info c on a.reg_id = c.user_id
-                            left join ord_info d on a.ord_no = d.ord_no and d.used_yn = 'Y' and d.ord_no  <![CDATA[> ]]> 0
-                            left join ord_prod f on d.ord_no = f.ord_no and e.prod_no = f.prod_no and f.used_yn ='Y'
+                            left join ord_info d on a.ord_no = d.ord_no
+                                                and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                                and d.ord_no  <![CDATA[> ]]> 0
+                            left join ord_prod f on d.ord_no = f.ord_no
+                                                and e.prod_no = f.prod_no
+                                                and f.used_yn ='Y' and f.cust_no =#{custNo}
                  where a.used_yn = 'Y'
+                    and a.used_yn ='Y' and a.cust_no =#{custNo}
                     and to_char(a.owh_dt,'YYYY-MM-DD') = substring(#{owhDt},1,10)
                     and a.prod_no = #{prodNo}
         ) a
@@ -3123,11 +3731,19 @@
              , a.owh_qty --납품수량
              , f.plc_nm as dlv_plc
         from prod_owh a  join prod_info b on a.prod_no = b.prod_no
+                                         and b.used_yn ='Y' and b.cust_no =#{custNo}
                     left join ord_info c on a.ord_no = c.ord_no
-                    left join ord_prod e on c.ord_no = e.ord_no and a.prod_no = e.prod_no
+                                        and c.used_yn ='Y' and c.cust_no =#{custNo}
+                    left join ord_prod e on c.ord_no = e.ord_no
+                                       and a.prod_no = e.prod_no
+                                       and e.used_yn ='Y' and e.cust_no =#{custNo}
                     left join cmpy_info d on a.cmpy_no = d.cmpy_no
-                    left join cmpy_dlv_plc f on d.cmpy_no = f.cmpy_no and f.plc_no = c.plc_no
+                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
+                    left join cmpy_dlv_plc f on d.cmpy_no = f.cmpy_no
+                                            and f.plc_no = c.plc_no
+                                            and f.used_yn ='Y' and f.cust_no =#{custNo}
         where a.owh_no = #{owhNo}
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
     </select>
     <!--창고리스트-->
     <select id="getMatrWhNm" parameterType="map"  resultType="camelMap">
@@ -3140,8 +3756,10 @@
         from wh_info a join code_info z on a.save_tmpr = z.code_no
         join code_info y on a.wh_tp  =  y.code_no
         join matr_stk k on a.wh_no = k.wh_no
+                       and k.stk_qty <![CDATA[ > ]]> 0
+                       and k.used_yn ='Y' and k.cust_no =#{custNo}
         where a.used_yn = 'Y'
-        and k.stk_qty <![CDATA[ > ]]> 0
+          and a.used_yn ='Y' and a.cust_no =#{custNo}
         <if test="whTp != null and whTp != ''">
             and a.wh_tp = #{whTp}
         </if>
@@ -3155,20 +3773,22 @@
     <select id="getmatrWhNmCount" parameterType="map"  resultType="int">
         select count(a.wh_no)
         from (  select distinct  a.wh_no
-        from wh_info a join code_info z on a.save_tmpr = z.code_no
-        join code_info y on a.wh_tp    =  y.code_no
-        join matr_stk k on a.wh_no = k.wh_no
-        where a.used_yn = 'Y'
-        and k.stk_qty <![CDATA[ > ]]> 0
-        <if test="whTp != null and whTp != ''">
-            and a.wh_tp = #{whTp}
-        </if>
+                from wh_info a join code_info z on a.save_tmpr = z.code_no
+                               join code_info y on a.wh_tp    =  y.code_no
+                               join matr_stk k on a.wh_no = k.wh_no
+                                               and k.stk_qty <![CDATA[ > ]]> 0
+                                               and k.used_yn ='Y' and k.cust_no =#{custNo}
+                where a.used_yn = 'Y'
+                  and a.used_yn ='Y' and a.cust_no =#{custNo}
+                <if test="whTp != null and whTp != ''">
+                    and a.wh_tp = #{whTp}
+                </if>
 
-        <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'whNm'">
-                and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-            </if>
-        </if>
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'whNm'">
+                        and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
         ) a
     </select>
 
@@ -3189,19 +3809,21 @@
              , coalesce(e.iwh_qty,0) as iqty --입고
              , coalesce(f.owh_qty,0) as oqty  --출고
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
                    left join code_info c on b.matr_tp = c.code_no
                    left join (select wh_no
                                    , matr_no
                                    , stk_qty
                              from matr_stk_clos
-                              where used_yn = 'Y'
+                              where 1 =1
+                                and used_yn = 'Y' and cust_no =#{custNo}
                               and to_char(clos_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
                              ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
                    left join (select wh_no
                                    , matr_no
                                    , sum(iwh_qty) as iwh_qty
                               from matr_iwh
-                              where used_yn ='Y'
+                              where used_yn = 'Y' and cust_no =#{custNo}
                               and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) e on a.wh_no = e.wh_no and a.matr_no = e.matr_no
@@ -3209,11 +3831,12 @@
                                    , matr_no
                                    , sum(owh_qty) as owh_qty
                               from matr_owh
-                              where used_yn ='Y'
+                              where used_yn = 'Y' and cust_no =#{custNo}
                               and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
         where a.used_yn = 'Y'
+            and a.used_yn = 'Y' and a.cust_no =#{custNo}
             and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -3222,7 +3845,9 @@
         select count(a.matr_stk_no)
         from ( select a.matr_stk_no --적재관리번호
                  from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                              and b.used_yn = 'Y' and b.cust_no =#{custNo}
                 where a.used_yn = 'Y'
+                    and a.used_yn = 'Y' and a.cust_no =#{custNo}
                     and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
              ) a
     </select>
@@ -3233,7 +3858,9 @@
              , a.matr_no
              , coalesce (sum(b.iwh_qty),0) as iwh_qty
         from matr_info a join matr_iwh b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
           group by a.matr_no, b.iwh_dt , a.matr_nm
           order by b.iwh_dt
@@ -3246,8 +3873,10 @@
                     , a.matr_nm
                     , a.matr_no
                     , coalesce (sum(b.iwh_qty),0) as iwh_qty
-               from matr_info a join matr_iwh b on a.matr_no = b.matr_no and b.used_yn = 'Y'
+               from matr_info a join matr_iwh b on a.matr_no = b.matr_no
+                                               and b.used_yn = 'Y' and b.cust_no =#{custNo}
                where a.used_yn = 'Y'
+                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.matr_no = #{matrNo}
                group by a.matr_no , b.iwh_dt , a.matr_nm
                order by b.iwh_dt
@@ -3265,7 +3894,9 @@
         from wh_info a join code_info z on a.save_tmpr = z.code_no
         join code_info y on a.wh_tp  =  y.code_no
         join prod_stk k on a.wh_no = k.wh_no
+                       and k.used_yn = 'Y' and k.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
         <if test="analYn == null">
             and k.stk_qty <![CDATA[ > ]]> 0
         </if>
@@ -3282,20 +3913,22 @@
     <select id="getProdWhNmCount" parameterType="map"  resultType="int">
         select count(a.wh_no)
         from (  select distinct a.wh_no
-        from wh_info a join code_info z on a.save_tmpr = z.code_no
-        join code_info y on a.wh_tp  =  y.code_no
-        join prod_stk k on a.wh_no = k.wh_no
-        where a.used_yn = 'Y'
-        and k.stk_qty <![CDATA[ > ]]> 0
-        <if test="whTp != null and whTp != ''">
-            and a.wh_tp = #{whTp}
-        </if>
+                from wh_info a join code_info z on a.save_tmpr = z.code_no
+                               join code_info y on a.wh_tp  =  y.code_no
+                               join prod_stk k on a.wh_no = k.wh_no
+                                              and k.used_yn = 'Y' and k.cust_no =#{custNo}
+                where a.used_yn = 'Y'
+                  and a.used_yn = 'Y' and a.cust_no =#{custNo}
+                and k.stk_qty <![CDATA[ > ]]> 0
+                <if test="whTp != null and whTp != ''">
+                    and a.wh_tp = #{whTp}
+                </if>
 
-        <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'whNm'">
-                and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-            </if>
-        </if>
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'whNm'">
+                        and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
         ) a
     </select>
 
@@ -3311,18 +3944,19 @@
              , coalesce(d.iwh_qty,0) as iqty --입고
              , coalesce(e.owh_qty,0) as oqty  --출고
         from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
                    left join (select prod_no
                                     , wh_no
                                     , stk_qty
                                 from prod_stk_clos
-                                where used_yn = 'Y'
+                                where used_yn = 'Y' and cust_no =#{custNo}
                                 and to_char(clos_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
                               ) c on a.wh_no = c.wh_no and a.prod_no = c.prod_no
                    left join (select prod_no
                                     , wh_no
                                     , sum(iwh_qty) as iwh_qty
                                from prod_iwh
-                               where used_yn = 'Y'
+                               where used_yn = 'Y' and cust_no =#{custNo}
                                  and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,prod_no
                               ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
@@ -3330,13 +3964,14 @@
                                     , wh_no
                                     , sum(owh_qty) as owh_qty
                                from prod_owh
-                               where used_yn = 'Y'
+                               where used_yn = 'Y' and cust_no =#{custNo}
                                  and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                                group by wh_no,prod_no
                               ) e on a.wh_no = e.wh_no and a.prod_no = e.prod_no
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
-            limit #{pageSz} offset #{pageNo}
+          limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getProdWhStkListCount" parameterType="map"  resultType="int">
@@ -3348,7 +3983,9 @@
                     , b.prod_code
                     , coalesce (a.stk_qty,0) as stk_qty  -- 재고량
                from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                               and b.used_yn = 'Y' and b.cust_no =#{custNo}
                where a.used_yn = 'Y'
+                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
              ) a
     </select>
@@ -3359,8 +3996,10 @@
              , a.erp_prod_nm
              , a.prod_no
              , coalesce (sum(b.iwh_qty),0) as iwh_qty
-        from prod_info a join prod_iwh b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+        from prod_info a join prod_iwh b on a.prod_no = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.prod_no = #{prodNo}
         group by a.prod_no, b.iwh_dt , a.prod_nm , a.erp_prod_nm
         order by b.iwh_dt
@@ -3373,8 +4012,10 @@
                        , a.erp_prod_nm
                        , a.prod_no
                        , coalesce (sum(b.iwh_qty),0) as iwh_qty
-                  from prod_info a join prod_iwh b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+                  from prod_info a join prod_iwh b on a.prod_no = b.prod_no
+                                                  and b.used_yn = 'Y' and b.cust_no =#{custNo}
                   where a.used_yn = 'Y'
+                    and a.used_yn = 'Y' and a.cust_no =#{custNo}
                     and a.prod_no = #{prodNo}
                   group by a.prod_no, b.iwh_dt , a.prod_nm,  a.erp_prod_nm
                   order by b.iwh_dt
@@ -3389,6 +4030,7 @@
         where a.matr_no = #{matrNo}
           and a.wh_no = #{whNo}
           and a.iwh_qty - coalesce (a.owh_qty,0) <![CDATA[ > ]]> 0
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
         order by date_manufacture, iwh_no
     </select>
 
@@ -3410,11 +4052,14 @@
              , b.erp_prod_nm --제품번호
              , c.wh_nm --출고창
              , e.code_nm
-        from prod_iwh a join prod_info b on a.prod_no  = b.prod_no and b.used_yn = 'Y'
-                        join wh_info c on a.wh_no  = c.wh_no and c.used_yn = 'Y'
-                        join code_info e on b.mngr_unit = e.code_no  and e.used_yn = 'Y'
+        from prod_iwh a join prod_info b on a.prod_no  = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                        join wh_info c on a.wh_no  = c.wh_no
+                                        and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                        join code_info e on b.mngr_unit = e.code_no
                    left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
         where a.used_yn = 'Y'
+            and a.used_yn = 'Y' and a.cust_no =#{custNo}
             and to_char(a.iwh_dt,'YYYY-MM-DD') = substring(#{iwhDt},1,10)
         <if test="prodNo != null and prodNo != ''">
             and a.prod_no = #{prodNo}
@@ -3435,11 +4080,14 @@
              , b.erp_prod_nm --제품번호
              , c.wh_nm --출고창
              , e.code_nm
-        from prod_iwh a join prod_info b on a.prod_no  = b.prod_no and b.used_yn = 'Y'
-                        join wh_info c on a.wh_no  = c.wh_no and c.used_yn = 'Y'
-                        join code_info e on b.mngr_unit = e.code_no  and e.used_yn = 'Y'
+        from prod_iwh a join prod_info b on a.prod_no  = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                        join wh_info c on a.wh_no  = c.wh_no
+                                        and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                        join code_info e on b.mngr_unit = e.code_no
                    left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
         where a.used_yn = 'Y'
+            and a.used_yn = 'Y' and a.cust_no =#{custNo}
             and to_char(a.iwh_dt,'YYYY-MM-DD') = substring(#{iwhDt},1,10)
         <if test="prodNo != null and prodNo != ''">
             and a.prod_no = #{prodNo}
@@ -3464,12 +4112,16 @@
          , c.wh_nm --출고창
          , e.cmpy_nm
          , f.code_nm
-    from matr_iwh a join matr_info b on a.matr_no  = b.matr_no and b.used_yn = 'Y'
-                    join wh_info c on a.wh_no  = c.wh_no and c.used_yn = 'Y'
-                    join code_info f on b.purs_unit = f.code_no  and f.used_yn = 'Y'
-                    left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
-                    left join cmpy_info e on a.cmpy_no = e.cmpy_no and e.used_yn = 'Y'
+    from matr_iwh a join matr_info b on a.matr_no  = b.matr_no
+                                    and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                    join wh_info c on a.wh_no  = c.wh_no
+                                  and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                    join code_info f on b.purs_unit = f.code_no
+               left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
+               left join cmpy_info e on a.cmpy_no = e.cmpy_no
+                                and e.used_yn = 'Y' and e.cust_no =#{custNo}
     where a.used_yn = 'Y'
+      and a.used_yn = 'Y' and a.cust_no =#{custNo}
       and a.matr_no = #{matrNo}
       and to_char(a.iwh_dt,'YYYY-MM-DD') = substring(#{iwhDt},1,10)
     order by a.iwh_dt desc
@@ -3490,12 +4142,16 @@
                       , c.wh_nm --출고창
                       , e.cmpy_nm
                       , f.code_nm
-                 from matr_iwh a join matr_info b on a.matr_no  = b.matr_no and b.used_yn = 'Y'
-                                 join wh_info c on a.wh_no  = c.wh_no and c.used_yn = 'Y'
-                                 join code_info f on b.purs_unit = f.code_no  and f.used_yn = 'Y'
+                 from matr_iwh a join matr_info b on a.matr_no  = b.matr_no
+                                                 and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                                 join wh_info c on a.wh_no  = c.wh_no
+                                               and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                                 join code_info f on b.purs_unit = f.code_no
                                  left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
-                                 left join cmpy_info e on a.cmpy_no = e.cmpy_no and e.used_yn = 'Y'
+                                 left join cmpy_info e on a.cmpy_no = e.cmpy_no
+                                                      and e.used_yn = 'Y' and e.cust_no =#{custNo}
                  where a.used_yn = 'Y'
+                   and a.used_yn = 'Y' and a.cust_no =#{custNo}
                    and a.matr_no = #{matrNo}
                    and to_char(a.iwh_dt,'YYYY-MM-DD') = substring(#{iwhDt},1,10)
                  order by a.iwh_dt desc
@@ -3513,15 +4169,18 @@
              , b.matr_nm
              , c.wh_nm --출고창
              , f.code_nm
-        from matr_owh a join matr_info b on a.matr_no  = b.matr_no and b.used_yn = 'Y'
-                        join wh_info c on a.wh_no  = c.wh_no and c.used_yn = 'Y'
-                        join code_info f on b.purs_unit = f.code_no  and f.used_yn = 'Y'
+        from matr_owh a join matr_info b on a.matr_no  = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                        join wh_info c on a.wh_no  = c.wh_no
+                                      and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                        join code_info f on b.purs_unit = f.code_no
                    left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
           and to_char(a.owh_dt,'YYYY-MM-DD') = substring(#{owhDt},1,10)
         order by a.owh_dt desc
-            limit #{pageSz} offset #{pageNo}
+        limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getMatrOwHstrListCount" parameterType="map" resultType="int">
@@ -3537,11 +4196,14 @@
                       , b.matr_nm
                       , c.wh_nm --출고창
                       , f.code_nm
-                 from matr_owh a join matr_info b on a.matr_no  = b.matr_no and b.used_yn = 'Y'
-                                 join wh_info c on a.wh_no  = c.wh_no and c.used_yn = 'Y'
-                                 join code_info f on b.purs_unit = f.code_no  and f.used_yn = 'Y'
+                 from matr_owh a join matr_info b on a.matr_no  = b.matr_no
+                                                 and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                                 join wh_info c on a.wh_no  = c.wh_no
+                                               and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                                 join code_info f on b.purs_unit = f.code_no
                             left join user_info d on a.reg_id = d.user_id and d.used_yn = 'Y'
                  where a.used_yn = 'Y'
+                   and a.used_yn = 'Y' and a.cust_no =#{custNo}
                    and a.matr_no = #{matrNo}
                    and to_char(a.owh_dt,'YYYY-MM-DD') = substring(#{owhDt},1,10)
                  order by a.owh_dt desc
@@ -3554,7 +4216,7 @@
              , a.matr_no
              , a.cust_no
         from purs_matr a
-        where a.used_yn = 'Y'
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.cust_no = #{custNo}
         and purs_no = #{pursNo}
         group by a.matr_no
@@ -3564,21 +4226,26 @@
         /*구매수량 = 입고수량인경우 true (ioMapper.chkMatrListByIwh) */
         select case when sum(coalesce (a.iwh_qty,0)) = #{pursQty} then true else false end as chk
         from matr_iwh a
-        where a.used_yn = 'Y'
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.purs_no = #{pursNo}
           and a.matr_no = #{matrNo}
     </select>
 
     <update id="resetPursStsIng" parameterType="map">
         /* 구매번호로 구매상태 설정 (ioMapper.resetPursStsIng) */
-        update purs_matr set purs_sts = #{pursSts} where purs_matr_no = #{pursMatrNo}
+        update purs_matr set purs_sts = #{pursSts}
+        where purs_matr_no = #{pursMatrNo}
+          and used_yn = 'Y' a.cust_no =#{custNo}
     </update>
 
     <update id="resetPursStsSet" parameterType="map">
         update purs_info
         set purs_sts = #{pursSts}
         where purs_no = #{pursNo}
-        and (select count(purs_matr_no) from purs_matr where purs_no = #{pursNo} and purs_sts = 162 ) <![CDATA[ <= ]]>  0
+        and (select count(purs_matr_no) from purs_matr
+             where purs_no = #{pursNo}
+               and used_yn = 'Y' and cust_no =#{custNo}
+               and purs_sts = 162 ) <![CDATA[ <= ]]>  0
     </update>
 
 
@@ -3588,9 +4255,13 @@
              , b.prod_nm-- 품명
              , b.erp_prod_nm --Epr 품명
              , sum(coalesce (a.make_qty / b.qty_per_pkg ,0)) as make_qty --생산수량
-        from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no and d.proc_cd  = 999
+        from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                               and d.proc_cd  = 999
+                                               and d.used_yn = 'Y' and d.cust_no =#{custNo}
                                join prod_info b on d.prod_no  =b.prod_no
+                                               and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
         and a.make_dt is not null
         and ceil(a.make_qty) <![CDATA[ != ]]> coalesce ((select ceil(sum(coalesce(p.iwh_qty,0)))
         from prod_iwh p
@@ -3609,9 +4280,13 @@
         from (   select d.prod_no, -- 상품번호
                         b.prod_nm, -- 품명
                         sum(coalesce (a.make_qty / b.qty_per_pkg,0)) as make_qty --생산수량
-                    from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no and d.proc_cd  = 999
+                    from make_indc_rslt a  join make_indc d on a.indc_no  = d.indc_no
+                                                           and d.proc_cd  = 999
+                                                           and d.used_yn = 'Y' and d.cust_no =#{custNo}
                                            join prod_info b on d.prod_no  =b.prod_no
+                                                            and b.used_yn = 'Y' and b.cust_no =#{custNo}
                     where a.used_yn = 'Y'
+                      and a.used_yn = 'Y' and a.cust_no =#{custNo}
                     and a.make_dt is not null
                     and ceil(a.make_qty) <![CDATA[ != ]]> coalesce ((select ceil(sum(coalesce(p.iwh_qty,0)))
                     from prod_iwh p
@@ -3641,19 +4316,28 @@
                   , h.code_nm as ord_sts_nm --주문상태명
                   , to_char(d.ord_dt ,'YYYY-MM-DD') as ord_dt
                   , to_char(d.dlv_req_dt  ,'YYYY-MM-DD') as dlv_req_dt
-    from prod_stk a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+    from prod_stk a join prod_info b on a.prod_no = b.prod_no
+                                    and b.used_yn = 'Y' and b.cust_no =#{custNo}
                     join wh_info g on a.wh_no = g.wh_no
-                    join ord_prod c on b.prod_no = c.prod_no  and c.used_yn = 'Y'
-                    join ord_info d on c.ord_no = d.ord_no and d.used_yn = 'Y'
+                                    and g.used_yn = 'Y' and g.cust_no =#{custNo}
+                    join ord_prod c on b.prod_no = c.prod_no
+                                   and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                    join ord_info d on c.ord_no = d.ord_no
+                                   and d.used_yn = 'Y' and d.cust_no =#{custNo}
+                                   and d.ord_sts in ( 143, 144 )
                     join code_info h on d.ord_sts = h.code_no
-                    left join cmpy_info f on d.cmpy_no = f.cmpy_no and f.used_yn = 'Y'
-    where a.used_yn = 'Y'
-      and d.ord_sts in ( 143, 144 )
+               left join cmpy_info f on d.cmpy_no = f.cmpy_no
+                                    and f.used_yn = 'Y' and f.cust_no =#{custNo}
+    where 1 = 1
+      and a.used_yn = 'Y' and a.cust_no =#{custNo}
     </select>
+
     <select id="getOrdQtyRandom" parameterType="map" resultType="camelMap">
     SELECT T.cmpy_no
     FROM (SELECT ROW_NUMBER() OVER (ORDER BY cmpy_no) AS ROW, *
-          FROM cmpy_info where  mngr_gbn_cd = 21 ) T
+          FROM cmpy_info where  mngr_gbn_cd = 21
+          and used_yn = 'Y' and cust_no =#{custNo}
+        ) T
     WHERE ROW = #{random}
     </select>
     <select id="getMatrOwhHistList" parameterType="map" resultType="camelMap">
@@ -3673,9 +4357,13 @@
              , coalesce (d.stk_qty,0) as stk_qty_re -- 재고수량
         from matr_owh a join code_info z on a.owh_unit = z.code_no
                         join matr_info b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
                         join make_indc c on a.indc_no = c.indc_no
-                        left join matr_stk d  on a.matr_no = d.matr_no and d.used_yn = 'Y'
+                                        and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                        left join matr_stk d  on a.matr_no = d.matr_no
+                                         and d.used_yn = 'Y' and d.cust_no =#{custNo}
         where a.matr_no = #{matrNo}
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
     </select>
     <select id="getMatrOwhHistListCount" parameterType="map" resultType="int">
         select count(a.owh_no)
@@ -3683,9 +4371,13 @@
                  select a.owh_no
                  from matr_owh a join code_info z on a.owh_unit = z.code_no
                                  join matr_info b on a.matr_no = b.matr_no
+                                                 and b.used_yn = 'Y' and b.cust_no =#{custNo}
                                  join make_indc c on a.indc_no = c.indc_no
+                                                 and c.used_yn = 'Y' and c.cust_no =#{custNo}
                            left join matr_stk d on a.matr_no = d.matr_no and d.used_yn = 'Y'
+                                                 and d.used_yn = 'Y' and d.cust_no =#{custNo}
                  where a.matr_no = #{matrNo}
+                   and a.used_yn = 'Y' and a.cust_no =#{custNo}
              ) a
     </select>
 
