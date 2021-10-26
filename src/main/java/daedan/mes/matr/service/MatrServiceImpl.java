@@ -340,13 +340,12 @@ public class MatrServiceImpl implements MatrService {
         }
         matrInfo.setCustNo(custNo);
         matrInfo = matrRepository.save(matrInfo);
-
-        mapMatr.put("matrNo", matrInfo.getMatrNo());
-
-        MatrAttr mavo = this.saveMatrAttr(mapMatr);
-
-        matrInfo.setMatrAttr(mavo);
-
+        if (custNo == 6) {
+            mapMatr.put("matrNo", matrInfo.getMatrNo());
+            mapMatr.put("custNo", custNo);
+            MatrAttr mavo = this.saveMatrAttr(mapMatr);
+            matrInfo.setMatrAttr(mavo);
+        }
         matrInfo = matrRepository.save(matrInfo);
 
         /*바코드이미지생성
@@ -1070,12 +1069,10 @@ public class MatrServiceImpl implements MatrService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long matrNo = Long.parseLong(paraMap.get("matrNo").toString());
         List<Map<String,Object>> prodList  = (List<Map<String,Object>>) paraMap.get("prodList");
-        log.info("QWEQWEQWEQWEQWEQWEQ"+paraMap);
-        log.info("QWEQWEQWEQWEQWEQWEQ"+paraMap.get("prodList"));
 
         for (Map<String, Object> el : prodList) {
             ProdBom bomvo = new ProdBom();
-            bomvo.setProdNo(Long.parseLong(el.get("prod_no").toString()));
+            bomvo.setProdNo(Long.parseLong(el.get("prodNo").toString()));
             bomvo.setMatrNo(matrNo);
             bomvo.setUsedYn("Y");
             bomvo.setConsistRt(0f);
