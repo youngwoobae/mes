@@ -1282,6 +1282,7 @@ public class IoController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("whTp",Long.parseLong(env.getProperty("wh_type_matr")));
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(ioService.matrWhNm(paraMap));
         result.setTotalCount(ioService.matrWhNmCount(paraMap));
         return result;

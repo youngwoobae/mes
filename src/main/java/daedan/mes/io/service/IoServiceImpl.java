@@ -3021,32 +3021,32 @@ public class IoServiceImpl implements IoService {
         Long whNo = 0L;
         for (Map<String,Object> el : ds) {
             ProdOwh povo = new ProdOwh();
-            prodNo= Long.parseLong(el.get("prod_no").toString());
-            whNo = Long.parseLong(el.get("wh_no").toString());
+            prodNo= Long.parseLong(el.get("prodNo").toString());
+            whNo = Long.parseLong(el.get("whNo").toString());
             povo.setProdNo(prodNo);
             povo.setWhNo(whNo);
-            povo.setOwhQty(Float.parseFloat(el.get("owh_qty").toString()));
+            povo.setOwhQty(Float.parseFloat(el.get("owhQty").toString()));
             povo.setOwhDt(DateUtils.getCurrentDate());
             try{
-                povo.setCmpyNo(Long.parseLong(paraMap.get("cmpy_no").toString()));
+                povo.setCmpyNo(Long.parseLong(paraMap.get("cmpyNo").toString()));
             }catch(NullPointerException ne){
                 povo.setCmpyNo(0L);
             }
 
             try{
-                povo.setOwhReqQty(Float.parseFloat(paraMap.get("owh_req_qty").toString()));
+                povo.setOwhReqQty(Float.parseFloat(paraMap.get("owhReqQty").toString()));
             }catch(NullPointerException ne){
-                povo.setOwhReqQty(Float.parseFloat(el.get("owh_qty").toString()));
+                povo.setOwhReqQty(Float.parseFloat(el.get("owhQty").toString()));
             }
 
             try{
-                povo.setOwhUnit(Long.parseLong(el.get("owh_unit").toString()));
+                povo.setOwhUnit(Long.parseLong(el.get("owhUnit").toString()));
             }catch(NullPointerException ne){
                 povo.setOwhUnit(81L);
             }
 
             try{
-                povo.setOwhReqDt(transFormat.parse(paraMap.get("owh_req_dt").toString().substring(0, 10)));
+                povo.setOwhReqDt(transFormat.parse(paraMap.get("owhReqDt").toString().substring(0, 10)));
             }catch(NullPointerException | ParseException ne){
                 povo.setOwhReqDt(DateUtils.getCurrentDate());
             }
@@ -3058,7 +3058,7 @@ public class IoServiceImpl implements IoService {
             }
 
             try{
-                povo.setOrdNo(Long.parseLong(el.get("ord_no").toString()));
+                povo.setOrdNo(Long.parseLong(el.get("ordNo").toString()));
             }catch(NullPointerException ne){
                 povo.setOrdNo(0L);
             }
@@ -3080,7 +3080,7 @@ public class IoServiceImpl implements IoService {
             ProdStk chkvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,whNo,prodNo,"Y");
             if(chkvo != null){
                 stkQty = chkvo.getStkQty();
-                stkQty -= Float.parseFloat(el.get("owh_qty").toString());
+                stkQty -= Float.parseFloat(el.get("owhQty").toString());
                 psvo.setStkQty(stkQty);
                 psvo.setProdNo(chkvo.getProdNo());
                 psvo.setStkNo(chkvo.getStkNo());
@@ -3092,7 +3092,7 @@ public class IoServiceImpl implements IoService {
             else{
                 psvo.setStkNo(0L);
                 psvo.setProdNo(prodNo);
-                psvo.setStkQty(Float.parseFloat(el.get("iwh_qty").toString()));
+                psvo.setStkQty(Float.parseFloat(el.get("iwhQty").toString()));
 
                 psvo.setModDt(DateUtils.getCurrentDateTime());
                 psvo.setModIp(paraMap.get("ipaddr").toString());
