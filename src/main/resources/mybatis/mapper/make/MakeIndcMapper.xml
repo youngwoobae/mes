@@ -1139,13 +1139,13 @@
                                               and e.used_yn = 'Y' and e.cust_no =#{custNo}
                     left join ( select prod_no, sum(stk_qty) as stk_qty
                                 from prod_stk_clos
-                                where used_yn = 'Y' and ust_no =#{custNo}
+                                where used_yn = 'Y' and cust_no =#{custNo}
                                 and to_char(clos_dt,'YYYY-MM-dd' ) =  to_char(now() - interval '1 day','YYYY-MM-DD')
                                 group by prod_no
                               ) ys  on a.prod_no = ys.prod_no
                     left join ( select prod_no, sum(stk_qty) as stk_qty
                                 from prod_stk cs
-                                where cs.used_yn = 'Y' and ds.cust_no =#{custNo}
+                                where cs.used_yn = 'Y' and cs.cust_no =#{custNo}
                                 group by prod_no
                                 ) cs on a.prod_no = cs.prod_no
                    left join ( select ab.prod_no

@@ -99,7 +99,7 @@
         from ord_info  a join cmpy_info b on a.cmpy_no = b.cmpy_no
                          join ord_prod  c on a.ord_no = c.ord_no and c.used_yn  = 'Y'
                          join prod_info d on c.prod_no = d.prod_no and d.cust_no = #{custNo}
-                         join code_info e on d.prod_shape = e.code_no and
+                         join code_info e on d.prod_shape = e.code_no
                          join prod_capa f on d.prod_shape  = f.prod_shape and f.cust_no = #{custNo}
                          left join (select prod_no, sum(stk_qty) as stk_qty from prod_stk where used_yn = 'Y' and cust_no = #{custNo} group by prod_no) h on c.prod_no = h.prod_no
         where 1 = 1 and a.cust_no = #{custNo}
@@ -118,7 +118,7 @@
         from ord_info  a  join cmpy_info b on a.cmpy_no = b.cmpy_no
                         join ord_prod  c on a.ord_no = c.ord_no and c.used_yn  = 'Y'
                         join prod_info d on c.prod_no = d.prod_no and d.cust_no = #{custNo}
-                        join code_info e on d.prod_shape = e.code_no and
+                        join code_info e on d.prod_shape = e.code_no
                         join prod_capa f on d.prod_shape  = f.prod_shape and f.cust_no = #{custNo}
                         left join (select prod_no, sum(stk_qty) as stk_qty from prod_stk where used_yn = 'Y' and cust_no = #{custNo} group by prod_no) h on c.prod_no = h.prod_no
         where 1 = 1 and a.cust_no = #{custNo}

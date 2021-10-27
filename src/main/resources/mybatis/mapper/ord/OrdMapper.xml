@@ -1061,7 +1061,7 @@
                                     , sum(d.owh_qty) as owh_qty
                                 from ord_prod b join ord_info c on b.ord_no = c.ord_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                                            left join prod_owh d on c.ord_no = d.ord_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
-                                where b.used_yn = 'Y' and a.cust_no = #{custNo}
+                                where b.used_yn = 'Y' and b.cust_no = #{custNo}
                                 and to_char(d.owh_dt,'YYYY') = #{procYy}
                                 and to_char(d.owh_dt,'MM') = '10'
                                 group by b.prod_no
