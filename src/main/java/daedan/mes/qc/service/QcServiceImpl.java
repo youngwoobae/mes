@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -158,8 +159,7 @@ public class QcServiceImpl implements  QcService {
         String tag = "QcService.saveProdOwhChk =>";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        Long chkNo = Long.parseLong(paraMap.get("chkNo").toString());
-
+        Long chkNo = 0L;
         ProdOwhChk vo = new ProdOwhChk();
         vo.setChkTp(Long.parseLong(paraMap.get("chkTp").toString()));
         vo.setChkMth(Long.parseLong(paraMap.get("chkMth").toString()));
@@ -172,6 +172,12 @@ public class QcServiceImpl implements  QcService {
         vo.setModDt(DateUtils.getCurrentDate());
         vo.setModIp(paraMap.get("ipaddr").toString());
         vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+        try {
+            chkNo = Long.parseLong(paraMap.get("chkNo").toString());
+        }
+        catch (NullPointerException ne) {
+            chkNo = 0L;
+        }
         ProdOwhChk chkvo = prodOwhChkRepo.findByCustNoAndChkNoAndUsedYn(custNo,chkNo,"Y");
         if (chkvo != null) {
             vo.setChkNo(chkvo.getChkNo());
@@ -221,7 +227,11 @@ public class QcServiceImpl implements  QcService {
     @Override
     public Map<String, Object> prodOwhChkInfo(Map<String, Object> paraMap) {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Map<String,Object> rmap = new HashMap<String,Object>();
         ProdOwhChk vo = prodOwhChkRepo.findByCustNoAndChkNoAndUsedYn(custNo,Long.parseLong(paraMap.get("chkNo").toString()),"Y");
-        return StringUtil.voToMap(vo);
+        if (vo != null) {
+            rmap = StringUtil.voToMap(vo);
+        }
+        return rmap;
     }
 }
