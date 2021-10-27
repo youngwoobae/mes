@@ -299,6 +299,8 @@ public class OrdController {
     public Result saveOrd(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         ordService.saveOrd(paraMap);
         return result;
     }

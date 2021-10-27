@@ -310,7 +310,7 @@
                         join purs_matr c on a.purs_matr_no = c.purs_matr_no
                                    and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join purs_info d on c.purs_no = d.purs_no
-                                        and dused_yn = 'Y' and d.cust_no = #{custNo}
+                                        and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         join cmpy_info e on c.cmpy_no = e.cmpy_no
                                         and e.used_yn = 'Y' and e.cust_no = #{custNo}
                         join code_info x on c.purs_unit = x.code_no
@@ -840,7 +840,7 @@
                                                  and c.used_yn = 'Y' and c.cust_no = #{custNo}
                             left join ( select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
                                         from matr_iwh
-                                        where b.used_yn = 'Y' and cust_no = #{custNo}
+                                        where used_yn = 'Y' and cust_no = #{custNo}
                                         group by cmpy_no , matr_no , purs_matr_no , purs_no
                                        ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
                 where a.used_yn = 'Y'
@@ -4229,7 +4229,7 @@
         /* 구매번호로 구매상태 설정 (ioMapper.resetPursStsIng) */
         update purs_matr set purs_sts = #{pursSts}
         where purs_matr_no = #{pursMatrNo}
-          and used_yn = 'Y' a.cust_no =#{custNo}
+          and used_yn = 'Y' and cust_no =#{custNo}
     </update>
 
     <update id="resetPursStsSet" parameterType="map">
