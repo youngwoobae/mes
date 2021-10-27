@@ -2926,12 +2926,11 @@ public class IoServiceImpl implements IoService {
         List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("iwhList");
         Long prodNo = 0L;
         Float stkQty = 0F;
-        Long whNo = 0L;
+        Long whNo = Long.parseLong(paraMap.get("whNo").toString());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         for (Map<String,Object> el : ds) {
             ProdIwh pivo = new ProdIwh();
             prodNo= Long.parseLong(el.get("prodNo").toString());
-            whNo = Long.parseLong(el.get("whNo").toString());
             pivo.setProdNo(prodNo);
             pivo.setWhNo(whNo);
             pivo.setIwhQty(Float.parseFloat(el.get("iwhQty").toString()));

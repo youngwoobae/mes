@@ -1291,8 +1291,8 @@ public class IoController {
     @PostMapping(value="/prodWhNm") //구매현황
     public Result prodWhNm(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
-//        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-//        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("whTp",Long.parseLong(env.getProperty("wh_type_prod")));
         result.setData(ioService.prodWhNm(paraMap));
         result.setTotalCount(ioService.prodWhNmCount(paraMap));

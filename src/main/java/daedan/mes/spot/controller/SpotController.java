@@ -46,6 +46,7 @@ public class SpotController {
         Result result = Result.successInstance();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(spotService.getSpotList(paraMap));
         result.setTotalCount(spotService.getSpotListCount(paraMap));
 
