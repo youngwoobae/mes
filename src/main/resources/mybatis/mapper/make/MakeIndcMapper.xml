@@ -648,7 +648,7 @@
             </when>
             <when test="findTp != null and findTp == 'plan'">
                 and e.prod_no not in (select prod_no from make_indc
-                                       where and used_yn = 'Y' and cust_no =#{custNo}
+                                       where used_yn = 'Y' and cust_no =#{custNo}
                                          and par_indc_no = 0 and ord_no = a.ord_no)
             </when>
         </choose>
@@ -1072,7 +1072,7 @@
         from ( select a.user_id --id
                from user_info a left join make_indc_mp b on a.user_id  = b.user_id
                                                     and b.used_yn = 'Y' and b.cust_no =#{custNo}
-               where and a.used_yn = 'Y' and a.cust_no =#{custNo}
+               where a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.ocpn_kind = #{ocpnKind}
              )
     </select>

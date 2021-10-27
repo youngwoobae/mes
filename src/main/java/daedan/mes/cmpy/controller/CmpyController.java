@@ -115,9 +115,9 @@ public class CmpyController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         Map<String,Object> cmpyMap = (Map<String,Object>) paraMap.get("cmpyInfo");
-        log.info("cmpyMap = "+cmpyMap);
         cmpyMap.put("ipaddr", NetworkUtil.getClientIp(request));
         cmpyMap.put("userId", paraMap.get("userId"));
+        cmpyMap.put("custNo",paraMap.get("custNo"));
         cmpyService.saveCmpy(cmpyMap);
         return result;
     }

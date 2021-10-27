@@ -66,7 +66,7 @@
                                   ) x on a.cmpy_no = x.cmpy_no
                         left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                         left join (select cmpy_no, count(matr_no) as matr_qty from matr_cmpy where used_yn = 'Y' group by cmpy_no) e on a.cmpy_no = e.cmpy_no
-         where and a.used_yn = 'Y' and a.cust_no = #{custNo}
+         where a.used_yn = 'Y' and a.cust_no = #{custNo}
             <if test="cmpyTpCd != null and cmpyTpCd != ''">
                 AND a.cmpy_tp = #{cmpyTpCd}
             </if>
@@ -107,8 +107,10 @@
                                 from matr_cmpy
                                 where 1 = 1
                                 and used_yn = 'Y' and cust_no = #{custNo}
-                                group by cmpy_no) e on a.cmpy_no = e.cmpy_no
-        where a.used_yn = 'Y'
+                                group by cmpy_no
+                               ) e on a.cmpy_no = e.cmpy_no
+        where 1 = 1
+          and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="cmpyTpCd != null and cmpyTpCd != ''">
             AND a.cmpy_tp = #{cmpyTpCd}
         </if>
@@ -134,13 +136,15 @@
         from (select a.cmpy_no
               from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
                                join code_info y on a.mngr_gbn_cd  = y.code_no
-                          left join file_info d on a.file_no = d.file_noand d.used_yn = 'Y' and d.cust_no = #{custNo}
+                          left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
                          left join (select cmpy_no, count(matr_no) as matr_qty
                                     from matr_cmpy
                                     where 1 = 1
-                                    and d.used_yn = 'Y' and d.cust_no = #{custNo}
-                                    group by cmpy_no) e on a.cmpy_no = e.cmpy_no
-            where a.used_yn = 'Y'
+                                    and used_yn = 'Y' and cust_no = #{custNo}
+                                    group by cmpy_no
+                                   ) e on a.cmpy_no = e.cmpy_no
+            where 1 = 1
+             and a.used_yn = 'Y' and a.cust_no = #{custNo}
             <if test="cmpyTpCd != null and cmpyTpCd != ''">
                 AND a.cmpy_tp = #{cmpyTpCd}
             </if>
@@ -278,13 +282,13 @@
             equip_nm,
             equip_no
         from equip_info
-        where and used_yn = 'Y' and cust_no = #{custNo}
+        where used_yn = 'Y' and cust_no = #{custNo}
     </select>
 
     <select id="getSysOption" parameterType="map"  resultType="camelMap">
         select *
         from sys_menu
-        where and used_yn = 'Y' and cust_no = #{custNo}
+        where  used_yn = 'Y' and cust_no = #{custNo}
           and par_sys_menu_no = 99
     </select>
 

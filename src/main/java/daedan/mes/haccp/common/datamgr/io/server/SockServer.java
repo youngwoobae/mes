@@ -1,9 +1,12 @@
 package daedan.mes.haccp.common.datamgr.io.server;
 
-import daedan.mes.haccp.common.datamgr.DataMgrVO;
+import daedan.mes.haccp.common.datamgr.io.SocketIoMapper;
 import daedan.mes.haccp.common.datamgr.utils.BeanUtils;
 import daedan.mes.haccp.common.error_handle.CustomErrorHandler;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.mapper.UserMapper;
+import daedan.mes.user.repository.CustInfoRepository;
+import daedan.mes.user.repository.UserRepository;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -12,7 +15,7 @@ import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
-import org.apache.tools.ant.taskdefs.condition.Http;
+import org.apache.xmlbeans.impl.xb.xsdschema.Public;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.env.Environment;
@@ -23,10 +26,11 @@ public class SockServer implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(SockServer.class);
 
     private Environment environment;
-    private HttpSession session;
     private Integer chatServerPort;
+    private int   custNo;
     private EventLoopGroup bossGroup = new NioEventLoopGroup();
     private EventLoopGroup workerGroup = new NioEventLoopGroup();
+
 
     /**
      * 지정된 포트로 serversocket실행 (netty 라이브러리 사용)
@@ -47,12 +51,11 @@ public class SockServer implements Runnable {
                         }
                     });
             //serverPort = 19080;
-
             environment = (Environment) BeanUtils.getBean("environment");
-            int custNo = Integer.parseInt(environment.getProperty("cust_no").toString());
+            //int custNo = Integer.parseInt(environment.getProperty("cust_no").toString());
+            custNo = 10;
 
-
-            switch(custNo) {
+            switch( custNo) {
                 case 1: //ES연구소
                 case 2: //서울식품
                 case 3: //하담푸드

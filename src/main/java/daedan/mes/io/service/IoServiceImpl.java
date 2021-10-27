@@ -65,9 +65,6 @@ public class IoServiceImpl implements IoService {
     private IoMapper mapper;
 
     @Autowired
-    private IoService ioService;
-
-    @Autowired
     private MakeIndcRepository indcRepo;
 
     @Autowired
@@ -177,24 +174,20 @@ public class IoServiceImpl implements IoService {
             vo.setRegIp(paraMap.get("ipaddr").toString());
             vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         }
+        WhInfo whVal = whr.findByCustNoAndSaveTmprAndWhTpAndUsedYn(custNo, Long.parseLong(passMap.get("saveTmpr").toString()), Long.parseLong(passMap.get("wh_tp").toString()), "Y");
 
-        WhInfo whVal = whr.findByCustNoAndSaveTmprAndWhTpAndUsedYn(custNo,Long.parseLong(passMap.get("saveTmpr").toString()),Long.parseLong(passMap.get("wh_tp").toString()) ,"Y");
-
-        if(whVal != null){
-            vo.setWhNo(whVal.getWhNo());
-            vo.setSaveTmpr(whVal.getSaveTmpr());
-            vo.setWhTp(whVal.getWhTp());
-        }else{
-            vo.setSaveTmpr(Long.parseLong(paraMap.get("saveTmpr").toString()));
-            vo.setWhTp(Long.parseLong(paraMap.get("whTp").toString()));
+        if (whVal != null) {
+            whVal.setCustNo(custNo);
+            whr.save(whVal);
+        } else {
+            vo.setWhNm(passMap.get("whNm").toString());
+            vo.setModDt(vo.getModDt());
+            vo.setModIp(paraMap.get("ipaddr").toString());
+            vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+            vo.setUsedYn("Y");
+            vo.setCustNo(custNo);
+            whr.save(vo);
         }
-        vo.setWhNm(passMap.get("whNm").toString());
-        vo.setModDt(vo.getModDt());
-        vo.setModIp(paraMap.get("ipaddr").toString());
-        vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        vo.setUsedYn("Y");
-        vo.setCustNo(custNo);
-        whr.save(vo);
     }
 
     @Transactional

@@ -197,6 +197,8 @@ public class ProdServiceImpl implements  ProdService {
             vo.setModDt(DateUtils.getCurrentBaseDateTime());
             vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
             vo.setModIp(paraMap.get("ipaddr").toString());
+            prodRepository.save(vo);
+
         }
 
     }
@@ -316,7 +318,7 @@ public class ProdServiceImpl implements  ProdService {
         try {
             cmpyNo = Long.parseLong(paraMap.get("cmpyNo").toString());
         } catch (NullPointerException ne) {
-            cmpyNo = 0L;
+
         }
         //EOL Addon by KMJ At  21.10.19 - 판매유형(OEM,ODM) 구분
         ProdInfo prodInfo = new ProdInfo();
@@ -473,10 +475,10 @@ public class ProdServiceImpl implements  ProdService {
         ProdAttr pavo = this.saveProdAttr(paraMap);
 
         prodInfo.setProdAttr(pavo);
-
+        paraMap.put("custNo",custNo);
         HeatLmtInfo hlivo = this.saveProdHeatLmtInfo(paraMap);
         prodInfo.setHeatLmtInfo(hlivo);
-
+        prodInfo.setCustNo(custNo);
         prodInfo = prodRepository.save(prodInfo);
 
 
@@ -606,7 +608,6 @@ public class ProdServiceImpl implements  ProdService {
         } catch (NullPointerException ne) {
             hlivo.setMaxHeat(0F);
         }
-        hlivo.setCustNo(custNo);
         hlivo.setUsedYn("Y");
 
         HeatLmtInfo chkhli = heatLmtInfoRepo.findByHeatTpAndUsedYn(Long.parseLong(paraMap.get("heatTp").toString()), "Y");
@@ -627,7 +628,7 @@ public class ProdServiceImpl implements  ProdService {
             hlivo.setRegIp(paraMap.get("ipaddr").toString());
 
         }
-
+        hlivo.setCustNo(custNo);
         hlivo = heatLmtInfoRepo.save(hlivo);
 
         return hlivo;

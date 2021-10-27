@@ -151,7 +151,7 @@
     </select>
 
     <select id="getMatrList" parameterType="map"  resultType="camelMap">
-
+        /*원료목록 (matrMapper.getMatrListz) */
         select a.matr_no --자재번호
             , a.matr_tp --자재구분 (원육,시스닝,부자재)
             , a.brnch_no --자재분류

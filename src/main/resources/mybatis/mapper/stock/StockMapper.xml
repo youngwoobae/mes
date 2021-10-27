@@ -160,11 +160,9 @@
              , b.matr_nm -- 자재명
              , b.item_cd  -- 자재코드
              , b.valid_term  --유효기간
-             , b.bar_code_img  -- 바코드이미지
-             , b.qr_code_img  --QR코드 이미지
              , c.code_nm as matr_tp_nm
              , coalesce (a.stk_qty,0) as stk_qty  -- 재고량
-        from matr_stk a join matr_info b on a.matr_no = b.matr_no and b.cust_no = #{custNo}
+        from matr_stk a join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
                    left join code_info c on b.matr_tp = c.code_no
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="whNo != null and whNo != ''">
@@ -177,7 +175,7 @@
         select count(a.matr_stk_no)
         from (
         select a.matr_stk_no --적재관리번호
-        from matr_stk a join matr_info b on a.matr_no = b.matr_no and b.cust_no = #{custNo}
+        from matr_stk a join matr_info b on a.matr_no = b.matr_no and b.used_yn ='Y' and b.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="whNo != null and whNo != ''">
             and a.wh_no = #{whNo}

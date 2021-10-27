@@ -93,17 +93,56 @@ public class QcController {
         qcService.dropMatrIwhChk(paraMap);
         return result;
     }
-
+    /**
+     * 상품출고검수항목 목록 추출
+     *
+     * @param paraMap
+     * @param session
+     * @return void
+     */
     @PostMapping(value="/prodOwhChkList")
     public Result prodOwhChkList(@RequestBody Map<String, Object> paraMap , HttpSession session){
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(qcService.getMatrIwhChkList(paraMap));
-        result.setTotalCount(qcService.getMatrIwhChkListCount(paraMap));
+        result.setData(qcService.getProdOwhChkList(paraMap));
+        result.setTotalCount(qcService.getProdOwhChkListCount(paraMap));
         return result;
     }
-
+    /**
+     * 상품출고검수자료 저장
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return void
+     */
+    @PostMapping(value="/saveProdOwhChk")
+    public Result saveProdOwhChk(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        qcService.saveProdOwhChk(paraMap);
+        return result;
+    }
+    /**
+     * 상품출고검수자료 삭제
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return void
+     */
+    @PostMapping(value="/dropProdOwhChk")
+    public Result dropProdOwhChk(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        qcService.dropProdOwhChk(paraMap);
+        return result;
+    }
 
 }

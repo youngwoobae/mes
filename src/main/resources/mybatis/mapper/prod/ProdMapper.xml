@@ -1251,7 +1251,7 @@
     <select id="getProdCmpyList" parameterType="map"  resultType="camelMap">
         select a.cmpy_no    --거래처번
              , a.cmpy_nm    --거래처명
-             , a.biz_cd     --사업자번호
+             , a.saup_no     --사업자번호
              , a.tel_no     --대표전화
              , a.fax_no     --대표팩스
              , a.hp         --담당자이동전화

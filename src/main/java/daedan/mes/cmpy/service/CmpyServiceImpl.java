@@ -15,6 +15,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataUnit;
 
 import javax.transaction.Transactional;
 import java.util.HashMap;
@@ -176,8 +177,21 @@ public class CmpyServiceImpl implements  CmpyService {
     }
 
     @Override
-    public void setUnusedCmpy(Map<String, Object> cmpyMap) {
-        cmpyMapper.setUnusedCmpy(cmpyMap);
+    public void setUnusedCmpy(Map<String, Object> paraMap) {
+        //cmpyMapper.setUnusedCmpy(cmpyMap);
+        String tag = "CmpyService.setUnusedCmpy => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long cmpyNo = Long.parseLong(paraMap.get("cmpyNo").toString());
+        CmpyInfo vo = cmpyRepository.findByCustNoAndCmpyNoAndUsedYn(custNo,cmpyNo,"Y");
+        if (vo != null) {
+            vo.setUsedYn("N");
+            vo.setModDt(DateUtils.getCurrentBaseDateTime());
+            vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+            vo.setModIp(paraMap.get("ipaddr").toString());
+            cmpyRepository.save(vo);
+        }
+
     }
 
     @Override

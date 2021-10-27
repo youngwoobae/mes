@@ -440,11 +440,9 @@ public class ProcServiceImpl implements ProcService {
 
     @Override
     public void saveProcStd(Map<String, Object> paraMap){
-        String tag = "vsvc.ProcService.saveProcStd => ";
+        String tag = "ProcService.saveProcStd => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        String exData = "";
-
         ProcInfo infovo = new ProcInfo();
         infovo.setUsedYn("Y");
 

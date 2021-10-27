@@ -359,6 +359,7 @@ public class StockServiceImpl implements  StockService{
             vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             vo.setRegIp(paraMap.get("ipaddr").toString());
         }
+        vo.setCustNo(custNo);
         whInfoRepo.save(vo);
     }
 

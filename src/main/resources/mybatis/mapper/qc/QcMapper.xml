@@ -53,4 +53,56 @@
     <update id="initMatrIwhDoc">
         update matr_iwh_doc set chk_yn = 'N' where used_yn = 'Y' and cust_no = #{custNo}
     </update>
+
+
+    <select id="getProdOwhChkList" parameterType="map" resultType="camelMap">
+        /* (입고처리 검수항목) qcMapper.getMatrIwhChkList */
+        SELECT a.chk_no --점검관리번호
+        , a.chk_tp --점검유형
+        , b.code_nm AS chk_tp_nm --점검유형명
+        , a.chk_mth --점검방법
+        , c.code_nm AS chk_mth_nm --점검방법명
+        , COALESCE(a.chk_cont, c.code_nm) AS chk_cont
+        FROM matr_iwh_chk a JOIN code_info b ON a.chk_tp = b.code_no and b.cust_no = #{custNo}
+        JOIN code_info C ON a.chk_mth = c.code_no and c.cust_no = #{custNo}
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'chkCont'">
+                AND upper(replace(a.chk_cont,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getProdOwhChkListCount" parameterType="map" resultType="int">
+        select count(a.chk_no)
+        from ( SELECT a.chk_no --점검관리번호
+        FROM prod_owh_chk a JOIN code_info b ON a.chk_tp = b.code_no and b.cust_no = #{custNo}
+                            JOIN code_info C ON a.chk_mth = c.code_no and c.cust_no = #{custNo}
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'chkCont'">
+                AND upper(replace(a.chk_cont,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
+
+    <select id="getProdOwhChkDocList" parameterType="map" resultType="camelMap">
+        SELECT a.doc_no --입고검수문서관리번호
+             , a.doc_nm --입고검수문서명
+             , a.chk_yn --사용여부
+        FROM prod_owh_doc a
+        WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'docNm'">
+                AND upper(replace(a.doc_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by chk_yn desc , doc_no
+    </select>
+
+    <update id="initProdOwhDoc">
+        update prod_owh_doc set chk_yn = 'N' where used_yn = 'Y' and cust_no = #{custNo}
+    </update>
 </mapper>

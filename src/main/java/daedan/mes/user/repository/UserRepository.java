@@ -3,6 +3,7 @@ package daedan.mes.user.repository;
 
 import daedan.mes.user.domain.UserInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Component;
 
 public interface UserRepository extends JpaRepository<UserInfo, Long> {
     UserInfo findByMailAddrAndUsedYn(String email,String yn);

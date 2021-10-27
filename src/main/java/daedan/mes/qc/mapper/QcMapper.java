@@ -16,5 +16,11 @@ public interface QcMapper {
     int getMatrIwhDocChkListCount(Map<String, Object> paraMap);
     void initMatrIwhDoc();
 
+    List<Map<String, Object>> getProdOwhChkList(Map<String, Object> paraMap);
+    int getProdOwhChkListCount(Map<String, Object> paraMap);
+    List<Map<String, Object>> getProdOwhChkDocList(Map<String, Object> paraMap);
+    int getProdOwhChkDocListCount(Map<String, Object> paraMap);
 
+
+    void initProdOwhDoc();
 }

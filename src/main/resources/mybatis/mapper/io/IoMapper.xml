@@ -27,7 +27,7 @@
         from wh_info a join code_info z on a.save_tmpr = z.code_no
                        join code_info y on a.wh_tp    =  y.code_no
                        join matr_stk b on a.wh_no = b.wh_no  and b.used_yn = 'Y' and b.cust_no = #{custNo}
-        where and a.used_yn = 'Y' and a.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         and b.matr_no = #{matrNo}
     </select>
 
@@ -685,7 +685,7 @@
                                        and f.used_yn = 'Y' and f.cust_no = #{custNo}
                     left join (select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
                                from matr_iwh
-                               where and used_yn = 'Y' and cust_no = #{custNo}
+                               where used_yn = 'Y' and cust_no = #{custNo}
                                 group by cmpy_no , matr_no , purs_matr_no , purs_no
                              ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
         where a.purs_matr_no = #{pursMatrNo}
