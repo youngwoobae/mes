@@ -824,6 +824,7 @@
     </select>
 
     <select id="getReqMatrIwhListCount" parameterType="map"  resultType="int">
+        /* 구매입고목록 (ioMapper.getReqMatrIwhListCount )*/
         select count(a.matr_no)
         from ( select a.matr_no --자재번호
                     , b.matr_nm --자재명
@@ -840,7 +841,7 @@
                                                  and c.used_yn = 'Y' and c.cust_no = #{custNo}
                             left join ( select sum(iwh_qty) as iwh_qty ,matr_no,purs_no
                                         from matr_iwh
-                                        where b.used_yn = 'Y' and cust_no = #{custNo}
+                                        where used_yn = 'Y' and cust_no = #{custNo}
                                         group by cmpy_no , matr_no , purs_matr_no , purs_no
                                        ) d on a.purs_no = d.purs_no and a.matr_no = d.matr_no
                 where a.used_yn = 'Y'
@@ -3505,6 +3506,9 @@
                            )
         limit #{pageSz} offset #{pageNo}
     </select>
+
+
+
 
     <select id="getMatrOwhList" parameterType="map" resultType="camelMap">
         /* (ioMapper.getMatrOwhlist)*/
