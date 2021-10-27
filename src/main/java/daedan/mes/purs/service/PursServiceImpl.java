@@ -578,6 +578,7 @@ public class PursServiceImpl implements  PursService {
                 matrvo.setRegIp(paraMap.get("ipaddr").toString());
                 matrvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             }
+            matrvo.setPursSts(infovo.getPursSts());
             matrvo.setCustNo(custNo);
             pmr.save(matrvo);
         }

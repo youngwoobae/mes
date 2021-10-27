@@ -104,6 +104,7 @@ public class StockServiceImpl implements  StockService{
             msvo.setRegDt(DateUtils.getCurrentDate());
             msvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             msvo.setRegIp(paraMap.get("ipaddr").toString());
+            msvo.setCustNo(custNo);
             chkvo = matrStkRepo.save(msvo);
         }
 
@@ -117,6 +118,7 @@ public class StockServiceImpl implements  StockService{
             Map<String,Object> stkmap = mapper.getMatrStockByPos(smap);
             chkvo.setStkQty(Float.parseFloat(stkmap.get("stkQty").toString()));
             chkvo.setStatTrfDt(DateUtils.getCurrentDate());
+            chkvo.setCustNo(custNo);
             matrStkRepo.save(chkvo);
         }
         else {
@@ -125,6 +127,7 @@ public class StockServiceImpl implements  StockService{
             chkvo.setStkQty(Float.parseFloat(stkmap.get("stkQty").toString()));
             chkvo.setStatTrfDt(DateUtils.getCurrentDate());
             chkvo.setValidDt(msvo.getValidDt());
+            chkvo.setCustNo(custNo);
             matrStkRepo.save(chkvo);
         }
     }
@@ -204,6 +207,7 @@ public class StockServiceImpl implements  StockService{
                 mpvo.setRegDt(DateUtils.getCurrentDate());
             }
         }
+        mpvo.setCustNo(custNo);
         matrPosRepo.save(mpvo);
 
     }
@@ -251,6 +255,7 @@ public class StockServiceImpl implements  StockService{
             if (chkvo != null) {
                 mpvo.setMatrPosNo(chkvo.getMatrPosNo());
             }
+            mpvo.setCustNo(custNo);
             mpvo = matrPosRepo.save(mpvo);
             int height = Integer.parseInt(env.getProperty("bar_qr_height"));
             int width  = Integer.parseInt(env.getProperty("bar_qr_width"));
@@ -269,6 +274,7 @@ public class StockServiceImpl implements  StockService{
                 //log.info(tag + "save bar code path = " + buf.toString());//kill
                 byte[] barCodeImg = ImageUtils.createBarImage(rootPath.getPath(), Long.toString(mpvo.getMatrPosNo()),height,width);
                 mpvo.setBarCodeImg(barCodeImg);
+                mpvo.setCustNo(custNo);
                 matrPosRepo.save(mpvo);
             } catch (WriterException e) {
                 e.printStackTrace();
@@ -459,13 +465,15 @@ public class StockServiceImpl implements  StockService{
             msvo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
             msvo.setRegIp(paraMap.get("ipaddr").toString());
         }
+        msvo.setCustNo(custNo);
         msvo = matrStkRepo.save(msvo);
-
+        /*Remarked By KMJ AT 21.10.27 --사용중지
         log.info(tag + "자재재고관리번호 바코드 이미지 생성===> ");
         Map<String,Object> bmap = new HashMap<String,Object>();
         bmap.put("codeNo",msvo.getMatrStkNo());
         bmap.put("savePath","matr/owh/");
         this.makeBarCode(bmap);
+         */
 
     }
 
@@ -538,6 +546,7 @@ public class StockServiceImpl implements  StockService{
                 mshvo.setWhNo(orgWhNo);
             }
         }
+        mshvo.setCustNo(custNo);
         matrStkHstrRepo.save(mshvo);
 
         //창고이동
@@ -551,6 +560,7 @@ public class StockServiceImpl implements  StockService{
                 mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
                 mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
                 mscvo.setRegIp(paraMap.get("ipaddr").toString());
+                mscvo.setCustNo(custNo);
                 matrStkRepo.save(mscvo);
             }
             //이동창고 재고조정
@@ -562,6 +572,7 @@ public class StockServiceImpl implements  StockService{
                 mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
                 mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
                 mscvo.setRegIp(paraMap.get("ipaddr").toString());
+                mscvo.setCustNo(custNo);
                 matrStkRepo.save(mscvo);
             }
         }
@@ -591,6 +602,7 @@ public class StockServiceImpl implements  StockService{
             mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
             mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
         }
+        mscvo.setCustNo(custNo);
         matrStkRepo.save(mscvo);
 
         //입고이력 생성
@@ -609,6 +621,7 @@ public class StockServiceImpl implements  StockService{
         iwhvo.setModIp(paraMap.get("ipaddr").toString());
         iwhvo.setModDt(DateUtils.getCurrentBaseDateTime());
         iwhvo.setUsedYn("Y");
+        iwhvo.setCustNo(custNo);
         matrIwhRepo.save(iwhvo);
     }
 
@@ -626,21 +639,21 @@ public class StockServiceImpl implements  StockService{
 
         //변경 후 창고번호 설정
         try{
-            chngWhNo = Long.parseLong(paraMap.get("chng_wh_no").toString());
+            chngWhNo = Long.parseLong(paraMap.get("chngWhNo").toString());
         }catch(NullPointerException ne){
             chngWhNo = 0L;
         }
         //변경전 창고번호 설정
-        whNo = Long.parseLong(paraMap.get("wh_no").toString());
+        whNo = Long.parseLong(paraMap.get("whNo").toString());
 
         try{
-            prsvo.setChngNo(Long.parseLong(paraMap.get("chng_no").toString()));
+            prsvo.setChngNo(Long.parseLong(paraMap.get("chngNo").toString()));
         }catch(NullPointerException ne){
             prsvo.setChngNo(0L);
         }
-        Long chngResn = Long.parseLong(paraMap.get("chng_resn").toString());
-        prsvo.setProdNo(Long.parseLong(paraMap.get("prod_no").toString()));
-        prsvo.setStkQty(Float.parseFloat(paraMap.get("stk_qty").toString()));
+        Long chngResn = Long.parseLong(paraMap.get("chngResn").toString());
+        prsvo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
+        prsvo.setStkQty(Float.parseFloat(paraMap.get("stkQty").toString()));
 
         if(chngWhNo != whNo){
             log.info("1. 창고이동 있는 경우.");
@@ -682,7 +695,7 @@ public class StockServiceImpl implements  StockService{
             prodStkHstrRepo.save(prsvo);
 
             try{
-                Long chngNo = Long.parseLong(paraMap.get("chng_no").toString());
+                Long chngNo = Long.parseLong(paraMap.get("chngNo").toString());
                 chkprs = prodStkHstrRepo.findByCustNoAndChngNoAndUsedYn(custNo,chngNo, "Y");
                 if(chkprs != null){
                     log.info("1-3. 기존 실사재고 이력 삭제");
@@ -690,6 +703,7 @@ public class StockServiceImpl implements  StockService{
                     chkprs.setModId(Long.parseLong(paraMap.get("userId").toString()));
                     chkprs.setModIp(paraMap.get("ipaddr").toString());
                     chkprs.setUsedYn("N");
+                    chkprs.setCustNo(custNo);
                     prodStkHstrRepo.save(chkprs);
                 }
             }catch(NullPointerException ne){
@@ -705,6 +719,7 @@ public class StockServiceImpl implements  StockService{
                 chkvo.setModDt(DateUtils.getCurrentBaseDateTime());
                 chkvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
                 chkvo.setModIp(paraMap.get("ipaddr").toString());
+                chkvo.setCustNo(custNo);
                 prodStkHstrRepo.save(chkvo);
             }
         }
@@ -722,7 +737,7 @@ public class StockServiceImpl implements  StockService{
         pivo.setRegDt(DateUtils.getCurrentDateTime());
         pivo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
         pivo.setRegIp(paraMap.get("ipaddr").toString());
-
+        pivo.setCustNo(custNo);
         prodIwhRepo.save(pivo);
 
         log.info(tag + "4.재고조정");
@@ -746,6 +761,7 @@ public class StockServiceImpl implements  StockService{
             psvo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
             psvo.setRegIp(paraMap.get("ipaddr").toString());
         }
+        psvo.setCustNo(custNo);
         prodStkRepo.save(psvo);
 
         if(chngWhNo != whNo && chngResn == Long.parseLong(env.getProperty("code.lose_cd.moveWh"))){
@@ -756,12 +772,11 @@ public class StockServiceImpl implements  StockService{
                 chvo.setModDt(DateUtils.getCurrentDateTime());
                 chvo.setModId(Long.valueOf(paraMap.get("userId").toString()));
                 chvo.setModIp(paraMap.get("ipaddr").toString());
+                chvo.setCustNo(custNo);
                 prodStkRepo.save(chvo);
             }
         }
     }
-
-
 
     @Override
     public List<Map<String, Object>> getMatrIoList(HashMap<String, Object> paraMap) {
@@ -903,7 +918,7 @@ public class StockServiceImpl implements  StockService{
                 try {
                     map = ds.get(layoutPos);
                     try {
-                        posmap.put("martCnt", Float.parseFloat(map.get("matr_qty").toString()));
+                        posmap.put("martCnt", Float.parseFloat(map.get("matrQty").toString()));
                     } catch (NullPointerException ne) {
                         posmap.put("martCnt", 0f);
                     }
@@ -967,10 +982,10 @@ public class StockServiceImpl implements  StockService{
             //자재실사재고
             MatrStkHstr mshvo = new MatrStkHstr();
 
-            mshvo.setMatrNo(Long.parseLong(el.get("matr_no").toString()));
-            mshvo.setWhNo(Long.parseLong(paraMap.get("wh_no").toString()));
-            mshvo.setStkQty(Float.parseFloat(el.get("real_qty").toString()));
-            mshvo.setChngResn(Long.parseLong(el.get("chng_resn").toString()));
+            mshvo.setMatrNo(Long.parseLong(el.get("matrNo").toString()));
+            mshvo.setWhNo(Long.parseLong(paraMap.get("whNo").toString()));
+            mshvo.setStkQty(Float.parseFloat(el.get("realQty").toString()));
+            mshvo.setChngResn(Long.parseLong(el.get("chngResn").toString()));
             mshvo.setUsedYn("Y");
             mshvo.setRegDt(DateUtils.getCurrentDate());
             mshvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
@@ -979,13 +994,14 @@ public class StockServiceImpl implements  StockService{
             if (chkvo != null) {
                 mshvo.setChngNo(chkvo.getChngNo());
             }
+            mshvo.setCustNo(custNo);
             matrStkHstrRepo.save(mshvo);
 
             //자재재고
             MatrStk stkvo = new MatrStk();
-            stkvo.setStkQty(Float.parseFloat(el.get("real_qty").toString()));
-            stkvo.setWhNo(Long.parseLong(paraMap.get("wh_no").toString()));
-            stkvo.setMatrNo(Long.parseLong(el.get("matr_no").toString()));
+            stkvo.setStkQty(Float.parseFloat(el.get("realQty").toString()));
+            stkvo.setWhNo(Long.parseLong(paraMap.get("whNo").toString()));
+            stkvo.setMatrNo(Long.parseLong(el.get("matrNo").toString()));
             stkvo.setStatTrfDt(DateUtils.getCurrentDate());
             stkvo.setUsedYn("Y");
             stkvo.setStatCd(Long.parseLong(env.getProperty("stk_stat_real")));
@@ -1003,6 +1019,7 @@ public class StockServiceImpl implements  StockService{
                 stkvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
                 stkvo.setRegIp(paraMap.get("ipaddr").toString());
             }
+            stkvo.setCustNo(custNo);
             matrStkRepo.save(stkvo);
         }
     }
@@ -1029,10 +1046,10 @@ public class StockServiceImpl implements  StockService{
             //제품실사재고
             ProdStkHstr prvo = new ProdStkHstr();
 
-            prvo.setProdNo(Long.parseLong(el.get("prod_no").toString()));
-            prvo.setWhNo(Long.parseLong(paraMap.get("wh_no").toString()));
-            prvo.setStkQty(Float.parseFloat(el.get("real_qty").toString()));
-            prvo.setChngResn(Long.parseLong(el.get("chng_resn").toString()));
+            prvo.setProdNo(Long.parseLong(el.get("prodNo").toString()));
+            prvo.setWhNo(Long.parseLong(paraMap.get("whNo").toString()));
+            prvo.setStkQty(Float.parseFloat(el.get("realQty").toString()));
+            prvo.setChngResn(Long.parseLong(el.get("chngResn").toString()));
             prvo.setUsedYn("Y");
             prvo.setRegDt(DateUtils.getCurrentDate());
             prvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
@@ -1041,13 +1058,14 @@ public class StockServiceImpl implements  StockService{
             if (chkvo != null) {
                 prvo.setChngNo(chkvo.getChngNo());
             }
+            prvo.setCustNo(custNo);
             prodStkHstrRepo.save(prvo);
 
             //제품재고
             ProdStk stkvo = new ProdStk();
-            stkvo.setStkQty(Float.parseFloat(el.get("real_qty").toString()));
-            stkvo.setWhNo(Long.parseLong(paraMap.get("wh_no").toString()));
-            stkvo.setProdNo(Long.parseLong(el.get("prod_no").toString()));
+            stkvo.setStkQty(Float.parseFloat(el.get("realQty").toString()));
+            stkvo.setWhNo(Long.parseLong(paraMap.get("whNo").toString()));
+            stkvo.setProdNo(Long.parseLong(el.get("prodNo").toString()));
             stkvo.setStatTrfDt(DateUtils.getCurrentDate());
             stkvo.setUsedYn("Y");
             stkvo.setStkDt(DateUtils.getCurrentDate());
@@ -1065,6 +1083,7 @@ public class StockServiceImpl implements  StockService{
                 stkvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
                 stkvo.setRegIp(paraMap.get("ipaddr").toString());
             }
+            stkvo.setCustNo(custNo);
             prodStkRepo.save(stkvo);
         }
     }
@@ -1140,6 +1159,7 @@ public class StockServiceImpl implements  StockService{
                     matrvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
                     matrvo.setRegIp(paraMap.get("ipaddr").toString());
                 }
+                matrvo.setCustNo(custNo);
                 matrStkClosRepo.save(matrvo);
             } catch (java.text.ParseException e) {
                 e.printStackTrace();
@@ -1175,6 +1195,7 @@ public class StockServiceImpl implements  StockService{
                     prodvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
                     prodvo.setRegIp(paraMap.get("ipaddr").toString());
                 }
+                prodvo.setCustNo(custNo);
                 prodStkClosRepo.save(prodvo);
             } catch (java.text.ParseException e) {
                 e.printStackTrace();
@@ -1192,13 +1213,13 @@ public class StockServiceImpl implements  StockService{
             try {
                 vo.setClosDt(sdf.parse(paraMap.get("procDt").toString()));
                 try {
-                    vo.setMatrNo(Long.parseLong(el.get("matr_no").toString()));
+                    vo.setMatrNo(Long.parseLong(el.get("matrNo").toString()));
                 } catch (NullPointerException ne) {
                     break;
                 }
 
                 try {
-                    vo.setMatrIwhQty(Float.parseFloat(el.get("matr_iwh_qty").toString()));
+                    vo.setMatrIwhQty(Float.parseFloat(el.get("matrIwh_Qty").toString()));
                 } catch (NullPointerException ne) {
                     vo.setMatrIwhQty(0f);
                 }
@@ -1208,7 +1229,7 @@ public class StockServiceImpl implements  StockService{
                     vo.setMatrOwhQty(0f);
                 }
                 try {
-                    vo.setMatrStkQty(Float.parseFloat(el.get("matr_stk_qty").toString()));
+                    vo.setMatrStkQty(Float.parseFloat(el.get("matrStkQty").toString()));
                 } catch (NullPointerException ne) {
                     vo.setMatrOwhQty(0f);
                 }
@@ -1218,6 +1239,7 @@ public class StockServiceImpl implements  StockService{
                 } else {
                     vo.setStkClosNo(0L);
                 }
+                vo.setCustNo(custNo);
                 stkClosRepo.save(vo);
 
             } catch (java.text.ParseException e) {
@@ -1232,17 +1254,17 @@ public class StockServiceImpl implements  StockService{
             try {
                 vo.setClosDt(sdf.parse(paraMap.get("procDt").toString()));
                 try {
-                    vo.setProdNo(Long.parseLong(el.get("prod_no").toString()));
+                    vo.setProdNo(Long.parseLong(el.get("prodNo").toString()));
                 } catch (NullPointerException ne) {
                     break;
                 }
                 try {
-                    vo.setProdIwhQty(Float.parseFloat(el.get("prod_iwh_qty").toString()));
+                    vo.setProdIwhQty(Float.parseFloat(el.get("prodIwhQty").toString()));
                 } catch (NullPointerException ne) {
                     vo.setProdIwhQty(0f);
                 }
                 try {
-                    vo.setProdOwhQty(Float.parseFloat(el.get("prod_owh_qty").toString()));
+                    vo.setProdOwhQty(Float.parseFloat(el.get("prodOwhQty").toString()));
                 } catch (NullPointerException ne) {
                     vo.setProdOwhQty(0f);
                 }
@@ -1253,6 +1275,7 @@ public class StockServiceImpl implements  StockService{
                 } else {
                     vo.setStkClosNo(0L);
                 }
+                vo.setCustNo(custNo);
                 stkClosRepo.save(vo);
             } catch (java.text.ParseException e) {
                 e.printStackTrace();
