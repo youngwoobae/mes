@@ -398,6 +398,7 @@ public class PursServiceImpl implements  PursService {
             infovo.setRegIp(paraMap.get("ipaddr").toString());
             infovo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         }
+        infovo.setCustNo(custNo);
         infovo = pir.save(infovo);
 
         //구매자재 저장
@@ -406,6 +407,7 @@ public class PursServiceImpl implements  PursService {
         matrvo.setPursNo(infovo.getPursNo());
         Long matrNo = Long.parseLong(paraMap.get("matrNo").toString());
         matrvo.setMatrNo(matrNo);
+        matrvo.setPursSts(infovo.getPursSts()); //AddOn By KMJ At 21.10.27
         matrvo.setCmpyNo(Long.parseLong(paraMap.get("cmpyNo").toString()));
         matrvo.setPursQty(Float.parseFloat(paraMap.get("pursQty").toString()));
         matrvo.setPursUnit(Long.parseLong(paraMap.get("pursUnit").toString()));
@@ -432,6 +434,7 @@ public class PursServiceImpl implements  PursService {
             matrvo.setRegDt(DateUtils.getCurrentDate());
             matrvo.setRegIp(paraMap.get("ipaddr").toString());
         }
+        matrvo.setCustNo(custNo);
         pmr.save(matrvo);
       //  mapper.resetDlvReqDt(matrInfo);
     }
@@ -439,6 +442,7 @@ public class PursServiceImpl implements  PursService {
     @Override
     public void dropPursReqMatr(HashMap<String, Object> paraMap) {
         String tag = "pursService.dropPursReqMatr => ";
+        log.info(tag + " paraMap = " + paraMap.toString());
         mapper.dropPursMatr(paraMap);
         if (mapper.isDeadPurs(paraMap).equals("Y")) {
             mapper.dropPursInfo(paraMap);
@@ -450,7 +454,7 @@ public class PursServiceImpl implements  PursService {
     public void savePursMatr(Map<String, Object> paraMap) {
         String tag = "pursService.savePursMatr => ";
         log.info(tag);
-
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         PursMatr pmvo = new PursMatr();
@@ -478,6 +482,7 @@ public class PursServiceImpl implements  PursService {
             pmvo.setRegIp(paraMap.get("ipaddr").toString());
             pmvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         }
+        pmvo.setCustNo(custNo);
         pmr.save(pmvo);
     }
 
@@ -528,6 +533,7 @@ public class PursServiceImpl implements  PursService {
             infovo.setRegDt(DateUtils.getCurrentDate());
             infovo.setRegIp(ipaddr);
         }
+        infovo.setCustNo(custNo);
         infovo = pursInfoRepo.save(infovo);
 
         for (Map<String, Object> el : matrList) {
@@ -572,6 +578,7 @@ public class PursServiceImpl implements  PursService {
                 matrvo.setRegIp(paraMap.get("ipaddr").toString());
                 matrvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             }
+            matrvo.setCustNo(custNo);
             pmr.save(matrvo);
         }
     }
@@ -599,6 +606,7 @@ public class PursServiceImpl implements  PursService {
             pmvo.setPursMatrNo(chkvo.getPursMatrNo());
             pmvo.setPursUnit(chkvo.getPursUnit());
         }
+        pmvo.setCmpyNo(custNo);
         pmr.save(pmvo);
     }
 
@@ -613,6 +621,7 @@ public class PursServiceImpl implements  PursService {
     @Override
     public List<Map<String, Object>> getComboMatrCmpy(Map<String, Object> paraMap) {
         String tag = "pursService.getComboPursCmpy => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getComboMatrCmpy(paraMap);
     }
 
