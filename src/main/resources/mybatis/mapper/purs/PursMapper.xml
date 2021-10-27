@@ -197,13 +197,12 @@
         select count(a.matr_no)
             from (select a.matr_no
                     from purs_matr a join matr_info b on a.matr_no = b.matr_no
-
                                                       and b.used_yn = 'Y' and b.cust_no = #{custNo}
                                      join code_info z on a.purs_unit  = z.code_no
                                      join purs_info d on a.purs_no = d.purs_no
                                                      and d.used_yn = 'Y'
                                                      and d.cust_no = #{custNo}
-        and                                          and d.purs_sts not in (166)
+                                                     and d.purs_sts not in (166)
                                      join code_info y ON d.purs_sts = y.code_no
                                 left join make_indc x on d.indc_no  = x.indc_no and x.used_yn = 'Y' and x.cust_no =#{custNo}
                                 left join ord_info e on d.purs_no = e.purs_no and e.used_yn  = 'Y' and e.cust_no =#{custNo}
