@@ -11,7 +11,7 @@
         <if test="prodNo != null and prodNo != ''">
             JOIN prod_stk b on a.wh_no = b.wh_no and used_yn = 'Y' and cust_no = #{custNo}
         </if>
-        where  and a.used_yn = 'Y' and a.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="whTp != null and whTp != ''">
             and a.wh_tp = #{whTp}
         </if>
@@ -2586,6 +2586,7 @@
               , coalesce (b.stk_qty,0) as stk_qty
               , case when d.purs_no is not null then 'Y' else 'N' end as purs_yn
               , e.wh_nm
+              , fn_get_code_name('nm',f.save_tmpr) as save_tmpr_nm --보관창고온도명
               , b.wh_no
               , f.wh_no as tmpr_wh_no
         from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr

@@ -530,7 +530,7 @@
                         join prod_info d on c.prod_no = d.prod_no and d.used_yn ='Y' and d.cust_no = #{custNo}
                         join cmpy_info e on a.cmpy_no  = e.cmpy_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                         join code_info z on b.sale_unit  = z.code_no
-        where  and a.used_yn ='Y' and a.cust_no = #{custNo}
+        where  a.used_yn ='Y' and a.cust_no = #{custNo}
         and a.ord_sts = #{ordSts}f
     </select>
 
@@ -542,7 +542,7 @@
                                join prod_info d on c.prod_no = d.prod_no and d.used_yn ='Y' and d.cust_no = #{custNo}
                                join cmpy_info e on a.cmpy_no  = e.cmpy_no and e.used_yn ='Y' and e.cust_no = #{custNo}
                                join code_info z on b.sale_unit  = z.code_no
-               where  and a.used_yn ='Y' and a.cust_no = #{custNo}
+               where a.used_yn ='Y' and a.cust_no = #{custNo}
                and a.ord_sts = #{ordSts}
         ) a
     </select>
@@ -581,7 +581,7 @@
         join code_info y ON d.purs_sts = y.code_no
         left join ord_info e on d.purs_no = e.purs_no  and e.used_yn ='Y' and e.cust_no = #{custNo}
         left join cmpy_info f on a.cmpy_no = f.cmpy_no  and f.used_yn ='Y' and f.cust_no = #{custNo}
-        where  and a.used_yn ='Y' and a.cust_no = #{custNo}
+        where a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
             and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)
         </if>
@@ -600,7 +600,7 @@
     <select id="getPursReqListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from (select a.matr_no
-        from purs_matr a join matr_info b on a.matr_no = b.matr_no and  and b.used_yn ='Y' and b.cust_no = #{custNo}
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no  and b.used_yn ='Y' and b.cust_no = #{custNo}
                          join code_info z on a.purs_unit  = z.code_no
                          join purs_info d on a.purs_no = d.purs_no  and d.used_yn ='Y' and d.cust_no = #{custNo}
                          join code_info y ON d.purs_sts = y.code_no
@@ -689,7 +689,7 @@
     <select id="isDeadPurs" parameterType="map"  resultType="str">
         select case when count(matr_no) = 0 then 'Y' else 'N' end
         from purs_matr
-        where  and used_yn ='Y' and cust_no = #{custNo}
+        where used_yn ='Y' and cust_no = #{custNo}
           and purs_no = #{pursNo}
     </select>
 

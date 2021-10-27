@@ -644,10 +644,13 @@
     </update>
 
     <select id="getMatrCurrStkList" parameterType="map"  resultType="camelMap">
+        /*원료(부자재) 현재고 목록 (matrMapper.getMatrCurrStkList) */
         select a.matr_no ---자재번
             , a.matr_nm --자재명
             , a.matr_tp --자재구분
             , g.wh_no
+            , g.save_tmpr --보관온도코드
+            , fn_get_code_name('nm',g.save_tmpr) as save_tmpr_nm --보관온도코드명
             , coalesce(b.qty,0) as pqty --전일이월
             , coalesce(b.iqty,0) as iqty --전일입고수
             , coalesce(b.oqty,0) as oqty  --전일출고수
@@ -667,32 +670,28 @@
                              when to_char(now(), 'MM')::numeric = '11'::numeric then f.nov_stk_qty
                              when to_char(now(), 'MM')::numeric = '12'::numeric then f.dec_stk_qty
                              end ,0 ) as safe_qty
-        from matr_info a    join wh_info g on a.save_tmpr = g.save_tmpr and g.used_yn = 'Y' and g.wh_tp = 191  and g.cust_no = #{custNo}
+            from matr_info a join wh_info g on a.save_tmpr = g.save_tmpr and g.used_yn = 'Y' and g.wh_tp = 191  and g.cust_no = #{custNo}
                         left join (select matr_no
                                           , coalesce (sum(stk_qty),0) as qty
                                           , coalesce (sum(iwh_qty),0) as iqty
                                           , coalesce (sum(owh_qty),0) as oqty
                                     from matr_stk_clos
-                                    where used_yn = 'Y'
-                                    and cust_no = #{custNo}
+                                    where used_yn = 'Y' and cust_no = #{custNo}
                                     and to_char(clos_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
                                     group by matr_no
                                     ) b on a.matr_no = b.matr_no
                         left join ( select a.matr_no
                                         , coalesce (sum(a.iwh_qty),0) as nowIqty
                                         from matr_iwh a
-
-                                        where a.used_yn = 'Y'
-                                        and   cust_no = #{custNo}
+                                        where a.used_yn = 'Y' and a.cust_no = #{custNo}
                                         and   to_char(a.iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                                         group by a.matr_no
                                         ) c on a.matr_no = c.matr_no
                         left join ( select a.matr_no
                                     , coalesce (sum(a.owh_qty),0) as nowOqty
                                     from matr_owh a
-                                    where a.used_yn = 'Y'
-                                    and   a.cust_no = #{custNo}
-                                    and to_char(a.owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                                    where a.used_yn = 'Y' and   a.cust_no = #{custNo}
+                                    and   to_char(a.owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                                     group by a.matr_no
                                     ) d on a.matr_no = d.matr_no
                         left join ( select matr_no

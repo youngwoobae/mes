@@ -109,7 +109,7 @@ public class UserController {
             String orgLcnsCd = paraMap.get("lcnsCd").toString();
             log.info("orgLcnsCd=" + orgLcnsCd);
             String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
-
+            log.info("encLcnsCd=" + encLcnsCd);
             if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
                 String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
                 Long custNo = Long.parseLong(strCustNo);

@@ -2740,12 +2740,11 @@ public class IoServiceImpl implements IoService {
         List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("iwhList");
         Long matrNo = 0L;
         Float stkQty = 0F;
-        Long whNo = 0L;
+        Long whNo = Long.parseLong(paraMap.get("whNo").toString());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         for (Map<String,Object> el : ds) {
             MatrIwh mivo = new MatrIwh();
             matrNo= Long.parseLong(el.get("matrNo").toString());
-            whNo = Long.parseLong(el.get("whNo").toString());
             mivo.setMatrNo(matrNo);
             mivo.setWhNo(whNo);
             mivo.setIwhQty(Float.parseFloat(el.get("iwhQty").toString()));
@@ -2807,7 +2806,13 @@ public class IoServiceImpl implements IoService {
             }
             msvo.setCustNo(custNo);
             matrStkRepo.save(msvo);
+
+            this.makeInspHstr(mivo);
         }
+    }
+    
+    private void makeInspHstr(MatrIwh mivi) {
+
     }
 
     @Override
