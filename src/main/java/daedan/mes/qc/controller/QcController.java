@@ -94,6 +94,43 @@ public class QcController {
         return result;
     }
     /**
+     * 상품출고검수화면 콤보구성
+     *
+     * @param paraMap
+     * @param session
+     * @return void
+     */
+
+    @PostMapping(value="/conditionsEmbProdOwhChk")
+    public Result conditionsEmbProdOwhChk(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Map<String,Object> rmap = new HashMap<String,Object>();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_insp")));
+        rmap.put("chkTps", codeService.getComboCodeList(paraMap));
+
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.insp_meth")));
+        rmap.put("chkMths", codeService.getComboCodeList(paraMap));
+
+        Result result = Result.successInstance();
+        return result.setData(rmap);
+    }
+    /**
+     * 상품출고검수정보
+     *
+     * @param paraMap
+     * @param session
+     * @return void
+     */
+    @PostMapping(value="/prodOwhChkInfo")
+    public Result prodOwhChkInfo(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(qcService.prodOwhChkInfo(paraMap));
+        return result;
+    }
+    /**
      * 상품출고검수항목 목록 추출
      *
      * @param paraMap

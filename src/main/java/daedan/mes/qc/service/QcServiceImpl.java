@@ -217,4 +217,11 @@ public class QcServiceImpl implements  QcService {
             prodOwhChkRepo.save(chkvo);
         }
     }
+
+    @Override
+    public Map<String, Object> prodOwhChkInfo(Map<String, Object> paraMap) {
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        ProdOwhChk vo = prodOwhChkRepo.findByCustNoAndChkNoAndUsedYn(custNo,Long.parseLong(paraMap.get("chkNo").toString()),"Y");
+        return StringUtil.voToMap(vo);
+    }
 }

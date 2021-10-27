@@ -25,4 +25,6 @@ public interface QcService {
     void saveProdOwhChk(Map<String, Object> paraMap);
 
     void dropProdOwhChk(Map<String, Object> paraMap);
+
+    Map<String, Object> prodOwhChkInfo(Map<String, Object> paraMap);
 }
