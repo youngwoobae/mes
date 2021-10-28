@@ -94,8 +94,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public UserInfo signin( String mailAddr, String password) {
-//		대기중
+	public UserInfo signin(String mailAddr, String password) {
 		UserInfo userInfo = ur.findByMailAddrAndUsedYn(mailAddr,"Y");
 		if (userInfo != null) {
 			userInfo.setToken(null);
@@ -702,6 +701,12 @@ public class UserServiceImpl implements UserService {
 		}
 		Objects.requireNonNull(userInfo, SIGNIN_EXCEPTION_MSG);
 		return userInfo;
+
+	}
+
+	@Override
+	public UserInfo getUserInfoById(Long userId) {
+		return userRepo.findByUserId(userId );
 
 	}
 }

@@ -28,6 +28,7 @@
                     , a.used_yn
                 FROM  sys_menu a
                 WHERE a.par_sys_menu_no = 0
+                  and a.cust_no = #{custNo}
                 UNION ALL
                 SELECT  b.par_sys_menu_no
                       , b.sys_menu_no
@@ -41,10 +42,11 @@
                       , b.disp_yn
                       , b.used_yn
                 FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+                where b.cust_no = #{custNo}
+                  and used_yn = 'Y'
+                  and disp_yn = 'Y'
         )
         select * from cte
-        where used_yn = 'Y'
-        and disp_yn = 'Y'
         <if test="parSysMenuNo != null and parSysMenuNo != ''">
             AND par_sys_menu_no = #{parSysMenuNo}
         </if>

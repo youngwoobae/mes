@@ -22,6 +22,7 @@ public interface UserService {
 
     boolean isExist(String mailAddr);
 
+
     void validate(String email);
     
     void saveUser(Map<String, Object> map);
@@ -71,4 +72,5 @@ public interface UserService {
     void setLastAccPath(Map<String, Object> paraMap);
 
     UserInfo getUserInfByToken(HashMap<String, Object> paraMap);
+    UserInfo getUserInfoById(Long userId);
 }

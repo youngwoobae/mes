@@ -1,6 +1,7 @@
 package daedan.mes.make.service;
 
 
+import daedan.mes.bord.mapper.BordMapper;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.equip.repository.OperMastRepository;
@@ -18,6 +19,7 @@ import daedan.mes.make.mapper.MakeIndcMapper;
 import daedan.mes.make.repository.*;
 import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.domain.OrdProd;
+import daedan.mes.ord.mapper.OrdMapper;
 import daedan.mes.ord.repository.OrdProdRepository;
 import daedan.mes.ord.repository.OrdRepository;
 import daedan.mes.proc.domain.ProcBrnch;
@@ -73,6 +75,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Autowired
     private MakeIndcRepository makeIndcRepo;
+
+    @Autowired
+    private OrdMapper ordMapper;
 
     @Autowired
     private MakeMpRepository makeMpRepo;
@@ -269,13 +274,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Map<String, Object> prodMap = new HashMap<>();
         prodMap.put("ordNo",paraMap.get("ordNo"));
         prodMap.put("prodNo",paraMap.get("prodNo"));
+        prodMap.put("custNo",paraMap.get("custNo"));
         List<Map<String,Object>> passMap = mapper.getOrdProdInfo(prodMap);
-        /*
-           select a.ord_no
-                 , a.prod_no
-                 , a.sale_unit as make_unit
-                 , round((a.ord_qty * b.mess )/1000) as indc_wgt
-         */
 
         for(Map<String, Object> el : passMap){
             //el.put("ord_no",paraMap.get("ordNo"));
@@ -307,6 +307,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Map<String, Object> procMap = new HashMap<String,Object>();
         procMap.put("prodNo",Long.parseLong(paraMap.get("prodNo").toString()));
+        procMap.put("custNo",paraMap.get("custNo"));
 
         Long parIndcNo = 0L;
         Long svParIndcNo = 0L;
@@ -427,8 +428,15 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             /* SOL Addon By KMJ AT 21.09.10 08:58 */
             Long ordNo = 0L;
             try {
-                ordNo = (paraMap.get("ordNo") == null) ? Long.parseLong(paraMap.get("ordNo").toString()) : Long.parseLong(paraMap.get("ord_no").toString());
-                OrdInfo ordvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo,"Y");  //사입기능 구현으로 인하여 추가됨
+                ordNo = Long.parseLong(paraMap.get("ordNo").toString());
+
+                Map<String,Object> tmpMap = new HashMap<String,Object>();
+                tmpMap.put("custNo",custNo);
+                tmpMap.put("ordNo",ordNo);
+                OrdInfo ordvo = new OrdInfo();
+                tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
+                ordvo = (OrdInfo) StringUtil.mapToVo(tmpMap,ordvo);
+                //OrdInfo ordvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo,"Y");  //사입기능 구현으로 인하여 추가됨
                 if (ordvo != null) {
                     cmpyNo = ordvo.getCmpyNo();
                 }
@@ -448,11 +456,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             List<Map<String,Object>> ds = null;
 
             /* SOL Addon By KMJ AT 21.09.10 08:58 */
-            switch(Integer.parseInt(paraMap.get("custNo").toString())) {
-                case 2 : ds = prodService.getSfProdBomListByIndc(bomchkmap); break; //서울식품
-                case 3 : ds = prodService.getHdfdProdBomListByIndc(bomchkmap); break; //하담푸드
-                default : ds = prodService.getProdBomListByIndc(bomchkmap); break; //기타(대동고려삼 외)
-            }
+            ds = prodService.getProdBomListByIndc(bomchkmap);
             /* EOL Addon By KMJ AT 21.09.10 08:58 */
 
             /* SOL Remarked By KMJ AT 21.09.10 08:58
@@ -523,7 +527,13 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             ordNo = 0L;
         }
 
-        OrdInfo chkvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
+        //OrdInfo chkvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
+        Map<String,Object> tmpMap = new HashMap<String,Object>();
+        tmpMap.put("custNo",custNo);
+        tmpMap.put("ordNo",paraMap.get("ordNo"));
+        OrdInfo chkvo = new OrdInfo();
+        tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
+        chkvo = (OrdInfo) StringUtil.mapToVo(tmpMap,chkvo);
         if(chkvo != null){
             oivo.setOrdNo(chkvo.getOrdNo());
         }else{
@@ -2303,11 +2313,6 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public List<Map<String, Object>> getSfNeedProdBomList(Map<String, Object> paraMap) {
-        return mapper.getSfNeedProdBomList(paraMap);
-    }
-
-    @Override
     public List<Map<String, Object>> getProcCtntList(Map<String, Object> paraMap){
         return mapper.getProcCtntList(paraMap);
     }
@@ -2373,10 +2378,6 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         return mapper.getFaultListCount(paraMap);
     }
 
-    @Override
-    public List<Map<String, Object>> getHdfdNeedProdBomList(Map<String, Object> paraMap){
-        return mapper.getHdfdNeedProdBomList(paraMap);
-    }
 
     @Override
     public List<Map<String, Object>> getIndcSaltList(Map<String, Object> paraMap){

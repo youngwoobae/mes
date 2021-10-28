@@ -775,14 +775,7 @@ public class MakeController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
-        if (Long.parseLong(env.getProperty("cust_no")) == 3){
-            result.setData(moService.getHdfdNeedProdBomList(paraMap));
-        }else if(Long.parseLong(env.getProperty("cust_no")) ==2){
-            result.setData(moService.getSfNeedProdBomList(paraMap));
-        }else{
-            result.setData(moService.getNeedProdBomList(paraMap));
-        }
+        result.setData(moService.getNeedProdBomList(paraMap));
         return result;
     }
 

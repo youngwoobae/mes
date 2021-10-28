@@ -153,8 +153,6 @@ public interface MakeIndcService {
 
     int getFaultListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>>  getHdfdNeedProdBomList(Map<String, Object> paraMap);
-
     List<Map<String, Object>> getIndcSaltList(Map<String, Object> paraMap);
 
     int getIndcSaltListCount(Map<String, Object> paraMap);
@@ -163,7 +161,6 @@ public interface MakeIndcService {
 
     List<Map<String, Object>> getMakeIndcBfPrintList(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getSfNeedProdBomList(Map<String, Object> paraMap);
 
     void saveIndcPrintText(Map<String, Object> paraMap);
 }

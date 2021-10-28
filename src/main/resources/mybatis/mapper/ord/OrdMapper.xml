@@ -1199,8 +1199,8 @@
         order by value
     </select>
 
-    <!-- 주문장정보 리스트-->
     <select id="getOrderBookList" parameterType="map" resultType="camelMap">
+        /*주문정보목록 (ordMapper.getOrderBookList) */
         select a.ord_no
              , to_char(a.dlv_req_dt, 'YYYY-MM-DD HH24:MI') as dlv_req_dt --납품요청일
              , case when row_number() over(order by a.ord_no) <![CDATA[ < ]]> 10
@@ -1232,4 +1232,12 @@
         order by a.dlv_req_dt, a.ord_no
     </select>
 
+    <select id="findByCustNoAndOrdNoAndUsedYn" parameterType="map" resultType="camelMap">
+    /*주문정보 (ordMapper.findByCustNoAndOrdNoAndUsedYn) */
+        select *
+        from ord_info
+        where cust_no = #{custNo}
+        and ord_no = #{ordNo}
+        and used_yn = 'Y'
+    </select>
 </mapper>

@@ -1252,8 +1252,8 @@ public class ImpServiceImpl implements ImpService {
     public void makeUserByExcel(Map<String, Object> paraMap) throws IOException {
         String tag = "ProdService.makeUserByExcel => ";
         StringBuffer buf = new StringBuffer();
-        String fileRoot = paraMap.get("fileRoot").toString();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        String fileRoot = paraMap.get("fileRoot").toString();
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -1322,7 +1322,7 @@ public class ImpServiceImpl implements ImpService {
             uservo.setModId(0L);
             uservo.setUsedYn("Y");
             uservo.setCustInfo(custInfoRepo.findByCustNo(Long.parseLong(env.getProperty("cust_no"))));
-            UserInfo chkvo = userRepo.findByDeptNoAndUserNmAndUsedYn(uservo.getDeptNo(), uservo.getUserNm(), "Y");
+            UserInfo chkvo = userRepo.findByUserNmAndUsedYn(uservo.getUserNm(), "Y");
             if (chkvo != null) {
                 uservo.setUserId(chkvo.getUserId());
                 uservo.setRegDt(chkvo.getRegDt());

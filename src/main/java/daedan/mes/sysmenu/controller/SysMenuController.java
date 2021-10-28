@@ -52,7 +52,7 @@ public class SysMenuController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
-        paraMap.put("authYn",(String) env.getProperty("auth_yn")); //권한연동
+        paraMap.put("authYn",(String) env.getProperty("authYn")); //권한연동
         List<Map<String,Object>> list = sysMenuService.getSysMenuList(paraMap);
         result.setData(list);
         return result;
@@ -63,7 +63,7 @@ public class SysMenuController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
-        paraMap.put("authYn",(String) env.getProperty("auth_yn")); //권한연동
+        paraMap.put("authYn",(String) env.getProperty("authYn")); //권한연동
         result.setData(sysMenuService.getSysMenuList(paraMap));
         result.setTotalCount(sysMenuService.getSysMenuListCount(paraMap));
 

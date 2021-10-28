@@ -32,7 +32,8 @@
     </insert>
   <select id="getSysMenuList" parameterType="map"  resultType="camelMap">
    WITH recursive cte (
-                    par_sys_menu_no
+                    cust_no
+                  , par_sys_menu_no
                   , sys_menu_no
                   , sys_menu_nm
                   , sys_menu_path
@@ -44,7 +45,8 @@
                   , leaf_yn
                   , disp_yn
                   , used_yn
-      ) AS ( SELECT a.par_sys_menu_no
+      ) AS ( SELECT a.cust_no
+                  , a.par_sys_menu_no
                   , a.sys_menu_no
                   , a.sys_menu_nm
                   , a.sys_menu_path
@@ -58,8 +60,10 @@
 				  , a.used_yn
              FROM  sys_menu a
             WHERE a.par_sys_menu_no = 0
+              and a.cust_no = #{custNo}
             UNION ALL
-            SELECT  b.par_sys_menu_no
+            SELECT    b.cust_no
+                    , b.par_sys_menu_no
                     , b.sys_menu_no
                     , b.sys_menu_nm
                     , b.sys_menu_path
@@ -72,10 +76,12 @@
                     , b.disp_yn
 				    , b.used_yn
              FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+             where b.cust_no = #{custNo}
+               and b.used_yn = 'Y'
+               and b.disp_yn = 'Y'
         )
         select * from cte
-        where used_yn = 'Y'
-        and disp_yn = 'Y'
+        where 1 = 1
         <if test='authYn != null and authYn == "Y"'>
           and sys_menu_no in ( select sys_menu_no
                                from auth_sys_menu
@@ -85,6 +91,7 @@
                                                 )
                              )
         </if>
+
         <if test="level != null and level != ''">
             AND level = #{level}
         </if>
@@ -98,7 +105,8 @@
         select count(a.sys_menu_no)
         from (
                  WITH recursive cte (
-                      par_sys_menu_no
+                      cust_no
+                    , par_sys_menu_no
                     , sys_menu_no
                     , sys_menu_nm
                     , sys_menu_path
@@ -109,7 +117,8 @@
                     , path
                     , disp_yn
                     , used_yn
-                 ) AS (SELECT a.par_sys_menu_no
+                 ) AS (SELECT a.cust_no
+                            , a.par_sys_menu_no
                             , a.sys_menu_no
                             , a.sys_menu_nm
                             , a.sys_menu_path
@@ -122,6 +131,7 @@
                             , a.used_yn
                        FROM  sys_menu a
                        WHERE a.par_sys_menu_no = 0
+                        and a.cust_no = #{custNo}
                        UNION ALL
                        SELECT b.par_sys_menu_no
                             , b.sys_menu_no
@@ -135,10 +145,11 @@
                             , b.disp_yn
                             , b.used_yn
                             FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+                            where a.cust_no = #{custNo}
+                            and used_yn = 'Y'
+                            and disp_yn = 'Y'
                 )
                 select * from cte
-                where used_yn = 'Y'
-                and disp_yn = 'Y'
                <if test='authYn != null and authYn == "Y"'>
                    and sys_menu_no in ( select sys_menu_no
                                            from auth_sys_menu

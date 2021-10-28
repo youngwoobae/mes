@@ -69,22 +69,22 @@ public class UserController {
         return result;
     }
     @PostMapping(value="/autoSignin")
-    public Result autoSignin(HttpServletResponse response  , HttpSession session) {
+    public Result autoSignin(HttpServletRequest request, HttpServletResponse response  , HttpSession session) {
+        String tag = "userController.autoSignIn =>";
         String token = "";
         Result result = Result.successInstance();
-        Map<String,Object> paraMap = new HashMap<String,Object>();
 
+        String szUserId = request.getParameter("userId");
+        szUserId = "1";
+        Long userId = Long.parseLong(szUserId);
+        UserInfo uservo = userService.getUserInfoById(userId);
+        log.info(tag + "custNo = " + uservo.getCustInfo().getCustNo());
 
-        paraMap.put("mailAddr",env.getProperty("automail"));
-        paraMap.put("secrtNo",env.getProperty("autoword"));
-        //paraMap.put("mailAddr","aa@aa.com");
-        //paraMap.put("secrtNo","adm");
-        log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
-        UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
-        uservo.setIndsTp(IndsType.valueOf(env.getProperty("industry_type"))); //산업구분(산업구분에따라 표시되는 필드조정됨: 매우중요)
-        log.info("userIndsTp = " + uservo.getIndsTp());
+        Long custNo = uservo.getCustInfo().getCustNo();
+        uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+
         token = jwtService.create("member", uservo, "user");
-        log.info("created user token = " + token);
+        log.info(tag + "created user token = " + token);
 
         // 세션 생성
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
@@ -104,12 +104,14 @@ public class UserController {
         Result result = Result.successInstance();
         log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
 
+        String orgLcnsCd = paraMap.get("lcnsCd").toString();
+        log.info("orgLcnsCd=" + orgLcnsCd);
+        String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
+        log.info("encLcnsCd=" + encLcnsCd);
+
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
         if (uservo != null) {
-            String orgLcnsCd = paraMap.get("lcnsCd").toString();
-            log.info("orgLcnsCd=" + orgLcnsCd);
-            String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
-            log.info("encLcnsCd=" + encLcnsCd);
+
             if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
                 String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
                 Long custNo = Long.parseLong(strCustNo);

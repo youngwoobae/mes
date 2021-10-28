@@ -27,11 +27,12 @@ public class DeptServiceImpl implements  DeptService {
 
     @Override
     public List<Object> deptTree(Map<String, Object> paraMap){
-        //String tag = "mgr.am.aadm.selectPageGradeMappingList==>";
+        String tag = "DetpService.deptTree==>";
         //Map < String, Object > state = new HashMap<String,Object>();
-
+        log.info(tag + "paraMap = " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         elist = mapper.getDeptList(paraMap);
-        List<Object> children = getChildren(0); //eaMenuList(node) 생성
+        List<Object> children = getChildren(custNo,0); //eaMenuList(node) 생성
         List < Object > treeData =  new ArrayList< Object >();
         root.put("id", "0");
         root.put("text", "MES 시스템");
@@ -46,15 +47,15 @@ public class DeptServiceImpl implements  DeptService {
         return treeData;
     }
 
-    private List < Object > getChildren( int idx) {
+    private List < Object > getChildren( Long custNo, int idx) {
         String pid = "";
         String menuNo = "";
         String menuNm = "";
         Map<String,Object> emap = null;
         int nReadDepth = 0;
 
-        log.info(elist+"!@#!#!@");
-
+        Map<String,Object> paraMap = new HashMap<String,Object>();
+        paraMap.put("custNo",custNo);
         List < Object > menuList0 =  new ArrayList < Object > ();
         List < Object > menuList1 =  new ArrayList < Object > ();
         List < Object > menuList2 =  new ArrayList < Object > ();
@@ -62,7 +63,7 @@ public class DeptServiceImpl implements  DeptService {
         List < Object > menuList4 =  new ArrayList < Object > ();
         List < Object > menuList5 =  new ArrayList < Object > ();
         List < Object > menuList6 =  new ArrayList < Object > ();
-        int nSaveDepth = mapper.getDeptListDepth(null) + 1; //메뉴최대깊이 : 임시로 상수처리하고 있음.
+        int nSaveDepth = mapper.getDeptListDepth(paraMap) + 1; //메뉴최대깊이 : 임시로 상수처리하고 있음.
         int nJdx = 0;
         Map < String, Object > state = new HashMap<String,Object>();
         while (idx < elist.size() ) {
@@ -235,7 +236,7 @@ public class DeptServiceImpl implements  DeptService {
         menuNo = String.valueOf(emap.get("deptNo"));
         menuNm = String.valueOf(emap.get("deptNm"));
         pid = String.valueOf(emap.get("parDeptNo"));
-        nReadDepth = mapper.getDeptListDepth(null) - 1;
+        nReadDepth = mapper.getDeptListDepth(paraMap) - 1;
 
         LinkedHashMap <String,Object> node  = new LinkedHashMap < String, Object > ();
         List < Object > etree = null;

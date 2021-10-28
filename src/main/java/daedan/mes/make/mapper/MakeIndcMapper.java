@@ -176,8 +176,6 @@ public interface MakeIndcMapper {
 
     int getFaultListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getHdfdNeedProdBomList(Map<String, Object> paraMap);
-
     Float getIndcRsltHstrSumQty(Map<String, Object> hmap);
 
     List<Map<String, Object>> getIndcSaltList(Map<String, Object> paraMap);
@@ -195,8 +193,6 @@ public interface MakeIndcMapper {
     void dropIwhList(Long pursNo);
 
     List<Map<String, Object>> getMakeIndcBfPrintList(Map<String, Object> el);
-
-    List<Map<String, Object>> getSfNeedProdBomList(Map<String, Object> paraMap);
 
     Map<String, Object> findByCustNoAndOrdNo(Map<String,Object> paraMap);
 }

@@ -95,4 +95,6 @@ public interface OrdMapper {
     List<Map<String, Object>> geOwhDateList(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getOrderBookList(Map<String, Object> paraMap);
+
+    Map<String, Object> findByCustNoAndOrdNoAndUsedYn(Map<String, Object> paraMap);
 }
