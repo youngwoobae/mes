@@ -212,5 +212,20 @@ public class MoniterController {
         return result;
     }
 
+    /**
+     * 원료입고이력 목록
+     *
+     * @param paraMap
+     * @return Result
+     */
+    @PostMapping(value="/getMatrIwhHist")
+    public Result getMatrIwhHist(@RequestBody Map<String, Object> paraMap){
+        Result result = Result.successInstance();
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(moniterService.getMatrIwhHist(paraMap));
+        result.setTotalCount(moniterService.getMatrIwhHistCount(paraMap));
+
+        return result;
+    }
 
 }

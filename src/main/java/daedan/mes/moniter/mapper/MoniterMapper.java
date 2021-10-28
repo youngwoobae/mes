@@ -46,4 +46,7 @@ public interface MoniterMapper {
 
     List<Map<String, Object>> getMatrPursHstList(Map<String, Object> paraMap);
     int getMatrPursHstListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getMatrIwhHist(Map<String, Object> paraMap);
+    int getMatrIwhHistCount(Map<String, Object> paraMap);
 }

@@ -45,6 +45,7 @@ public class UserInfo {
     @Column(name="prodInspYn",nullable = false, length = 1, columnDefinition = "char default 'N'")
     private String prodInspYn;
 
+
     /*입사일자*/
     @Column(name="entrDt")
     @Temporal(TemporalType.TIMESTAMP)

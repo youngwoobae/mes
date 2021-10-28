@@ -129,6 +129,22 @@ public class MoniterServiceImpl implements MoniterService{
     }
 
     @Override
+    public List<Map<String, Object>> getMatrIwhHist(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrIwhHist =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getMatrIwhHist(paraMap);
+    }
+
+
+
+    @Override
+    public int getMatrIwhHistCount(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrIwhHistCount =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getMatrIwhHistCount(paraMap);
+    }
+
+    @Override
     public List<Map<String, Object>> getMatrIwhHstList(Map<String, Object> paraMap) {
         String tag = "moniterService.getMatrIwhHstList =>";
         log.info(tag + " paraMap = " + paraMap.toString());

@@ -46,6 +46,14 @@ public class MatrIwh {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateManufacture;
 
+    /*검수자id*/
+    @Column(name="inspEr", columnDefinition = "numeric default 0")
+    private Long inspEr;
+
+    /*파레트코드*/
+    @Column(name="paltCd", columnDefinition = "numeric default 0")
+    private Long paltCd;
+
     /*입고일자*/
     @Column(name="iwh_dt",nullable = false)
     @Temporal(TemporalType.TIMESTAMP)

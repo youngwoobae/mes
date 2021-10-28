@@ -36,6 +36,14 @@ public class ProdOwh {
     @Column(name="wh_no",nullable = false, columnDefinition = "numeric")
     private Long whNo;
 
+    /*검수자id*/
+    @Column(name="inspEr", columnDefinition = "numeric default 0")
+    private Long inspEr;
+
+    /*파레트코드*/
+    @Column(name="paltCd", columnDefinition = "numeric default 0")
+    private Long paltCd;
+
     /*출고일자*/
     @Column(name="owh_dt")
     @Temporal(TemporalType.TIMESTAMP)
