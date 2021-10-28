@@ -3805,8 +3805,6 @@
              , b.matr_nm -- 자재명
              , b.item_cd  -- 자재코드
              , b.valid_term  --유효기간
-             , b.bar_code_img  -- 바코드이미지
-             , b.qr_code_img  --QR코드 이미지
              , c.code_nm as matr_tp_nm --자재유형명
              , coalesce (a.stk_qty,0) as stk_qty  -- 재고량
              , coalesce(d.stk_qty,0) as pqty --전일재고

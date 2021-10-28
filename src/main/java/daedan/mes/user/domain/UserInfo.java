@@ -36,6 +36,15 @@ public class UserInfo {
     @Column(name="userPosn", columnDefinition = "numeric default 0")
     private Long userPosn;
 
+    /*원료검수가능여부*/
+    @Column(name="matrInspYn", nullable = false, length = 1, columnDefinition = "char default 'N'")
+    private String matrInspYn;
+
+
+    /*제품검수가능여부*/
+    @Column(name="prodInspYn",nullable = false, length = 1, columnDefinition = "char default 'N'")
+    private String prodInspYn;
+
     /*입사일자*/
     @Column(name="entrDt")
     @Temporal(TemporalType.TIMESTAMP)
