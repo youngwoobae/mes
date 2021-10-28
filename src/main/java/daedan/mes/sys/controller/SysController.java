@@ -184,4 +184,17 @@ public class SysController {
         result.setData(sysService.getResultProdOwhList(paraMap));
         return result;
     }
+
+    /*파렛트 리스트*/
+    @PostMapping(value = "/palets")
+    public Result palets(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(sysService.getPalets(paraMap));
+        return result;
+    }
+
+
+
 }

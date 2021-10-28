@@ -307,4 +307,9 @@
                               join prod_info d on b.prod_no = d.prod_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
         where a.indc_rslt_no in <foreach collection="indcRsltNos" item="indcRsltNos" index="index" open="(" close=")" separator=",">   #{indcRsltNos}   </foreach> and a.cust_no = #{custNo}
     </select>
+
+    <select id="getPalets" parameterType="map" resultType="camelMap">
+        select code_no as value , code_nm as text  from code_info ci where par_code_no = 2900
+    </select>
+
 </mapper>

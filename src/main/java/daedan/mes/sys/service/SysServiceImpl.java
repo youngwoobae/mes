@@ -317,5 +317,12 @@ public class SysServiceImpl implements daedan.mes.sys.service.SysService {
         return rList;
     }
 
+    @Override
+    public List<Map<String, Object>> getPalets(Map<String, Object> paraMap) {
+        String tag = "sysService.getPalets => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getPalets(paraMap);
+    }
+
 
 }

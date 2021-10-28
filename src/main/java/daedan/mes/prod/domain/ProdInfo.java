@@ -146,7 +146,7 @@ public class ProdInfo {
     private ProdAttr prodAttr;
 
     //공정내용
-    @Column(name="prodcont", length = 4000)
+    @Column(name="prod_cont", length = 4000)
     private String prodCont;
 
     @Column(name="regId", columnDefinition = "numeric")

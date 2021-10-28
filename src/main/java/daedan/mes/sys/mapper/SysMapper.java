@@ -38,4 +38,6 @@ public interface SysMapper {
     List<Map<String, Object>> getResultProdIwhList(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getResultIndcRslt(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getPalets(Map<String, Object> paraMap);
 }

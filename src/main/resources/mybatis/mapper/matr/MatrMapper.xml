@@ -207,7 +207,7 @@
                 )
             </if>
         </if>
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
