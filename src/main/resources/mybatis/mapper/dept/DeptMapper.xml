@@ -55,7 +55,7 @@
                    and   a.cust_no =#{custNo}
                    UNION ALL
                    SELECT
-                       b.cust_no
+                          b.cust_no
                         , b.par_dept_no
                         , b.dept_no
                         , b.dept_nm
@@ -66,7 +66,6 @@
                    FROM dept_info b JOIN cte c ON b.par_dept_no = c.dept_no
                   where b.cust_no =#{custNo}
                     and b.used_yn = 'Y'
-                    and b.disp_yn = 'Y'
         )
         SELECT * FROM cte
           order by path
@@ -76,38 +75,39 @@
         select max(a.level) as menu_depth
         from(
             WITH recursive cte (
-                              par_dept_no
+                              cust_no
+                            , par_dept_no
                             , dept_no
                             , dept_nm
                             , level
                             , prt_seq
                             , path
                             , used_yn
-                            , cust_no
-                ) AS ( SELECT a.par_dept_no
+                ) AS ( SELECT a.cust_no
+                            , a.par_dept_no
                             , a.dept_no
                             , a.dept_nm
                             , 1 AS level
                             , a.prt_seq
                             , lpad(a.dept_no::text,5,'0')
                             , a.used_yn
-                            , a.cust_no
                        FROM  dept_info a
                        WHERE a.par_dept_no = 0
+                         and a.cust_no =#{custNo}
                        UNION ALL
-                       SELECT    b.par_dept_no
+                       SELECT b.cust_no
+                            , b.par_dept_no
                             , b.dept_no
                             , b.dept_nm
                             , c.level+1 AS level
                             , b.prt_seq
                             , path ||lpad(b.dept_no::text,5,'0')
                             , b.used_yn
-                            , b.cust_no
                        FROM dept_info b JOIN cte c ON b.par_dept_no = c.dept_no
+                       where b.cust_no =#{custNo}
+                         and b.used_yn = 'Y'
             )
             SELECT * FROM cte
-            WHERE 1 = 1
-             and cte.cust_no = #{custNo}
             order by path
         ) a
         --부서
@@ -115,7 +115,7 @@
     </select>
 
     <select id="getComboDeptList" parameterType="map"  resultType="camelMap">
-        --부서.
+        /* 콤보조직트리 (deptMapper.getComboDeptList) */
         WITH recursive cte (
                           par_dept_no
                         , dept_no
@@ -123,18 +123,15 @@
                         , level
                         , prt_seq
                         , path
-                        , used_yn
-                        , cust_no
             ) AS ( SELECT a.par_dept_no
                         , a.dept_no
                         , a.dept_nm
                         , 1 AS level
                         , a.prt_seq
                         , lpad(a.dept_no::text,5,'0')
-                        , a.used_yn
-                        , a.cust_no
                    FROM  dept_info a
                    WHERE a.par_dept_no = 0
+                    and a.cust_no = #{custNo}
                    UNION ALL
                    SELECT b.par_dept_no
                         , b.dept_no
@@ -142,15 +139,17 @@
                         , c.level+1 AS level
                         , b.prt_seq
                         , path ||lpad(b.dept_no::text,5,'0')
-                        , b.used_yn
-                        , b.cust_no
                    FROM dept_info b JOIN cte c ON b.par_dept_no = c.dept_no
+                 where b.cust_no = #{custNo}
+                   and b.used_yn = 'Y'
         )
         SELECT dept_no as value
              , dept_nm as text
         FROM cte
         WHERE 1 = 1
-         and cte.cust_no = #{custNo}
+        <if test="path != null and path != ''">
+            and path = #{path}
+        </if>
         order by path
     </select>
 

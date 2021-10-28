@@ -192,8 +192,15 @@ public class UserServiceImpl implements UserService {
 		}
 
 		uvo.setUserNm(paraMap.get("userNm").toString());
+		uvo.setMatrInspYn(paraMap.get("matrInspYn").toString()); //원료입고 검수자 여부
+		uvo.setProdInspYn(paraMap.get("prodInspYn").toString()); //제품춢고 검수자 여부
+		try {
+			uvo.setUserPosn(Long.parseLong(paraMap.get("userPosn").toString()));
+		}
+		catch (NullPointerException ne) {
 
-		uvo.setUserPosn(Long.parseLong(paraMap.get("userPosn").toString()));
+		}
+		uvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
 		uvo.setUsedYn("Y");
 		uvo.setOcpnKind(Long.parseLong(paraMap.get("ocpnKind").toString())); //직종구분 (사무직,생산직)
 
@@ -708,6 +715,16 @@ public class UserServiceImpl implements UserService {
 	public UserInfo getUserInfoById(Long userId) {
 		return userRepo.findByUserId(userId );
 
+	}
+
+	@Override
+	public CustInfo getCustInfoByLcns(HashMap<String, Object> paraMap) {
+		String tag = "userService.getCustInfoByLcns";
+		CustInfo vo = new CustInfo();
+		log.info(tag + "paraMap = " + paraMap.toString());
+		CustInfo chkvo =  custInfoRepo.findByLcnsCd(paraMap.get("lcnsCd").toString());
+		if  (chkvo != null) vo = chkvo;
+		return vo;
 	}
 }
 

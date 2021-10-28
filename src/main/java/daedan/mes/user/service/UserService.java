@@ -1,6 +1,7 @@
 package daedan.mes.user.service;
 
 
+import daedan.mes.user.domain.CustInfo;
 import daedan.mes.user.domain.UserInfo;
 
 import java.util.HashMap;
@@ -73,4 +74,5 @@ public interface UserService {
 
     UserInfo getUserInfByToken(HashMap<String, Object> paraMap);
     UserInfo getUserInfoById(Long userId);
+    CustInfo getCustInfoByLcns(HashMap<String, Object> paraMap);
 }
