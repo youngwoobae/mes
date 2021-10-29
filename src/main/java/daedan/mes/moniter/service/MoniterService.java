@@ -28,9 +28,6 @@ public interface MoniterService {
     List<Map<String,Object>> getOrdHstList(Map<String, Object> paraMap);
     int getOrdHstListCount(Map<String, Object> paraMap);
 
-    List<Map<String,Object>> getMatrIwhHstList(Map<String, Object> paraMap);
-    int getMatrIwhHstListCount(Map<String, Object> paraMap);
-
     List<Map<String,Object>> getMatrOwhHstList(Map<String, Object> paraMap);
     int getMatrOwhHstListCount(Map<String, Object> paraMap);
 
@@ -43,7 +40,11 @@ public interface MoniterService {
     List<Map<String,Object>> getMatrPursHstList(Map<String, Object> paraMap);
     int getMatrPursHstListCount(Map<String, Object> paraMap);
 
-    List<Map<String,Object>> getMatrIwhHist(Map<String, Object> paraMap);
+    List<Map<String,Object>> getMatrIwhHstr(Map<String, Object> paraMap);
 
-    int getMatrIwhHistCount(Map<String, Object> paraMap);
+    int getMatrIwhHstrCount(Map<String, Object> paraMap);
+
+    List<Map<String,Object>> getMatrIwhHstList(Map<String, Object> paraMap);
+
+    int getMatrIwhHstListCount(Map<String, Object> paraMap);
 }

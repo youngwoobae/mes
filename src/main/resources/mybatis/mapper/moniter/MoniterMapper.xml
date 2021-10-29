@@ -577,7 +577,7 @@
              ) a
     </select>
 
-    <select id="getMatrIwhStatList" parameterType="map" resultType="camelMap">
+    <select id="getMatrIwhHstr" parameterType="map" resultType="camelMap">
         /*입고현황 (moniter.getMatrIwhStatList) */
         select a.matr_no --원료번호
              , a.matr_nm --원료명
@@ -598,7 +598,7 @@
         </if>
     </select>
 
-    <select id="getMatrIwhStatListCount" parameterType="map" resultType="int">
+    <select id="getMatrIwhHstrCount" parameterType="map" resultType="int">
         select count(a.matr_no)
         from (
             select a.matr_no --원료번호

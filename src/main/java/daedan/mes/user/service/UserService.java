@@ -74,5 +74,5 @@ public interface UserService {
 
     UserInfo getUserInfByToken(HashMap<String, Object> paraMap);
     UserInfo getUserInfoById(Long userId);
-    CustInfo getCustInfoByLcns(HashMap<String, Object> paraMap);
+    CustInfo getCustInfoByCustNo(HashMap<String, Object> paraMap);
 }

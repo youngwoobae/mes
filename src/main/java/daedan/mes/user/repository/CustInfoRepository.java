@@ -6,5 +6,4 @@ import org.springframework.stereotype.Component;
 
 public interface CustInfoRepository  extends JpaRepository<CustInfo, Long> {
     CustInfo findByCustNo(Long custNo);
-    CustInfo findByLcnsCd(String lcnsCd);
 }

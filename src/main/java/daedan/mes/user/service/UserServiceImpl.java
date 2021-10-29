@@ -718,11 +718,11 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public CustInfo getCustInfoByLcns(HashMap<String, Object> paraMap) {
-		String tag = "userService.getCustInfoByLcns";
+	public CustInfo getCustInfoByCustNo(HashMap<String, Object> paraMap) {
+		String tag = "userService.getCustInfoByCustNo";
 		CustInfo vo = new CustInfo();
 		log.info(tag + "paraMap = " + paraMap.toString());
-		CustInfo chkvo =  custInfoRepo.findByLcnsCd(paraMap.get("lcnsCd").toString());
+		CustInfo chkvo =  custInfoRepo.findByCustNo(Long.parseLong(paraMap.get("custNo").toString()));
 		if  (chkvo != null) vo = chkvo;
 		return vo;
 	}

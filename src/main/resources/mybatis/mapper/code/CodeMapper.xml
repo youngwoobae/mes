@@ -201,6 +201,7 @@
 				, prt_seq
 		from dept_info
 		where used_yn = 'Y'
+		and cust_no = #{custNo}
 		order by prt_seq,code_seq
 	</select>
 

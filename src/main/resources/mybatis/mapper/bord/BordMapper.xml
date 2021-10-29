@@ -9,13 +9,13 @@
 
     <select id="getBordList" parameterType="map"  resultType="camelMap">
     /*게시관리 > 게시목록 (boardMapper.getBoardList) */
-        select  a.bord_no
-              , a.file_no
-              , a.bord_subj
-              , c.read_cnt
-              , b.user_nm
-              , d.org_file_nm
-              , to_char(a.reg_dt, 'yyyy-mm-dd hh24:mi') as reg_dt
+        select  a.bord_no --게시번호
+              , a.file_no --첨부번호
+              , a.bord_subj --게시제목
+              , c.read_cnt  --기독카운터
+              , b.user_nm --등록자
+              , d.org_file_nm --원본파링명
+              , to_char(a.reg_dt, 'yyyy-mm-dd hh24:mi') as reg_dt --등록일
         from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id and b.cust_no = #{custNo}
                     left join file_info d on a.file_no = d.file_no  and d.cust_no = #{custNo}
                     left join ( select bord_no, count(a.user_id) as read_cnt

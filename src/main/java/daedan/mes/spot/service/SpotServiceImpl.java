@@ -80,9 +80,7 @@ public class SpotServiceImpl implements SpotService {
         log.info(tag + "params = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         SpotInfo spotIn = new SpotInfo();
-
-        spotIn.setCustNo(Long.parseLong(env.getProperty("cust_no")));
-
+        spotIn.setCustNo(custNo);
         try {
             spotIn.setSpotNo(Long.parseLong(paraMap.get("spotNo").toString()));
         }

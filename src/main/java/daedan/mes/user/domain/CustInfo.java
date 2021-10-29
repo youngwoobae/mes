@@ -37,10 +37,6 @@ public class CustInfo {
     @Column(name="lcnsCd", length = 250)
     private String lcnsCd;
 
-    /*테블릿용메일주소*/
-    @Column(name="autoMailAddr", length = 50)
-    private String autoMailAddr;
-
     /*BOM관리여부*/
     @Column(name = "bomYn", columnDefinition = "char(1) default 'N'")
     private String bomYn;

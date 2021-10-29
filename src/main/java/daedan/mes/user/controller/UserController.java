@@ -137,9 +137,9 @@ public class UserController {
         result.setData(StringUtil.voToMap(uservo));
         return result;
     }
-    @PostMapping(value="/tabletSignin")
+    @PostMapping(value="/tabletSignIn")
     public Result tabletSignin(@RequestBody HashMap<String, Object> paraMap, HttpServletResponse response ,HttpSession session) {
-        String tag = "UserController.tabletSignin => ";
+        String tag = "UserController.tabletSignIn => ";
         String token = "";
         Result result = Result.successInstance();
         String secrtNo = "adm";
@@ -147,31 +147,33 @@ public class UserController {
 
         String orgLcnsCd = paraMap.get("lcnsCd").toString();
         log.info("orgLcnsCd=" + orgLcnsCd);
-        String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
-        log.info("encLcnsCd=" + encLcnsCd);
 
-        paraMap.put("encLcnsCd",encLcnsCd);
-        CustInfo custInfo = userService.getCustInfoByLcns(paraMap);
-        String autoMailAddr  =custInfo.getAutoMailAddr();
-        String autoPswd = "adm";
-        UserInfo uservo = userService.signin(autoMailAddr, autoPswd);
-        if (uservo != null) {
-            if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
-                uservo.setCustInfo(custInfo);
-                log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+        String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt()); //단방향 암호화
+        String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
+        paraMap.put("custNo",Long.parseLong(strCustNo));
+        CustInfo custInfo = userService.getCustInfoByCustNo(paraMap);
+        if (custInfo != null) {
+            String mailAddr = custInfo.getAutoSignId();
+            String autoPswd = "adm";
+            UserInfo uservo = userService.signin(mailAddr, autoPswd);
+
+            if (uservo != null) {
+                if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
+                    uservo.setCustInfo(custInfo);
+                    log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+                }
             }
+            uservo.setToken(null);
+            token = jwtService.create("member", uservo, "user");
+            //log.info("created user token = " + token);
+            response.setHeader("authorization", token);
+
+            // 세션 생성
+            session.setAttribute("userInfo", uservo); //AddOn By KMJ At 21.10.21
+            log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
+            //sysService.invokeChatServer();
+            result.setData(StringUtil.voToMap(uservo));
         }
-        uservo.setToken(null);
-
-        token = jwtService.create("member", uservo, "user");
-        //log.info("created user token = " + token);
-        response.setHeader("authorization", token);
-
-        // 세션 생성
-        session.setAttribute("userInfo",uservo); //AddOn By KMJ At 21.10.21
-        log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
-        //sysService.invokeChatServer();
-        result.setData(StringUtil.voToMap(uservo));
         return result;
     }
 
