@@ -2877,6 +2877,19 @@ public class IoServiceImpl implements IoService {
                 movo.setOwhUnit(Long.parseLong(env.getProperty("code.base.sale_unit_Kg")));
             }
 
+
+            try{
+                movo.setInspEr(Long.parseLong(paraMap.get("insp").toString()));
+            }catch(NullPointerException ne){
+                movo.setInspEr(0L);
+            }
+
+            try{
+                movo.setPaltCd(Long.parseLong(paraMap.get("palt").toString()));
+            }catch(NullPointerException ne){
+                movo.setPaltCd(0L);
+            }
+
             movo.setOwhReqDt(DateUtils.getCurrentDateTime());
             movo.setOwhReqQty(owhQty);
             try{
@@ -2971,6 +2984,19 @@ public class IoServiceImpl implements IoService {
             }catch(NullPointerException ne){
                 pivo.setIndcRsltNo(0L);
             }
+
+            try{
+                pivo.setInspEr(Long.parseLong(paraMap.get("insp").toString()));
+            }catch(NullPointerException ne){
+                pivo.setInspEr(0L);
+            }
+
+            try{
+                pivo.setPaltCd(Long.parseLong(paraMap.get("palt").toString()));
+            }catch(NullPointerException ne){
+                pivo.setPaltCd(0L);
+            }
+
             pivo.setCustNo(custNo);
             prodIwhRepo.save(pivo);
 
@@ -3005,6 +3031,9 @@ public class IoServiceImpl implements IoService {
 
                 psvo.setWhNo(whNo);
             }
+
+
+
             psvo.setCustNo(custNo);
             prodStkRepo.save(psvo);
         }
@@ -3077,6 +3106,19 @@ public class IoServiceImpl implements IoService {
             }catch(NullPointerException ne){
                 povo.setOrdNo(0L);
             }
+
+            try{
+                povo.setInspEr(Long.parseLong(paraMap.get("insp").toString()));
+            }catch(NullPointerException ne){
+                povo.setInspEr(0L);
+            }
+
+            try{
+                povo.setPaltCd(Long.parseLong(paraMap.get("palt").toString()));
+            }catch(NullPointerException ne){
+                povo.setPaltCd(0L);
+            }
+
 
             povo.setUsedYn("Y");
             povo.setModDt(DateUtils.getCurrentDateTime());

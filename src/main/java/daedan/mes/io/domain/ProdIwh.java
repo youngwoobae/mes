@@ -66,4 +66,12 @@ public class ProdIwh {
     @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 
+    /*검수자id*/
+    @Column(name="inspEr", columnDefinition = "numeric default 0")
+    private Long inspEr;
+
+    /*파레트코드*/
+    @Column(name="paltCd", columnDefinition = "numeric default 0")
+    private Long paltCd;
+
 }
