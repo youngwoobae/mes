@@ -15,11 +15,15 @@
               , c.read_cnt  --기독카운터
               , b.user_nm --등록자
               , d.org_file_nm --원본파링명
-              , to_char(a.reg_dt, 'yyyy-mm-dd hh24:mi') as reg_dt --등록일
+              , to_char(a.reg_dt, 'yy-mm-dd hh24:mi') as reg_dt --등록일
+              , coalesce (c.read_rt,0) as read_rt --기독율
         from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id and b.cust_no = #{custNo}
                     left join file_info d on a.file_no = d.file_no  and d.cust_no = #{custNo}
-                    left join ( select bord_no, count(a.user_id) as read_cnt
-                                from bord_read a
+                    left join ( select bord_no
+                                     , count(a.user_id) as read_cnt
+                                     , case when count(b.user_id) = 0 then 0 else count(a.user_id) / count(b.user_id) end as read_rt
+                                from bord_read a join user_info b on a.user_id = b.user_id
+                                                                 and b.cust_info = #{custNo} and b.used_yn = 'Y'
                                 where a.cust_no = #{custNo}
                                group by bord_no )  c on a.bord_no = c.bord_no
         where a.used_yn = 'Y'
@@ -44,18 +48,32 @@
     <select id="getBordListCount" parameterType="map"  resultType="int">
         select count(a.bord_no)
         from
-        ( select a.bord_no
-          from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id
-                      left join ( select bord_no, count(a.user_id) as read_cnt from bord_read a group by bord_no )  c on a.bord_no = c.bord_no
-          where a.used_yn = 'Y'
-          and a.bord_tp = #{bordTp}
+        (
+            select  a.bord_no --게시번호
+            from bord_info a join user_info b on coalesce (a.mod_id, a.reg_id) = b.user_id and b.cust_no = #{custNo}
+                        left join file_info d on a.file_no = d.file_no  and d.cust_no = #{custNo}
+                        left join ( select bord_no
+                                         , count(a.user_id) as read_cnt
+                                         , case when count(b.user_id) = 0 then 0 else count(a.user_id) / count(b.user_id) end as read_rt
+                                    from bord_read a join user_info b on a.user_id = b.user_id
+                                                                     and b.cust_info = #{custNo} and b.used_yn = 'Y'
+                                    where a.cust_no = #{custNo}
+                                    group by bord_no
+                        )  c on a.bord_no = c.bord_no
+        where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
+        and a.bord_tp = #{bordTp}
         <if test="dateFr != null and dateFr != ''">
             and TO_CHAR(NOW(),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
         </if>
-
         <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'bordNm'">and upper(replace(a.bord_subj,' ','')) like '%' ||
-                upper(replace(#{findSz}, ' ','')) || '%'
+            <if test="findTp != null and findTp == 'bordNm'">
+                and upper(replace(a.bord_subj,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
         ) a
