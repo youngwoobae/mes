@@ -2764,13 +2764,13 @@ public class IoServiceImpl implements IoService {
 
 
             try{
-                mivo.setInspEr(Long.parseLong(el.get("insp").toString()));
+                mivo.setInspEr(Long.parseLong(paraMap.get("insp").toString()));
             }catch(NullPointerException ne){
                 mivo.setInspEr(0L);
             }
 
             try{
-                mivo.setPaltCd(Long.parseLong(el.get("palt").toString()));
+                mivo.setPaltCd(Long.parseLong(paraMap.get("palt").toString()));
             }catch(NullPointerException ne){
                 mivo.setPaltCd(0L);
             }
