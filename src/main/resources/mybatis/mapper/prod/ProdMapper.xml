@@ -1779,4 +1779,12 @@
         where a.used_yn = 'Y'
           and a.cust_no = #{custNo}
     </select>
+
+    <select id="getProdInspUser" parameterType="map" resultType="camelMap">
+        select user_id as value,
+               user_nm as text
+        from user_info ui
+        where prod_insp_yn = 'Y'
+        and cust_info = #{custNo}
+    </select>
 </mapper>

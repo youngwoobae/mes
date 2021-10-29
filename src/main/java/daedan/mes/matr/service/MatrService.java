@@ -112,4 +112,6 @@ public interface MatrService {
 
     @Transactional
     void svMatrSaveExcelUpLoad(Map<String, Object> paraMap)throws Exception;
+
+    List<Map<String, Object>>  getMatrInspUser(Map<String, Object> paraMap);
 }

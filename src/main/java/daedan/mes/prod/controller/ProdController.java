@@ -635,4 +635,14 @@ public class ProdController {
 
         return result;
     }
+
+    @PostMapping(value="/getProdInspUser")
+    public Result getProdInspUser(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(prodService.getProdInspUser(paraMap));
+
+        return result;
+    }
 }

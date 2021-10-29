@@ -2660,6 +2660,15 @@ public class ProdServiceImpl implements  ProdService {
 //            }
 //        }
 //    }
+
+
+    @Override
+    public List<Map<String ,Object>> getProdInspUser(Map<String, Object> paraMap){
+        String tag = "vsvc.ProdService.getProdInspUser => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getProdInspUser(paraMap);
+    }
+
 }
 
 

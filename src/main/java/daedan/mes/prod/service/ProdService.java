@@ -132,5 +132,7 @@ public interface ProdService {
 
     int getHdfdProdBomListCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getProdInspUser(Map<String, Object> paraMap);
+
 //    void updateBomPursYn(Map<String, Object> paraMap);
 }

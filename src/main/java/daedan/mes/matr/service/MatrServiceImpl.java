@@ -1807,4 +1807,10 @@ public class MatrServiceImpl implements MatrService {
             }
         }
     }
+
+
+    @Override
+    public List<Map<String ,Object>> getMatrInspUser(Map<String, Object> paraMap){
+        return matrMapper.getMatrInspUser(paraMap);
+    }
 }

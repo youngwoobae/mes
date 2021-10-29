@@ -638,4 +638,15 @@ public class MatrController {
 
         return result;
     }
+
+    @PostMapping(value = "/getMatrInspUser")
+    public Result getMatrInspUser(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(matrService.getMatrInspUser(paraMap));
+        return result;
+    }
+
+
 }

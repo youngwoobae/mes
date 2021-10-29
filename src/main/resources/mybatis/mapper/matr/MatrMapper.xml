@@ -1188,4 +1188,17 @@
         </if>
     </select>
 
+
+    <select id="getMatrInspUser" parameterType="map" resultType="camelMap">
+        select user_id as value,
+               user_nm as text
+        from user_info ui
+        where matr_insp_yn = 'Y'
+        and cust_info = #{custNo}
+    </select>
+
+
+
+
+
 </mapper>

@@ -96,4 +96,6 @@ public interface ProdMapper {
     List<Map<String, Object>> getSfProdBomListByIndc(Map<String, Object> paraMap);
 
     int getHdfdProdBomListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getProdInspUser(Map<String, Object> paraMap);
 }

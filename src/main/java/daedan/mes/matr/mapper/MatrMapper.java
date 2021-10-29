@@ -90,4 +90,6 @@ public interface MatrMapper {
     List<Map<String ,Object>> getSafeStkMatrList(Map<String, Object> paraMap);
 
     int getSafeStkMatrListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getMatrInspUser(Map<String, Object> paraMap);
 }

@@ -2668,6 +2668,7 @@ public class IoServiceImpl implements IoService {
                 movo.setRegIp(paraMap.get("ipaddr").toString());
             }
 
+
             movo.setOwhDt(DateUtils.getCurrentDate());
 
             try{
@@ -2760,6 +2761,20 @@ public class IoServiceImpl implements IoService {
             mivo.setRegDt(DateUtils.getCurrentDateTime());
             mivo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             mivo.setRegIp(paraMap.get("ipaddr").toString());
+
+
+            try{
+                mivo.setInspEr(Long.parseLong(el.get("insp").toString()));
+            }catch(NullPointerException ne){
+                mivo.setInspEr(0L);
+            }
+
+            try{
+                mivo.setPaltCd(Long.parseLong(el.get("palt").toString()));
+            }catch(NullPointerException ne){
+                mivo.setPaltCd(0L);
+            }
+
             try{
                 mivo.setRetnQty(Float.parseFloat(paraMap.get("retnQty").toString()));
             }catch (NullPointerException en) {
