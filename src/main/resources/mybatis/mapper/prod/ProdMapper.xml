@@ -402,25 +402,26 @@
              , a.prod_tp --판매유형(OEM,ODM)
              , a.sz --규격
              , a.brnch_no --제조공정
-             , coalesce (a.mess,0) as mess --단위중량
+             , coalesce (a.mess,0) as mess --단위질량
              , coalesce (a.spga,1) as spga --비중
              , coalesce (a.vol,0) as vol --단위용량
              , a.prod_shape --제품형태코드
              , a.bom_lvl --bom 단수
-             , k.code_nm as prod_shape_nm --제품형태명
              , a.save_tmpr --보관온도
              , a.sale_unit--판매단위코드
-             , a.qty_per_pkg--포장단수량(용량)
+             , a.qty_per_pkg--포장단수량(입수)
              , a.file_no --사진번호
              , a.erp_prod_nm -- ERP 제품명
-             , b.code_nm as sale_unit_nm --포장단위명
-             , d.code_nm as save_tmpr_nm --보관온도명
+             , a.mngr_unit --관리단위(질량,중량)
              , c.save_file_nm --저장파일명
              , c.org_file_nm --원본파일명
-             , g.code_nm as heat_tp_nm --살균기준명
---              , e.wh_no --창고번호
---              , f.wh_nm --창고명
-             , ci.code_nm as mngr_unit_nm
+             , h.matr_bom
+             , fn_get_code_name('nm',a.prod_tp)     as prod_tp_nm --판매구분명
+             , fn_get_code_name('nm',a.prod_shape)  as prod_shape_nm --제품형태명
+             , fn_get_code_name('nm',a.sale_unit)   as sale_unit_nm --판매단위명
+             , fn_get_code_name('nm',a.save_tmpr)   as save_tmpr_nm --보관온도명
+             , fn_get_code_name('nm',a.heat_tp)     as heat_tp_nm --살균기준명
+             , fn_get_code_name('nm',a.mngr_unit)   as mngr_unit_nm --관리단위준명
              , coalesce( (select  sum(c.ord_qty)
                           from ord_info b join ord_prod c on b.ord_no = c.ord_no
                                                          and c.used_yn  = 'Y'
@@ -451,15 +452,10 @@
                          and to_char(b.ord_dt,'yyyymm') = to_char(now(),'yyyymm')
                          and to_char(b.dlv_dt,'yyyymm') = to_char(now(),'yyyymm')
                      ),0) as dlv_qty
-            , h.matr_bom
-        from prod_info a join code_info b on a.sale_unit = b.code_no
-                    left join code_info d on a.save_tmpr = d.code_no
-                    left join file_info c on a.file_no = c.file_no
+
+        from prod_info a left join file_info c on a.file_no = c.file_no
                                           and c.used_yn = 'Y'
                                           and c.cust_no = #{custNo}
-                    left join code_info k on a.prod_shape = k.code_no
-                    left join code_info g on a.heat_tp = g.code_no
-                    left join code_info ci on ci.code_no = a.mngr_unit
                     left join (select h.prod_no, count(h.matr_no) as matr_bom
                                from prod_bom h
                                where h.used_yn = 'Y'
@@ -514,58 +510,64 @@
 
     <select id="getProdListCount" parameterType="map"  resultType="int">
         select count(a.prod_no) --자재번호
-                from (select a.prod_no --품번
-                        from prod_info a join code_info b on a.sale_unit = b.code_no
-                                     left join code_info d on a.save_tmpr = d.code_no
-                                     left join file_info c on a.file_no = c.file_no
-                                                         and c.cust_no = #{custNo}
-                                                         and c.used_yn = 'Y'
-                                     left join code_info k on a.prod_shape = k.code_no
-                                     left join code_info g on a.heat_tp = g.code_no
-                                     left join code_info ci on ci.code_no = a.mngr_unit
-                                     left join (select h.prod_no, count(h.matr_no) as matr_bom
-                                                from prod_bom h
-                                                where h.used_yn = 'Y'
-                                                and h.cust_no = #{custNo}
-                                                group by h.prod_no
-                                               ) h  on a.prod_no = h.prod_no
-                        where a.used_yn ='Y'
-        <if test="saleUnitChk != null and saleUnitChk == 1">
-            and coalesce(a.sale_unit,0) <![CDATA[ > ]]> 0 and a.sz is not null and a.prod_code is not null
-        </if>
-
-        <if test="exceptCart != null and exceptCart == 1">
-            and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId})
-        </if>
-
-        <if test="findRoutingNo != null and findRoutingNo != ''">
-            and a.prod_no = #{findRoutingNo}
-        </if>
-
-        <if test="bomTp != null and bomTp != ''">
-            and 0 = (select count(pb.prod_no) from prod_bom pb where pb.prod_no = a.prod_no )
-        </if>
-
-        <if test="prodTp != null and prodTp != ''">
-            and a.prod_tp = #{prodTp}
-        </if>
-
-        <if test="findSz != null and findSz != '' and findRoutingNo == null">
-            <if test="findTp != null and findTp == 'prodNm'">
-                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-            </if>
-            <if test="findTp != null and findTp == 'prodCode'">
-                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-            </if>
-            <if test="findTp != null and findTp == 'sale_unit'">
-                AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        from (
+            select a.prod_no
+            from prod_info a left join file_info c on a.file_no = c.file_no
+                                              and c.used_yn = 'Y'
+                                              and c.cust_no = #{custNo}
+                              left join (select h.prod_no , count(h.matr_no) as matr_bom
+                                                       from prod_bom h
+                                                      where h.used_yn = 'Y'
+                                                      and   cust_no = #{custNo}
+                                                      group by h.prod_no
+                                         )h  on a.prod_no = h.prod_no
+            where a.used_yn ='Y'
+            and a.cust_no = #{custNo}
+            <if test="saleUnitChk != null and saleUnitChk == 1">
+                and coalesce(a.sale_unit,0) <![CDATA[ > ]]> 0 and a.sz is not null and a.prod_code is not null
             </if>
 
-        </if>
+            <if test="exceptCart != null and exceptCart == 1">
+                and a.prod_no not in (select prod_no
+                from ord_prod_cart
+                where user_id = #{userId})
+                and cust_no = #{custNo}
+            </if>
+
+            <if test="findRoutingNo != null and findRoutingNo != ''">
+                and a.prod_no = #{findRoutingNo}
+            </if>
+
+            <if test="bomTp != null and bomTp != ''">
+                and 0 = (select count(pb.prod_no)
+                from prod_bom pb
+                where pb.prod_no = a.prod_no
+                and pb.used_yn ='Y'
+                and pb.cust_no =#{custNo}
+                )
+            </if>
+
+            <if test="prodTp != null and prodTp != ''">
+                and a.prod_tp = #{prodTp}
+            </if>
+
+            <if test="findSz != null and findSz != '' and findRoutingNo == null">
+                <if test="findTp != null and findTp == 'prodNm'">
+                    AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+                <if test="findTp != null and findTp == 'prodCode'">
+                    AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+                <if test="findTp != null and findTp == 'sale_unit'">
+                    AND upper(replace(a.prod_code,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+
+            </if>
         ) a
     </select>
 
     <select id="getProdExcelList" parameterType="map"  resultType="camelMap">
+        /*제품 엑셀다운드 목록 (prodMapper.getProdExcelList) */
         select a.prod_no as 품번
              , a.prod_nm as 품명
              , a.erp_prod_nm as ERP제품명
@@ -573,17 +575,19 @@
              , a.spga as 비중
              , a.heat_tp  as  살균기준
              , a.modl_nm as 모델명
+             , a.valid_term as 유통기한
              , a.sz as 규격
              , a.brnch_no as 제조공정번호
-             , coalesce (e.code_nm,'미확인') as 제조공정명
              , coalesce (a.mess,0) as 단위중량
              , a.save_tmpr as 보관온도
-             , d.code_nm as 보관온도명
              , a.sale_unit as 판매단위코드
-             , b.code_nm as 판매단위명  --포장단위명
-             , a.qty_per_pkg as 포장단위수량
+             , a.qty_per_pkg as 입수량
              , c.save_file_nm as 저장파일명
              , c.org_file_nm as 원본파일명
+             , fn_get_code_name('nm', a.prod_tp)  as 판매구분명
+             , fn_get_code_name('nm', a.brnch_no) as 제조공정명
+             , fn_get_code_name('nm', a.save_tmpr) as 보관온도명
+             , fn_get_code_name('nm', a.sale_unit) as 판매단위명
              , coalesce( (select  sum(c.ord_qty)
                             from ord_info b join ord_prod c on b.ord_no = c.ord_no
                                       and b.used_yn  = 'Y'
@@ -612,10 +616,8 @@
                             and to_char(b.dlv_dt,'yyyymm') = to_char(now(),'yyyymm')
                             and c.prod_no = a.prod_no
                          ),0) as 배달수량 --dlv_qty
-        from prod_info a join code_info b on a.sale_unit = b.code_no
-                    left join code_info d on a.save_tmpr = d.code_no
-                    left join file_info c on a.file_no = c.file_no and c.used_un = 'Y' and c.cust_no =#{custNo}
-                    left join code_info e on a.brnch_no = e.code_no
+        from prod_info a left join file_info c on a.file_no = c.file_no
+                                                     and c.used_yn = 'Y' and c.cust_no =#{custNo} and c.file_no <![CDATA[ > ]]> 0
         where a.used_yn ='Y'
         and a.cust_no =#{custNo}
         <if test="saleUnitChk != null and saleUnitChk == 1">

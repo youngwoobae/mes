@@ -565,18 +565,7 @@ public class MatrController {
         return result;
     }
 
-    @PostMapping(value="/matrSaveExcelUpLoad") //원자재정보저장
-    public Result matrSaveExcelUpLoad(@RequestBody HashMap<String, Object> paraMap, HttpServletRequest request, HttpSession session) throws Exception {
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
-        paraMap.put("userId",Long.parseLong(paraMap.get("userId").toString()));
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        matrService.matrSaveExcelUpLoad(paraMap);
-        result.setData("OK");
-        return result;
-    }
+
 
     @PostMapping(value="/svMatrSaveExcelUpLoad") //부자재정보저장
     public Result svMatrSaveExcelUpLoad(@RequestBody HashMap<String, Object> paraMap, HttpServletRequest request, HttpSession session) throws Exception {

@@ -1291,8 +1291,8 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
         String cmpy = paraMap.get("cmpy").toString();
         cmpy = cmpy.replaceAll("\\p{Z}", "");
 
-        Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
-        CmpyInfo vo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpy,"Y");
+        Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
+        CmpyInfo vo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnSale,cmpy,"Y");
         if(vo != null){
             owhvo.setCmpyNo(vo.getCmpyNo());
         }
@@ -1560,9 +1560,9 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
             ordvo.setPlcNo(0L);
 
             cmpy = paraMap.get("cmpy").toString();
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
+            Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
             cmpy = cmpy.replaceAll("\\p{Z}", "");
-            CmpyInfo vo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpy, "Y");
+            CmpyInfo vo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnSale,cmpy, "Y");
             if (vo != null) {
                 ordvo.setCmpyNo(vo.getCmpyNo());
             }

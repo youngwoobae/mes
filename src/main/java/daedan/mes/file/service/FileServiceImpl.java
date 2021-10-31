@@ -67,10 +67,10 @@ public class FileServiceImpl implements FileService {
         FileInfo afterFileVo = null;
         try {
             log.info("base_file_ext_cd = "+env.getProperty("base_file_ext_cd"));
-            Long fileext= Long.valueOf(env.getProperty("base_file_ext_cd"));
+            Long fileExt= Long.valueOf(env.getProperty("base_file_ext_cd"));
             fileEntity.setFileLen(multipartFile.getSize());
 
-            CodeInfo codeEntity = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,fileext,fileExtNm.toUpperCase(Locale.ROOT),"Y");
+            CodeInfo codeEntity = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(fileExt,fileExtNm.toUpperCase(Locale.ROOT),"Y");
             fileEntity.setFileTp(codeEntity.getCodeNo());
             log.info(tag + " fileEntity = " + fileEntity);
 

@@ -112,10 +112,6 @@ public class ProdController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.ord_tp")));
         rmap.put("comboProdTp",codeService.getComboCodeList(paraMap));
 
-
-//        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_type")));
-//        rmap.put("comboProdType",codeService.getComboCodeList(paraMap));
-
         result.setData(rmap);
         return result;
     }

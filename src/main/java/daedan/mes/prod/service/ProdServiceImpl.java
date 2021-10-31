@@ -4,8 +4,6 @@ import daedan.mes.ccp.domain.HeatLmtInfo;
 import daedan.mes.ccp.repository.HeatLmtInfoRepository;
 import daedan.mes.cmpy.domain.CmpyInfo;
 import daedan.mes.cmpy.repository.CmpyRepository;
-import daedan.mes.code.domain.CodeInfo;
-import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.file.service.FileService;
@@ -26,7 +24,6 @@ import daedan.mes.make.service.ExcelMakeService;
 import daedan.mes.make.service.MakeIndcService;
 import daedan.mes.matr.domain.MatrCmpy;
 import daedan.mes.matr.domain.MatrInfo;
-import daedan.mes.matr.domain.MatrFormat;
 import daedan.mes.matr.repository.MatrCmpyRepository;
 import daedan.mes.matr.repository.MatrRepository;
 import daedan.mes.ord.domain.OrdInfo;
@@ -34,6 +31,7 @@ import daedan.mes.ord.domain.OrdProd;
 import daedan.mes.ord.repository.OrdProdRepository;
 import daedan.mes.ord.repository.OrdRepository;
 import daedan.mes.prod.domain.*;
+import daedan.mes.prod.domain.ddkor.ProdAttr;
 import daedan.mes.prod.mapper.ProdMapper;
 import daedan.mes.prod.repository.ProdAttrRepository;
 import daedan.mes.prod.repository.ProdBomRepository;
@@ -53,7 +51,6 @@ import daedan.mes.stock.repository.WhInfoRepository;
 import daedan.mes.stock.service.StockService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ibatis.jdbc.Null;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -61,7 +58,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
@@ -268,24 +264,26 @@ public class ProdServiceImpl implements  ProdService {
         Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
         ProdInfo pivo = prodRepository.findByCustNoAndProdNoAndUsedYn(custNo,prodNo, "Y");
         if (pivo != null) {
-            if (pivo.getCcpTp() != Long.parseLong(env.getProperty("code.ccp_tp.insp"))) { //살균공정을 포함한 경우
-                HeatLmtInfo hlvo = heatLmtInfoRepo.findByHeatTpAndUsedYn(pivo.getHeatTp(), "Y");
-                if (hlvo != null) {
-                    pivo.setHeatLmtInfo(hlvo);
+            if (pivo.getCcpTp() != null) {
+                if (pivo.getCcpTp() != Long.parseLong(env.getProperty("code.ccp_tp.insp"))) { //살균공정을 포함한 경우
+                    HeatLmtInfo hlvo = heatLmtInfoRepo.findByHeatTpAndUsedYn(pivo.getHeatTp(), "Y");
+                    if (hlvo != null) {
+                        pivo.setHeatLmtInfo(hlvo);
+                    }
+                    ProdAttr pavo = prodAttrRepo.findByCustNoAndProdNoAndUsedYn(custNo, pivo.getProdNo(), "Y");
+                    if (pavo != null) {
+                        pivo.setProdAttr(pavo);
+                    }
+                    //StringBuffer buf = new StringBuffer();
+                    //buf.append(env.getProperty("file.root.path")).append("prod/").append(pivo.getProdNo()).append(".png");
+                    //log.info(tag + "bar_code_url = " + rmap.get("bar_code_url"));
                 }
-                ProdAttr pavo = prodAttrRepo.findByCustNoAndProdNoAndUsedYn(custNo,pivo.getProdNo(), "Y");
-                if (pavo != null) {
-                    pivo.setProdAttr(pavo);
-                }
-                //StringBuffer buf = new StringBuffer();
-                //buf.append(env.getProperty("file.root.path")).append("prod/").append(pivo.getProdNo()).append(".png");
-                //log.info(tag + "bar_code_url = " + rmap.get("bar_code_url"));
             }
         }
-        Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
+        Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
         Map<String, Object> rmap = StringUtil.voToMap(pivo);
         if(pivo.getCmpyNo() != null){
-            CmpyInfo cmpy = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNoAndUsedYn(custNo,cmpyTp,pivo.getCmpyNo() ,"Y");
+            CmpyInfo cmpy = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNoAndUsedYn(custNo,mngrgbnSale,pivo.getCmpyNo() ,"Y");
             if (cmpy != null){
                 rmap.put("cmpyNm",cmpy.getCmpyNm());
             }
@@ -314,7 +312,7 @@ public class ProdServiceImpl implements  ProdService {
         } catch (NullPointerException ne) {
             fileNo = 0L;
         }
-        //SOL Addon by KMJ At  21.10.19 - 판매유형(OEM,ODM) 구분
+        //SOL Addon by KMJ At  21.10.19 - 판매유형(OEM,ODM,B2B) 구분
         try {
             cmpyNo = Long.parseLong(paraMap.get("cmpyNo").toString());
         } catch (NullPointerException ne) {
@@ -325,7 +323,7 @@ public class ProdServiceImpl implements  ProdService {
         prodInfo.setCustNo(custNo);
         prodInfo.setProdNo(prodNo);
         prodInfo.setProdNm(paraMap.get("prodNm").toString());
-        prodInfo.setProdTp(Long.parseLong(paraMap.get("prodTp").toString())); //AddOn By KMJ At 21.10.19 --판매구분(OEM,ODM)
+        prodInfo.setProdTp(Long.parseLong(paraMap.get("prodTp").toString())); //AddOn By KMJ At 21.10.19 --판매구분(OEM,ODM,B2B)
         prodInfo.setCmpyNo(cmpyNo); //AddOn By KMJ At 21.10.19 --OEM업체번호
         prodInfo.setCustNo(Long.parseLong(paraMap.get("custNo").toString())); //AddOn By KMJ At 21.10.21
         try {
@@ -358,21 +356,25 @@ public class ProdServiceImpl implements  ProdService {
         } catch (NullPointerException ne) {
             spga = 1f;
         }
-
         prodInfo.setSpga(spga);
-        Float vol = 1f;
-        try {
-            vol = (Float.parseFloat(paraMap.get("mess").toString()) * spga) / 1000;
-        }
-        catch (NullPointerException ne) {
-            vol = 1f;
+
+        Float mess = 1f;
+        int squire = 1;
+
+        /*SOL AddOn By KMJ At 21.10.30*/
+        Long saleUnitWgt = Long.parseLong(paraMap.get("saleUnitWgt").toString()); //판매단위중량
+        int qtyPerPkg = Integer.parseInt(paraMap.get("qtyPerPkg").toString()); //입수량
+        prodInfo.setQtyPerPkg(qtyPerPkg);
+        prodInfo.setSaleUnitWgt(saleUnitWgt);
+        prodInfo.setSaleUnit(Long.parseLong(paraMap.get("saleUnit").toString()));
+        if (prodInfo.getSaleUnit() == Long.parseLong(env.getProperty("code.base.sale_unit_g"))) { //gram
+            squire = 1000; //단위중량이 gram인 경우 kg단위로 환산하기 위한 기준값
         }
 
-        try {
-            prodInfo.setVol(vol);
-        } catch (NullPointerException ne) {
-            prodInfo.setVol(prodInfo.getMess());
-        }
+        prodInfo.setVol((float) ((saleUnitWgt * squire) / qtyPerPkg)) ;
+        prodInfo.setSpga(spga);
+        prodInfo.setMess(prodInfo.getVol() * prodInfo.getSpga()); //질량 = 중량 * 비중
+        /*EOL AddOn By KMJ At 21.10.30*/
 
         try {
             prodInfo.setHeatTp(Long.parseLong(paraMap.get("heatTp").toString()));
@@ -402,7 +404,7 @@ public class ProdServiceImpl implements  ProdService {
             prodInfo.setMngrUnit(Long.parseLong(paraMap.get("mngrUnit").toString()));
         }
         catch (NullPointerException ne) {
-            prodInfo.setSaveTmpr(Long.parseLong(env.getProperty("code.base.mngrbase_qty")));
+            prodInfo.setMngrUnit(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));
         }
         try {
             prodInfo.setCcpTp(Long.parseLong(paraMap.get("ccpTp").toString()));
@@ -476,9 +478,23 @@ public class ProdServiceImpl implements  ProdService {
 
         prodInfo.setProdAttr(pavo);
         paraMap.put("custNo",custNo);
-        HeatLmtInfo hlivo = this.saveProdHeatLmtInfo(paraMap);
-        prodInfo.setHeatLmtInfo(hlivo);
+        try {
+            String heatTp = paraMap.get("heatTp").toString();
+            HeatLmtInfo hlivo = this.saveProdHeatLmtInfo(paraMap);
+            prodInfo.setHeatLmtInfo(hlivo);
+        }
+        catch (NullPointerException ne) {
+
+        }
+
         prodInfo.setCustNo(custNo);
+        ProdInfo chkvo = prodRepository.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
+        if (chkvo != null) {
+            prodInfo.setProdNo(chkvo.getProdNo());
+            prodInfo.setModDt(DateUtils.getCurrentBaseDateTime());
+            prodInfo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+            prodInfo.setModIp(paraMap.get("ipaddr").toString());
+        }
         prodInfo = prodRepository.save(prodInfo);
 
 
@@ -1684,8 +1700,8 @@ public class ProdServiceImpl implements  ProdService {
                 Map.put("whNm", owhWhNm); // 열
                 Map.put("idx", idx);
             }
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
-            CmpyInfo cmchk = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpy, "Y");
+            Long mngrGbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
+            CmpyInfo cmchk = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrGbnSale,cmpy, "Y");
             if (cmchk != null) {
                 if (cmchk.getMngrGbnCd() == 21) {
                     cmpyNo = cmchk.getCmpyNo();
@@ -2018,10 +2034,10 @@ public class ProdServiceImpl implements  ProdService {
                 Map.put("idx", idx);
             }
 
-            cmpy = row.getCell(4).getStringCellValue(); // 출고 회사
+            cmpy = row.getCell(4).getStringCellValue(); //구매처
             cmpy = cmpy.replaceAll("\\p{Z}", "");
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.purs"));
-            CmpyInfo cmchk = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpy, "Y");
+            Long mngrGbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs"));
+            CmpyInfo cmchk = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrGbnPurs,cmpy, "Y");
             if (cmchk != null) {
                 if (cmchk.getMngrGbnCd() == 20) {
                     cmpyNo = cmchk.getCmpyNo();
@@ -2539,7 +2555,7 @@ public class ProdServiceImpl implements  ProdService {
 //            matrInfo.setValidTerm(12);
 //            matrInfo.setVol(1000F);
 //            matrInfo.setMess(1000F);
-//            matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_mess")));
+//            matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));
 //            matrInfo.setSpge(1F);
 //
 //            MatrInfo chkMatr = matrRepo.findByMatrNmAndUsedYn(matrNm, "Y");
@@ -2620,7 +2636,7 @@ public class ProdServiceImpl implements  ProdService {
 //                    prodInfo.setVol(vol);
 //                    prodInfo.setMess(vol);
 //                }if(prodUnit == Long.parseLong(env.getProperty("code.base.sale_unit_ml"))){
-//                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_mess")));
+//                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));
 //                }else {
 //                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_imp")));
 //                }

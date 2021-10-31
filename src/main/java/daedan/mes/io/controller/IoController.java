@@ -44,8 +44,6 @@ public class IoController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
-
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
 
@@ -440,7 +438,7 @@ public class IoController {
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
-        ioService.dropMatrOwh(paraMap);
+        ioService.dropMatrOwh(paraMap);111
         return result;
     }
     @PostMapping(value="/conditions225")

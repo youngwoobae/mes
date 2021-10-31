@@ -614,7 +614,7 @@ public class PursServiceImpl implements  PursService {
     @Override
     public List<Map<String, Object>> getComboPursCmpy(Map<String, Object> paraMap) {
         String tag = "pursService.getComboPursCmpy => ";
-        paraMap.put("mngrGbnCd",Long.parseLong(env.getProperty("code.cmpytp.purs")));
+        paraMap.put("mngrGbnCd",Long.parseLong(env.getProperty("code.mngrgbn.purs")));
         log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getComboPursCmpy(paraMap);
     }

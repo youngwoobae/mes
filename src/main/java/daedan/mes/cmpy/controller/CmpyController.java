@@ -81,7 +81,7 @@ public class CmpyController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         Map<String,Object> rmap = new HashMap<String,Object>();
-        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.cmpytp")));
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.cmpy_mngrgbn")));
         rmap.put("comboSaleUnit", codeService.getComboCodeList(paraMap));
         result.setData(rmap);
         return result;

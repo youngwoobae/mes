@@ -20,7 +20,7 @@ public class MatrCmpy {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="matr_cmpy_no",nullable = false, columnDefinition = "")
+    @Column(name="matr_cmpy_no",nullable = false)
     private Long matrCmpyNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")

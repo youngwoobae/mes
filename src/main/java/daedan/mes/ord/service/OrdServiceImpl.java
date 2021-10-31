@@ -1011,11 +1011,11 @@ public class OrdServiceImpl implements  OrdService {
             oivo.setDlvReqDt(dlRregdt);
             oivo.setOrdDt(ordDt);
             oivo.setOrdNm(ordNm);
-            oivo.setPlcNo(6466L);
+            oivo.setPlcNo(6466L); //대책없는코드임
             oivo.setUsedYn("Y");
 
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
-            CmpyInfo cmvo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpyNm, "Y");
+            Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
+            CmpyInfo cmvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnSale,cmpyNm, "Y");
             if (cmvo != null) {
                 oivo.setCmpyNo(cmvo.getCmpyNo());
             }

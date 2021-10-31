@@ -295,4 +295,8 @@
 			code_nm = #{codeNm}
 		where code_no = #{codeNo}
 	</update>
+
+	<select id="getMaxCodeSeq" parameterType="map" resultType="int">
+		select max(code_seq+1) from code_info where par_code_no = #{parCodeNo}
+	</select>
 </mapper>

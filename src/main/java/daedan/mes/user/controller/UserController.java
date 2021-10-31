@@ -1,6 +1,8 @@
 package daedan.mes.user.controller;
 
 import daedan.mes.cmmn.service.CmmnService;
+import daedan.mes.code.domain.CodeInfo;
+import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.jwt.JwtService;
@@ -53,6 +55,8 @@ public class UserController {
     private UserService userService;
     @Autowired
     CustInfoRepository custInfoRepo;
+    @Autowired
+    CodeRepository codeRepo;
 
     @Autowired
     private JwtService jwtService;
@@ -83,7 +87,6 @@ public class UserController {
         szUserId = "1";
         Long userId = Long.parseLong(szUserId);
         UserInfo uservo = userService.getUserInfoById(userId);
-        log.info(tag + "custNo = " + uservo.getCustInfo().getCustNo());
 
         Long custNo = uservo.getCustInfo().getCustNo();
         uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
@@ -91,10 +94,10 @@ public class UserController {
         token = jwtService.create("member", uservo, "user");
         log.info(tag + "created user token = " + token);
 
-        // 세션 생성
+        // 세션 생성 : AddOn By KMJ At 21.10.21
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         if (uvo == null) {
-            session.setAttribute("autoUserInfo", uservo); //AddOn By KMJ At 21.10.21
+            session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
         }
 
 
@@ -107,34 +110,36 @@ public class UserController {
         String tag = "UserController.signin => ";
         String token = "";
         Result result = Result.successInstance();
-        log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
+        //log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
 
         String orgLcnsCd = paraMap.get("lcnsCd").toString();
-        log.info("orgLcnsCd=" + orgLcnsCd);
+        //log.info("orgLcnsCd=" + orgLcnsCd);
         String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
         log.info("encLcnsCd=" + encLcnsCd);
-
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
         if (uservo != null) {
-
             if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
                 String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
                 Long custNo = Long.parseLong(strCustNo);
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
-                log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+                //log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+
+
+                // 세션 생성
+                session.setAttribute("userInfo",uservo);//사용자 및 고객사 특성정보
+                //log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
             }
         }
         uservo.setToken(null);
-
         token = jwtService.create("member", uservo, "user");
         //log.info("created user token = " + token);
         response.setHeader("authorization", token);
 
-        // 세션 생성
-        session.setAttribute("userInfo",uservo); //AddOn By KMJ At 21.10.21
-        log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
         sysService.invokeChatServer();
-        result.setData(StringUtil.voToMap(uservo));
+        Map<String,Object> rmap = new HashMap<String,Object>();
+        rmap.put("userInfo",StringUtil.voToMap(uservo));
+        rmap.put("prodUnitWgtNm",(String) session.getAttribute("prodUnitWgtNm"));
+        result.setData(rmap);
         return result;
     }
     @PostMapping(value="/tabletSignIn")

@@ -1,6 +1,7 @@
 package daedan.mes.prod.domain;
 
 import daedan.mes.ccp.domain.HeatLmtInfo;
+import daedan.mes.prod.domain.ddkor.ProdAttr;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -84,21 +85,30 @@ public class ProdInfo {
     @Column(name="modlNm", length = 100)
     private String modlNm;
 
-    /*포장단위*/
+    /*판매단위코드*/
     @Column(name="saleUnit", columnDefinition = "numeric" )
     private Long saleUnit;
 
+    /*판매단위중량 (유지물산은 kg 기타 g임)*/
+    @Column(name="saleUnitWgt", columnDefinition = "numeric" )
+    private Long saleUnitWgt;
+
+
     /*관리단위 : 중량 or 질랑*/
-    @Column(name="mngrUnit", columnDefinition = "numeric" )
+    @Column(name="mngrUnit",  columnDefinition = "numeric default 1701"  ) //17101=중량
     private Long mngrUnit;
 
-
-    @Column(name="mngrBase", columnDefinition = "numeric default 1701"  )
-    private Long mngrBase;
-
-    // 부피(ml) :
+    // 관리중량 :
     @Column(name = "vol" ,nullable = false, columnDefinition = "numeric default 0" )
     private Float vol;
+
+    //비중
+    @Column(name = "spga" , columnDefinition = "numeric default 1.0", precision=7, scale=3)
+    private Float spga;
+
+    /*관리질량(ml)*/
+    @Column(name="mess", columnDefinition = "numeric default 0")
+    private Float mess;
 
 
     /*최저 산도*/
@@ -109,13 +119,7 @@ public class ProdInfo {
     @Column(name="maxPh" , columnDefinition = "numeric default 7"  )
     private Float maxPh;
 
-    //비중
-    @Column(name = "spga" , columnDefinition = "numeric default 1.0", precision=7, scale=3)
-    private Float spga;
 
-    /*질량*/
-    @Column(name="mess", columnDefinition = "numeric default 0")
-    private Float mess;
 
     /*SET당수량*/
     @Column(name="qtyPerPkg" , columnDefinition = "int default 1")

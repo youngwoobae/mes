@@ -1,6 +1,6 @@
 package daedan.mes.prod.repository;
 
-import daedan.mes.prod.domain.ProdAttr;
+import daedan.mes.prod.domain.ddkor.ProdAttr;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProdAttrRepository extends JpaRepository<ProdAttr, Long> {

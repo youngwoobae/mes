@@ -391,7 +391,7 @@ public class UserServiceImpl implements UserService {
 			deptInfo = dr.findByCustNoAndDeptNmAndUsedYn(custNo,deptNm,"Y");
 
 			String codeNm = row.getCell(4).getStringCellValue();
-			codeInfo = cr.findByCustNoAndCodeNmAndUsedYn(custNo,codeNm,"Y");
+			codeInfo = cr.findByCodeNmAndUsedYn(codeNm,"Y");
 			String beforeDate = row.getCell(5).getStringCellValue();
 
 			DateFormat sdFormat = new SimpleDateFormat("yyyy/MM/dd");

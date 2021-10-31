@@ -1,12 +1,9 @@
 package daedan.mes.matr.domain;
 
-import daedan.mes.prod.domain.ProdAttr;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Data
@@ -95,12 +92,12 @@ public class MatrInfo {
     /*구매단위*/
     @Column(name="purs_unit" )
     private Long pursUnit;
-
+    /*관리단위(무게,질량)*/
     @Column(name="mngr_unit" )
     private Long mngrUnit;
 
     /*구매단위중량*/
-    @Column(name="purs_unit_wgt" )
+    @Column(name="pursUnitWgt" )
     private Long pursUnitWgt;
 
     /*구매단가*/

@@ -13,18 +13,18 @@ import java.util.Date;
 public class SpotEquip {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="spot_equip_no",nullable = false)
+    @Column(name="spotEquipNo",nullable = false)
     private Long spotEquipNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
     /*장소번호*/
-    @Column(name="spot_no",nullable = false)
+    @Column(name="spotNo",nullable = false)
     private Long spotNo;
 
     //장치유형번호(온도계 ,습도계....)
-    @Column(name="equip_no",columnDefinition = "numeric default 0")
+    @Column(name="equipNo",columnDefinition = "numeric default 0")
     private Long equipNo;
 
     //최대측정허용값

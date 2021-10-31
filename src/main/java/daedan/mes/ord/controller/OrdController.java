@@ -485,8 +485,8 @@ public class OrdController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        paraMap.put("cmpyTp",env.getProperty("code.cmpytp.purs")); //매입
-        paraMap.put("mngrGbnCd", env.getProperty("code.mngrgb.cmpy")); //법인
+        paraMap.put("mngrGbnCd",env.getProperty("code.mngrgbn.purs")); //매입
+        paraMap.put("cmpyTp", env.getProperty("code.cmpytp.cmpy")); //법인
         paraMap.put("session", session);
         Result result = Result.successInstance();
         ordService.ordIndfoByExcel(paraMap);

@@ -98,17 +98,15 @@
              , a.cman_cell_no as 담당자번호
              , COALESCE(e.matr_qty,0) as 자재수량
              , d.acc_url as 이미지URL
-             , z.code_nm as 개인법인구분명
-             , y.code_nm as 매출매입구분명
-        from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
-                         join code_info y on a.mngr_gbn_cd  = y.code_no
-                    left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
-                    left join (select cmpy_no, count(matr_no) as matr_qty
-                                from matr_cmpy
-                                where 1 = 1
-                                and used_yn = 'Y' and cust_no = #{custNo}
-                                group by cmpy_no
-                               ) e on a.cmpy_no = e.cmpy_no
+             , fn_get_code_name('nm', a.cmpy_tp) as 개인법인구분명
+             , fn_get_code_name('nm', a.mngr_gbn_cd) as 매출매입구분명
+        from cmpy_info a left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                         left join ( select cmpy_no, count(matr_no) as matr_qty
+                                     from matr_cmpy
+                                     where 1 = 1
+                                     and used_yn = 'Y' and cust_no = #{custNo}
+                                     group by cmpy_no
+                                   ) e on a.cmpy_no = e.cmpy_no
         where 1 = 1
           and a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="cmpyTpCd != null and cmpyTpCd != ''">
@@ -134,15 +132,13 @@
     <select id="getCmpyListCount" parameterType="map"  resultType="int">
         select   count(a.cmpy_no)
         from (select a.cmpy_no
-              from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
-                               join code_info y on a.mngr_gbn_cd  = y.code_no
-                          left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
-                         left join (select cmpy_no, count(matr_no) as matr_qty
-                                    from matr_cmpy
-                                    where 1 = 1
-                                    and used_yn = 'Y' and cust_no = #{custNo}
-                                    group by cmpy_no
-                                   ) e on a.cmpy_no = e.cmpy_no
+              from cmpy_info a left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                               left join ( select cmpy_no, count(matr_no) as matr_qty
+                                           from matr_cmpy
+                                           where 1 = 1
+                                           and used_yn = 'Y' and cust_no = #{custNo}
+                                           group by cmpy_no
+                                         ) e on a.cmpy_no = e.cmpy_no
             where 1 = 1
              and a.used_yn = 'Y' and a.cust_no = #{custNo}
             <if test="cmpyTpCd != null and cmpyTpCd != ''">

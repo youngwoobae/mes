@@ -322,7 +322,7 @@ public class PursController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("mngrGbnCd", Long.parseLong(env.getProperty("code.cmpytp.purs")));
+        paraMap.put("mngrGbnCd", Long.parseLong(env.getProperty("code.mngrgbn.purs")));
         result.setData(pursService.getComboMatrCmpy(paraMap));
         return result;
     }

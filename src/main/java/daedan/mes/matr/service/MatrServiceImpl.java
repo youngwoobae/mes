@@ -1178,7 +1178,7 @@ public class MatrServiceImpl implements MatrService {
         Date owdate = new Date();
         Float stkQty = 0F;
         Float mistkQty = 0F;
-        Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
+        Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
         List<Map<String, Object>> list = new ArrayList<>();
         Map<String, Object> Map = new HashMap<String, Object>();
         XSSFRow row = sheet.getRow(rowindex);
@@ -1238,7 +1238,7 @@ public class MatrServiceImpl implements MatrService {
                 Map.put("idx", rowindex);
             }
 
-            CmpyInfo cmchk = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpy, "Y");
+            CmpyInfo cmchk = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnSale,cmpy, "Y");
             if (cmchk != null) {
                 if (cmchk.getMngrGbnCd() == 21) {
                     cmpyNo = cmchk.getCmpyNo();
@@ -1349,7 +1349,7 @@ public class MatrServiceImpl implements MatrService {
     @Override
     @Transactional
     public void matrSaveExcelUpLoad(Map<String, Object> paraMap)throws Exception {
-        String tag = "ProdService.prodIndcExcel => ";
+        String tag = "ProdService.matrSaveExcelUpLoad => ";
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         String fileRoot = paraMap.get("fileRoot").toString();
         String filePath = fileService.getFileInfo(fileRoot,fileNo);
@@ -1422,14 +1422,14 @@ public class MatrServiceImpl implements MatrService {
                 exData = "";
             }
             Long matrUnit = Long.parseLong(env.getProperty("code.base.purs_unit"));
-            CodeInfo mgvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrUnit, exData.replace(" ", ""), "Y");
+            CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrUnit, exData.replace(" ", ""), "Y");
             if (mgvo != null) {
                 Long Unit = mgvo.getCodeNo();
                 matrInfo.setPursUnit(Unit); // 구매단위
                 if(Unit == Long.parseLong(env.getProperty("code.purs_unit.ml"))){
                     matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_imp")));//부피
                 }else {
-                    matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_mess")));//중량
+                    matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));//중량
                 }
 
                 if(Unit ==Long.parseLong(env.getProperty("code.purs_unit.kg"))){
@@ -1449,7 +1449,7 @@ public class MatrServiceImpl implements MatrService {
                 tmpr = "";
             }
             Long matrtmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd"));
-            CodeInfo tmvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrtmpr, tmpr.replace(" ", ""), "Y");
+            CodeInfo tmvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrtmpr, tmpr.replace(" ", ""), "Y");
             if (tmvo != null) {
                 Long savetmpr = tmvo.getCodeNo();
                 matrInfo.setSaveTmpr(savetmpr); // 보관온도
@@ -1460,7 +1460,7 @@ public class MatrServiceImpl implements MatrService {
                 madein = "";
             }
             Long matrmade = Long.parseLong(env.getProperty("code.base.madein"));
-            CodeInfo mavo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrmade, madein.replace(" ", ""), "Y");
+            CodeInfo mavo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrmade, madein.replace(" ", ""), "Y");
             if (mavo != null) {
                 Long matrMadeIn = tmvo.getCodeNo();
                 matrInfo.setMadein(matrMadeIn); // 원산지
@@ -1494,14 +1494,14 @@ public class MatrServiceImpl implements MatrService {
             /*cmpy_matr 자재구매처 등록 */
             MatrCmpy cmvo = new MatrCmpy();
             CmpyInfo cmpyInfo = new CmpyInfo();
-            Long pursCmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
-            CmpyInfo cmchk = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,pursCmpyTp,cmpyNm,"Y");
+            Long mngrGbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs"));
+            CmpyInfo cmchk = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrGbnPurs,cmpyNm,"Y");
             if(cmchk != null){
                 cmpyNo = cmchk.getCmpyNo();
             }else{
                 cmpyInfo.setCmpyNm(cmpyNm);
                 cmpyInfo.setUsedYn("Y");
-                cmpyInfo.setMngrGbnCd(Long.parseLong(env.getProperty("code.cmpytp.purs"))); // 원자재 페이지에서 사용
+                cmpyInfo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgbn.purs"))); // 원자재 페이지에서 사용
                 cmpyInfo.setCustNo(custNo);
                 cmpyRepo.save(cmpyInfo);
             }
@@ -1698,7 +1698,7 @@ public class MatrServiceImpl implements MatrService {
                 exData ="";
             }
             Long matrUnit = Long.parseLong(env.getProperty("code.base.purs_unit"));
-            CodeInfo mgvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrUnit, exData.replace(" ", ""), "Y");
+            CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrUnit, exData.replace(" ", ""), "Y");
             if (mgvo != null) {
                 Long Unit = mgvo.getCodeNo();
                 matrInfo.setPursUnit(Unit); // 구매단위
@@ -1717,7 +1717,7 @@ public class MatrServiceImpl implements MatrService {
                 tmpr = "";
             }
             Long matrtmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd"));
-            CodeInfo tmvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrtmpr, tmpr.replace(" ", ""), "Y");
+            CodeInfo tmvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrtmpr, tmpr.replace(" ", ""), "Y");
             if (tmvo != null) {
                 Long savetmpr = tmvo.getCodeNo();
                 matrInfo.setSaveTmpr(savetmpr); // 보관온도
@@ -1729,7 +1729,7 @@ public class MatrServiceImpl implements MatrService {
                 madein = "";
             }
             Long matrmade = Long.parseLong(env.getProperty("code.base.madein"));
-            CodeInfo mavo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,matrmade, madein.replace(" ", ""), "Y");
+            CodeInfo mavo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(matrmade, madein.replace(" ", ""), "Y");
             if (mavo != null) {
                 Long matrMadeIn = tmvo.getCodeNo();
                 matrInfo.setMadein(matrMadeIn); // 원산지
@@ -1778,7 +1778,7 @@ public class MatrServiceImpl implements MatrService {
                 }else{
                     cmpyInfo.setCmpyNm(cmpyNm);
                     cmpyInfo.setUsedYn("Y");
-                    cmpyInfo.setMngrGbnCd(Long.parseLong(env.getProperty("code.cmpytp.purs"))); // 원자재 페이지에서 사용
+                    cmpyInfo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgbn.purs"))); // 원자재 페이지에서 사용
                     cmpyInfo.setCustNo(custNo);
                     cmpyRepo.save(cmpyInfo);
                 }

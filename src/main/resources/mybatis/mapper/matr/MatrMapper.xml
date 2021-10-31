@@ -246,7 +246,7 @@
     </select>
 
     <select id="getMatrExcelList" parameterType="map"  resultType="camelMap">
-    /*부자재 엑셀다운로드 (matrMapper.getMatrExcelList) */
+        /*원부자재 엑셀다운로드 (matrMapper.getMatrExcelList) */
         select distinct a.matr_no as 자재번호
                 , a.matr_tp as 자재구분
                 , a.brnch_no as 자재분류
@@ -254,6 +254,7 @@
                 , d.code_nm as 구매단위
                 , a.spga as 비중
                 , a.vol as 단위중량
+                , a.sz as 규격
                 , m.cmpy_no as 거래처관리번호
                 , z.cmpy_nm as 구매거래처
                 , a.matr_nm as 자재명
@@ -264,7 +265,6 @@
                 , coalesce (a.madeby,0) as 소재
                 , a.save_tmpr as 보관온도코드
                 , a.valid_term as 유효기간
-                , a.sz as 규격
                 , a.file_no as 사진번호
                 , c.org_file_nm as 원본파일
                 , b.code_nm as 자재구분명
@@ -273,7 +273,8 @@
                     left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
                     left join code_info d on a.purs_unit = d.code_no
                     left join code_info f on a.save_tmpr = f.code_no
-                    left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
+                    left join file_info c on a.file_no = c.file_no
+                                         and c.cust_no = #{custNo} and c.used_yn = 'Y' and c.file_no <![CDATA[ > ]]> 0
                     left join matr_cmpy m on a.matr_no = m.matr_no and m.cust_no = #{custNo} and m.used_yn = 'Y'
                     left join cmpy_info z on m.cmpy_no = z.cmpy_no and z.used_yn = 'Y' and z.cust_no = #{custNo} and z.used_yn = 'Y'
                     left join code_info aa on a.madein = aa.code_no
@@ -303,6 +304,7 @@
     </select>
 
     <select id="getMatrInfo" parameterType="map"  resultType="camelMap">
+        /* 원료 또는 부자재 정보 (mapper.getMatrInfo) */
         select a.matr_no --자재번호
              , a.matr_tp --자재구분 (원자재,부자재)
              , coalesce(e.safe_stk_qty,0) as  safe_stk_qty -- 안전재고
@@ -334,7 +336,8 @@
         from matr_info a join code_info b on a.matr_tp = b.code_no
                          left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
                          left join code_info d on a.purs_unit = d.code_no
-                         left join file_info c on a.file_no = c.file_no  and c.cust_no = #{custNo} and c.used_yn = 'Y'
+                         left join file_info c on a.file_no = c.file_no
+                                              and c.cust_no = #{custNo} and c.used_yn = 'Y'and c.file_no <![CDATA[ > ]]> 0
                          left join code_info f on a.save_tmpr = f.code_no
                          left join code_info g on a.madeby = g.code_no
                          left join ( select matr_no
@@ -359,6 +362,7 @@
           and a.cust_no = #{custNo}
     </select>
     <select id="getMatrCmpyList" parameterType="map"  resultType="camelMap">
+        /* 원료구매처목록 (matrMapper.getMatrCmpyList) */
         SELECT a.cmpy_no
              , b.cmpy_nm
              , b.tel_no
@@ -443,6 +447,7 @@
     </update>
 
     <select id="getMatrProdList" parameterType="map"  resultType="camelMap">
+        /*원료투입제품목록(matrMapper.getMatrProdList) */
         select    a.bom_no
                 , a.matr_no
                 , a.prod_no

@@ -13,7 +13,7 @@ import daedan.mes.matr.domain.MatrInfo;
 import daedan.mes.matr.repository.MatrRepository;
 import daedan.mes.prod.domain.ProdBom;
 import daedan.mes.prod.domain.ProdBomFormat;
-import daedan.mes.prod.domain.ProdFormat;
+import daedan.mes.prod.domain.sf.ProdFormat;
 import daedan.mes.prod.domain.ProdInfo;
 import daedan.mes.prod.repository.ProdBomRepository;
 import daedan.mes.prod.repository.ProdRepository;
@@ -259,7 +259,7 @@ public class SfProdServiceImpl implements SfProdService {
             } else if (custNo == 6) {
                 String data = row.getCell(ProdFormat.BRNCH_NO).getStringCellValue();
                 Long brnchNo = Long.parseLong(env.getProperty("code.base.proc_brnch"));
-                CodeInfo cdchk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,brnchNo, data.replace(" ", ""), "Y");
+                CodeInfo cdchk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(brnchNo, data.replace(" ", ""), "Y");
                 if (cdchk != null) {
                     prodInfo.setBrnchNo(cdchk.getCodeNo());
                 }
@@ -314,7 +314,7 @@ public class SfProdServiceImpl implements SfProdService {
                 prodInfo.setBomLvl(1L);
             }
             String mngrBase = row.getCell(ProdFormat.MNGR_BASE).getStringCellValue(); // 질량,중량 구분
-            prodInfo.setMngrBase(mngrBase.equals("중량") ? Long.parseLong(env.getProperty("code.base.mngrbase_mess"))
+            prodInfo.setMngrUnit(mngrBase.equals("중량") ? Long.parseLong(env.getProperty("code.base.mngrbase_vol"))
                     : Long.parseLong(env.getProperty("code.base.mngrbase_imp")));
 
             prodInfo.setProdBrnch(1L); //분류(기본값설정)
@@ -323,21 +323,21 @@ public class SfProdServiceImpl implements SfProdService {
 
             String exData = row.getCell(ProdFormat.SALE_UNIT).getStringCellValue(); // 단위 중량
             Long seleUnit = Long.parseLong(env.getProperty("code.base.saleunit"));
-            CodeInfo cdchk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,seleUnit, exData.replace(" ", ""), "Y");
+            CodeInfo cdchk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(seleUnit, exData.replace(" ", ""), "Y");
             if (cdchk != null) {
                 prodInfo.setSaleUnit(cdchk.getCodeNo());
             }
 
             String tmData = row.getCell(ProdFormat.SAVE_TMPR).getStringCellValue(); // 보관온도
             Long saveTmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd"));
-            CodeInfo cochk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,saveTmpr, tmData.replace(" ", ""), "Y");
+            CodeInfo cochk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(saveTmpr, tmData.replace(" ", ""), "Y");
             if (cochk != null) {
                 prodInfo.setSaveTmpr(cochk.getCodeNo());
             }
 
             String shData = row.getCell(ProdFormat.PROD_SHAPE).getStringCellValue(); // 보관온도
             Long prodShape = Long.parseLong(env.getProperty("code.base.prod_shape"));
-            CodeInfo shChk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,prodShape, shData.replace(" ", ""), "Y");
+            CodeInfo shChk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(prodShape, shData.replace(" ", ""), "Y");
             if (shChk != null) {
                 prodInfo.setProdShape(shChk.getCodeNo());
             }
@@ -409,19 +409,19 @@ public class SfProdServiceImpl implements SfProdService {
 
 
             String matrMngrBase = row.getCell(MatrFormat.MNGR_BASE).getStringCellValue(); // 질량,중량 구분
-            mtvo.setMngrBase(matrMngrBase.equals("중량") ? Long.parseLong(env.getProperty("code.base.mngrbase_mess"))
+            mtvo.setMngrBase(matrMngrBase.equals("중량") ? Long.parseLong(env.getProperty("code.base.mngrbase_vol"))
                     : Long.parseLong(env.getProperty("code.base.mngrbase_imp")));
 
             String saData = row.getCell(MatrFormat.PURS_UNIT).getStringCellValue(); // 단위 중량
             Long pursUnit = Long.parseLong(env.getProperty("code.base.unit"));
-            CodeInfo codechk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,pursUnit, saData.replace(" ", ""), "Y");
+            CodeInfo codechk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(pursUnit, saData.replace(" ", ""), "Y");
             if (codechk != null) {
                 mtvo.setPursUnit(codechk.getCodeNo());
             }
 
             String tmprData = row.getCell(MatrFormat.SAVE_TMPR).getStringCellValue(); // 보관온도
             Long maSaveTmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd"));
-            CodeInfo chk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,maSaveTmpr, tmprData.replace(" ", ""), "Y");
+            CodeInfo chk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(maSaveTmpr, tmprData.replace(" ", ""), "Y");
             if (chk != null) {
                 mtvo.setSaveTmpr(chk.getCodeNo());
             }

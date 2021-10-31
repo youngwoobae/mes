@@ -30,4 +30,5 @@ public interface CodeMapper {
     void updateCodeNm(CodeInfo coin);
 
 
+    Integer getMaxCodeSeq(Map<String, Object> paraMap);
 }
