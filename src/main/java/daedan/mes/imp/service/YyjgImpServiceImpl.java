@@ -1,4 +1,4 @@
-package daedan.mes.imp.service.yyjg;
+package daedan.mes.imp.service;
 
 import daedan.mes.cmpy.domain.CmpyInfo;
 import daedan.mes.cmpy.repository.CmpyRepository;
@@ -251,7 +251,7 @@ public class YyjgImpServiceImpl implements YyjgImpService {
     private void makeCmpy(int rowIndex, Long custNo,String cmpyNm, Long userId, String ipaddr) {
         String tag = "ImpService.makeCmpy ==> ";
         CmpyInfo cmvo = new CmpyInfo();
-        Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
+        Long mngrGbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
         cmvo.setUsedYn("Y");
 
         cmvo.setModDt(DateUtils.getCurrentBaseDateTime());
@@ -269,7 +269,7 @@ public class YyjgImpServiceImpl implements YyjgImpService {
                     int delimiterIx = arCmpy[ix].indexOf("_");
                     String chkCmpyNm = arCmpy[ix].substring(0, delimiterIx);
                     //float saleQty = Float.parseFloat(arCmpy[ix].substring(delimiterIx + 1));
-                    CmpyInfo chkCmpyVo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,chkCmpyNm, "Y");
+                    CmpyInfo chkCmpyVo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrGbnSale,chkCmpyNm, "Y");
                     if (chkCmpyVo != null) {
                         chkCmpyVo.setModDt(cmvo.getModDt());
                         chkCmpyVo.setModId(cmvo.getModId());
@@ -278,8 +278,8 @@ public class YyjgImpServiceImpl implements YyjgImpService {
                     } else {
                         cmvo.setCmpyNo(0L);
                         cmvo.setCmpyNm(chkCmpyNm);
-                        cmvo.setCmpyTp(Long.valueOf(env.getProperty("code.cmpytp.sale"))); //매출
-                        cmvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgb.cmpy"))); //법인
+                        cmvo.setCmpyTp(Long.valueOf(env.getProperty("code.cmpytp.cmpy"))); //법인
+                        cmvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgbn.sale"))); //매출
                         cmvo.setRegDt(DateUtils.getCurrentBaseDateTime());
                         cmvo.setRegId(userId);
                         cmvo.setRegIp(ipaddr);
@@ -289,13 +289,13 @@ public class YyjgImpServiceImpl implements YyjgImpService {
             }
             else { //거래처 1개 이하
                 log.info(tag + "행번호 ( " + rowIndex + " ) 거래처명 = " + cmpyNm + "  판매거래처 1개 존재");
-                CmpyInfo chkCmpyVo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpyNm, "Y");
+                CmpyInfo chkCmpyVo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrGbnSale,cmpyNm, "Y");
                 if (chkCmpyVo == null) {
                     log.info(tag + "행번호 ( " + rowIndex + " ) 생성거래처  = " + cmpyNm);
                     cmvo.setCmpyNo(0L);
                     cmvo.setCmpyNm(cmpyNm);
-                    cmvo.setCmpyTp(Long.valueOf(env.getProperty("code.cmpytp.sale"))); //매출
-                    cmvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgb.cmpy"))); //법인
+                    cmvo.setCmpyTp(Long.valueOf(env.getProperty("code.cmpytp.cmpy"))); //법인
+                    cmvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgbn.sale"))); //매출
                     cmvo.setRegDt(DateUtils.getCurrentBaseDateTime());
                     cmvo.setRegId(userId);
                     cmvo.setRegIp(ipaddr);
@@ -507,8 +507,8 @@ public class YyjgImpServiceImpl implements YyjgImpService {
     private OrdInfo saveOrd(int rowIndex, Long custNo, String chkCmpyNm,String prodNm,Date closDt, Float saleQty, ProdInfo prodvo, Long userId, Long fileNo) {
         StringBuffer buf = new StringBuffer();
         OrdInfo ordvo = null;
-        Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
-        CmpyInfo chkCmpyVo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,chkCmpyNm, "Y");
+        Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale"));
+        CmpyInfo chkCmpyVo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnSale,chkCmpyNm, "Y");
         if (chkCmpyVo != null) { //주문거래처가 있음
             ordvo = new OrdInfo();
             buf.setLength(0);

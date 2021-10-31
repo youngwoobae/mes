@@ -1,11 +1,10 @@
-package daedan.mes.imp.service.mihong;
+package daedan.mes.imp.service;
 
 import daedan.mes.cmpy.domain.CmpyInfo;
 import daedan.mes.cmpy.repository.CmpyRepository;
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
-import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.domain.OrdProd;
 import daedan.mes.ord.repository.OrdProdRepository;
@@ -89,7 +88,7 @@ public class MhImpServiceImpl implements MhImpService {
 
             String exData = row.getCell(3).getStringCellValue(); // 단위 중량
             Long ordSts = Long.parseLong(env.getProperty("code_base_ord_status"));
-            CodeInfo cdchk = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,ordSts, exData.replace(" ", ""), "Y");
+            CodeInfo cdchk = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(ordSts, exData.replace(" ", ""), "Y");
             if (cdchk != null) {
                 ordvo.setOrdSts(cdchk.getCodeNo());
             }
@@ -105,14 +104,13 @@ public class MhImpServiceImpl implements MhImpService {
 
             cmpyvo.setUsedYn("Y");
 
-            cmpyvo.setCmpyTp(Long.parseLong(env.getProperty("code.mngrgb.pers")));
-            cmpyvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.cmpytp.sale")));
-
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.sale"));
-            CmpyInfo cmvo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndReprMailAddrAndUsedYn(custNo,cmpyTp,cmNm,cmMi,"Y");
+            cmpyvo.setCmpyTp(Long.parseLong(env.getProperty("code.cmpytp.pers")));
+            cmpyvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgbn.sale")));
+            Long mngrgbnSale = cmpyvo.getMngrGbnCd();
+            CmpyInfo cmvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndReprMailAddrAndUsedYn(custNo,mngrgbnSale,cmNm,cmMi,"Y");
             if(cmvo != null){
-                cmpyvo.setCmpyNo(cmvo.getCmpyNo());
                 cmpyvo.setReprMailAddr(cmvo.getReprMailAddr());
+                cmpyvo.setCmpyNo(cmvo.getCmpyNo());
                 cmpyvo.setCmpyNm(cmvo.getCmpyNm());
                 cmpyvo.setModIp((String) paraMap.get("ipaddr"));
                 cmpyvo.setModId(Long.parseLong(paraMap.get("userId").toString()));

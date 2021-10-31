@@ -1,4 +1,4 @@
-package daedan.mes.prod.domain;
+package daedan.mes.prod.domain.sf;
 
 public class ProdFormat {
     public  static final int PROD_NO = 0; //제품번호

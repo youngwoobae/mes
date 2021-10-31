@@ -1,4 +1,4 @@
-package daedan.mes.prod.domain;
+package daedan.mes.prod.domain.ddkor;
 
 
 import lombok.Data;

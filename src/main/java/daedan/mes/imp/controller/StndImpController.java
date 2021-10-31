@@ -3,11 +3,7 @@ package daedan.mes.imp.controller;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
-import daedan.mes.imp.service.ImpService;
-import daedan.mes.imp.service.daedan.DaedanImpService;
-import daedan.mes.imp.service.mihong.MhImpService;
-import daedan.mes.imp.service.sf.SfImpService;
-import daedan.mes.imp.service.yyjg.YyjgImpService;
+import daedan.mes.imp.service.StndImpService;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,25 +18,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/daedan/mes/imp")
-public class ImpController {
+@RequestMapping("/api/daedan/mes/imp/stnd/")
+public class StndImpController {
     private Log log = LogFactory.getLog(this.getClass());
     @Autowired
+    private StndImpService impService;
+
+    @Autowired
     private Environment env;
-
-    @Autowired
-    private ImpService impService;
-
-    @Autowired
-    private DaedanImpService daedanImpService;
-
-    @Autowired
-    private SfImpService sfService;
-
-    @Autowired
-    private MhImpService mhService;
-    
-
 
     @PostMapping(value="/procRate")
     public Result getProcRate(@RequestBody HashMap<String, Object> paraMap , HttpSession session ) {
@@ -90,8 +75,8 @@ public class ImpController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        paraMap.put("cmpyTp",Long.valueOf(env.getProperty("code.cmpytp.sale"))); //매출
-        paraMap.put("mngrGbnCd", env.getProperty("code.mngrgb.cmpy")); //법인
+        paraMap.put("cmpyTp",Long.valueOf(env.getProperty("code.cmpytp.cmpy"))); //법인
+        paraMap.put("mngrGbnCd", env.getProperty("code.mngrgbn.sale")); //매출
         paraMap.put("session", session);
 
 
@@ -108,8 +93,8 @@ public class ImpController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        paraMap.put("cmpyTp",env.getProperty("code.cmpytp.purs")); //매입
-        paraMap.put("mngrGbnCd", env.getProperty("code.mngrgb.cmpy")); //법인
+        paraMap.put("mngrGbnCd",env.getProperty("code.mngrgbn.purs")); //매입
+        paraMap.put("cmpyTp", env.getProperty("code.cmpytp.cmpy")); //법인
         paraMap.put("session", session);
         impService.makeCmpyByExcel(paraMap);
         return result;
@@ -121,9 +106,9 @@ public class ImpController {
     @PostMapping(value="{path}/makeMatrByExcel")
     public Result makeMatrByExcel(
             @PathVariable(name = "path") String szPath
-          , @RequestBody HashMap<String, Object> paraMap
-          , HttpSession session
-          , HttpServletRequest request) throws Exception {
+            , @RequestBody HashMap<String, Object> paraMap
+            , HttpSession session
+            , HttpServletRequest request) throws Exception {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
@@ -157,6 +142,14 @@ public class ImpController {
     /*5. 상품정보생성
         {"fileNm":"sale_cmpy.xlsx"}
     */
+    /**
+     * 엑셀로 제품정보 업로드 처리
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
     @PostMapping(value="/makeProdByExcel")
     public Result makeProdByExcel(@RequestBody Map<String, Object> paraMap , HttpSession session, HttpServletRequest request) {
         Result result = Result.successInstance();
@@ -166,20 +159,6 @@ public class ImpController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
         impService.makeProdByExcel(paraMap);
-        return result;
-    }
-
-
-    @PostMapping(value="/makeStkByExcel")
-    public Result makeStkByExcel(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session)throws Exception {
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("session", session);
-
-        result.setData(daedanImpService.makeStkByExcel(paraMap));
         return result;
     }
 
@@ -290,22 +269,6 @@ public class ImpController {
     }
 
 
-    @PostMapping(value="/prodExcel")
-    public Result prodExcel(@RequestBody HashMap<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        try {
-            impService.prodExcel(paraMap);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        result.setData("OK");
-        return result;
-    }
-
     /*0: 사용자생성
         {"fileNm":"user.xlsx"}
     */
@@ -356,45 +319,4 @@ public class ImpController {
         result.setData(impService.makeIndcExcelList(paraMap));
         return result;
     }
-
-    @PostMapping(value="/chkProdExist")
-    public Result chkProdExist(@RequestBody HashMap<String, Object> paraMap , HttpServletRequest request, HttpSession session)  throws Exception {
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("fileRoot",uvo.getCustInfo().getFileRoot());
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        paraMap.put("session", session);
-
-        result.setData(sfService.chkProdExist(paraMap));
-        return result;
-    }
-
-    @PostMapping(value="/makeMatrStkByExcel")
-    public Result makeMatrStkByExcel(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session)throws Exception {
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
-        paraMap.put("session", session);
-        result.setData(daedanImpService.makeMatrStkByExcel(paraMap));
-        return result;
-    }
-
-    @PostMapping(value="/ordInfoByExcel")
-    public Result ordInfoByExcel(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session)throws Exception {
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("session", session);
-        mhService.ordInfoByExcel(paraMap);
-        return result;
-    }
 }
-
-
-
-

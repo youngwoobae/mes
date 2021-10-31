@@ -1,4 +1,4 @@
-package daedan.mes.imp.service.sf;
+package daedan.mes.imp.service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;

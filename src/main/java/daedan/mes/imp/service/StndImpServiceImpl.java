@@ -9,8 +9,10 @@ import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.dept.domain.DeptInfo;
 import daedan.mes.dept.repository.DeptRepository;
-import daedan.mes.file.repository.FileRepository;
 import daedan.mes.file.service.FileService;
+import daedan.mes.imp.domain.stnd.CmpyFormat;
+import daedan.mes.imp.domain.stnd.MatrFormat;
+import daedan.mes.imp.domain.stnd.ProdFormat;
 import daedan.mes.make.mapper.MakeIndcMapper;
 import daedan.mes.matr.domain.MatrCmpy;
 import daedan.mes.matr.domain.MatrInfo;
@@ -21,11 +23,11 @@ import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.domain.OrdProd;
 import daedan.mes.ord.repository.OrdProdRepository;
 import daedan.mes.ord.repository.OrdRepository;
+import daedan.mes.proc.repository.ProcBrnchRepository;
 import daedan.mes.prod.domain.ProdBom;
 import daedan.mes.prod.domain.ProdInfo;
 import daedan.mes.prod.mapper.ProdMapper;
 import daedan.mes.prod.repository.ProdBomRepository;
-import daedan.mes.prod.repository.ProdBrnchRepository;
 import daedan.mes.prod.repository.ProdRepository;
 import daedan.mes.purs.domain.PursInfo;
 import daedan.mes.purs.domain.PursMatr;
@@ -57,7 +59,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service("impService")
-public class ImpServiceImpl implements ImpService {
+public class StndImpServiceImpl implements StndImpService {
     private Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
@@ -77,6 +79,12 @@ public class ImpServiceImpl implements ImpService {
 
     @Autowired
     private PursMatrRepository pursMatrRepo;
+
+    @Autowired
+    private ProcBrnchRepository procBrnchRepo;
+
+    @Autowired
+    private MatrCmpyRepository matrCmpyRepo;
 
     @Autowired
     private ProdMapper prodMapper;
@@ -103,9 +111,6 @@ public class ImpServiceImpl implements ImpService {
 
     @Autowired
     private CmpyRepository cmpyRepo;
-
-    @Autowired
-    private MatrCmpyRepository matrCmpyRepo;
 
     @Autowired
     private PursInfoRepository pursInfoRepo;
@@ -204,6 +209,7 @@ public class ImpServiceImpl implements ImpService {
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         String filePath = fileService.getFileInfo(fileRoot,fileNo);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        CmpyFormat frm = new CmpyFormat();
         try {
             FileInputStream file = new FileInputStream(filePath);
             XSSFWorkbook workbook = new XSSFWorkbook(file);
@@ -214,6 +220,7 @@ public class ImpServiceImpl implements ImpService {
             String exData = "";
             int idx = 0;
             String cmpyNm = "";
+            Long parMngrGbnCd = Long.parseLong(env.getProperty("prod_brnch_root")); //매입,매출구분코드
 
             for (rowindex = 0; rowindex < rows; rowindex++) {
                 if (rowindex < 1) continue; //헤더정보 skip
@@ -224,17 +231,12 @@ public class ImpServiceImpl implements ImpService {
                 CmpyInfo vo = new CmpyInfo();
 
                 try{
-                    Double cmpyNo = row.getCell(0).getNumericCellValue();
-                    String sz = Double.toString(cmpyNo);
-                    vo.setCmpyNo(Long.parseLong(sz.substring(0,sz.indexOf("."))));
+                    vo.setCmpyNo((long)row.getCell(frm.IX_CMPY_NO).getNumericCellValue()  );
                 }catch(NullPointerException ne){
                     vo.setCmpyNo(0L);
                 }
-                catch (IllegalStateException ie) {
-                    vo.setCmpyNo(0L);
-                }
                 try {
-                    cmpyNm = row.getCell(1).getStringCellValue(); // 회사 명
+                    cmpyNm = row.getCell(frm.IX_CMPY_NM).getStringCellValue(); // 회사 명
                     cmpyNm = cmpyNm.replaceAll("\\p{Z}", "");
                     if (cmpyNm.length() <= 1) continue;
                 }
@@ -246,85 +248,73 @@ public class ImpServiceImpl implements ImpService {
                         continue;
                     }
                 }
-
+                vo.setCmpyNm(cmpyNm);
                 try{
-                    vo.setCmanNm(row.getCell(2).getStringCellValue()); //대표자명
+                    vo.setCmanNm(row.getCell(frm.IX_CMAN_NM).getStringCellValue()); //대표자명
                 } catch (NullPointerException en){
                 }
 
                 try{
-                    vo.setSaupNo(String.valueOf(row.getCell(3).getStringCellValue())); //사업자번호
+                    vo.setSaupNo(String.valueOf(row.getCell(frm.IX_SAUP_NO).getStringCellValue())); //사업자번호
                 }catch (NullPointerException en){
 
                 }
-                catch (IllegalStateException ie) {
-
-                }
                 try{
-                    vo.setTelNo(row.getCell(4).getStringCellValue());//대표 전화
-                }catch (IllegalStateException en) {
-
+                    vo.setTelNo(row.getCell(frm.IX_TEL_NO).getStringCellValue());//대표 전화
                 }catch (NullPointerException e){
 
                 }
 
                 try{
-                    vo.setFaxNo(row.getCell(5).getStringCellValue());//대표 Fox
-                }catch (IllegalStateException en) {
-
+                    vo.setFaxNo(row.getCell(frm.IX_FAX_NO).getStringCellValue());//대표 Fox
                 }catch (NullPointerException e){
 
                 }
 
                 try{
-                    vo.setCmanCellNo(row.getCell(6).getStringCellValue()); //대표자이동전화
+                    vo.setCmanCellNo(row.getCell(frm.IX_CELL_NO).getStringCellValue()); //담당자이동전화
 
                 }catch (NullPointerException en){
 
                 }
 
+                exData = row.getCell(frm.IX_CMPY_TP).getStringCellValue(); // 매입/매출/기타
+                CodeInfo cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(parMngrGbnCd ,exData.replace(" ",""),"Y");
+                if(cdvo != null){
+                    vo.setMngrGbnCd(cdvo.getCodeNo()); //매입 매출
+                }
 
-//                exData = row.getCell(6).getStringCellValue(); // 매입/매출/기타
-//                Long lnMngrGbnCd = Long.parseLong(env.getProperty("code.base.cmpytp"));
-//                CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(lnMngrGbnCd ,exData.replace(" ",""),"Y");
-//                if(mgvo != null){
-//                    vo.setMngrGbnCd(mgvo.getCodeNo()); //매입 매출
-//                }
-
+                vo.setCmpyTp(Long.parseLong(env.getProperty("code.cmpytp.cmpy"))); //법인
                 try{
                     vo.setReprMailAddr(row.getCell(8).getStringCellValue());//이메일
                 }catch (NullPointerException en){
                 }
 
-
-//                try{
-//                    vo.setErpCd(String.valueOf(row.getCell(3).getStringCellValue())); // ERP코드
-//                }catch (NullPointerException en){
-//                }
-
-//                try{
-//                    vo.setAddr(row.getCell(7).getStringCellValue()); // 주소
-//                }catch (NullPointerException en){
-//                }
-
-                vo.setCmpyTp(Long.parseLong(env.getProperty("code.mngrgb.cmpy"))); //법인,개인
+                vo.setCmpyTp(Long.parseLong(env.getProperty("code.cmpytp.cmpy"))); //법인,개인
                 vo.setMngrGbnCd(Long.parseLong(paraMap.get("mngrGbnCd").toString())); //매입, 매출구분
                 vo.setUsedYn("Y");
                 vo.setCustNo(custNo);
-
-                CmpyInfo chkvo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNoAndUsedYn(custNo,vo.getCmpyTp(),vo.getCmpyNo(), "Y");
+                vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                vo.setModIp(paraMap.get("ipaddr").toString());
+                vo.setModDt(DateUtils.getCurrentBaseDateTime());
+                CmpyInfo chkvo = null;
+                if (vo.getCmpyTp() != 0L) {
+                    chkvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNoAndUsedYn(custNo,vo.getMngrGbnCd(),vo.getCmpyNo(), "Y");
+                }
+                else {
+                    chkvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,vo.getMngrGbnCd(),vo.getCmpyNm(), "Y");
+                }
                 if (chkvo != null) {
                     vo.setCmpyNo(chkvo.getCmpyNo());
-                    vo.setCmpyNm(chkvo.getCmpyNm());
-                    vo.setModIp("127.0.0.1");
-                    vo.setModId(3L);
-                    vo.setModDt(DateUtils.getCurrentDate());
-                } else {
+                    vo.setRegDt(chkvo.getRegDt());
+                    vo.setRegIp(chkvo.getRegIp());
+                    vo.setRegId(chkvo.getRegId());
+                }
+                else {
                     vo.setCmpyNo(0L);
-                    vo.setCmpyNm(cmpyNm);
-                    vo.setRegIp("127.0.0.1");
-                    vo.setRegId(3L);
-                    vo.setRegDt(DateUtils.getCurrentDate());
+                    vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+                    vo.setRegIp(paraMap.get("ipaddr").toString());
+                    vo.setRegDt(DateUtils.getCurrentBaseDateTime());
                 }
                 vo.setCustNo(custNo);
                 cmpyRepo.save(vo);
@@ -340,28 +330,34 @@ public class ImpServiceImpl implements ImpService {
     @Transactional
     @Override
     public void makeMatrByNormalExcel(Map<String, Object> paraMap) {
-        String tag = "ImptoolService.makeMatrByExcel => ";
+        String tag = "stnd_ImpService.makeMatrByNormalExcel => ";
         String fileRoot = paraMap.get("fileRoot").toString();
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         String filePath = fileService.getFileInfo(fileRoot,fileNo);
 
-//        StringBuffer buf = new StringBuffer();
-//
-//        String fileRoot = env.getProperty("file.root.path");
-//        buf.setLength(0);
-//        buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
-//        String absFilePath = buf.toString();
-
         FileInputStream file = null;
-        String exData = "";
-        String svData = "";
         try {
             file = new FileInputStream(filePath);
             XSSFWorkbook workbook = new XSSFWorkbook(file);
             int rowindex = 0;
             XSSFSheet sheet = workbook.getSheetAt(0); //시트
             int rows = sheet.getPhysicalNumberOfRows();
+            MatrFormat format = new MatrFormat();
+            Long baseMadeInCd = Long.parseLong(env.getProperty("code.base.madein")); //원산지 : 90
+            Long mngrgbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs")); //매입
+            Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale")); //매출
+            Long cmpyTpCmpy = Long.parseLong(env.getProperty("code.cmpytp.cmpy")); //법인
+            Long basePursUnitCd = Long.parseLong(env.getProperty("code.base.unit")); //구매단위
+            Long baseSaveTmprCd = Long.parseLong(env.getProperty("code.base.save_tmpr_cd")); //보관온도
+            Map<String,Object> cdmap = new HashMap<String,Object>(); //코드생성용
+
+            String strChk = "";
+            CodeInfo cdvo = null;
+            HttpSession session = (HttpSession) paraMap.get("session");
+            UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+
+            session.getAttribute("userInfo");
             for (rowindex = 0; rowindex < rows; rowindex++) {
                 if (rowindex < 1) continue; //헤더정보 skip
 
@@ -371,45 +367,175 @@ public class ImpServiceImpl implements ImpService {
 
                 try {
                     MatrInfo matrvo = new MatrInfo(); // 원자재
-
-                    matrvo.setItemCd(row.getCell(0).getStringCellValue()); // 자재 번호
-                    matrvo.setMatrNm(row.getCell(1).getStringCellValue()); //자재명(원자재)
-                    matrvo.setSz(row.getCell(2).getStringCellValue()); //규격
-                    matrvo.setBrnchNo(1L);
+                    matrvo.setBrnchNo(1L); //자재분류
                     matrvo.setUsedYn("Y");
-                    matrvo.setRegId(0L);
-                    matrvo.setRegIp(paraMap.get("ipaddr").toString());
-                    matrvo.setRegDt(DateUtils.getCurrentDate());
-                    matrvo.setModDt(DateUtils.getCurrentDate());
-                    matrvo.setModIp(paraMap.get("ipaddr").toString());
-                    matrvo.setModId(0L);
-                    matrvo.setMatrTp(Long.parseLong(env.getProperty("code.matrtp.matr"))); // 자재(원자재) 고정
-//                    matrvo.setPursUnit(Long.parseLong(env.getProperty("code.purs_unit.kg"))); // 단위(Kg) 고정
-                    matrvo.setSaveTmpr(Long.parseLong(env.getProperty("code.savetmpr.cold"))); // 보관온도(상온) 고정
-                    matrvo.setValidTerm(12); //유효기간-12개월
+                    matrvo.setMatrNm(row.getCell(format.IX_MATR_NM).getStringCellValue()); // 자재명
 
-                    MatrInfo chkvo = matrRepo.findByCustNoAndMatrNoAndMatrNmAndUsedYn(custNo,matrvo.getMatrNo(), matrvo.getMatrNm(), "Y");
-                    if (chkvo != null) {
-                        matrvo.setMatrNm(matrvo.getMatrNm());
+                    strChk = row.getCell(format.IX_PURS_UNIT).getStringCellValue(); //구매단위
+                    cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(basePursUnitCd,strChk.toUpperCase(Locale.ROOT),"Y");
+                    if (cdvo != null) {
+                        matrvo.setPursUnit(cdvo.getCodeNo());
                     }
-//                  exData = row.getCell(6).getStringCellValue();
-//                  Long lnMatrTp = Long.parseLong(env.getProperty("base.matr_type_cd"));
-//                  CodeInfo cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(lnMatrTp ,exData.replace(" ",""),"Y");
-//                  if(cdvo != null){
-//                      matrvo.setMatrTp(cdvo.getCodeNo()); //자재구분(원육,시즈닝,원자재,부자재)
-//                  }
-                    svData = row.getCell(3).getStringCellValue();
-                    Long lnUnit = Long.parseLong(env.getProperty("code.base.unit"));
-                    CodeInfo unvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,lnUnit, svData.replace(" ", ""), "Y");
-                    if (unvo != null) {
-                        matrvo.setPursUnit(unvo.getCodeNo()); //단위(KG, EA 등)
+                    try {
+                        matrvo.setValidTerm((int) row.getCell(format.IX_VAL_TERM).getNumericCellValue());
+                    }
+                    catch (NullPointerException ne) {
+                        matrvo.setValidTerm(12);
+                    }
+                    //보관온도
+                    strChk = row.getCell(format.IX_SAVE_TMPR).getStringCellValue();
+                    cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseSaveTmprCd,strChk.toUpperCase(Locale.ROOT),"Y");
+                    if (cdvo != null) {
+                        matrvo.setSaveTmpr(cdvo.getCodeNo());
+                    }
+                    matrvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
+
+                    matrvo.setMatrTp(Long.parseLong(env.getProperty("rawmatr_cd"))); //자재구분(원료:44)
+                    matrvo.setMngrUnit(Long.parseLong(env.getProperty("code.base.mngrbase_imp"))); //관리단위=부피
+
+                    try {
+                        matrvo.setItemCd(row.getCell(format.IX_MATR_CD).getStringCellValue());
+                    }
+                    catch(NullPointerException ne) {
+
+                    }
+                    try {
+                        matrvo.setSz(row.getCell(format.IX_SZ).getStringCellValue()); //규격
+
+                        int index = matrvo.getSz().indexOf("kg");
+                        Long pursUnitWgt = Long.parseLong(matrvo.getSz().substring(0,index));
+                        matrvo.setPursUnitWgt(pursUnitWgt); //구매단위중량
+                        matrvo.setVol((float) pursUnitWgt);  //중량
+                        matrvo.setMess((float) pursUnitWgt); //질량
+                        //log.info(tag + " pursUnitWgt = " + pursUnitWgt + "vol = " + matrvo.getVol() + " : floaPursUnitWgt = " + (float)pursUnitWgt);
+                        //matrvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
+                        matrvo.setSpga(1f); //비중
+
+                        //구매단위
+                        cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(basePursUnitCd,"Kg".toUpperCase(Locale.ROOT),"Y");
+                        if (cdvo != null) {
+                            matrvo.setPursUnit(cdvo.getCodeNo());
+                        }
+                    }
+                    catch(NullPointerException ne) {
+
+                    }
+                    //원산지
+                    try {
+                        strChk = row.getCell(format.IX_MADE_IN).getStringCellValue();
+                        cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseMadeInCd, strChk.toUpperCase(Locale.ROOT), "Y");
+                        if (cdvo != null) {
+                            matrvo.setMadein(cdvo.getCodeNo());
+                        } else {
+                            cdvo = new CodeInfo();
+                            cdvo.setParCodeNo(baseMadeInCd);
+                            cdvo.setCodeNo(0L);
+                            cdvo.setCodeNm(strChk);
+                            cdvo.setCodeAlais(strChk);
+                            cdvo.setCodeBrief(strChk);
+                            cdvo.setCodeSeq(0);
+                            cdvo.setModableYn("N");
+                            cdvo.setUsedYn("Y");
+                            cdvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                            cdvo.setModIp("localhost");
+                            cdvo.setModId(uvo.getUserId());
+                            cdvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                            cdvo.setRegIp("localhost");
+
+                            cdvo.setRegId(uvo.getUserId());
+
+                            cdmap.put("parCodeNo", baseMadeInCd);
+                            cdvo.setCodeSeq(codeMapper.getMaxCodeSeq(cdmap));
+                            cdvo = codeRepo.save(cdvo);
+                            if (cdvo != null) {
+                                matrvo.setMadein(cdvo.getCodeNo());
+                            }
+                        }
+                    }
+                    catch (NullPointerException ne) {
+
                     }
                     matrvo.setCustNo(custNo);
-                    matrRepo.save(matrvo);
+                    matrvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    matrvo.setModIp("localhost");
+                    matrvo.setModId(uvo.getUserId());
+                    matrvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                    matrvo.setRegIp("localhost");
+                    matrvo.setRegId(uvo.getUserId());
+                    try {
+                        matrvo.setMatrNo( (long) row.getCell(format.IX_MATR_NO).getNumericCellValue());
+                    }
+                    catch (NullPointerException ne) {
+                        matrvo.setMatrNo(0L);
+                    }
+                    log.info(tag + " matrInfo.matrNo = " + matrvo.getMatrNo());
 
+                    MatrInfo chkmivo = null;
+                    if (matrvo.getMatrNo() == 0L) {
+                        chkmivo = matrRepo.findByCustNoAndMatrNmAndUsedYn(matrvo.getCustNo(), matrvo.getMatrNm(), "Y");
+                    }
+                    else {
+                        chkmivo = matrRepo.findByCustNoAndMatrNoAndUsedYn(matrvo.getCustNo(), matrvo.getMatrNo(), "Y");
+                    }
+
+                    if (chkmivo == null) {
+                        matrvo.setMatrNo(0L);
+                    }
+                    else {
+                        matrvo.setMatrNo(chkmivo.getMatrNo());
+                        matrvo.setMatrNo(chkmivo.getMatrNo());
+                        matrvo.setRegDt(chkmivo.getRegDt());
+                        matrvo.setRegIp(chkmivo.getRegIp());
+                        matrvo.setRegId(chkmivo.getRegId());
+                    }
+                    //matrvo.setFileNo(0L);
+
+                    matrvo = matrRepo.save(matrvo);
+
+                    strChk = row.getCell(format.IX_CMPY_NM).getStringCellValue();
+                    CmpyInfo cmvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnPurs,strChk,"Y");
+                    if (cmvo == null) {
+                        cmvo = new CmpyInfo();
+                        cmvo.setCmpyNm(strChk);
+                        cmvo.setMngrGbnCd(mngrgbnPurs); //매입거래처
+                        cmvo.setCmpyTp(cmpyTpCmpy); //법인
+                        cmvo.setUsedYn("Y");
+                        cmvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                        cmvo.setModIp("localhost");
+                        cmvo.setModId(uvo.getUserId());
+                        cmvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                        cmvo.setRegIp("localhost");
+                        cmvo.setRegId(uvo.getUserId());
+                        cmvo.setCustNo(custNo);
+                        cmvo = cmpyRepo.save(cmvo);
+                    }
+
+                    MatrCmpy mchkvo = matrCmpyRepo.findByCustNoAndMatrNoAndCmpyNoAndUsedYn(custNo,cmvo.getCmpyNo(),matrvo.getMatrNo(),"Y");
+                    if (mchkvo == null) {
+                        mchkvo = new MatrCmpy();
+                        mchkvo.setMatrCmpyNo(0L);
+                        mchkvo.setMatrNo(matrvo.getMatrNo());
+                        mchkvo.setCmpyNo(cmvo.getCmpyNo());
+                        mchkvo.setDefaultYn("N");
+                        mchkvo.setUsedYn("Y");
+                        mchkvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                        mchkvo.setModIp("localhost");
+
+                        mchkvo.setModId(uvo.getUserId());
+                        mchkvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                        mchkvo.setRegIp("localhost");
+                        mchkvo.setRegId(uvo.getUserId());
+                        mchkvo.setCustNo(custNo);
+                        matrCmpyRepo.save(mchkvo);
+
+                    }
                 } catch (NullPointerException ne) {
+                    ne.printStackTrace();
                     continue;
                 }
+
+
+
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -472,8 +598,8 @@ public class ImpServiceImpl implements ImpService {
             if (chkvo != null) {
                 matrNo = chkvo.getMatrNo();
             }
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.purs"));
-            CmpyInfo chkInfo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,cmpy, "Y");
+            Long mngrgbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs"));
+            CmpyInfo chkInfo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnPurs,cmpy, "Y");
             if (chkInfo != null) {
                 mcvo.setCmpyNo(chkInfo.getCmpyNo());
             }
@@ -499,6 +625,7 @@ public class ImpServiceImpl implements ImpService {
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         String fileRoot = paraMap.get("fileRoot").toString();
+        Long mngrGbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs"));
         buf.setLength(0);
         buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
         String absFilePath = buf.toString();
@@ -540,7 +667,7 @@ public class ImpServiceImpl implements ImpService {
                 ivo.setModDt(DateUtils.getCurrentDate());
                 ivo.setModId(0L);
                 ivo.setModIp(paraMap.get("ipaddr").toString());
-                cmpyvo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,20L, row.getCell(2).getStringCellValue(), "Y");
+                cmpyvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrGbnPurs, row.getCell(2).getStringCellValue(), "Y");
                 if (cmpyvo == null) {
                     log.error(tag + "구매거래처 검색 실패 LineNo = " + rowindex);
                     continue;
@@ -567,7 +694,7 @@ public class ImpServiceImpl implements ImpService {
                 mvo.setMatrNo(matrvo.getMatrNo()); //자재번호
 
                 //구매단위추출
-                codevo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,Long.parseLong(env.getProperty("code.base.unit")), row.getCell(12).getStringCellValue(), "Y");
+                codevo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(Long.parseLong(env.getProperty("code.base.unit")), row.getCell(12).getStringCellValue(), "Y");
                 if (codevo == null) {
                     log.error(tag + "구매단위코드 검색 실패 LineNo = " + rowindex);
                     continue;
@@ -603,48 +730,148 @@ public class ImpServiceImpl implements ImpService {
     @Override
     @Transactional
     public void makeProdByExcel(Map<String, Object> paraMap) {
-        StringBuffer buf = new StringBuffer();
+        String tag = "stnd_ImpService.makeProdByExcel => ";
         String fileRoot = paraMap.get("fileRoot").toString();
+        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        buf.setLength(0);
-        buf.append(fileRoot).append(File.separator).append(paraMap.get("fileNm"));
+        String filePath = fileService.getFileInfo(fileRoot,fileNo);
+
         FileInputStream file = null;
         try {
-            file = new FileInputStream(buf.toString());
+            file = new FileInputStream(filePath);
             XSSFWorkbook workbook = new XSSFWorkbook(file);
             int rowindex = 0;
-            String exData = "";
             XSSFSheet sheet = workbook.getSheetAt(0); //시트
             int rows = sheet.getPhysicalNumberOfRows();
+            ProdFormat format = new ProdFormat();
+            Long baseProdTp = Long.parseLong(env.getProperty("code.base.prodTp")); //판매구분 : 34
+            Long baseSaveTmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd")); //보관온도 : 120
+            Long baseSaleUnit = Long.parseLong(env.getProperty("code.base.sale_unit")); //판매단위 : 80
+
+            String strChk = "";
+            CodeInfo cdvo = null;
+            HttpSession session = (HttpSession) paraMap.get("session");
+            UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+            session.getAttribute("userInfo");
+
             for (rowindex = 0; rowindex < rows; rowindex++) {
                 if (rowindex < 1) continue; //헤더정보 skip
+
                 XSSFRow row = sheet.getRow(rowindex);
+                if (row == null) continue;
+                log.info(tag + "excel처리행수 = " + rows + " / " + rowindex);
 
-                ProdInfo prodvo = new ProdInfo();
-                prodvo.setProdNm(row.getCell(0).getStringCellValue());
+                try {
+                    ProdInfo prodvo = new ProdInfo();
+                    prodvo.setUsedYn("Y");
 
+                    prodvo.setProdNm(row.getCell(format.IX_PROD_NM).getStringCellValue()); //품명
+                    log.info(tag +  " 품명= " + prodvo.getProdNm());
+                    try {
+                        prodvo.setErpProdNm(row.getCell(format.IX_PROD_ERP_NM).getStringCellValue()); //ERP품명
+                    }
+                    catch (NullPointerException ne) {
 
-//                exData = row.getCell(0).getStringCellValue();
-//                ProdInfo chkvo = prodRepo.findByProdNmAndProdNoAndUsedYn(exData.replace(" ",""),prodvo.getProdNo(),"Y");
-//                if (chkvo != null) {
-//                    prodvo.setProdNm(chkvo.getProdNm());
-//                    prodvo.setProdNo(chkvo.getProdNo());
-//                }else {continue;}
-                //상품정보생성
-                prodvo.setUnitAmt(0);//포장단위금액(기본값설정)
-                prodvo.setQtyPerPkg(1); //세트구성수량(기본값설정)
-                prodvo.setFileNo(0L);//상품이미지(기본값설정)
-                prodvo.setUsedYn("Y");//사용구분(기본값설정)
-                prodvo.setProdBrnch(1L); //분류(기본값설정)
-                prodvo.setSaleUnit(Long.parseLong(env.getProperty("code.purs_unit.kg"))); // 단위(Kg) 고정
-                prodvo.setRegDt(DateUtils.getCurrentDate());
-                prodvo.setRegId(0L);
-                prodvo.setRegIp(paraMap.get("ipaddr").toString());
-                prodvo.setModDt(DateUtils.getCurrentDate());
-                prodvo.setModIp(paraMap.get("ipaddr").toString());
-                prodvo.setModId(0L);
-                prodvo.setCustNo(custNo);
-                prodRepo.save(prodvo);
+                    }
+                    try {
+                        prodvo.setErpProdNm(row.getCell(format.IX_PROD_CD).getStringCellValue()); //품코드
+                    }
+                    catch (NullPointerException ne) {
+
+                    }
+                    //판매구분(oem.b2b등)명
+                    strChk = row.getCell(format.IX_PROD_TYPE).getStringCellValue();
+                    cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseProdTp,strChk.toUpperCase(Locale.ROOT),"Y");
+                    if (cdvo != null) {
+                        prodvo.setProdTp(cdvo.getCodeNo());
+                    }
+                    //보관온도
+                    strChk = row.getCell(format.IX_SAVE_TMPR).getStringCellValue();
+                    cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseSaveTmpr,strChk.toUpperCase(Locale.ROOT),"Y");
+                    if (cdvo != null) {
+                        prodvo.setSaveTmpr(cdvo.getCodeNo());
+                    }
+                    //유통기한
+                    try {
+                        prodvo.setValidTerm((int) row.getCell(format.IX_VAL_TERM).getNumericCellValue());
+                    }
+                    catch (NullPointerException ne) {
+                        prodvo.setValidTerm(12);
+                    }
+                    //제조공정은 너무 복잡해서 제품 생성후 별로도 화면으로 처리해야 함.
+
+                    //규격,중량,질량
+                    try {
+                        strChk = row.getCell(format.IX_PROD_SZ).getStringCellValue();
+                        prodvo.setSz(strChk);
+                        int index = prodvo.getSz().indexOf("kg");
+                        Long pursUnitWgt = Long.parseLong(prodvo.getSz().substring(0,index));
+                        prodvo.setVol((float) pursUnitWgt);  //중량
+                        prodvo.setMess((float) pursUnitWgt); //질량
+                    }
+                    catch ( NullPointerException ne) {
+
+                    }
+                    //판매단위
+                    strChk = row.getCell(format.IX_SALE_UNIT).getStringCellValue();
+                    cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseSaleUnit,strChk.toUpperCase(Locale.ROOT),"Y");
+                    if (cdvo != null) {
+                        prodvo.setSaleUnit(cdvo.getCodeNo());
+                    }
+
+                    //입수량
+                    try {
+                        prodvo.setQtyPerPkg((int)row.getCell(format.IX_QTY_PER_PKG).getNumericCellValue());
+                    }
+                    catch(NullPointerException ne) {
+                        row.getCell(1);
+                    }
+                    prodvo.setBomLvl(1L);
+                    try {
+                        prodvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
+                    }
+                    catch(NullPointerException ne) {
+                        prodvo.setSpga(1f); //비중
+                    }
+                    prodvo.setCustNo(custNo);
+                    prodvo.setUsedYn("Y");
+                    prodvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    prodvo.setModIp("localhost");
+                    prodvo.setModId(uvo.getUserId());
+                    prodvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                    prodvo.setRegIp("localhost");
+                    prodvo.setRegId(uvo.getUserId());
+                    try {
+                        prodvo.setProdNo( (long) row.getCell(format.IX_PROD_NO).getNumericCellValue());
+                    }
+                    catch (NullPointerException ne) {
+                        prodvo.setProdNo(0L);
+                    }
+                    log.info(tag + " prodInfo.prodNo = " + prodvo.getProdNo());
+
+                    ProdInfo chkvo = null;
+                    if (prodvo.getProdNo() == 0L) {
+                        chkvo = prodRepo.findByCustNoAndProdNmAndUsedYn(prodvo.getCustNo(), prodvo.getProdNm(), "Y");
+                    }
+                    else {
+                        chkvo = prodRepo.findByCustNoAndProdNoAndUsedYn(prodvo.getCustNo(), prodvo.getProdNo(), "Y");
+                    }
+
+                    if (chkvo == null) {
+                        prodvo.setProdNo(0L);
+                    }
+                    else {
+                        prodvo.setProdNo(chkvo.getProdNo());
+                        prodvo.setRegDt(chkvo.getRegDt());
+                        prodvo.setRegIp(chkvo.getRegIp());
+                        prodvo.setRegId(chkvo.getRegId());
+                    }
+                    //matrvo.setFileNo(0L);
+                    prodRepo.save(prodvo);
+                } catch (NullPointerException ne) {
+                    ne.printStackTrace();
+                    continue;
+                }
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -802,8 +1029,8 @@ public class ImpServiceImpl implements ImpService {
                 //주문거래처번호 추출
                 CmpyInfo cmpyvo = new CmpyInfo();
                 cmpyvo.setCmpyNm(row.getCell(2).getStringCellValue());
-                cmpyvo.setCmpyTp(21L); //매입처
-                CmpyInfo ckcmpyvo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyvo.getCmpyTp(), cmpyvo.getCmpyNm(), "Y");
+                cmpyvo.setMngrGbnCd(Long.parseLong(env.getProperty("code.mngrgbn.purs"))); //매입처
+                CmpyInfo ckcmpyvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,cmpyvo.getMngrGbnCd(), cmpyvo.getCmpyNm(), "Y");
                 if (ckcmpyvo == null) {
                     log.info(tag + "주문거래처번호추출실패 : 처리행번 = " + rowindex);
                     continue;
@@ -888,7 +1115,7 @@ public class ImpServiceImpl implements ImpService {
                 pvo.setOrdSz(prodvo.getSz() == null ? prodvo.getProdCode() : prodvo.getSz());
 
                 //포장단위추출
-                codevo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,Long.parseLong(env.getProperty("code.base.saleunit")), row.getCell(6).getStringCellValue(), "Y");
+                codevo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(Long.parseLong(env.getProperty("code.base.saleunit")), row.getCell(6).getStringCellValue(), "Y");
                 if (codevo == null) {
                     log.error(tag + "상품포장단위코드 검색 실패 LineNo = " + rowindex);
                     continue;
@@ -978,7 +1205,7 @@ public class ImpServiceImpl implements ImpService {
 //            matrInfo.setValidTerm(12);
 //            matrInfo.setVol(1000F);
 //            matrInfo.setMess(1000F);
-//            matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_mess")));
+//            matrInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));
 //            matrInfo.setSpge(1F);
 //
 //            MatrInfo chkMatr = matrRepo.findByMatrNmAndUsedYn(matrNm, "Y");
@@ -997,8 +1224,8 @@ public class ImpServiceImpl implements ImpService {
 //            matrRepo.save(matrInfo);
 
             MatrCmpy cmvo = new MatrCmpy();
-            Long cmpyTp = Long.parseLong(env.getProperty("code.cmpytp.purs"));//매입거래처
-            CmpyInfo cmpyvo = cmpyRepo.findByCustNoAndCmpyTpAndCmpyNmAndUsedYn(custNo,cmpyTp,"구매처미상","Y");
+            Long mngrgbnCd = Long.parseLong(env.getProperty("code.mngrgbn.purs"));//매입거래처
+            CmpyInfo cmpyvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnCd,"구매처미상","Y");
 
             cmvo.setCmpyNo(cmpyvo.getCmpyNo());
             cmvo.setDefaultYn("N");
@@ -1062,7 +1289,7 @@ public class ImpServiceImpl implements ImpService {
 //                    prodInfo.setVol(vol);
 //                    prodInfo.setMess(vol);
 //                }if(prodUnit == Long.parseLong(env.getProperty("code.base.sale_unit_ml"))){
-//                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_mess")));
+//                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));
 //                }else {
 //                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_imp")));
 //                }
@@ -1160,95 +1387,6 @@ public class ImpServiceImpl implements ImpService {
     }
 
     @Override
-    public void prodExcel(Map<String, Object> paraMap) throws Exception {
-
-        String tag = "ImptoolService.prodExcel => ";
-        String fileRoot = paraMap.get("fileRoot").toString();;
-        Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
-        String filePath = fileService.getFileInfo(fileRoot,fileNo);
-        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        FileInputStream file = null;
-        String svData = "";
-        try {
-            file = new FileInputStream(filePath);
-            XSSFWorkbook workbook = new XSSFWorkbook(file);
-            int rowindex = 0;
-            XSSFSheet sheet = workbook.getSheetAt(0); //시트
-            int rows = sheet.getPhysicalNumberOfRows();
-            String prodNm = "";
-            for (rowindex = 0; rowindex < rows; rowindex++) {
-                if (rowindex < 1) continue; //헤더정보 skip
-
-                XSSFRow row = sheet.getRow(rowindex);
-                if (row == null) continue;
-                log.info(tag + "excel처리행수 = " + rows + " / " + rowindex);
-
-                try {
-                    ProdInfo prodvo = new ProdInfo();
-
-                    Long prodNo = (long)row.getCell(0).getNumericCellValue(); //제품번호
-
-                    prodNm = row.getCell(1).getStringCellValue(); //자재명
-                    prodNm = prodNm.replaceAll("\\p{Z}", "");
-
-                    prodvo.setProdCode(row.getCell(3).getStringCellValue()); //자재코드
-                    prodvo.setBrnchNo(1L);
-                    prodvo.setSaveTmpr(12L);
-                    prodvo.setQtyPerPkg((int)row.getCell(7).getNumericCellValue());
-                    prodvo.setProdNm(prodNm);
-                    prodvo.setErpProdNm(prodNm);
-                    prodvo.setUsedYn("Y");
-                    prodvo.setHeatTp(0L);
-                    prodvo.setFileNo(Long.valueOf(fileNo));
-                    log.info(prodvo + "prodvo");
-                    Float spga = (float)row.getCell(8).getNumericCellValue();
-                    Float mess = (float)row.getCell(5).getNumericCellValue();
-                    prodvo.setSpga(spga);
-
-                    if(Long.parseLong(paraMap.get("cust_no").toString()) == 6 ){
-                        prodvo.setVol((float) ((mess/spga )* 0.001));
-                        prodvo.setMess(mess);
-                    }else{
-                        prodvo.setVol(mess);
-                        prodvo.setMess(mess);
-                    }
-
-                    svData = row.getCell(6).getStringCellValue();
-                    Long lnUnit = Long.parseLong(env.getProperty("code.base.saleunit"));
-                    CodeInfo unvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,lnUnit, svData.replace(" ", ""), "Y");
-                    if (unvo != null) {
-                        prodvo.setSaleUnit(unvo.getCodeNo()); //단위(KG, EA 등)
-                    } else {
-                        prodvo.setSaleUnit(Long.parseLong(env.getProperty("code.saleunit_default")));
-                    }
-
-                    ProdInfo prvo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo, "Y");
-                    if (prvo != null) {
-                        prodvo.setProdNo(prvo.getProdNo());
-                        prodvo.setModIp((String) paraMap.get("ipaddr"));
-                        prodvo.setModDt(DateUtils.getCurrentDateTime());
-                        prodvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                    } else {
-                        prodvo.setProdNo(0L);
-                        prodvo.setRegIp((String) paraMap.get("ipaddr"));
-                        prodvo.setRegDt(DateUtils.getCurrentDateTime());
-                        prodvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-                    }
-                    prodvo.setCustNo(custNo);
-                    prodRepo.save(prodvo);
-
-                } catch (NullPointerException ne) {
-                    continue;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public void makeUserByExcel(Map<String, Object> paraMap) throws IOException {
         String tag = "ProdService.makeUserByExcel => ";
         StringBuffer buf = new StringBuffer();
@@ -1279,7 +1417,7 @@ public class ImpServiceImpl implements ImpService {
             }
 
             //직위
-            CodeInfo cdvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,Long.parseLong(env.getProperty("code.base.user_posn")), row.getCell(1).getStringCellValue(), "Y");
+            CodeInfo cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(Long.parseLong(env.getProperty("code.base.user_posn")), row.getCell(1).getStringCellValue(), "Y");
             if (cdvo != null) {
                 uservo.setUserPosn(cdvo.getCodeNo());
                 ;
@@ -1535,7 +1673,7 @@ public class ImpServiceImpl implements ImpService {
         XSSFWorkbook workbook = new XSSFWorkbook(file);
 
         String prodNm = "";
-        String erpprodNm = "";
+        String erProdNm = "";
         String exData = "";
         String prodcd = "";
         Float vol = 0F;
@@ -1556,8 +1694,8 @@ public class ImpServiceImpl implements ImpService {
             try {
                 prodNm = row.getCell(2).getStringCellValue();
                 prodNm = prodNm.replaceAll("\\p{Z}", "");
-                erpprodNm = row.getCell(0).getStringCellValue();
-                erpprodNm = erpprodNm.replaceAll("\\p{Z}", "");
+                erProdNm = row.getCell(0).getStringCellValue();
+                erProdNm = erProdNm.replaceAll("\\p{Z}", "");
                 if (prodNm.contains("합계") == true) {
                     break;
                 }
@@ -1570,7 +1708,7 @@ public class ImpServiceImpl implements ImpService {
 //            prodcd = row.getCell(1).getStringCellValue(); // 코드번호
             prodInfo.setProdCode(prodcd);
             prodInfo.setProdNm(prodNm);
-            prodInfo.setErpProdNm(erpprodNm);
+            prodInfo.setErpProdNm(erProdNm);
             double qtypkg = row.getCell(7).getNumericCellValue();
             prodInfo.setQtyPerPkg((int)qtypkg); //세트구성수량(기본값설정)
             prodInfo.setFileNo(0L);//상품이미지(기본값설정)
@@ -1586,7 +1724,7 @@ public class ImpServiceImpl implements ImpService {
 
             exData = row.getCell(6).getStringCellValue();
             Long prodShape = Long.parseLong(env.getProperty("code.base.saleunit"));
-            CodeInfo mgvo = codeRepo.findByCustNoAndParCodeNoAndCodeNmAndUsedYn(custNo,prodShape, exData.replace(" ", ""), "Y");
+            CodeInfo mgvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(prodShape, exData.replace(" ", ""), "Y");
             if (mgvo != null) {
                 Long prodUnit = mgvo.getCodeNo();
                 prodInfo.setSaleUnit(prodUnit); // 단위
@@ -1598,9 +1736,9 @@ public class ImpServiceImpl implements ImpService {
                     prodInfo.setVol(vol/1000);
                     prodInfo.setMess(vol*spga);
                 }if(prodUnit == Long.parseLong(env.getProperty("code.base.sale_unit_ml"))){
-                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_mess")));
+                    prodInfo.setMngrUnit(Long.parseLong(env.getProperty("code.base.mngrbase_vol")));
                 }else {
-                    prodInfo.setMngrBase(Long.parseLong(env.getProperty("code.base.mngrbase_imp")));
+                    prodInfo.setMngrUnit(Long.parseLong(env.getProperty("code.base.mngrbase_imp")));
                 }
 
             }

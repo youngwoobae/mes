@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public interface ImpService {
+public interface StndImpService {
     @Transactional
     void makeCodeInfoByExcel(Map<String, Object> paraMap);
 
@@ -45,8 +45,6 @@ public interface ImpService {
 
     @Transactional
     void prodBomExcel(Map<String, Object> paraMap) throws Exception;
-    @Transactional
-    void prodExcel(Map<String, Object> paraMap) throws Exception;
 
     @Transactional
     void makeUserByExcel(Map<String, Object> paraMap) throws IOException;
