@@ -135,7 +135,7 @@ public class UserController {
         //log.info("created user token = " + token);
         response.setHeader("authorization", token);
 
-        sysService.invokeChatServer();
+        //sysService.invokeChatServer();
         Map<String,Object> rmap = new HashMap<String,Object>();
         rmap.put("userInfo",StringUtil.voToMap(uservo));
         rmap.put("prodUnitWgtNm",(String) session.getAttribute("prodUnitWgtNm"));

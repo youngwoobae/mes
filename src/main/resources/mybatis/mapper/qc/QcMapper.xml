@@ -7,12 +7,11 @@
         /* (입고처리 검수항목) qcMapper.getMatrIwhChkList */
         SELECT a.chk_no --점검관리번호
              , a.chk_tp --점검유형
-             , b.code_nm AS chk_tp_nm --점검유형명
+             , fn_get_code_name('nm',a.chk_tp ) AS chk_tp_nm --점검유형명
              , a.chk_mth --점검방법
-             , c.code_nm AS chk_mth_nm --점검방법명
-             , COALESCE(a.chk_cont, c.code_nm) AS chk_cont
-        FROM matr_iwh_chk a JOIN code_info b ON a.chk_tp = b.code_no and b.cust_no = #{custNo}
-                            JOIN code_info C ON a.chk_mth = c.code_no and c.cust_no = #{custNo}
+             , fn_get_code_name('nm',a.chk_mth  ) AS chk_mth_nm --점검방법명
+             , coalesce(a.chk_cont, fn_get_code_name('nm',a.chk_mth  ) ) AS chk_cont
+        FROM matr_iwh_chk a
         WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'chkCont'">
@@ -25,8 +24,7 @@
     <select id="getMatrIwhChkListCount" parameterType="map" resultType="int">
         select count(a.chk_no)
         from ( SELECT a.chk_no --점검관리번호
-                FROM matr_iwh_chk a JOIN code_info b ON a.chk_tp = b.code_no and b.cust_no = #{custNo}
-                                    JOIN code_info C ON a.chk_mth = c.code_no and c.cust_no = #{custNo}
+                FROM matr_iwh_chk a
                 WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'chkCont'">

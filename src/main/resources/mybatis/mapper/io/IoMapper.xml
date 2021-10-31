@@ -801,23 +801,23 @@
         and c.purs_sts = #{pursSts}
         and a.purs_qty - coalesce (d.iwh_qty,0)   <![CDATA[ >= ]]> 0
         <if test="initialFindSz != null and initialFindSz != ''">
-                AND case when b.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                when b.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when b.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when b.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when b.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when b.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when b.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when b.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when b.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when b.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when b.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when b.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when b.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when b.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                         'ㅎ'
-                end = #{initialFindSz}
+         AND case when b.matr_nm  <![CDATA[ < ]]> ascii('ㄱ') then SUBSTRING(b.matr_nm, 1, 1)
+                  when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.matr_nm) and  ascii(a.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                  when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                  else                         'ㅎ'
+                  end = #{initialFindSz}
         </if>
         order by to_char(c.dlv_req_dt, 'YYYY-MM-DD'), b.matr_nm
         limit #{pageSz} offset #{pageNo}
@@ -850,23 +850,23 @@
                  and c.purs_sts = #{pursSts}
                  and a.purs_qty - coalesce (d.iwh_qty,0)   <![CDATA[ >= ]]> 0
                 <if test="initialFindSz != null and initialFindSz != ''">
-                    AND case when b.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
-                    when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                    when b.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                    when b.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                    when b.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                    when b.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                    when b.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                    when b.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                    when b.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                    when b.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                    when b.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                    when b.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                    when b.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                    when b.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                    when b.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                    else                         'ㅎ'
-                    end = #{initialFindSz}
+                   AND case when b.matr_nm  <![CDATA[ < ]]> ascii('ㄱ') then SUBSTRING(b.matr_nm, 1, 1)
+                            when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.matr_nm) and  ascii(a.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                            else                         'ㅎ'
+                            end = #{initialFindSz}
                 </if>
                 ) a
     </select>
@@ -950,23 +950,23 @@
         </if>
 
         <if test="findSz != null and findSz != ''">
-            AND case when b.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
-            when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-            when b.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-            when b.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-            when b.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-            when b.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-            when b.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-            when b.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-            when b.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-            when b.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-            when b.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-            when b.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-            when b.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-            when b.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-            when b.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-            else                         'ㅎ'
-            end = #{findSz}
+           AND case when b.matr_nm  <![CDATA[ < ]]> ascii('ㄱ') then SUBSTRING(b.matr_nm, 1, 1)
+                    when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.matr_nm) and  ascii(a.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                    when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                    else 'ㅎ'
+            )                   end = #{findSz}
         </if>
         order by e.make_fr_dt, b.matr_nm
         limit #{pageSz} offset #{pageNo}
@@ -997,23 +997,23 @@
                 </if>
 
                 <if test="findSz != null and findSz != ''">
-                    AND case when b.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
-                    when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                    when b.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                    when b.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                    when b.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                    when b.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                    when b.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                    when b.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                    when b.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                    when b.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                    when b.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                    when b.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                    when b.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                    when b.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                    when b.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                    else                         'ㅎ'
-                    end = #{findSz}
+                   AND case when b.matr_nm  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(b.matr_nm, 1, 1)
+                            when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.matr_nm) and  ascii(a.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                            when ascii(b.matr_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                            else                         'ㅎ'
+                            end = #{findSz}
                 </if>
                  ) a
     </select>
@@ -1237,22 +1237,22 @@
         </if>
         <if test="findTp != null and findTp == 'ko'">
             <if test="findSz != null and findSz != ''">
-                AND case when b.prod_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.prod_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(prod_nm) and  ascii(b.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                        when b.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when b.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when b.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when b.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when b.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when b.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when b.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when b.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when b.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when b.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when b.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when b.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when b.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                                     'ㅎ'
+                AND case when ascii(b.prod_nm)  <![CDATA[ < ]]> ascii('ㄱ') then SUBSTRING(b.prod_nm, 1, 1)
+                        when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                        else 'ㅎ'
                 end = #{findSz}
             </if>
         </if>
@@ -1290,22 +1290,22 @@
                 </if>
                 <if test="findTp != null and findTp == 'tablet'">
                     <if test="findSz != null and findSz != ''">
-                        AND case when b.prod_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(b.prod_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(prod_nm) and  ascii(b.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                        when b.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when b.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when b.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when b.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when b.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when b.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when b.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when b.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when b.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when b.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when b.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when b.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when b.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                         'ㅎ'
+                        AND case when ascii(b.prod_nm)  <![CDATA[ < ]]> ascii('ㄱ') then SUBSTRING(b.prod_nm, 1, 1)
+                        when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                        when ascii(b.prod_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                        else 'ㅎ'
                         end = #{findSz}
                     </if>
                 </if>
@@ -2601,8 +2601,7 @@
                                         and d.used_yn ='Y' and d.cust_no =#{custNo}
                     left join wh_info e on b.wh_no = e.wh_no and e.used_yn = 'Y'
                                         and e.used_yn ='Y' and e.cust_no =#{custNo}
-    where a.used_yn = 'Y'
-      and a.used_yn ='Y' and a.cust_no =#{custNo}
+    where a.used_yn = 'Y' and  a.cust_no =#{custNo}
         <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
@@ -2615,22 +2614,22 @@
                 and a.matr_nm like '%' || #{findSz} || '%'
             </when>
             <when test="findTp != null and findTp == 'ko'">
-                AND case when a.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
+                and case when ascii(a.matr_nm)    <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(a.matr_nm, 1, 1)
+                         when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.matr_nm) and  ascii(a.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('차') then 'ㅈ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                         when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                         else  'ㅎ'
                 end = #{findSz}
             </when>
             <otherwise> </otherwise>
@@ -2664,23 +2663,22 @@
                         and a.matr_nm like '%' || #{findSz} || '%'
                     </when>
                     <when test="findTp != null and findTp == 'ko'">
-                        and case when a.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                        when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                                 'ㅎ'
-                        end = #{findSz}
+                        and case when ascii(a.matr_nm)    <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(a.matr_nm, 1, 1)
+                                 when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.matr_nm) and  ascii(a.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                                 when ascii(a.matr_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                                 else  'ㅎ'
+                                 end = #{findSz}
                     </when>
                     <otherwise> </otherwise>
                 </choose>
@@ -2703,11 +2701,10 @@
                                       and e.used_yn ='Y' and e.cust_no =#{custNo}
                    left join make_indc_matr c on a.matr_no = c.matr_no
                                              and c.used_yn ='Y' and c.cust_no =#{custNo}
-        where a.used_yn = 'Y'
-          and a.used_yn ='Y' and a.cust_no =#{custNo}
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
         and a.stk_qty <![CDATA[ > ]]> 0
         <if test="findStr != null and findStr != ''">
-            AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
+            AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
         </if>
         <choose>
             <when test="findTp != null and findTp == 'en'">
@@ -2717,23 +2714,22 @@
                 and b.matr_nm like '%' || #{findSz} || '%'
             </when>
             <when test="findTp != null and findTp == 'ko'">
-                AND case when b.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(b.matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                when b.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when b.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when b.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when b.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when b.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when b.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when b.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when b.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when b.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when b.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when b.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when b.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when b.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
-                end = #{findSz}
+                and case when ascii(b.matr_nm)  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(b.matr_nm, 1, 1)
+                    when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(b.matr_nm) and  ascii(b.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                    when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                    else  'ㅎ'
+                    end = #{findSz}
             </when>
             <otherwise> </otherwise>
         </choose>
@@ -2750,11 +2746,10 @@
                                                and e.used_yn ='Y' and e.cust_no =#{custNo}
                             left join make_indc_matr c on a.matr_no = c.matr_no
                                                       and c.used_yn ='Y' and c.cust_no =#{custNo}
-                where a.used_yn = 'Y'
-                and a.used_yn ='Y' and a.cust_no =#{custNo}
+                where a.used_yn ='Y' and a.cust_no =#{custNo}
                 and a.stk_qty <![CDATA[ > ]]> 0
                 <if test="findStr != null and findStr != ''">
-                    AND upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
+                    AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
                 </if>
 
                 <choose>
@@ -2765,23 +2760,22 @@
                         and b.matr_nm like '%' || #{findSz} || '%'
                     </when>
                     <when test="findTp != null and findTp == 'ko'">
-                        AND case when b.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(b.matr_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(b.matr_nm) and  ascii(b.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                        when b.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when b.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when b.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when b.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when b.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when b.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when b.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when b.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when b.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when b.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when b.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when b.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when b.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                                'ㅎ'
-                        end = #{findSz}
+                       and case when ascii(b.matr_nm)  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(b.matr_nm, 1, 1)
+                                when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(b.matr_nm) and  ascii(b.matr_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then matr_nm
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                                when ascii(b.matr_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                                else  'ㅎ'
+                                end = #{findSz}
                     </when>
                     <otherwise> </otherwise>
                 </choose>
@@ -2802,8 +2796,7 @@
                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
                         left join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
                                         and d.used_yn ='Y' and d.cust_no =#{custNo}
-        where a.used_yn = 'Y'
-          and a.used_yn ='Y' and a.cust_no =#{custNo}
+        where a.used_yn ='Y' and a.cust_no =#{custNo}
         and a.prod_no not in (select prod_no from prod_iwh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2816,23 +2809,22 @@
                 and a.prod_nm like '%' || #{findSz} || '%'
             </when>
             <when test="findTp != null and findTp == 'ko'">
-                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
-                end = #{findSz}
+               and case when ascii(a.prod_nm)  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(a.prod_nm, 1, 1)
+                        when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                        else  'ㅎ'
+                        end = #{findSz}
             </when>
             <otherwise></otherwise>
         </choose>
@@ -2845,15 +2837,14 @@
         from ( select distinct a.prod_no
                from prod_info a left join make_indc b on a.prod_no = b.prod_no
                                               and b.used_yn ='Y' and b.cust_no =#{custNo}
-                           left join prod_stk c on a.prod_no = c.prod_no
-                                              and c.used_yn ='Y' and c.cust_no =#{custNo}
-                           left join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
-                                              and d.used_yn ='Y' and d.cust_no =#{custNo}
-                where a.used_yn = 'Y'
-                  and a.used_yn ='Y' and a.cust_no =#{custNo}
-                  and a.prod_no not in (select prod_no
-                                        from prod_iwh
-                                        where used_yn ='Y' and cust_no =#{custNo}
+                                left join prod_stk c on a.prod_no = c.prod_no
+                                                  and c.used_yn ='Y' and c.cust_no =#{custNo}
+                                left join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
+                                                  and d.used_yn ='Y' and d.cust_no =#{custNo}
+                where a.used_yn ='Y' and a.cust_no =#{custNo}
+                  and a.prod_no not in ( select prod_no
+                                         from prod_iwh
+                                         where used_yn ='Y' and cust_no =#{custNo}
                                           and coalesce (wh_no, 0 ) = 0)
                 <if test="findStr != null and findStr != ''">
                     AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
@@ -2866,23 +2857,22 @@
                         and a.prod_nm like '%' || #{findSz} || '%'
                     </when>
                     <when test="findTp != null and findTp == 'ko'">
-                        AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                        when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                                'ㅎ'
-                        end = #{findSz}
+                       and case when ascii(a.prod_nm)  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(a.prod_nm, 1, 1)
+                                when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                                else  'ㅎ'
+                                end = #{findSz}
                     </when>
                     <otherwise></otherwise>
                 </choose>
@@ -2890,7 +2880,7 @@
     </select>
 
     <select id="getProdForOwhList" parameterType="map"  resultType="camelMap">
-        <!--구매 과정없이 제품 출고처리하는 경우 : 간단 MES용-->
+        /* 구매 과정없이 제품 출고처리하는 경우 : 간단 MES용 (ioMapper.getProdForOwhList) */
         select distinct a.prod_no
              , a.prod_nm
              , coalesce (c.stk_qty) as stk_qty
@@ -2903,48 +2893,45 @@
                                           and c.used_yn ='Y' and c.cust_no =#{custNo}
                          join wh_info d on c.wh_no = d.wh_no
                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
-        where a.used_yn = 'Y'
-          and a.used_yn ='Y' and a.cust_no =#{custNo}
+        where a.used_yn ='Y' and a.cust_no =#{custNo}
         and a.prod_no not in (select prod_no from prod_owh
                              where used_yn ='Y' and cust_no =#{custNo}
                                and coalesce (wh_no, 0 ) = 0)
-        and c.stk_qty <![CDATA[>]]> 0
+        and c.stk_qty <![CDATA[ > ]]> 0
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
         </if>
 
-            <if test="findTp != null and findTp == 'en'">
-                <if test="findSz != null and findSz != ''">
-                and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
-                </if>
+        <if test="findTp != null and findTp == 'en'">
+            <if test="findSz != null and findSz != ''">
+            and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
             </if>
-            <if test="findTp != null and findTp == 'no'">
-                <if test="findSz != null and findSz != ''">
-                and a.prod_nm like '%' || #{findSz} || '%'
-                </if>
+        </if>
+        <if test="findTp != null and findTp == 'no'">
+            <if test="findSz != null and findSz != ''">
+            and a.prod_nm like '%' || #{findSz} || '%'
             </if>
-            <if test="findTp != null and findTp == 'ko'">
-                <if test="findSz != null and findSz != ''">
-                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
-                end = #{findSz}
-                </if>
-             </if>
-
+        </if>
+        <if test="findTp != null and findTp == 'ko'">
+            <if test="findSz != null and findSz != ''">
+               and case when ascii(a.prod_nm)  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(a.prod_nm, 1, 1)
+                        when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                        when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                        else  'ㅎ'
+                        end = #{findSz}
+            </if>
+         </if>
         order by prod_nm
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -2958,8 +2945,7 @@
                                                 and c.used_yn ='Y' and c.cust_no =#{custNo}
                                  join wh_info d on c.wh_no = d.wh_no
                                                 and d.used_yn ='Y' and d.cust_no =#{custNo}
-                where a.used_yn = 'Y'
-                 and a.used_yn ='Y' and a.cust_no =#{custNo}
+                where a.used_yn ='Y' and a.cust_no =#{custNo}
                 and a.prod_no not in (select prod_no
                                        from prod_owh
                                        where used_yn ='Y' and cust_no =#{custNo}
@@ -2969,33 +2955,36 @@
                     AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
                 </if>
 
-                <choose>
-                    <when test="findTp != null and findTp == 'en'">
+                <if test="findTp != null and findTp == 'en'">
+                    <if test="findSz != null and findSz != ''">
                         and upper(a.prod_nm) like '%' || upper(#{findSz}) || '%'
-                    </when>
-                    <when test="findTp != null and findTp == 'no'">
+                    </if>
+                </if>
+                <if test="findTp != null and findTp == 'no'">
+                    <if test="findSz != null and findSz != ''">
                         and a.prod_nm like '%' || #{findSz} || '%'
-                    </when>
-                    <otherwise>
-                        AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                        when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                                'ㅎ'
-                        end = #{findSz}
-                    </otherwise>
-                </choose>
+                    </if>
+                </if>
+                <if test="findTp != null and findTp == 'ko'">
+                    <if test="findSz != null and findSz != ''">
+                       and case when ascii(a.prod_nm)  <![CDATA[ < ]]>  ascii('ㄱ') then SUBSTRING(a.prod_nm, 1, 1)
+                                when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                                when ascii(a.prod_nm)  <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                                else  'ㅎ'
+                                end = #{findSz}
+                      </if>
+                    </if>
                 ) a
     </select>
 

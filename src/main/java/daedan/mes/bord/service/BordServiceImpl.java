@@ -56,7 +56,7 @@ public class BordServiceImpl implements BordService {
         paraMap.put("ipaddr", paraMap.get("ipaddr"));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         try {
-            bivo.setBordNo(Long.parseLong(paraMap.get("bordNno").toString())); // 게시번호
+            bivo.setBordNo(Long.parseLong(paraMap.get("bordNo").toString())); // 게시번호
         }
         catch (NullPointerException ne) {
             bivo.setBordNo(0L); // 게시

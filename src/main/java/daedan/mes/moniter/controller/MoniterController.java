@@ -58,9 +58,10 @@ public class MoniterController {
 
 
     @PostMapping(value="/equipUsedHisr") //설비모니터링
-    public Result equipUsedHisr(@RequestBody Map<String, Object> paraMap){
+    public Result equipUsedHisr(@RequestBody Map<String, Object> paraMap, HttpSession session){
         String tag = "MoniterControlelr.equipUsedHisr => ";
-        paraMap.put("custNo", Long.parseLong(env.getProperty("cust_no")));
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         List<Map<String, Object>> list = moniterService.getEquipUsedHstr(paraMap);
@@ -70,10 +71,12 @@ public class MoniterController {
     }
 
     @PostMapping(value="/conditionTotalStatusList") //총괄현황
-    public Result conditionTotalStatusList(@RequestBody Map<String, Object> paraMap){
+    public Result conditionTotalStatusList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         String tag = "MoniterControlelr.conditionTotalStatusList => ";
         Result result = Result.successInstance();
         Map<String, Object> rmap = new HashMap<String,Object>();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("selStr","주문고객선택");
         rmap.put("comboCmpy",moniterService.getComboOrderCmpy(paraMap));
 
@@ -87,8 +90,10 @@ public class MoniterController {
 
 
     @PostMapping(value="/totalStatusList") //총괄현황
-    public Result totalStatusList(@RequestBody Map<String, Object> paraMap){
+    public Result totalStatusList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         String tag = "MoniterControlelr.totalStatusList => ";
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         result.setData(moniterService.getTotalStatusList(paraMap));
@@ -97,8 +102,9 @@ public class MoniterController {
     }
 
     @PostMapping(value="/ccpHeatList") //ccp
-    public Result ccpHeatList(@RequestBody Map<String, Object> paraMap){
-        String tag = "MoniterControlelr.ccpHeatList => ";
+    public Result ccpHeatList(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("ccpTp",Long.parseLong(env.getProperty("code.ccp_tp.heat"))); //CCP-살균공정
         Result result = Result.successInstance();
@@ -108,9 +114,9 @@ public class MoniterController {
     }
 
     @PostMapping(value="/equipProdMove") //설비별생산현황
-    public Result getEquipProdMove(@RequestBody Map<String, Object> paraMap){
-        String tag = "MoniterControlelr.getEquipProdMove => ";
-        log.info(tag+paraMap.get("spot_equip_no") );
+    public Result getEquipProdMove(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         result.setData(moniterService.getEquipProdMove(paraMap));
@@ -118,9 +124,9 @@ public class MoniterController {
     }
 
     @PostMapping(value="/ccpTexts") //설비별생산현황
-    public Result getCcpTexts(@RequestBody Map<String, Object> paraMap){
-        String tag = "MoniterControlelr.getCcpTexts => ";
-        log.info(tag+paraMap.get("spot_equip_no") );
+    public Result getCcpTexts(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         result.setData(moniterService.getCcpTexts(paraMap));
@@ -129,8 +135,10 @@ public class MoniterController {
 
     //제품수불관리 - 왼쪽 파일리스트
     @PostMapping(value="/prodIoFileList")
-    public Result prodIoFileList(@RequestBody Map<String, Object> paraMap){
+    public Result prodIoFileList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moniterService.getProdIoFileList(paraMap));
         result.setTotalCount(moniterService.getProdIoFileListCount(paraMap));
@@ -140,9 +148,11 @@ public class MoniterController {
 
     //제품수불관리 - 우측 주문내역 리스트
     @PostMapping(value="/ordHstList")
-    public Result ordHstList(@RequestBody Map<String, Object> paraMap){
+    public Result ordHstList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(moniterService.getOrdHstList(paraMap));
         result.setTotalCount(moniterService.getOrdHstListCount(paraMap));
 
@@ -151,8 +161,10 @@ public class MoniterController {
 
     //제품수불관리 - 우측 원료구매내역 리스트
     @PostMapping(value="/matrPursHstList")
-    public Result matrPursHstList(@RequestBody Map<String, Object> paraMap){
+    public Result matrPursHstList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("date", paraMap.get("closDt").toString().substring(0, 10));
 
@@ -164,8 +176,10 @@ public class MoniterController {
 
     //제품수불관리 - 우측 원료입고내역 리스트
     @PostMapping(value="/matrIwhHstList")
-    public Result matrIwhHstList(@RequestBody Map<String, Object> paraMap){
+    public Result matrIwhHstList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("date", paraMap.get("closDt").toString().substring(0, 10));
 
@@ -177,8 +191,10 @@ public class MoniterController {
 
     //제품수불관리 - 우측 원료출고내역 리스트
     @PostMapping(value="/matrOwhHstList")
-    public Result matrOwhHstList(@RequestBody Map<String, Object> paraMap){
+    public Result matrOwhHstList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("date", paraMap.get("closDt").toString().substring(0, 10));
 
@@ -190,8 +206,10 @@ public class MoniterController {
 
     //제품수불관리 - 우측 제품입고내역 리스트
     @PostMapping(value="/prodIwhHstList")
-    public Result prodIwhHstList(@RequestBody Map<String, Object> paraMap){
+    public Result prodIwhHstList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("date", paraMap.get("closDt").toString().substring(0, 10));
         result.setData(moniterService.getProdIwhHstList(paraMap));
@@ -202,8 +220,10 @@ public class MoniterController {
 
     //제품수불관리 - 우측 제품출고내역 리스트
     @PostMapping(value="/prodOwhHstList")
-    public Result prodOwhHstList(@RequestBody Map<String, Object> paraMap){
+    public Result prodOwhHstList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("date", paraMap.get("closDt").toString().substring(0, 10));
         result.setData(moniterService.getProdOwhHstList(paraMap));
@@ -219,8 +239,10 @@ public class MoniterController {
      * @return Result
      */
     @PostMapping(value="/getMatrIwhHstr")
-    public Result getMatrIwhHstr(@RequestBody Map<String, Object> paraMap){
+    public Result getMatrIwhHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moniterService.getMatrIwhHstr(paraMap));
         result.setTotalCount(moniterService.getMatrIwhHstrCount(paraMap));

@@ -35,20 +35,21 @@ public class DataMgrMain implements ApplicationRunner, DisposableBean {
     @Override
     public void run(ApplicationArguments args) {
 
-        // 프로그램이 serverSocket일 경우
+        /* 잠시대기 : 프로그램이 serverSocket일 경우
         Runnable rServerSocket = new SockServer();
         Thread tServerSocket = new Thread(rServerSocket);
         tServerSocket.setDaemon(true);
         tServerSocket.setName("serverSocket");
         tServerSocket.start();
+        */
 
-
-        // 서버 소켓으로 수신된 데이터가 담긴 큐를 poll하는 쓰레드
+        /*잠시대기 : 서버 소켓으로 수신된 데이터가 담긴 큐를 poll하는 쓰레드
         Runnable rRawData = new RawDataController();
         Thread tRawData = new Thread(rRawData);
         tRawData.setDaemon(true);
         tRawData.setName("threadDemon");
         tRawData.start();
+        */
 
         /* 품온, 금속검출을 제외한 데이터 수집 설비 목록 조회
         List<Map<String, Object>> mondataSensorList = new ArrayList<Map<String, Object>>();

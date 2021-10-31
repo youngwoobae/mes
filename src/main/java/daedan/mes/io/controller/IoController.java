@@ -438,7 +438,7 @@ public class IoController {
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
-        ioService.dropMatrOwh(paraMap);111
+        ioService.dropMatrOwh(paraMap);
         return result;
     }
     @PostMapping(value="/conditions225")
