@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.dash.mapper.ddkor.DdKorDashMapper">
+    <!--배합실유량계 그래프용-->
+    <select id="getMhTmprList" parameterType="map"  resultType="camelMap">
+        /* 미홍 설비기준 최신시간 온도모니터링 리스트 (mpMapper.getMhTmprList) */
+        select a.equip_no  --설비번
+             , a.equip_nm  --설비
+             , b.rcv_msg  --메세지
+             , b.rcv_tmpr  --측정온도
+             , to_char(to_timestamp(b.unix_hms) ,'HH:MM:SS') as rcv_dt --수신시각
+        from equip_info a join rcv_tmpr b on a.equip_no  = b.equip_no
+                                         and a.cust_no  = b.cust_no and b.used_yn  = 'Y'
+                          join (select equip_no, max(unix_hms) as unix_hms
+                                from rcv_tmpr
+                                where cust_no = #{custNo} and used_yn = 'Y'
+                                group by  equip_no
+        ) c on b.equip_no = c.equip_no and b.unix_hms  = c.unix_hms
+        where a.cust_no = #{custNo}   and a.used_yn  = 'Y'
+    </select>
+</mapper>

@@ -16,7 +16,7 @@ import java.util.Date;
 public class SpotInfo {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="spot_no",nullable = false)
+    @Column(name="spotNo",nullable = false)
     private Long spotNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")

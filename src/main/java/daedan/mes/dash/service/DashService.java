@@ -1,5 +1,6 @@
 package daedan.mes.dash.service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 
@@ -37,4 +38,5 @@ public interface DashService {
 
     List<Map<String, Object>> getYyjgMatrIoList(Map<String, Object> paraMap);
     int getYyjgMatrIoListCount(Map<String, Object> paraMap);
+
 }
