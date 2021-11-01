@@ -16,21 +16,26 @@
 			 , coalesce (d.stk_qty,0) as jb_qty --전일재고
 			 , case when coalesce(d.stk_qty ,0) + coalesce(g.iwh_qty ,0) - coalesce(g.owh_qty ,0) <![CDATA[ != ]]> coalesce(a.stk_qty ,0)
 					then 'Y'
-					else 'N' end as stk_chk --재고 체크
-		from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
-						 left join wh_info f on a.wh_no = f.wh_no and f.used_yn   = 'Y'
+					else 'N'
+				end as stk_chk --재고 체크
+			from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
+                                              and a.used_yn = 'Y' and a.cust_no = #{custNo}
+						 left join wh_info f on a.wh_no = f.wh_no
+						                    and f.used_yn   = 'Y' and f.cust_no = #{custNo}
 						 left join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
-			and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                                                  and g.used_yn = 'Y' and g.cust_no = #{custNo}
+												  and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
 						 left join ( select a.wh_no
 										  , a.prod_no
 										  , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
 										  , coalesce (sum(stk_qty),0) as  stk_qty
 									 from prod_stk_clos a
-									 where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+									where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+                                      and a.used_yn = 'Y' and a.cust_no = #{custNo}
 									 group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
-		) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+		                          ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
 		where  1 = 1
-		  and c.used_yn = 'Y'
+		  and c.used_yn = 'Y' and c.cust_no = #{custNo}
 		order by prod_nm
 	</select>
 
@@ -39,19 +44,24 @@
 		from (
 				 select a.prod_no --품번
 				 from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
-								  left join wh_info f on a.wh_no = f.wh_no and f.used_yn   = 'Y'
+											 	 and a.used_yn = 'Y' and a.cust_no = #{custNo}
+								  left join wh_info f on a.wh_no = f.wh_no
+					 								 and f.used_yn   = 'Y' and f.cust_no = #{custNo}
 								  left join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
-					 and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+					 								   	   and g.used_yn = 'Y' and g.cust_no = #{custNo}
+					 									   and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
 								  left join ( select a.wh_no
 												   , a.prod_no
 												   , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
 												   , coalesce (sum(stk_qty),0) as  stk_qty
 											  from prod_stk_clos a
 											  where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+												and a.used_yn = 'Y' and a.cust_no = #{custNo}
 											  group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
-				 ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+				 						    ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
+
 				 where  1 = 1
-			   and c.used_yn = 'Y'
+			   and c.used_yn = 'Y' and c.cust_no = #{custNo}
 			 ) a
 	</select>
 
@@ -82,11 +92,10 @@
 										  , coalesce (sum(stk_qty),0) as  stk_qty
 									 from matr_stk_clos a
 									 where a.used_yn = 'Y' and a.cust_no = #{custNo}
-									 where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+									 and to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
 									 group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
 		) d on a.wh_no = d.wh_no
 		   and a.matr_no = d.matr_no
-		   and d.used_yn = 'Y'
 		where b.used_yn = 'Y'
 		  and b.cust_no = #{custNo}
 		  and b.matr_tp = #{matrTp}
@@ -115,7 +124,6 @@
 											  group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
 				 ) d on a.wh_no = d.wh_no
 				    and a.matr_no = d.matr_no
-				    and d.used_yn = 'Y'
 				  where b.used_yn = 'Y'
 				    and b.cust_no = #{custNo}
 				    and b.matr_tp = #{matrTp}

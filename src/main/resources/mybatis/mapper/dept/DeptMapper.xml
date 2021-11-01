@@ -51,7 +51,7 @@
                         , lpad(a.dept_no::text,5,'0')
                         , a.used_yn
                    FROM  dept_info a
-                   WHERE a.par_dept_no = 0
+                   WHERE a.par_dept_no = #{custNo} * 1000
                    and   a.cust_no =#{custNo}
                    UNION ALL
                    SELECT
@@ -92,7 +92,7 @@
                             , lpad(a.dept_no::text,5,'0')
                             , a.used_yn
                        FROM  dept_info a
-                       WHERE a.par_dept_no = 0
+                       WHERE a.par_dept_no = #{custNo} * 1000
                          and a.cust_no =#{custNo}
                        UNION ALL
                        SELECT b.cust_no
@@ -130,7 +130,7 @@
                         , a.prt_seq
                         , lpad(a.dept_no::text,5,'0')
                    FROM  dept_info a
-                   WHERE a.par_dept_no = 0
+                   WHERE a.par_dept_no = #{custNo} * 1000
                     and a.cust_no = #{custNo}
                    UNION ALL
                    SELECT b.par_dept_no

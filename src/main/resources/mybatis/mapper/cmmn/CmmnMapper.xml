@@ -21,9 +21,12 @@
              , coalesce(b.list_prt_yn,'-')  as list_prt_yn --리스트출력권한
              , coalesce(b.info_prt_yn,'-')  as info_prt_yn --상세내역출력권한
              , coalesce(b.per_info_lvl,0)  as per_info_lvl --개인정보접근권한
-        from auth_user a join auth_user_menu b on a.auth_user_no = b.auth_user_no and b.sys_menu_no = #{sysMenuNo}
-        where a.user_id = #{userId}
-        and   a.auth_cd = #{authCd}
+        from auth_user a join auth_user_menu b on a.auth_user_no = b.auth_user_no
+                                              and b.sys_menu_no = #{sysMenuNo} and b.used_yn = 'Y' and b.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+        and a.user_id = #{userId}
+        and  a.auth_cd = #{authCd}
+
     </select>
 
     <select id="getMakeHstrPreVal" parameterType="map"  resultType="camelMap">
@@ -49,9 +52,9 @@
         union
         select 1
              , a.wh_no
-             , concat(a.wh_nm,'(',b.code_nm,')')
-        from wh_info a join code_info b on a.save_tmpr = b.code_no
-        where a.used_yn = 'Y'
+             , concat(a.wh_nm,'(',fn_get_code_name('nm',a.save_tmpr),')') as wh_nm
+        from wh_info a
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.wh_tp = #{whTp}
         order by seq, text
     </select>

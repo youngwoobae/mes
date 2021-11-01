@@ -34,9 +34,10 @@ public class DeptServiceImpl implements  DeptService {
         elist = mapper.getDeptList(paraMap);
         List<Object> children = getChildren(custNo,0); //eaMenuList(node) 생성
         List < Object > treeData =  new ArrayList< Object >();
-        root.put("id", "0");
-        root.put("text", "MES 시스템");
 
+        Long deptRoot =  custNo * 1000L;
+        root.put("id", Long.toString(deptRoot));
+        root.put("text", "MES 시스템");
         LinkedHashMap<String,Object> state  = new LinkedHashMap < String, Object > ();
 
         state.put("expanded",true);
