@@ -1,4 +1,4 @@
-package daedan.mes.imp.service;
+package daedan.mes.imp.service.yyjg;
 
 import daedan.mes.cmpy.domain.CmpyInfo;
 import daedan.mes.cmpy.repository.CmpyRepository;

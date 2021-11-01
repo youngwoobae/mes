@@ -1,4 +1,4 @@
-package daedan.mes.imp.service;
+package daedan.mes.imp.service.stnd;
 
 import javax.transaction.Transactional;
 import java.io.IOException;

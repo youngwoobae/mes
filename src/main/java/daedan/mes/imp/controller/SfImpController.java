@@ -2,7 +2,7 @@ package daedan.mes.imp.controller;
 
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
-import daedan.mes.imp.service.SfImpService;
+import daedan.mes.imp.service.sf.SfImpService;
 import daedan.mes.user.domain.UserInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;

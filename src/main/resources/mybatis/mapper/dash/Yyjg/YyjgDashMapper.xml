@@ -69,19 +69,26 @@
 						, case when coalesce(d.stk_qty ,0) + coalesce(g.iwh_qty ,0) - coalesce(g.owh_qty ,0) <![CDATA[ != ]]> coalesce(a.stk_qty ,0)
 							   then 'Y'
 							   else 'N' end as stk_chk --재고 체크
-		from matr_info b left join matr_stk a on b.matr_no= a.matr_no and a.used_yn  = 'Y'
-						 left join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y'
+		from matr_info b left join matr_stk a on b.matr_no= a.matr_no
+                                             and a.used_yn  = 'Y' and a.cust_no = b.cust_no
+						 left join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no
+                                                                        and g.used_yn = 'Y'  and g.cust_no = #{custNo}
 	                                                            		and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
-						 left join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
+						 left join wh_info e on a.wh_no = e.wh_no
+                                            and e.used_yn = 'Y'  and e.cust_no = #{custNo}
 						 left join ( select a.wh_no
 										  , a.matr_no
 										  , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
 										  , coalesce (sum(stk_qty),0) as  stk_qty
 									 from matr_stk_clos a
+									 where a.used_yn = 'Y' and a.cust_no = #{custNo}
 									 where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
 									 group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
-		) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
-		where  b.used_yn = 'Y'
+		) d on a.wh_no = d.wh_no
+		   and a.matr_no = d.matr_no
+		   and d.used_yn = 'Y'
+		where b.used_yn = 'Y'
+		  and b.cust_no = #{custNo}
 		  and b.matr_tp = #{matrTp}
 		order by floor (coalesce (d.stk_qty,0))
 	</select>
@@ -90,20 +97,28 @@
 		select count(a.matr_no)
 		from (
 				 select  distinct a.matr_no
-				 from matr_info b left join matr_stk a on b.matr_no= a.matr_no and a.used_yn  = 'Y'
-								  left join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y'
-					 								                         	and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
-								  left join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
+				 from matr_info b left join matr_stk a on b.matr_no= a.matr_no
+				                                      and a.used_yn  = 'Y'and a.cust_no = #{custNo}
+								  left join matr_stk_clos g on a.wh_no = g.wh_no
+					 									   and g.used_yn = 'Y'  and g.cust_no = #{custNo}
+								                           and a.matr_no = g.matr_no
+					 								       and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+								  left join wh_info e on a.wh_no = e.wh_no
+								                     and e.used_yn = 'Y' and e.cust_no = #{custNo}
 								  left join ( select a.wh_no
 												   , a.matr_no
 												   , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
 												   , coalesce (sum(stk_qty),0) as  stk_qty
 											  from matr_stk_clos a
 											  where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+								                and a.cust_no = #{custNo} and a.used_yn ='Y'
 											  group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
-				 ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
-				 where  b.used_yn = 'Y'
-				   and b.matr_tp = #{matrTp}
+				 ) d on a.wh_no = d.wh_no
+				    and a.matr_no = d.matr_no
+				    and d.used_yn = 'Y'
+				  where b.used_yn = 'Y'
+				    and b.cust_no = #{custNo}
+				    and b.matr_tp = #{matrTp}
 			 ) a
 	</select>
 

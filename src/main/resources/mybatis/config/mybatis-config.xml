@@ -37,30 +37,40 @@
         <mapper resource="mybatis/mapper/io/IoMapper.xml"/>
         <mapper resource="mybatis/mapper/dash/DashMapper.xml"/>
         <mapper resource="mybatis/mapper/dash/DdKor/DdKorDashMapper.xml"/>
+
         <mapper resource="mybatis/mapper/dash/Yyjg/YyjgDashMapper.xml"/>
+
         <mapper resource="mybatis/mapper/make/MakeIndcMapper.xml"/>
+        <mapper resource="mybatis/mapper/make/HdfdMapper.xml"/>
+        <mapper resource="mybatis/mapper/make/SfMapper.xml"/>
+
         <mapper resource="mybatis/mapper/matr/MatrMapper.xml"/>
+
         <mapper resource="mybatis/mapper/moniter/DdkorMapper.xml"/>
         <mapper resource="mybatis/mapper/moniter/MoniterMapper.xml"/>
+
         <mapper resource="mybatis/mapper/modbusapi/ModbusApiMapper.xml"/>
         <mapper resource="mybatis/mapper/modbus/ModbusMapper.xml"/>
+
         <mapper resource="mybatis/mapper/ord/OrdMapper.xml"/>
+
         <mapper resource="mybatis/mapper/pms/PmsMapper.xml"/>
-        <mapper resource="mybatis/mapper/qc/QcMapper.xml"/>
         <mapper resource="mybatis/mapper/proc/ProcMapper.xml"/>
         <mapper resource="mybatis/mapper/prod/ProdMapper.xml"/>
         <mapper resource="mybatis/mapper/purs/PursMapper.xml"/>
+        <mapper resource="mybatis/mapper/qc/QcMapper.xml"/>
         <mapper resource="mybatis/mapper/role/RoleMapper.xml"/>
+
         <mapper resource="mybatis/mapper/spot/SpotMapper.xml"/>
         <mapper resource="mybatis/mapper/spot/SpotEquipMapper.xml"/>
+
         <mapper resource="mybatis/mapper/stock/StockMapper.xml"/>
         <mapper resource="mybatis/mapper/sysmenu/SysmenuMapper.xml"/>
         <mapper resource="mybatis/mapper/user/UserMapper.xml"/>
-        <mapper resource="mybatis/mapper/make/HdfdMapper.xml"/>
 
-        <mapper resource="mybatis/mapper/make/SfMapper.xml"/>
         <mapper resource="mybatis/mapper/shc/ccp/ShcCcpMapper.xml"/>
         <mapper resource="mybatis/mapper/shc/recCcp/ShcRecCcpMapper.xml"/>
+
         <mapper resource="mybatis/mapper/sys/SysMapper.xml"/>
 
         <!--인증원 표준 HACCP -->
