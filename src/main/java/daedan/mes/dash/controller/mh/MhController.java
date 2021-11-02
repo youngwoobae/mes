@@ -40,7 +40,7 @@ public class MhController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        mhService.getMhTmprList(paraMap);
+        result.setData(mhService.getMhTmprList(paraMap));
         return result;
     }
 }

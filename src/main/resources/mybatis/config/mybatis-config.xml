@@ -37,6 +37,7 @@
         <mapper resource="mybatis/mapper/io/IoMapper.xml"/>
         <mapper resource="mybatis/mapper/dash/DashMapper.xml"/>
         <mapper resource="mybatis/mapper/dash/DdKor/DdKorDashMapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Mh/MhDashMapper.xml"/>
 
         <mapper resource="mybatis/mapper/dash/Yyjg/YyjgDashMapper.xml"/>
 
