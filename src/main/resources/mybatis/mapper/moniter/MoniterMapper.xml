@@ -592,7 +592,7 @@
              , fn_get_user_name(b.insp_er) as insp_er_nm --검수자
              , a.valid_term --유통기한
              , to_char(b.date_manufacture,'YYYY-MM-DD') as make_dt --제조일자
-             , to_char(a.date_manufacture + '12 month' + '-1 days'  , 'YYYY-MM-DD'  ) as rest_dt --기한일
+             , to_char(b.date_manufacture + '12 month' + '-1 days'  , 'YYYY-MM-DD'  ) as rest_dt --기한일
              , fn_get_code_name('nm',b.palt_cd) as palt_nm --파레트명
         from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                        and b.used_yn ='Y' and b.cust_no  = b.cust_no

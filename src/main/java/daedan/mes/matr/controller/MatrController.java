@@ -88,8 +88,6 @@ public class MatrController {
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("comboSaveTmpr", codeService.getComboCodeList(paraMap));
-        rmap.put("authInfo", cmmnService.getAuthUserMenuInfo(paraMap));
-
         result.setData(rmap);
         return result;
     }

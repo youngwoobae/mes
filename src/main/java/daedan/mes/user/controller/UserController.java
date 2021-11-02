@@ -110,7 +110,7 @@ public class UserController {
         String tag = "UserController.signin => ";
         String token = "";
         Result result = Result.successInstance();
-        //log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
+        log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
 
         String orgLcnsCd = paraMap.get("lcnsCd").toString();
         //log.info("orgLcnsCd=" + orgLcnsCd);
