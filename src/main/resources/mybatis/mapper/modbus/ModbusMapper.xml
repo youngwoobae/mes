@@ -163,22 +163,21 @@
                 and a.prod_nm like '%' || #{findSz} || '%'
             </when>
             <otherwise>
-                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
+                and case when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('ㄱ') then SUBSTRING(a.matr_nm, 1, 1)
+                when ascii('ㄱ')  <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
+                when ascii(a.matr_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
+                else  'ㅎ'
                 end = #{findSz}
             </otherwise>
         </choose>
