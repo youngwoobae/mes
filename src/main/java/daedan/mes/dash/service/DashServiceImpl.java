@@ -149,4 +149,15 @@ public class DashServiceImpl implements  DashService {
     }
 
 
+    @Override
+    public List<Map<String, Object>> getMetalLog(Map<String, Object> paraMap){
+        return mapper.getMetalLog(paraMap);
+    }
+
+    @Override
+    public int getMetalLogCount(Map<String, Object> paraMap){
+        return mapper.getMetalLogCount(paraMap);
+    }
+
+
 }

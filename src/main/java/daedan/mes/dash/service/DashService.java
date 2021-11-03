@@ -39,4 +39,7 @@ public interface DashService {
     List<Map<String, Object>> getYyjgMatrIoList(Map<String, Object> paraMap);
     int getYyjgMatrIoListCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getMetalLog(Map<String, Object> paraMap);
+
+    int getMetalLogCount(Map<String, Object> paraMap);
 }
