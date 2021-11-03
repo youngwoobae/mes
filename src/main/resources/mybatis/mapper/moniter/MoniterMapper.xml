@@ -624,5 +624,45 @@
             </if>
         ) a
     </select>
+
+    <select id="getMatrOwhHstr" parameterType="map" resultType="camelMap">
+        /*출고이력 (moniter.getMatrIwhHstr) */
+        select a.matr_no --원료번호
+        , a.matr_nm --원료명
+        , b.owh_qty --입고수
+        , to_char(b.owh_req_dt,'YYYY-MM_DD') as owh_dt --입고일자
+        , fn_get_user_name(b.insp_er) as insp_er_nm --검수자
+        , a.valid_term --유통기한
+        , fn_get_code_name('nm',b.palt_cd) as palt_nm --파레트명
+        from matr_info a join matr_owh b on a.matr_no = b.matr_no
+        and b.used_yn ='Y' and b.cust_no  = b.cust_no
+        where a.used_yn ='Y'
+        and a.cust_no = #{custNo}
+        and to_char(b.owh_req_dt ,'YYYY-MM-DD') between substring(#{dateFr},1,10) and #{dateTo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by matr_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMatrOwhHstrCount" parameterType="map" resultType="int">
+        select count(a.matr_no)
+        from (
+        select a.matr_no --원료번호
+        from matr_info a join matr_owh b on a.matr_no = b.matr_no
+        and b.used_yn ='Y' and b.cust_no  = b.cust_no
+        where a.used_yn ='Y'
+        and a.cust_no = #{custNo}
+        and to_char(b.owh_req_dt ,'YYYY-MM-DD') between substring(#{dateFr},1,10) and #{dateTo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        ) a
+    </select>
 </mapper>
 

@@ -190,4 +190,20 @@ public class MoniterServiceImpl implements MoniterService{
         return mapper.getMatrIwhHstListCount(paraMap);
     }
 
+
+
+    @Override
+    public List<Map<String, Object>> getMatrOwhHstr(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrOwhHstr =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getMatrOwhHstr(paraMap);
+    }
+
+    @Override
+    public int getMatrOwhHstrCount(Map<String, Object> paraMap) {
+        String tag = "moniterService.getMatrOwhHstrCount =>";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getMatrOwhHstrCount(paraMap);
+    }
+
 }

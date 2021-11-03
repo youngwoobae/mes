@@ -31,11 +31,24 @@ public class MeseportServiceImpl implements MesReportService {
     @Override
     public List<Map<String, Object>> getProdOwhHstr(Map<String, Object> paraMap) {
         String tag = "reportService.getProdOwhHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getProdOwhHstr(paraMap);
     }
 
     @Override
     public int getProdOwhHstrCount(Map<String, Object> paraMap) {;
         return mapper.getProdOwhHstrCount(paraMap);
+    }
+
+    @Override
+    public List<Map<String, Object>> getProdIwhHstr(Map<String, Object> paraMap) {
+        String tag = "reportService.getProdIwhHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getProdIwhHstr(paraMap);
+    }
+
+    @Override
+    public int getProdIwhHstrCount(Map<String, Object> paraMap) {
+        return mapper.getProdIwhHstrCount(paraMap);
     }
 }

@@ -14,4 +14,7 @@ public interface MesReportMapper {
 
     List<Map<String, Object>> getProdOwhHstr(Map<String, Object> paraMap);
     int getProdOwhHstrCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getProdIwhHstr(Map<String, Object> paraMap);
+    int getProdIwhHstrCount(Map<String, Object> paraMap);
 }

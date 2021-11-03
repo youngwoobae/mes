@@ -47,4 +47,8 @@ public interface MoniterService {
     List<Map<String,Object>> getMatrIwhHstList(Map<String, Object> paraMap);
 
     int getMatrIwhHstListCount(Map<String, Object> paraMap);
+
+    List<Map<String,Object>> getMatrOwhHstr(Map<String, Object> paraMap);
+
+    int getMatrOwhHstrCount(Map<String, Object> paraMap);
 }
