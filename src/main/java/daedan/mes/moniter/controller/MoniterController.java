@@ -251,5 +251,18 @@ public class MoniterController {
     }
 
 
+    @PostMapping(value="/getMatrOwhHstr")
+    public Result getMatrOwhHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(moniterService.getMatrOwhHstr(paraMap));
+        result.setTotalCount(moniterService.getMatrOwhHstrCount(paraMap));
+
+        return result;
+    }
+
+
 
 }

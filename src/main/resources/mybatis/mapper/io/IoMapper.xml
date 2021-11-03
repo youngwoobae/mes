@@ -3845,15 +3845,15 @@
 
     <select id="getIwhMatrList" parameterType="map"  resultType="camelMap">
         select to_char(b.iwh_dt,'YYYY-MM-DD') as iwh_dt
+             , b.iwh_no
              , a.matr_nm
              , a.matr_no
-             , coalesce (sum(b.iwh_qty),0) as iwh_qty
+             , coalesce (b.iwh_qty,0) as iwh_qty
         from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y'
           and a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
-          group by a.matr_no, b.iwh_dt , a.matr_nm
           order by b.iwh_dt
             limit #{pageSz} offset #{pageNo}
     </select>
@@ -3863,14 +3863,40 @@
         from ( select to_char(b.iwh_dt,'YYYY-MM-DD') as iwh_dt
                     , a.matr_nm
                     , a.matr_no
-                    , coalesce (sum(b.iwh_qty),0) as iwh_qty
+                    , coalesce (b.iwh_qty,0) as iwh_qty
                from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                                and b.used_yn = 'Y' and b.cust_no =#{custNo}
                where a.used_yn = 'Y'
                  and a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.matr_no = #{matrNo}
-               group by a.matr_no , b.iwh_dt , a.matr_nm
                order by b.iwh_dt
+             ) a
+    </select>
+
+    <select id="getOwhMatrList" parameterType="map"  resultType="camelMap">
+        select to_char(b.owh_req_dt,'YYYY-MM-DD') as owh_dt
+             , b.owh_no
+             , a.matr_nm
+             , a.matr_no
+             , coalesce (b.owh_qty,0) as owh_qty
+        from matr_info a join matr_owh b on a.matr_no = b.matr_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+        where a.used_yn = 'Y'
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
+          and a.matr_no = #{matrNo}
+          order by b.owh_req_dt
+          limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getOwhMatrListCount" parameterType="map"  resultType="int">
+        select count(a.matr_no)
+        from ( select a.matr_no
+               from matr_info a join matr_owh b on a.matr_no = b.matr_no
+                                               and b.used_yn = 'Y' and b.cust_no =#{custNo}
+               where a.used_yn = 'Y'
+                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
+                 and a.matr_no = #{matrNo}
+               order by b.owh_req_dt
              ) a
     </select>
 
@@ -4371,5 +4397,36 @@
                    and a.used_yn = 'Y' and a.cust_no =#{custNo}
              ) a
     </select>
+
+    <update id="changeStkData" parameterType="map">
+        /* 원료 , 제품 현황 수량 수정 (ioMapper.changeStkData) */
+        update
+            <if test="pageType != null and pageType == 'matr'">
+                <if test="type != null and type == 'iwh'">
+                    matr_iwh
+                </if>
+                <if test="type != null and type == 'owh'">
+                    matr_owh
+                </if>
+            </if>
+            <if test="pageType != null and pageType == 'prod'">
+                <if test="type != null and type == 'iwh'">
+                    prod_iwh
+                </if>
+                <if test="type != null and type == 'owh'">
+                    prod_owh
+                </if>
+            </if>
+
+        <if test="type != null and type == 'iwh'">
+            set iwh_qty = #{changeQty}
+            where iwh_no = #{changeNo}
+        </if>
+        <if test="type != null and type == 'owh'">
+            set owh_qty = #{changeQty}
+            where owh_no = #{changeNo}
+        </if>
+        and used_yn = 'Y' and cust_no = #{custNo}
+    </update>
 
 </mapper>

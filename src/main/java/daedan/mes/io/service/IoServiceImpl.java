@@ -3440,6 +3440,29 @@ public class IoServiceImpl implements IoService {
             prodOwhRepo.save(owvo);
         }
     }
+
+    @Override
+    public List<Map<String, Object>> getOwhMatrList(Map<String, Object> paraMap) {
+        String tag = "vsvc.ioService.getOwhMatrList=>";
+        log.info(tag + "paramap = " + paraMap.toString());
+        return mapper.getOwhMatrList(paraMap);
+    }
+
+    @Override
+    public int getOwhMatrListCount(Map<String, Object> paraMap) {
+        String tag = "vsvc.ioService.getOwhMatrListCount=>";
+        log.info(tag + "paramap = " + paraMap.toString());
+        return mapper.getOwhMatrListCount(paraMap);
+    }
+
+
+    @Override
+    public void changeStkData(Map<String, Object> paraMap) {
+        String tag = "vsvc.IoService.changeStkData => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        mapper.changeStkData(paraMap);
+    }
+
 }
 
 

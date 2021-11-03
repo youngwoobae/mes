@@ -311,5 +311,11 @@ public interface IoMapper {
     int getMatrOwhListCount(HashMap<String, Object> paraMap);
 
     void resetPursStsSet(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getOwhMatrList(Map<String, Object> paraMap);
+
+    int getOwhMatrListCount(Map<String, Object> paraMap);
+
+    void changeStkData(Map<String, Object> paraMap);
 }
 

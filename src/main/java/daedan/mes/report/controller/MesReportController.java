@@ -34,6 +34,44 @@ public class MesReportController {
 
     @Autowired
     private MesReportService mesReportService;
+    /**
+     * 제품입고이력 검색조건 설정
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/conditions1044")
+    public Result conditions1044(@RequestBody Map<String, Object> paraMap,HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Map<String, Object> rmap = new HashMap<String,Object>();
+
+        rmap.put("comboWh",cmmnService.getComboWh(paraMap));
+        //paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base.proc_stat")));
+        //rmap.put("comboProcStat", codeService.getComboCodeList(paraMap));
+        result.setData(rmap);
+        return result;
+    }
+    /**
+     * 금속검출이력 추출
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getProdIwhHstr")
+    public Result getProdIwhHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(mesReportService.getProdIwhHstr(paraMap));
+        result.setTotalCount(mesReportService.getProdIwhHstrCount(paraMap));
+        return result;
+    }
+   
 
     /**
      * 제품출고이력 검색조건 설정
