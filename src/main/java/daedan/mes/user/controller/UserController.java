@@ -113,16 +113,18 @@ public class UserController {
         log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
 
         String orgLcnsCd = paraMap.get("lcnsCd").toString();
-        //log.info("orgLcnsCd=" + orgLcnsCd);
+        log.info("orgLcnsCd=" + orgLcnsCd);
         String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt());
         log.info("encLcnsCd=" + encLcnsCd);
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
         if (uservo != null) {
             if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
+                log.info("chekLine");
                 String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
                 Long custNo = Long.parseLong(strCustNo);
+
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
-                //log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+                log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
 
 
                 // 세션 생성

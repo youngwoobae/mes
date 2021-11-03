@@ -1342,6 +1342,17 @@ public class IoController {
         return result;
     }
 
+    @PostMapping(value="/OwhMatrList") //구매현황
+    public Result OwhMatrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(ioService.getOwhMatrList(paraMap));
+        result.setTotalCount(ioService.getOwhMatrListCount(paraMap));
+        return result;
+    }
+
     @PostMapping(value="/IwhProdList") //구매현황
     public Result IwhProdList(@RequestBody HashMap<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
@@ -1421,5 +1432,19 @@ public class IoController {
         ioService.getMatrOwhHistList(paraMap);
         return result;
     }
+
+    @PostMapping(value = "/changeStkData")
+    public Result changeStkData(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
+        String tag = "ioController.changeStkData => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("userId", paraMap.get("userId"));
+        ioService.changeStkData(paraMap);
+        return result;
+    }
+
+
 
 }

@@ -285,4 +285,10 @@ public interface IoService {
     List<Map<String, Object>> comboEmbIwhWhInfo(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMatrOwhHistList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getOwhMatrList(Map<String, Object> paraMap);
+
+    int getOwhMatrListCount(Map<String, Object> paraMap);
+
+    void changeStkData(Map<String, Object> paraMap);
 }
