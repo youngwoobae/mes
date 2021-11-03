@@ -604,7 +604,7 @@
                 and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by matr_nm
+        order by matr_nm,iwh_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
 

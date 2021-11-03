@@ -1352,7 +1352,7 @@
         select a.chng_no --변경이력번호
              , a.matr_no --자재번호
              , d.matr_nm --자재명
-             , to_char(coalesce(a.mod_dt,a.reg_dt),'YYYY-MM-HH HH24:MI:SS') as chng_dt --변경일자
+             , to_char(coalesce(a.mod_dt,a.reg_dt),'YYYY-MM-DD HH24:MI:SS') as chng_dt --변경일자
              , a.stk_qty --변경재고
              , a.chng_resn --변경사유
              , a.wh_no --창고번호
