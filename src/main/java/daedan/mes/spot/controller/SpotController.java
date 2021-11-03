@@ -1,5 +1,6 @@
 package daedan.mes.spot.controller;
 
+import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
@@ -19,14 +20,15 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.Reader;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/daedan/mes/spot")
 public class SpotController {
     private Log log = LogFactory.getLog(this.getClass());
+
+    @Autowired
+    private CodeService codeService;
 
     @Autowired
     private SpotService spotService;
@@ -41,6 +43,34 @@ public class SpotController {
         result.setData(spotService.getComboSpotEquip(paraMap));
         return result;
     }
+    /**
+     * 작업장목록 검색조건
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/conditions104")
+    public Result conditions104(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+
+        paraMap.put("selectStr", "CCP 구분");
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.ccp_tp")));
+        Map<String,Object> rmap = new HashMap<String,Object>();
+        rmap.put("comboCcpTp",codeService.getComboCodeList(paraMap));
+        result.setData(rmap);
+        return result;
+    }
+
+    /**
+     * 작업장목록
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
     @PostMapping(value="/spotList")
     public Result spotList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
@@ -62,6 +92,17 @@ public class SpotController {
         return result;
     }
 
+    @PostMapping(value="/conditionsEmbSpotInfo")
+    public Result conditionsEmbSpotInfo(@RequestBody Map<String, Object> paraMap, HttpServletRequest request){
+        Result result = Result.successInstance();
+        Map<String,Object> rmap = new HashMap<String,Object>();
+
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.ccp_tp")));
+        paraMap.put("selectStr", "CCP 구분");
+        rmap.put("comboCcpTp", codeService.getComboCodeList(paraMap));
+        result.setData(rmap);
+        return result;
+    }
     @PostMapping(value = "/spotInfo")
     public Result spotInfo(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
@@ -84,7 +125,14 @@ public class SpotController {
         spotService.dropSpot(paraMap);
         return result;
     }
-
+    /**
+     * 작업장정보 저장
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
     @PostMapping(value="/saveSpot")
     public Result saveSpotInfo(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();

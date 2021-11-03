@@ -87,6 +87,10 @@ public class SpotServiceImpl implements SpotService {
         catch (NullPointerException ne) {
             spotIn.setSpotNo(0L);
         }
+        log.info(tag + "param.ccpTp = " + Long.parseLong(paraMap.get("ccpTp").toString()));
+
+        spotIn.setCcpTp(Long.parseLong(paraMap.get("ccpTp").toString()));
+        log.info(tag + "vo.ccpTp = " + spotIn.getCcpTp());
         spotIn.setSpotNm((String) paraMap.get("spotNm"));
         spotIn.setSpotRmk((String) paraMap.get("spotRmk"));
         try {
@@ -96,7 +100,7 @@ public class SpotServiceImpl implements SpotService {
 
         }
 
-        spotIn.setModDt(DateUtils.getCurrentDate());
+        spotIn.setModDt(DateUtils.getCurrentBaseDateTime());
         spotIn.setModId(Long.parseLong(paraMap.get("userId").toString()));
         spotIn.setModIp(paraMap.get("ipaddr").toString());
 
@@ -107,9 +111,6 @@ public class SpotServiceImpl implements SpotService {
 
         }
         spotIn.setSvcTp(paraMap.get("svcTp").toString());
-        spotIn.setCcpTp(0L);
-
-
         spotIn.setUsedYn("Y");
         SpotInfo chkvo =  spotInfoRepo.findByCustNoAndSpotNoAndUsedYn(custNo,spotIn.getSpotNo(),"Y");
         if (chkvo != null) {
@@ -120,7 +121,7 @@ public class SpotServiceImpl implements SpotService {
         }
         else {
             spotIn.setSpotNo(0L);
-            spotIn.setRegDt(DateUtils.getCurrentDate());
+            spotIn.setRegDt(DateUtils.getCurrentBaseDateTime());
             spotIn.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             spotIn.setRegIp(paraMap.get("ipaddr").toString());
         }
@@ -199,8 +200,9 @@ public class SpotServiceImpl implements SpotService {
     public Map<String, Object> getSpotInfo(Map<String, Object> paraMap) {
         String tag = "SpotService.getSpotInfo =>";
         log.info(tag + "params = " + paraMap.toString());
-        return spotMapper.getSpotInfo(paraMap);
-        //return StringUtil.voToMap(spotInfoRepo.findBySpotNoAndUsedYn(Long.parseLong(paraMap.get("spotNo").toString()),"Y"));
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long spotNo = Long.parseLong(paraMap.get("spotNo").toString());
+        return StringUtil.voToMap(spotInfoRepo.findByCustNoAndSpotNoAndUsedYn(custNo,spotNo,"Y"));
     }
 
     @Override

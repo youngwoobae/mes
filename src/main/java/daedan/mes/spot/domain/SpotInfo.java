@@ -23,11 +23,11 @@ public class SpotInfo {
     private Long custNo;
 
     //작업장
-    @Column(name = "spot_nm",nullable = false, length = 100)
+    @Column(name = "spotNm",nullable = false, length = 100)
     private String spotNm;
 
     //ccp 유형(살균:2031,금속검출:2302)
-    @Column(name = "ccp_tp",nullable = false,columnDefinition = "numeric default 0")
+    @Column(name = "ccpTp",nullable = false)
     private Long ccpTp;
 
     //api 분류

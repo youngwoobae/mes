@@ -11,25 +11,25 @@ import javax.persistence.*;
 public class ScadaApi {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="api_no",nullable = false, columnDefinition = "numeric")
+    @Column(name="apiNo",nullable = false, columnDefinition = "numeric")
     private Long apiNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
     /*설치장소*/
-    @Column(name="spot_no", nullable = false)
+    @Column(name="spotNo", nullable = false)
     private Long spotNo;
 
     /*API장비*/
-    @Column(name="equip_no", nullable = false)
+    @Column(name="equipNo", nullable = false)
     private Long equipNo;
 
     /*APIURL*/
-    @Column(name="api_url", length = 200)
+    @Column(name="apiUrl", length = 200)
     private String apiUrl;
 
 
-    @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
+    @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 }

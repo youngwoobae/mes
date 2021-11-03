@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.qc.mapper.ReportMapper">
+    <select id="getMetalDetectHstr" parameterType="map" resultType="camelMap">
+        /*금속검출 이력 (reportMapper.getMetalDetectHstr)*/
+        select a.cust_no
+             , b.cust_nm
+             , to_char(to_timestamp(a.unix_hms),'YY-MM-DD HH24:MI:SS')  as chk_dt
+             , a.rcv_msg
+             , a.pass_qty --통과수량
+             , a.err_qty --불량수량
+             , case when a.pass_qty = 0 then 0 else  100 - round((a.err_qty / a.pass_qty) * 100,2)  end as fault_rt
+        from metal_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
+        where a.cust_no =#{custNo}
+            <if test="dateFr != null and dateFr != ''">
+               AND to_char(to_timestamp(a.unix_hms),'YY-MM-DD') between #{dateFr} and #{dateTo}
+            </if>
+        order by chk_dt desc
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMetalDetectHstrCount" parameterType="map" resultType="int">
+        select count(a.unix_hms)
+        from (
+              select a.unxx_hms
+                from metal_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
+                where a.cust_no =#{custNo}
+                <if test="dateFr != null and dateFr != ''">
+                    AND to_char(to_timestamp(a.unix_hms),'YY-MM-DD') between #{dateFr} and #{dateTo}
+                </if>
+        ) a
+    </select>
+
+    <select id="getProdOwhHstr" parameterType="map" resultType="camelMap">
+        /*제품출고이력 (reportMapper.getProdOwhHstr) */
+        select to_char(a.owh_dt,'YYYY-MM-DD') as owh_dt --출고일자
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --납품처명
+             , fn_get_prod_name(a.prod_no) as prod_nm --품명
+             , fn_get_wh_name(a.wh_no) as wh_nm --창고
+             , to_char(coalesce (d.iwh_dt,a.owh_dt),'YYYY-MM-DD') as make_dt --생산일자
+             , fn_get_code_name('nm',a.palt_cd) as palt_nm --파레트
+             , fn_get_user_name(a.insp_er) as inspErNm --검수자
+       from prod_owh a left join prod_iwh d on a.iwh_no = d.iwh_no and d.used_yn ='Y' and d.cust_no = a.cust_no
+       where a.cust_no= #{custNo} and a.used_yn = 'Y'
+       <if test="dateFr != null and dateFr != ''">
+        AND to_char(a.owh_dt,'YY-MM-DD') between #{dateFr} and #{dateTo}
+       </if>
+       <if test="findStr != null and findStr != ''"><!--PC용 검색문자열 처리-->
+        <if test="findTp != null and findTp == 'matrNm'">
+           and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        </if>
+       </if>
+        order by owh_dt, prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getProdOwhHstrCount" parameterType="map" resultType="int">
+        select count(a.owh_no)
+        from (
+            select a.owh_no
+            from prod_owh a left join prod_iwh d on a.iwh_no = d.iwh_no and d.used_yn ='Y' and d.cust_no = a.cust_no
+            where a.cust_no= #{custNo} and a.used_yn = 'Y'
+            <if test="dateFr != null and dateFr != ''">
+                AND to_char(a.owh_dt,'YY-MM-DD') between #{dateFr} and #{dateTo}
+            </if>
+            <if test="findStr != null and findStr != ''"><!--PC용 검색문자열 처리-->
+                <if test="findTp != null and findTp == 'matrNm'">
+                    and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
+            </if>
+        ) a
+    </select>
+</mapper>

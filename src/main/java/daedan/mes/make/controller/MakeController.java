@@ -5,6 +5,8 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.make.service.MakeIndcService;
+import daedan.mes.make.service.metal10.Metal10Service;
+import daedan.mes.modbus.service.ModbusService;
 import daedan.mes.modbus.tcp.service.TcpService;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
@@ -33,11 +35,15 @@ public class MakeController {
 
     @Autowired
     private CodeService codeService;
+
     @Autowired
     private MakeIndcService moService;
 
     @Autowired
-    private TcpService tcpService;
+    private Metal10Service metal10;
+
+    @Autowired
+    private ModbusService modbusService;
 
 
     @PostMapping(value="/conditionEmpIndcMp")
@@ -827,6 +833,33 @@ public class MakeController {
         return result;
     }
 
+    /**
+     * 금속검출기 시작버튼 클릭
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/saveMetalLog")
+    public Result saveMetalLog(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session){
+        String tag = "MakeController.startMetalOper => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        long custNo = uvo.getCustInfo().getCustNo();
+        switch ((int) custNo) {
+            case 2 : //서울식품
+                modbusService.startOper(paraMap);
+                moService.saveIndcPrintText(paraMap);
+                break;
+            case 10 : //유진물산
+                metal10.saveMetalLog(paraMap);
+                break;
+        }
+        return result;
+    }
 
 
 }

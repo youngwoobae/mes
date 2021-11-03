@@ -265,7 +265,7 @@ public class ProdServiceImpl implements  ProdService {
         ProdInfo pivo = prodRepository.findByCustNoAndProdNoAndUsedYn(custNo,prodNo, "Y");
         if (pivo != null) {
             if (pivo.getCcpTp() != null) {
-                if (pivo.getCcpTp() != Long.parseLong(env.getProperty("code.ccp_tp.insp"))) { //살균공정을 포함한 경우
+                if (pivo.getCcpTp() != Long.parseLong(env.getProperty("code.ccp_tp.heat"))) { //살균공정을 포함한 경우
                     HeatLmtInfo hlvo = heatLmtInfoRepo.findByHeatTpAndUsedYn(pivo.getHeatTp(), "Y");
                     if (hlvo != null) {
                         pivo.setHeatLmtInfo(hlvo);

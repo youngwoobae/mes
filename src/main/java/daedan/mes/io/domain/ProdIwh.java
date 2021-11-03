@@ -43,6 +43,8 @@ public class ProdIwh {
     @Column(name="iwh_qty",nullable = false, precision=10, scale=2)
     private Float iwhQty;
 
+
+
     @Column(name="reg_id", columnDefinition = "numeric")
     private Long regId;
 

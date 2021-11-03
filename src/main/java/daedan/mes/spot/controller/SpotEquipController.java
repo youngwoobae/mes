@@ -45,6 +45,7 @@ public class SpotEquipController {
     public Result conditionEmbSpotInfo(@RequestBody Map<String, Object> paraMap, HttpServletRequest request){
         Result result = Result.successInstance();
         Map<String,Object> rmap = new HashMap<String,Object>();
+
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.meas_unit")));
         rmap.put("measUnits", codeService.getComboCodeList(paraMap));
         rmap.put("equips", equipService.getComboEquipList(paraMap));

@@ -4,13 +4,19 @@
 
 <mapper namespace="daedan.mes.spot.mapper.SpotMapper">
    <select id="getSpots" parameterType="map" resultType="camelMap">
+        /*작업장 목록 (spotMapper.getSpots) */
        select a.spot_no
+            , a.ccp_tp --ccp유형 (살균,금속검출,온도측정)
+            , fn_get_code_name('nm',a.ccp_tp) as ccp_tp_nm --ccp구분명
             , a.spot_nm  -- 작업장명
             , a.spot_rmk --작업장비고
             , a.svc_tp   --설비연동서비스타입
             , a.scada_api --scada api
        from spot_info a
        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+       <if test="ccpTp != null and  ccpTp != ''">
+           AND a.ccp_tp = #{ccpTp}
+       </if>
        <if test="spotNo != null and  spotNo != ''">
            AND a.spot_no = #{spotNo}
        </if>
@@ -23,14 +29,18 @@
    </select>
 
     <select id="getSpotList" parameterType="map" resultType="camelMap">
+        /* 작업장목록(spotMapper.getSpotList) */
         select a.spot_no
               ,a.spot_nm  -- 작업장명
               ,a.spot_rmk --작업장비고
               ,a.svc_tp   --설비연동서비스타입
               ,a.scada_api --scada api
-              ,a.scada_api --scada_api
+              ,fn_get_code_name('nm',a.ccp_tp) as ccp_tp_nm --CCP구분명
         FROM spot_info a
         WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
+        <if test="ccpTp != null and  ccpTp != ''">
+            AND a.ccp_tp = #{ccpTp}
+        </if>
         <if test="spotNo != null and  spotNo != ''">
             AND a.spot_no = #{spotNo}
         </if>
