@@ -406,4 +406,37 @@
             and TO_CHAR(a.make_fr_dt ,'YYYY-MM') = TO_CHAR(now(),'YYYY-MM')
         </if>
     </select>
+
+
+
+    <select id="getMetalLog" resultType="camelMap" parameterType="map">
+        /* getMetalLog */
+        select
+            sum(pass_qty) as pass_qty,
+            sum(err_qty) as err_qty,
+            fn_get_prod_name(prod_no) as prod_nm ,
+            fn_get_code_name('nm' , spot_no) as spot_nm
+        from metal_log
+        where prod_no not in (0)
+          and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
+          and cust_no = #{cust_no}
+        group by prod_no , spot_no
+    </select>
+
+
+    <select id="getMetalLogCount" resultType="int" parameterType="map">
+        /* getMetalLog */
+        select COUNT(prod_no)
+        from (
+            select prod_no from metal_log
+            where prod_no not in (0)
+              and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
+              and cust_no = #{cust_no}
+            group by prod_no , spot_no
+        )
+    </select>
+
+
+
+
 </mapper>

@@ -253,4 +253,16 @@ public class DashController {
         return result;
     }
 
+    @PostMapping(value="/getMetalLog")
+    public Result getMetalLog(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+
+        result.setData(dashService.getMetalLog(paraMap));
+//        result.setTotalCount(dashService.getMetalLogCount(paraMap));
+        return result;
+    }
+
 }

@@ -42,4 +42,7 @@ public interface DashMapper {
     List<Map<String, Object>> gethumanList(Map<String, Object> paraMap);
     int getToTalhumanCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getMetalLog(Map<String, Object> paraMap);
+
+    int getMetalLogCount(Map<String, Object> paraMap);
 }
