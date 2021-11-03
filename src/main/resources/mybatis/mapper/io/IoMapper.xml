@@ -3018,7 +3018,7 @@
                         join (select wh_no, matr_no, max(iwh_no) as iwh_no
                               from matr_iwh
                               where used_yn ='Y'
-                                and b.cust_no =#{custNo}
+                                and cust_no =#{custNo}
                         group by wh_no, matr_no) h on a.iwh_no = h.iwh_no
                         join wh_info d on a.wh_no  = d.wh_no
                                       and d.used_yn ='Y' and d.cust_no =#{custNo}

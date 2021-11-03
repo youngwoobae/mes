@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="daedan.mes.qc.mapper.ReportMapper">
+<mapper namespace="daedan.mes.report.mapper.MesReportMapper">
     <select id="getMetalDetectHstr" parameterType="map" resultType="camelMap">
         /*금속검출 이력 (reportMapper.getMetalDetectHstr)*/
         select a.cust_no
@@ -45,10 +45,10 @@
        from prod_owh a left join prod_iwh d on a.iwh_no = d.iwh_no and d.used_yn ='Y' and d.cust_no = a.cust_no
        where a.cust_no= #{custNo} and a.used_yn = 'Y'
        <if test="dateFr != null and dateFr != ''">
-        AND to_char(a.owh_dt,'YY-MM-DD') between #{dateFr} and #{dateTo}
+        AND to_char(coalesce (d.iwh_dt,a.owh_dt),'YYYY-MM-DD') between #{dateFr} and #{dateTo}
        </if>
-       <if test="findStr != null and findStr != ''"><!--PC용 검색문자열 처리-->
-        <if test="findTp != null and findTp == 'matrNm'">
+       <if test="findSz != null and findSz != ''">
+        <if test="findTp != null and findTp == 'prodNm'">
            and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
        </if>
@@ -62,13 +62,34 @@
             from prod_owh a left join prod_iwh d on a.iwh_no = d.iwh_no and d.used_yn ='Y' and d.cust_no = a.cust_no
             where a.cust_no= #{custNo} and a.used_yn = 'Y'
             <if test="dateFr != null and dateFr != ''">
-                AND to_char(a.owh_dt,'YY-MM-DD') between #{dateFr} and #{dateTo}
+                AND to_char(coalesce (d.iwh_dt,a.owh_dt),'YYYY-MM-DD')  between #{dateFr} and #{dateTo}
             </if>
-            <if test="findStr != null and findStr != ''"><!--PC용 검색문자열 처리-->
-                <if test="findTp != null and findTp == 'matrNm'">
+            <if test="findSz != null and findSz != ''"><!--PC용 검색문자열 처리-->
+                <if test="findTp != null and findTp == 'prodNm'">
                     and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 </if>
             </if>
         ) a
     </select>
+    <select id="getProdIwhHstr" parameterType="map" resultType="camelMap">
+        /*제품입고이력 (reportMapper.getProdIwhHstr) */
+        select to_char(a.iwh_dt,'YYYY-MM-DD') as iwh_dt --입고일자
+             , fn_get_prod_name(a.prod_no) as prod_nm --품명
+             , fn_get_wh_name(a.wh_no) as wh_nm --창고
+             , iwh_qty -- 입고수량
+             , fn_get_user_name(a.insp_er) as inspErNm --검수자
+        from prod_iwh a
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="dateFr != null and dateFr != ''">
+            AND to_char(coalesce (d.iwh_dt,a.owh_dt),'YYYY-MM-DD')  between #{dateFr} and #{dateTo}
+        </if>
+        <if test="findSz != null and findSz != ''"><!--PC용 검색문자열 처리-->
+            <if test="findTp != null and findTp == 'prodNm'">
+                and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by iwh_dt, prod_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
 </mapper>

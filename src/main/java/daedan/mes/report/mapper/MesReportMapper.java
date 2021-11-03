@@ -8,7 +8,10 @@ import java.util.Map;
 
 @Mapper
 @Component
-public interface ReportMapper {
+public interface MesReportMapper {
     List<Map<String,Object>> getMetalDetectHstr(Map<String, Object> paraMap);
     int getMetalDetectHstrCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getProdOwhHstr(Map<String, Object> paraMap);
+    int getProdOwhHstrCount(Map<String, Object> paraMap);
 }
