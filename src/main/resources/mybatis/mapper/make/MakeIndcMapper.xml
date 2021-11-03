@@ -641,15 +641,16 @@
                                  )
                 and d.prod_no in (select a.prod_no
                                   from make_indc a join ord_info b on a.ord_no = b.ord_no
-                                                                  and b.used_yn = 'Y' and b.cust_no =#{custNo}
-                                   where used_yn = 'Y' and cust_no =#{custNo}
+                                                                  and b.used_yn = 'Y' and b.cust_no =a.cust_no
+                                   where a.used_yn = 'Y' and a.cust_no =#{custNo}
                                      and a.par_indc_no = 0
                                  )
             </when>
             <when test="findTp != null and findTp == 'plan'">
                 and e.prod_no not in (select prod_no from make_indc
                                        where used_yn = 'Y' and cust_no =#{custNo}
-                                         and par_indc_no = 0 and ord_no = a.ord_no)
+                                         and par_indc_no = 0 and ord_no = a.ord_no
+                                      )
             </when>
         </choose>
 
