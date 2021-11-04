@@ -3345,6 +3345,17 @@ public class IoServiceImpl implements IoService {
     }
 
     @Override
+    public List<Map<String, Object>> getOwhProdList(HashMap<String, Object> paraMap) {
+        return mapper.getOwhProdList(paraMap);
+    }
+
+    @Override
+    public int getOwhProdListCount(HashMap<String, Object> paraMap) {
+        return mapper.getOwhProdListCount(paraMap);
+    }
+
+
+    @Override
     public List<Map<String, Object>> getProdIwHstrList(Map<String, Object> paraMap) {
         String tag = "vsvc.ioService.prodIwHstrList=>";
         log.info(tag + "paramap = " + paraMap.toString());
@@ -3461,6 +3472,15 @@ public class IoServiceImpl implements IoService {
         String tag = "vsvc.IoService.changeStkData => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         mapper.changeStkData(paraMap);
+
+    }
+
+    @Override
+    public void changeTotalStkData(Map<String, Object> paraMap) {
+        String tag = "vsvc.IoService.changeTotalStkData => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        mapper.changeTotalStkData(paraMap);
+
     }
 
 }
