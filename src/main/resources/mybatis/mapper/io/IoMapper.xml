@@ -3844,6 +3844,7 @@
     </select>
 
     <select id="getIwhMatrList" parameterType="map"  resultType="camelMap">
+        /* 원료입고목록 (ioMapper.getIwhMatrList) */
         select to_char(b.iwh_dt,'YYYY-MM-DD') as iwh_dt
              , b.iwh_no
              , a.matr_nm
@@ -3874,6 +3875,7 @@
     </select>
 
     <select id="getOwhMatrList" parameterType="map"  resultType="camelMap">
+        /*원료출고목록 (ipMapper.getOwhMatrList) */
         select to_char(b.owh_req_dt,'YYYY-MM-DD') as owh_dt
              , b.owh_no
              , a.matr_nm

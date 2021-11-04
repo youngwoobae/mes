@@ -1,7 +1,7 @@
 package daedan.mes.io.repository;
 
 import daedan.mes.io.domain.MatrIwh;
-import daedan.mes.stock.domain.MatrPos;
+import daedan.mes.stock.domain.MatrStk;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Date;
@@ -21,4 +21,5 @@ public interface MatrIwhRepository extends JpaRepository<MatrIwh, Long> {
     MatrIwh findByCustNoAndIwhNoAndUsedYn(Long custNo,Long iwh_no, String y);
 
     MatrIwh findByCustNoAndIwhDtAndMatrNoAndUsedYn(Long custNo,Date iwhDt, Long matrNo, String y);
+    MatrStk deleteByIwhNo(Long iwhNo);
 }

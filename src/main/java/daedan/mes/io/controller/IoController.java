@@ -1456,6 +1456,18 @@ public class IoController {
         ioService.changeTotalStkData(paraMap);
         return result;
     }
+    @PostMapping(value = "/dropStkData")
+    public Result dropStkData(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
+        String tag = "ioController.dropStkData => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("userId", paraMap.get("userId"));
+        ioService.dropStkData(paraMap);
+        ioService.dropTotalStkData(paraMap);
+        return result;
+    }
 
 
 
