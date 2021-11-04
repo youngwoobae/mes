@@ -1754,7 +1754,7 @@
                          left join code_info d on a.sale_unit = d.code_no
                          left join prod_stk e on a.prod_no = e.prod_no
                                               and e.used_yn = 'Y'
-                                              and b.cust_no = #{custNo}
+                                              and e.cust_no = #{custNo}
                          left join wh_info f on e.wh_no = f.wh_no
                                             and f.used_yn = 'Y'
                                             and f.cust_no = #{custNo}
@@ -1789,4 +1789,6 @@
         where prod_insp_yn = 'Y'
         and cust_info = #{custNo}
     </select>
+
+
 </mapper>

@@ -11,6 +11,6 @@ public interface MesReportService {
     int getProdOwhHstrCount(Map<String, Object> paraMap);
 
     List<Map<String,Object>> getProdIwhHstr(Map<String, Object> paraMap);
-
     int getProdIwhHstrCount(Map<String, Object> paraMap);
+
 }

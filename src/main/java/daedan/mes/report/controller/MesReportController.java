@@ -55,7 +55,7 @@ public class MesReportController {
         return result;
     }
     /**
-     * 금속검출이력 추출
+     * 제품생산
      *
      * @param paraMap
      * @param session
@@ -69,9 +69,10 @@ public class MesReportController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(mesReportService.getProdIwhHstr(paraMap));
         result.setTotalCount(mesReportService.getProdIwhHstrCount(paraMap));
+        System.out.print("****" + result);
         return result;
     }
-   
+
 
     /**
      * 제품출고이력 검색조건 설정
@@ -94,9 +95,30 @@ public class MesReportController {
         return result;
     }
 
+    /**
+     * 제품출고이력 검색조건 설정
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/conditions1050")
+    public Result conditions1050(@RequestBody Map<String, Object> paraMap,HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Map<String, Object> rmap = new HashMap<String,Object>();
+
+        rmap.put("comboWh",cmmnService.getComboWh(paraMap));
+        //paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base.proc_stat")));
+        //rmap.put("comboProcStat", codeService.getComboCodeList(paraMap));
+        result.setData(rmap);
+        return result;
+    }
+
 
     /**
-     * 금속검출이력 추출
+     *
      *
      * @param paraMap
      * @param session
@@ -111,6 +133,26 @@ public class MesReportController {
         result.setData(mesReportService.getProdOwhHstr(paraMap));
         result.setTotalCount(mesReportService.getProdOwhHstrCount(paraMap));
         return result;
+    }
+
+    /**
+     * 금속검출이력 추출
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getMetalDetectHstr") //구매현황
+    public Result getMetalDetectHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(mesReportService.getMetalDetectHstr(paraMap));
+        result.setTotalCount(mesReportService.getMetalDetectHstrCount(paraMap));
+        //System.out.print("****" + result);
+        return result;
+
     }
 
 }

@@ -19,6 +19,7 @@ public class MeseportServiceImpl implements MesReportService {
     @Override
     public List<Map<String, Object>> getMetalDetectHstr(Map<String, Object> paraMap) {
         String tag = "reportService.getMetalDetectHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getMetalDetectHstr(paraMap);
     }
 
