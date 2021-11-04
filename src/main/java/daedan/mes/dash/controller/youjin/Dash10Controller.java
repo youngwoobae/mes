@@ -1,7 +1,7 @@
-package daedan.mes.dash.controller.mh;
+package daedan.mes.dash.controller.youjin;
 
 import daedan.mes.common.domain.Result;
-import daedan.mes.dash.service.mh.Dash18Service;
+import daedan.mes.dash.service.youjin.Dash10Service;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,8 +16,8 @@ import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/daedan/mes/dash/mh")
-public class MhController {
+@RequestMapping("/api/daedan/mes/dash/youjin")
+public class Dash10Controller {
     private Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
@@ -25,7 +25,7 @@ public class MhController {
 
 
     @Autowired
-    private Dash18Service mhService;
+    private Dash10Service dashService;
 
 
     /**
@@ -35,12 +35,12 @@ public class MhController {
      * @param session
      * @return Result
      */
-    @PostMapping(value="/getMhTmprList")
-    public Result getRcvTmpr(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+    @PostMapping(value="/getTmpr10List")
+    public Result getTmpr10List(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(mhService.getMhTmprList(paraMap));
+        result.setData(dashService.getTmpr10List(paraMap));
         return result;
     }
 }
