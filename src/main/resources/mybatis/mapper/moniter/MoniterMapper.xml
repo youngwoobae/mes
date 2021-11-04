@@ -594,8 +594,10 @@
              , to_char(b.date_manufacture,'YYYY-MM-DD') as make_dt --제조일자
              , to_char(b.date_manufacture + '12 month' + '-1 days'  , 'YYYY-MM-DD'  ) as rest_dt --기한일
              , fn_get_code_name('nm',b.palt_cd) as palt_nm --파레트명
+             , fn_get_cmpy_name(c.cmpy_no) as purs_cmpy_nm --구매처명
         from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                        and b.used_yn ='Y' and b.cust_no  = b.cust_no
+                    left join purs_info c on b.purs_no = c.purs_no and c.cust_no = b.cust_no   and c.used_yn= 'Y'
         where a.used_yn ='Y'
           and a.cust_no = #{custNo}
           and to_char(b.iwh_dt ,'YYYY-MM-DD') between substring(#{dateFr},1,10) and #{dateTo}
@@ -614,6 +616,7 @@
             select a.matr_no --원료번호
             from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                             and b.used_yn ='Y' and b.cust_no  = b.cust_no
+                        left join purs_info c on b.purs_no = c.purs_no and c.cust_no = b.cust_no   and c.used_yn= 'Y'
             where a.used_yn ='Y'
             and a.cust_no = #{custNo}
             and to_char(b.iwh_dt ,'YYYY-MM-DD') between substring(#{dateFr},1,10) and #{dateTo}

@@ -106,9 +106,12 @@ public class QcController {
         Map<String,Object> rmap = new HashMap<String,Object>();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+
+        paraMap.put("selectStr", "점검유형선택");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_insp")));
         rmap.put("chkTps", codeService.getComboCodeList(paraMap));
 
+        paraMap.put("selectStr", "점검방법선택");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.insp_meth")));
         rmap.put("chkMths", codeService.getComboCodeList(paraMap));
 

@@ -130,6 +130,11 @@ public class CustInfo {
     @Column(name = "eleTagYn", columnDefinition = "char(1) default 'N'")
     private String eleTagYn;
 
+    /*제품출고단위 : 유진물산-84(Kg) , 기타-81(EA) */
+    @Column(name = "outUnit", nullable = false, columnDefinition = "numeric default 81")
+    private Long outUnit;
+
+
     @Column(name = "usedYn", nullable = false, columnDefinition = "char(1) default 'Y'")
     private String usedYn;
 }
