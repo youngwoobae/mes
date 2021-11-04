@@ -65,6 +65,12 @@ public class IoServiceImpl implements IoService {
     private IoMapper mapper;
 
     @Autowired
+    private MatrStkRepository matrStkRepo;
+
+    @Autowired
+    private ProdStkRepository prodStkRepo;
+
+    @Autowired
     private MakeIndcRepository indcRepo;
 
     @Autowired
@@ -92,16 +98,7 @@ public class IoServiceImpl implements IoService {
     private MatrOwhRepository omr;
 
     @Autowired
-    private MatrStkRepository matrStkRepo;
-
-    @Autowired
     private MatrOwhRepository matrOwhRepo;
-
-    @Autowired
-    private OrdService ordService;
-
-    @Autowired
-    private ProdStkRepository prodStkRepo;
 
     @Autowired
     private MatrPosRepository makeposRepo;
@@ -3345,6 +3342,17 @@ public class IoServiceImpl implements IoService {
     }
 
     @Override
+    public List<Map<String, Object>> getOwhProdList(HashMap<String, Object> paraMap) {
+        return mapper.getOwhProdList(paraMap);
+    }
+
+    @Override
+    public int getOwhProdListCount(HashMap<String, Object> paraMap) {
+        return mapper.getOwhProdListCount(paraMap);
+    }
+
+
+    @Override
     public List<Map<String, Object>> getProdIwHstrList(Map<String, Object> paraMap) {
         String tag = "vsvc.ioService.prodIwHstrList=>";
         log.info(tag + "paramap = " + paraMap.toString());
@@ -3461,6 +3469,100 @@ public class IoServiceImpl implements IoService {
         String tag = "vsvc.IoService.changeStkData => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         mapper.changeStkData(paraMap);
+
+    }
+
+    @Override
+    public void changeTotalStkData(Map<String, Object> paraMap) {
+        String tag = "vsvc.IoService.changeTotalStkData => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        mapper.changeTotalStkData(paraMap);
+
+    }
+
+    @Transactional
+    @Override
+    public void dropStkData(Map<String, Object> paraMap) {
+        String pageType = paraMap.get("pageType").toString();
+        String type = paraMap.get("type").toString();
+        Long  custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long  itemNo = Long.parseLong(paraMap.get("changeNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+
+        String ipaddr = paraMap.get("ipaddr").toString();
+        MatrStk msvo = null;
+        ProdStk psvo = null;
+
+        if (pageType.equals("matr")) {
+            if (type.equals("iwh")){
+                MatrIwh mivo = matrIwhRepo.findByCustNoAndIwhNoAndUsedYn(custNo, itemNo, "Y");
+                if (mivo != null) {
+                    //원료재고량을 변경전의 원료량많큼 감소시켜 재고 adjust
+                    msvo = matrStkRepo.findByCustNoAndMatrNoAndUsedYn(custNo, mivo.getMatrNo(), "Y");
+                    msvo.setStkQty(msvo.getStkQty() - mivo.getIwhQty());
+                    msvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    msvo.setModId(userId);
+                    msvo.setModIp(ipaddr);
+                    matrStkRepo.save(msvo);
+                }
+                //입력된 원료량으로 재고 adjust
+                mivo.setUsedYn("N");
+                matrIwhRepo.save(mivo);
+            }else{
+                MatrOwh movo = matrOwhRepo.findByCustNoAndOwhNoAndUsedYn(custNo, itemNo, "Y");
+                if (movo != null) {
+                    //원료재고량을 변경전의 원료량많큼 감소시켜 재고 adjust
+                    msvo = matrStkRepo.findByCustNoAndMatrNoAndUsedYn(custNo, movo.getMatrNo(), "Y");
+                    msvo.setStkQty(msvo.getStkQty() - movo.getOwhQty());
+                    msvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    msvo.setModId(userId);
+                    msvo.setModIp(ipaddr);
+                    matrStkRepo.save(msvo);
+                }
+                //입력된 원료량으로 재고 adjust
+                movo.setUsedYn("N");
+                matrOwhRepo.save(movo);
+            }
+
+        }
+        else if (pageType.equals("prod")) {
+            if (type.equals("iwh")){
+                ProdIwh pivo = prodIwhRepo.findByCustNoAndIwhNoAndUsedYn(custNo, itemNo, "Y");
+                if (pivo != null) {
+                    //재품재고량을 변경전의 원료량많큼 감소시켜 재고 adjust
+                    psvo = prodStkRepo.findByCustNoAndProdNoAndUsedYn(custNo, pivo.getProdNo(), "Y");
+                    psvo.setStkQty(psvo.getStkQty() - pivo.getIwhQty());
+                    psvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    psvo.setModId(userId);
+                    psvo.setModId(userId);
+                    prodStkRepo.save(psvo);
+                }
+                //입력된 제품량으로 재고 adjust
+                pivo.setUsedYn("N");
+                prodIwhRepo.save(pivo);
+            }else{
+                ProdOwh povo = prodOwhRepo.findByCustNoAndOwhNoAndUsedYn(custNo, itemNo, "Y");
+                if (povo != null) {
+                    //재품재고량을 변경전의 원료량많큼 감소시켜 재고 adjust
+                    psvo = prodStkRepo.findByCustNoAndProdNoAndUsedYn(custNo, povo.getProdNo(), "Y");
+                    psvo.setStkQty(psvo.getStkQty() - povo.getOwhQty());
+                    psvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    psvo.setModId(userId);
+                    psvo.setModId(userId);
+                    prodStkRepo.save(psvo);
+                }
+                //입력된 제품량으로 재고 adjust
+                povo.setUsedYn("N");
+                prodOwhRepo.save(povo);
+            }
+
+
+        }
+    }
+
+    @Override
+    public void dropTotalStkData(Map<String, Object> paraMap) {
+
     }
 
 }

@@ -1331,7 +1331,7 @@ public class IoController {
         return result;
     }
 
-    @PostMapping(value="/IwhMatrList") //구매현황
+    @PostMapping(value="/IwhMatrList") //원료현황
     public Result IwhMatrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
@@ -1342,7 +1342,7 @@ public class IoController {
         return result;
     }
 
-    @PostMapping(value="/OwhMatrList") //구매현황
+    @PostMapping(value="/OwhMatrList") //원료현황
     public Result OwhMatrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
@@ -1353,7 +1353,7 @@ public class IoController {
         return result;
     }
 
-    @PostMapping(value="/IwhProdList") //구매현황
+    @PostMapping(value="/IwhProdList") //제품현황
     public Result IwhProdList(@RequestBody HashMap<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
@@ -1361,6 +1361,17 @@ public class IoController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(ioService.getIwhProdList(paraMap));
         result.setTotalCount(ioService.getIwhProdListCount(paraMap));
+        return result;
+    }
+
+    @PostMapping(value="/OwhProdList") //제품현황
+    public Result OwhProdList(@RequestBody HashMap<String, Object> paraMap, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(ioService.getOwhProdList(paraMap));
+        result.setTotalCount(ioService.getOwhProdListCount(paraMap));
         return result;
     }
 
@@ -1442,6 +1453,19 @@ public class IoController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         ioService.changeStkData(paraMap);
+        ioService.changeTotalStkData(paraMap);
+        return result;
+    }
+    @PostMapping(value = "/dropStkData")
+    public Result dropStkData(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
+        String tag = "ioController.dropStkData => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("userId", paraMap.get("userId"));
+        ioService.dropStkData(paraMap);
+        ioService.dropTotalStkData(paraMap);
         return result;
     }
 

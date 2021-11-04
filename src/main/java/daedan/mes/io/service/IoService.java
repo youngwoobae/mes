@@ -257,6 +257,10 @@ public interface IoService {
 
     int getIwhProdListCount(HashMap<String, Object> paraMap);
 
+    List<Map<String,Object>> getOwhProdList(HashMap<String, Object> paraMap);
+
+    int getOwhProdListCount(HashMap<String, Object> paraMap);
+
     List<Map<String,Object>> getProdIwHstrList(Map<String, Object> paraMap);
 
     int getProdIwHstrListCount(Map<String, Object> paraMap);
@@ -291,4 +295,10 @@ public interface IoService {
     int getOwhMatrListCount(Map<String, Object> paraMap);
 
     void changeStkData(Map<String, Object> paraMap);
+
+    void changeTotalStkData(Map<String, Object> paraMap);
+
+    void dropStkData(Map<String, Object> paraMap);
+
+    void dropTotalStkData(Map<String, Object> paraMap);
 }

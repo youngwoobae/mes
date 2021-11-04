@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 @Service("qcService")
@@ -75,6 +76,7 @@ public class QcServiceImpl implements  QcService {
         log.info(tag + "paraMap = " + paraMap.toString());
         MatrIwhChk vo = new MatrIwhChk();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+
         vo.setChkTp(Long.parseLong(paraMap.get("chkTp").toString()));
         vo.setChkMth(Long.parseLong(paraMap.get("chkMth").toString()));
         try {
@@ -86,7 +88,13 @@ public class QcServiceImpl implements  QcService {
         vo.setModDt(DateUtils.getCurrentDate());
         vo.setModIp(paraMap.get("ipaddr").toString());
         vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        MatrIwhChk chkvo = matrIwhChkRepo.findByCustNoAndChkTpAndChkMthAndUsedYn(custNo,vo.getChkTp(), vo.getChkMth(), "Y");
+        try {
+            vo.setChkNo(Long.parseLong(paraMap.get("chkNo").toString().toString()));
+        }
+        catch (NullPointerException ne) {
+            vo.setChkNo(0L);
+        }
+        MatrIwhChk chkvo = matrIwhChkRepo.findByCustNoAndChkNoAndUsedYn(custNo,vo.getChkNo(), "Y");
         if (chkvo != null) {
             vo.setChkNo(chkvo.getChkNo());
             vo.setRegDt(chkvo.getRegDt());

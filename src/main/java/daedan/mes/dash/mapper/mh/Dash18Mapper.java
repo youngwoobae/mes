@@ -8,6 +8,6 @@ import java.util.Map;
 
 @Mapper
 @Component
-public interface MhDashMapper {
-    List<Map<String, Object>> getMhTmprList(Map<String, Object> paraMap);
+public interface Dash18Mapper {
+    List<Map<String, Object>> getTmpr18List(Map<String, Object> paraMap);
 }

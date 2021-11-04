@@ -11,4 +11,5 @@ public interface ProdIwhRepository extends JpaRepository<ProdIwh, Long> {
     ProdIwh findByCustNoAndIwhDtAndProdNoAndUsedYn(Long custNo, Date iwhDt, Long prodNo, String y);
     ProdIwh findByCustNoAndIndcRsltNoAndUsedYn(Long custNo, Long indcRsltNo, String usedYn);
     ProdIwh findByCustNoAndIwhNoAndUsedYn(Long custNo, Long iwhNo, String n);
+    void deleteByIwhNo(Long iwhNo);
 }
