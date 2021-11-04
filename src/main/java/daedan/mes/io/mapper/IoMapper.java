@@ -259,6 +259,10 @@ public interface IoMapper {
 
     int getIwhProdListCount(HashMap<String, Object> paraMap);
 
+    List<Map<String, Object>> getOwhProdList(HashMap<String, Object> paraMap);
+
+    int getOwhProdListCount(HashMap<String, Object> paraMap);
+
     void setOrdProdOwhChk(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMatrIwhListByOwh(Map<String, Object> rmap);
@@ -317,5 +321,7 @@ public interface IoMapper {
     int getOwhMatrListCount(Map<String, Object> paraMap);
 
     void changeStkData(Map<String, Object> paraMap);
+
+    void changeTotalStkData(Map<String, Object> paraMap);
 }
 

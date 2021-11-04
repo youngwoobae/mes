@@ -4001,24 +4001,22 @@
                     , coalesce (a.stk_qty,0) as stk_qty  -- 재고량
                from prod_stk a join prod_info b on a.prod_no = b.prod_no
                                                and b.used_yn = 'Y' and b.cust_no =#{custNo}
-               where a.used_yn = 'Y'
-                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
+               where a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
              ) a
     </select>
 
     <select id="getIwhProdList" parameterType="map"  resultType="camelMap">
         select to_char(b.iwh_dt,'YYYY-MM-DD') as iwh_dt
+             , b.iwh_no
              , a.prod_nm
              , a.erp_prod_nm
              , a.prod_no
-             , coalesce (sum(b.iwh_qty),0) as iwh_qty
+             , coalesce (b.iwh_qty,0) as iwh_qty
         from prod_info a join prod_iwh b on a.prod_no = b.prod_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
-        where a.used_yn = 'Y'
-          and a.used_yn = 'Y' and a.cust_no =#{custNo}
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.prod_no = #{prodNo}
-        group by a.prod_no, b.iwh_dt , a.prod_nm , a.erp_prod_nm
         order by b.iwh_dt
             limit #{pageSz} offset #{pageNo}
     </select>
@@ -4028,14 +4026,40 @@
                        , a.prod_nm
                        , a.erp_prod_nm
                        , a.prod_no
-                       , coalesce (sum(b.iwh_qty),0) as iwh_qty
+                       , coalesce (b.iwh_qty,0) as iwh_qty
                   from prod_info a join prod_iwh b on a.prod_no = b.prod_no
                                                   and b.used_yn = 'Y' and b.cust_no =#{custNo}
-                  where a.used_yn = 'Y'
-                    and a.used_yn = 'Y' and a.cust_no =#{custNo}
+                  where a.used_yn = 'Y' and a.cust_no =#{custNo}
                     and a.prod_no = #{prodNo}
-                  group by a.prod_no, b.iwh_dt , a.prod_nm,  a.erp_prod_nm
                   order by b.iwh_dt
+             ) a
+    </select>
+
+    <select id="getOwhProdList" parameterType="map"  resultType="camelMap">
+        select to_char(b.owh_dt,'YYYY-MM-DD') as owh_dt
+             , b.owh_no
+             , a.prod_nm
+             , a.erp_prod_nm
+             , a.prod_no
+             , coalesce (b.owh_qty,0) as owh_qty
+        from prod_info a join prod_owh b on a.prod_no = b.prod_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
+          and a.prod_no = #{prodNo}
+        order by b.owh_dt
+            limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getOwhProdListCount" parameterType="map"  resultType="int">
+        select count(a.prod_no)
+        from (    select to_char(b.owh_dt,'YYYY-MM-DD') as owh_dt
+                       , a.prod_nm
+                       , a.erp_prod_nm
+                       , a.prod_no
+                  from prod_info a join prod_owh b on a.prod_no = b.prod_no
+                                                  and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                  where a.used_yn = 'Y' and a.cust_no =#{custNo}
+                    and a.prod_no = #{prodNo}
+                  order by b.owh_dt
              ) a
     </select>
 
@@ -4425,6 +4449,22 @@
         <if test="type != null and type == 'owh'">
             set owh_qty = #{changeQty}
             where owh_no = #{changeNo}
+        </if>
+        and used_yn = 'Y' and cust_no = #{custNo}
+    </update>
+
+    <update id="changeTotalStkData" parameterType="map">
+        /* 원료 , 제품 현황 수량 수정 (ioMapper.changeStkData) */
+        update
+        <if test="pageType != null and pageType == 'matr'">
+            matr_stk
+            set stk_qty = (stk_qty - #{nowQty}) + #{changeQty}
+            where matr_no = #{matrNo}
+        </if>
+        <if test="pageType != null and pageType == 'prod'">
+            prod_stk
+            set stk_qty = (stk_qty - #{nowQty}) + #{changeQty}
+            where prod_no = #{prodNo}
         </if>
         and used_yn = 'Y' and cust_no = #{custNo}
     </update>
