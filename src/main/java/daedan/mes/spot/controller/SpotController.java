@@ -133,13 +133,13 @@ public class SpotController {
      * @param session
      * @return Result
      */
-    @PostMapping(value="/saveSpot")
+    @PostMapping(value="/saveSpotInfo")
     public Result saveSpotInfo(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        spotService.saveSpot(paraMap);
+        spotService.saveSpotInfo(paraMap);
         return result;
     }
 }

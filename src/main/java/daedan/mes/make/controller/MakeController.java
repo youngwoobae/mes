@@ -4,6 +4,7 @@ import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
+import daedan.mes.dash.domain.RcvTmpr;
 import daedan.mes.make.service.MakeIndcService;
 import daedan.mes.make.service.metal10.Metal10Service;
 import daedan.mes.modbus.service.ModbusService;
@@ -12,18 +13,20 @@ import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.io.Resources;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/daedan/mes/make")
@@ -832,7 +835,29 @@ public class MakeController {
         moService.saveIndcPrintText(paraMap);
         return result;
     }
-
+    /**
+     * 금속검출기 시작버튼 클릭
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/metalDetectOper")
+    public Result startMetal(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        String scadaApiTp = paraMap.get("scadaApiTp").toString();
+        String scadaApi = "";
+        int liCustNo = custNo.intValue();
+        switch (liCustNo) {
+            case 10 : metal10.metalDetectOper(paraMap); break;
+        }
+        return result;
+    }
     /**
      * 금속검출기 시작버튼 클릭
      *
@@ -854,12 +879,38 @@ public class MakeController {
                 modbusService.startOper(paraMap);
                 moService.saveIndcPrintText(paraMap);
                 break;
-            case 10 : //유진물산
-                metal10.saveMetalLog(paraMap);
-                break;
         }
         return result;
     }
+    /**
+     * 금속검출기 시작버튼 클릭
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/getCurMetalLog")
+    public Result getCurMetalLog(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session){
+        String tag = "MakeController.getCurMetalLog => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        long custNo = uvo.getCustInfo().getCustNo();
+        Map<String,Object> rmap = new HashMap<String,Object>();
 
+        switch ((int) custNo) {
+            case 2 : //서울식품
+                break;
+            case 10 : //유진물산
+                rmap = metal10.getCurMetalLog(paraMap);
+                break;
+        }
+
+        //rmap = metal10.getCurMetalLog(paraMap);
+        result.setData(rmap);
+        return result;
+    }
 
 }

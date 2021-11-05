@@ -20,5 +20,4 @@ public interface SpotService {
 
     List<Map<String, Object>>  getComboSpotEquip(Map<String, Object> paraMap);
 
-    void saveSpot(Map<String, Object> paraMap);
 }

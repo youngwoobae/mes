@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.make.mapper.youjin.Metal10Mapper">
+    <select id="getMetalScadaApi" parameterType="map" resultType="str">
+        select case when #{scadaApiTp}  = 'inv' then scada_api_inv
+                    when #{scadaApiTp}  = 'ing' then scada_api_ing
+                    else scada_api_end
+              end
+        from spot_info
+        where cust_no = #{custNo}
+         and  used_yn = 'Y'
+         and  ccp_tp = #{ccpTp}
+    </select>
+
+    <select id="getCurMetalLog" parameterType="map" resultType="camelMap">
+        select err_qty,pass_qty,rcv_msg  from metal_log
+        where metal_hstr_no = (select max(metal_hstr_no) from metal_log)
+          and cust_no = #{custNo}
+    </select>
+
+</mapper>

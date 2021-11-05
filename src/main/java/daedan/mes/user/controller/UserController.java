@@ -84,7 +84,6 @@ public class UserController {
         Result result = Result.successInstance();
 
         String szUserId = request.getParameter("userId");
-        szUserId = "1";
         Long userId = Long.parseLong(szUserId);
         UserInfo uservo = userService.getUserInfoById(userId);
 

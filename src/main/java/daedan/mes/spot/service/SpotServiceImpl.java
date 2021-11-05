@@ -72,62 +72,7 @@ public class SpotServiceImpl implements SpotService {
             spotInfoRepo.save(vo);
         }
     }
-    @Transactional
-    @Override
-    public void saveSpot(Map<String, Object> paraMap) {
-        String tag = "SpotService.saveSpot =>";
 
-        log.info(tag + "params = " + paraMap.toString());
-        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        SpotInfo spotIn = new SpotInfo();
-        spotIn.setCustNo(custNo);
-        try {
-            spotIn.setSpotNo(Long.parseLong(paraMap.get("spotNo").toString()));
-        }
-        catch (NullPointerException ne) {
-            spotIn.setSpotNo(0L);
-        }
-        log.info(tag + "param.ccpTp = " + Long.parseLong(paraMap.get("ccpTp").toString()));
-
-        spotIn.setCcpTp(Long.parseLong(paraMap.get("ccpTp").toString()));
-        log.info(tag + "vo.ccpTp = " + spotIn.getCcpTp());
-        spotIn.setSpotNm((String) paraMap.get("spotNm"));
-        spotIn.setSpotRmk((String) paraMap.get("spotRmk"));
-        try {
-            spotIn.setScadaApi(paraMap.get("scadaApi").toString());
-        }
-        catch (NullPointerException ne) {
-
-        }
-
-        spotIn.setModDt(DateUtils.getCurrentBaseDateTime());
-        spotIn.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        spotIn.setModIp(paraMap.get("ipaddr").toString());
-
-        try {
-            spotIn.setFileNo(Long.parseLong(paraMap.get("fileNo").toString()));
-        }
-        catch (NullPointerException ne) {
-
-        }
-        spotIn.setSvcTp(paraMap.get("svcTp").toString());
-        spotIn.setUsedYn("Y");
-        SpotInfo chkvo =  spotInfoRepo.findByCustNoAndSpotNoAndUsedYn(custNo,spotIn.getSpotNo(),"Y");
-        if (chkvo != null) {
-            spotIn.setSpotNo(chkvo.getSpotNo());
-            spotIn.setRegDt(chkvo.getRegDt());
-            spotIn.setRegId(chkvo.getRegId());
-            spotIn.setRegDt(chkvo.getRegDt());
-        }
-        else {
-            spotIn.setSpotNo(0L);
-            spotIn.setRegDt(DateUtils.getCurrentBaseDateTime());
-            spotIn.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-            spotIn.setRegIp(paraMap.get("ipaddr").toString());
-        }
-
-        spotInfoRepo.save(spotIn);
-    }
     @Transactional
     @Override
     public void saveSpotInfo(Map<String, Object> paraMap) {
@@ -137,18 +82,32 @@ public class SpotServiceImpl implements SpotService {
         SpotInfo spotIn = new SpotInfo();
 
         try {
-            spotIn.setSpotNo(Long.parseLong(paraMap.get("spot_no").toString()));
+            spotIn.setSpotNo(Long.parseLong(paraMap.get("spotNo").toString()));
         }
         catch (NullPointerException ne) {
             spotIn.setSpotNo(0L);
             spotIn.setRegDt(DateUtils.getCurrentDate());
             spotIn.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             spotIn.setRegIp(paraMap.get("ipaddr").toString());
+
         }
-        spotIn.setSpotNm((String) paraMap.get("spot_nm"));
-        spotIn.setSpotRmk((String) paraMap.get("spot_rmk"));
+        spotIn.setCcpTp(Long.parseLong(paraMap.get("ccpTp").toString()));
+        spotIn.setSpotNm((String) paraMap.get("spotNm"));
+        spotIn.setSpotRmk((String) paraMap.get("spotRmk"));
         try {
-            spotIn.setScadaApi(paraMap.get("scadaApi").toString());
+            spotIn.setScadaApiInv(paraMap.get("scadaApiInv").toString());
+        }
+        catch (NullPointerException ne) {
+
+        }
+        try {
+            spotIn.setScadaApiIng(paraMap.get("scadaApiIng").toString());
+        }
+        catch (NullPointerException ne) {
+
+        }
+        try {
+            spotIn.setScadaApiEnd(paraMap.get("scadaApiEnd").toString());
         }
         catch (NullPointerException ne) {
 
@@ -159,14 +118,14 @@ public class SpotServiceImpl implements SpotService {
         spotIn.setModIp(paraMap.get("ipaddr").toString());
 
         try {
-            spotIn.setFileNo(Long.parseLong(paraMap.get("file_no").toString()));
+            spotIn.setFileNo(Long.parseLong(paraMap.get("fileNo").toString()));
         }
         catch (NullPointerException ne) {
 
         }
         log.info(tag + " fileNo = " + spotIn.getFileNo());//kill
-        spotIn.setSvcTp(paraMap.get("svc_tp").toString());
-
+        spotIn.setSvcTp(paraMap.get("svcTp").toString());
+        spotIn.setCustNo(custNo);
         spotIn.setUsedYn("Y");
         SpotInfo chkvo =  spotInfoRepo.findByCustNoAndSpotNoAndUsedYn(custNo,spotIn.getSpotNo(),"Y");
         if (chkvo != null) {

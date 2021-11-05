@@ -33,10 +33,15 @@ public class SpotInfo {
     //api 분류
     @Column(name = "svc_tp",nullable = false, length = 20 , columnDefinition = "varchar(255) default  'DIRECT'")
     private String svcTp;
-
-    @Column(name = "scada_api", length = 100 )
-    private String scadaApi;
-
+    //ScadaApi (시작)
+    @Column(name = "scadaApiInv", length = 100 )
+    private String scadaApiInv;
+    //ScadaApi (처리)
+    @Column(name = "scadaApiIng", length = 100 )
+    private String scadaApiIng;
+    //ScadaApi (종료)
+    @Column(name = "scadaApiEnd", length = 100 )
+    private String scadaApiEnd;
 
     //@OneToOne (fetch = FetchType.LAZY, optional=true)
     //@JoinColumn(name = "fileNo")

@@ -84,14 +84,26 @@ public class SpotEquipServiceImpl implements SpotEquipService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         SpotInfo spotVo = new SpotInfo();
         try{
-            spotVo.setSpotNo(Long.parseLong(paraMap.get("spot_no").toString()));
+            spotVo.setSpotNo(Long.parseLong(paraMap.get("spotNo").toString()));
         }catch (NullPointerException e){
             spotVo.setSpotNo(0L);
         }
-        spotVo.setSpotNm(paraMap.get("spot_nm").toString());
-        spotVo.setSvcTp(paraMap.get("svc_tp").toString());
+        spotVo.setSpotNm(paraMap.get("spotNm").toString());
+        spotVo.setSvcTp(paraMap.get("svcTp").toString());
         try {
-            spotVo.setScadaApi(paraMap.get("scada_api").toString());
+            spotVo.setScadaApiInv(paraMap.get("scadaApiInv").toString());
+        }
+        catch (NullPointerException ne) {
+
+        }
+        try {
+            spotVo.setScadaApiIng(paraMap.get("scadaApiIng").toString());
+        }
+        catch (NullPointerException ne) {
+
+        }
+        try {
+            spotVo.setScadaApiEnd(paraMap.get("scadaApiEnd").toString());
         }
         catch (NullPointerException ne) {
 
@@ -123,13 +135,13 @@ public class SpotEquipServiceImpl implements SpotEquipService {
 
         SpotEquip spotEquipVo = new SpotEquip();
         try{
-            spotEquipVo.setSpotEquipNo(Long.parseLong(paraMap.get("spot_equip_no").toString()));
+            spotEquipVo.setSpotEquipNo(Long.parseLong(paraMap.get("spotEquipNo").toString()));
         }catch (NullPointerException e){
             spotEquipVo.setSpotEquipNo(0L);
         }
 
         try {
-            spotEquipVo.setSpotNo(Long.parseLong(paraMap.get("spot_no").toString()));
+            spotEquipVo.setSpotNo(Long.parseLong(paraMap.get("spotNo").toString()));
         }
         catch (NullPointerException ne) {
             spotEquipVo.setSpotNo(0L);
@@ -137,37 +149,37 @@ public class SpotEquipServiceImpl implements SpotEquipService {
 
 
         try {
-            spotEquipVo.setEquipNo(Long.parseLong(paraMap.get("equip_no").toString()));
+            spotEquipVo.setEquipNo(Long.parseLong(paraMap.get("equipNo").toString()));
         }
         catch (NullPointerException ne) {
             spotEquipVo.setEquipNo(0L);
         }
 
         try {
-            spotEquipVo.setMaxLmtVal(Float.parseFloat(paraMap.get("max_lmt_val").toString()));
+            spotEquipVo.setMaxLmtVal(Float.parseFloat(paraMap.get("maxLmtVal").toString()));
         }
         catch (NullPointerException ne) {
         }
         try {
-            spotEquipVo.setMinLmtVal(Float.parseFloat(paraMap.get("min_lmt_val").toString()));
+            spotEquipVo.setMinLmtVal(Float.parseFloat(paraMap.get("minLmtval").toString()));
         }
         catch (NullPointerException ne) {
         }
         try {
-            spotEquipVo.setMaxNorVal(Float.parseFloat(paraMap.get("max_nor_val").toString()));
+            spotEquipVo.setMaxNorVal(Float.parseFloat(paraMap.get("maxNorVal").toString()));
         }
         catch (NullPointerException ne) {
             spotEquipVo.setMaxNorVal(0f);
         }
 
         try {
-            spotEquipVo.setMinNorVal(Float.parseFloat(paraMap.get("min_nor_val").toString()));
+            spotEquipVo.setMinNorVal(Float.parseFloat(paraMap.get("minNorVal").toString()));
         }
         catch (NullPointerException ne) {
             spotEquipVo.setMinNorVal(0f);
         }
         try {
-            spotEquipVo.setMeasUnit(Long.parseLong(paraMap.get("meas_unit").toString()));
+            spotEquipVo.setMeasUnit(Long.parseLong(paraMap.get("measUnit").toString()));
         }
         catch (NullPointerException ne) {
             spotEquipVo.setMeasUnit(0L);

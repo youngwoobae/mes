@@ -92,9 +92,15 @@ public class MatrInfo {
     /*구매단위*/
     @Column(name="purs_unit" )
     private Long pursUnit;
+
+
     /*관리단위(무게,질량)*/
     @Column(name="mngr_unit" )
     private Long mngrUnit;
+
+    /*패킷유닛(업로드시점에 사용됨.. 내부적으로 딱히 사용할 곳은 없음.)*/
+    @Column(name="pkgUnit" )
+    private Long pkgUnit;
 
     /*구매단위중량*/
     @Column(name="pursUnitWgt" )

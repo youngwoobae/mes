@@ -348,7 +348,7 @@ public class StndImpServiceImpl implements StndImpService {
             Long mngrgbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs")); //매입
             Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale")); //매출
             Long cmpyTpCmpy = Long.parseLong(env.getProperty("code.cmpytp.cmpy")); //법인
-            Long basePursUnitCd = Long.parseLong(env.getProperty("code.base.unit")); //구매단위
+            Long basePursUnitCd = Long.parseLong(env.getProperty("code.base.unit")); //구매단위 (패키지 단위와 같이 사용중)
             Long baseSaveTmprCd = Long.parseLong(env.getProperty("code.base.save_tmpr_cd")); //보관온도
             Map<String,Object> cdmap = new HashMap<String,Object>(); //코드생성용
 
@@ -407,6 +407,14 @@ public class StndImpServiceImpl implements StndImpService {
                         matrvo.setPursUnitWgt(pursUnitWgt); //구매단위중량
                         matrvo.setVol((float) pursUnitWgt);  //중량
                         matrvo.setMess((float) pursUnitWgt); //질량
+
+                        index = matrvo.getSz().indexOf("/");
+                        String matrSz = matrvo.getSz();
+                        String szPkgUnit = matrSz.substring(index+1);
+                        cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(basePursUnitCd,szPkgUnit,"Y");
+                        if (cdvo != null) {
+                            matrvo.setPkgUnit(cdvo.getCodeNo());
+                        }
                         //log.info(tag + " pursUnitWgt = " + pursUnitWgt + "vol = " + matrvo.getVol() + " : floaPursUnitWgt = " + (float)pursUnitWgt);
                         //matrvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
                         matrvo.setSpga(1f); //비중

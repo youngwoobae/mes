@@ -604,7 +604,7 @@ public class ModbusServiceImpl implements  ModbusService {
     public void saveModbusData(Map<String, Object> paraMap) {
         EquipMngrHstr hstrvo = new EquipMngrHstr();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        hstrvo.setSpotEquipNo(Long.parseLong(paraMap.get("spotEquipNo").toString()));
+        hstrvo.setSpotEquipNo(Long.parseLong(paraMap.get("spotNo").toString()));
         hstrvo.setOperNo(Long.parseLong(paraMap.get("operNo").toString()));
 
         try {

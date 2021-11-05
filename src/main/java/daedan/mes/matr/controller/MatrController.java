@@ -162,8 +162,8 @@ public class MatrController {
         return result;
     }
 
-    @PostMapping(value="/submatrList") //부자재
-    public Result submatrList(@RequestBody Map<String, Object> paraMap,HttpSession session){
+    @PostMapping(value="/subMatrList") //부자재
+    public Result subMatrList(@RequestBody Map<String, Object> paraMap,HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
