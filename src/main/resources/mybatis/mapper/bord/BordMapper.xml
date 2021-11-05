@@ -29,8 +29,14 @@
         where a.used_yn = 'Y'
           and a.cust_no = #{custNo}
         and a.bord_tp = #{bordTp}
+
+        -- 공지사항 마감일 처리
+        <if test="type != null and type == 'dashboard'">
+            and TO_CHAR(now(),'YYYY-MM-DD') between to_char(a.fr_dt , 'YYYY-MM-DD') and to_char(a.to_dt , 'YYYY-MM-DD')
+        </if>
+
         <if test="dateFr != null and dateFr != ''">
-            and TO_CHAR(NOW(),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+            and TO_CHAR(a.reg_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and #{dateTo}
         </if>
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'bordNm'">
@@ -64,7 +70,7 @@
         and a.cust_no = #{custNo}
         and a.bord_tp = #{bordTp}
         <if test="dateFr != null and dateFr != ''">
-            and TO_CHAR(NOW(),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+            and TO_CHAR(a.reg_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and #{dateTo}
         </if>
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'bordNm'">

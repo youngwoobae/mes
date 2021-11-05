@@ -90,7 +90,6 @@ BordController {
     public Result BordInfo(@RequestBody Map<String, Object> paraMap, HttpSession session){
         String tag = "BoardController.BordInfo => ";
         Result result = Result.successInstance();
-
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
