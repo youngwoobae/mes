@@ -184,17 +184,20 @@
         where used_yn = 'Y'
     </select>
     <select id="getTabletWorkerList" parameterType="map" resultType="camelMap">
+        /*테블릿 작업자 목록 (userMapper.getTabletWorkerList) */
         select   user_nm
                , user_posn
                , user_id
         from user_info
         where ocpn_kind = #{ocpnKind}
+          and ( cust_info = #{custNo} or cust_no = #{custNo} )
           and used_yn = 'Y'
     </select>
     <select id="getTabletWorkerListCount" parameterType="map" resultType="int">
         select count(user_id)
         from user_info
         where ocpn_kind = #{ocpnKind}
+          and ( cust_info = #{custNo} or cust_no = #{custNo} )
           and used_yn = 'Y'
     </select>
 
