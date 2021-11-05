@@ -93,11 +93,14 @@ public class Metal10ServiceImpl implements Metal10Service {
         return rsltMap;
     }
     private Map<String, Object> fetchAndReadMetalLog(Map<String, Object> paraMap) {
+        String tag = " Metal10Service.fetchAndReadMetalLog => ";
+        log.info(tag + "paraMap = " + paraMap.toString());//kill
         URL url = null;
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         JSONParser parser = new JSONParser();
         Map<String,Object> rmap = new HashMap<String,Object>();
         try {
+
             url = new URL("http://118.67.133.123/api/metal/getea/9150"); //현재수량요청
             URLConnection conn = url.openConnection();
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
@@ -108,7 +111,6 @@ public class Metal10ServiceImpl implements Metal10Service {
             rmap.put("gwId",jsonStr.get("gw_id"));
             rmap.put("rsltMsg",jsonStr.get("msg"));
             rmap.put("rsltStat",jsonStr.get("res"));
-
             MetalLog mlvo = new MetalLog();
             mlvo.setCustNo(custNo);
             mlvo.setUnixHms(System.currentTimeMillis() / 1000);

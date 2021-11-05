@@ -335,7 +335,6 @@ public class StndImpServiceImpl implements StndImpService {
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         String filePath = fileService.getFileInfo(fileRoot,fileNo);
-
         FileInputStream file = null;
         try {
             file = new FileInputStream(filePath);
@@ -346,7 +345,6 @@ public class StndImpServiceImpl implements StndImpService {
             MatrFormat format = new MatrFormat();
             Long baseMadeInCd = Long.parseLong(env.getProperty("code.base.madein")); //원산지 : 90
             Long mngrgbnPurs = Long.parseLong(env.getProperty("code.mngrgbn.purs")); //매입
-            Long mngrgbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale")); //매출
             Long cmpyTpCmpy = Long.parseLong(env.getProperty("code.cmpytp.cmpy")); //법인
             Long basePursUnitCd = Long.parseLong(env.getProperty("code.base.unit")); //구매단위 (패키지 단위와 같이 사용중)
             Long baseSaveTmprCd = Long.parseLong(env.getProperty("code.base.save_tmpr_cd")); //보관온도
@@ -388,11 +386,16 @@ public class StndImpServiceImpl implements StndImpService {
                     if (cdvo != null) {
                         matrvo.setSaveTmpr(cdvo.getCodeNo());
                     }
+
                     matrvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
 
-                    matrvo.setMatrTp(Long.parseLong(env.getProperty("rawmatr_cd"))); //자재구분(원료:44)
-                    matrvo.setMngrUnit(Long.parseLong(env.getProperty("code.base.mngrbase_imp"))); //관리단위=부피
-
+                    matrvo.setMatrTp(Long.parseLong(paraMap.get("matrTp").toString())); //자재구분
+                    try {
+                        matrvo.setMngrUnit((long) row.getCell(format.IX_MNGR_UNIT).getNumericCellValue()); //관리단위
+                    }
+                    catch (IllegalStateException ie) {
+                        matrvo.setMngrUnit(Long.parseLong(row.getCell(format.IX_MNGR_UNIT).getStringCellValue())); //관리단위
+                    }
                     try {
                         matrvo.setItemCd(row.getCell(format.IX_MATR_CD).getStringCellValue());
                     }
@@ -401,8 +404,8 @@ public class StndImpServiceImpl implements StndImpService {
                     }
                     try {
                         matrvo.setSz(row.getCell(format.IX_SZ).getStringCellValue()); //규격
-
-                        int index = matrvo.getSz().indexOf("kg");
+                        cdvo = codeRepo.findByCodeNoAndUsedYn(matrvo.getMngrUnit(),"Y");
+                        int index = matrvo.getSz().indexOf(cdvo.getCodeNm());
                         Long pursUnitWgt = Long.parseLong(matrvo.getSz().substring(0,index));
                         matrvo.setPursUnitWgt(pursUnitWgt); //구매단위중량
                         matrvo.setVol((float) pursUnitWgt);  //중량

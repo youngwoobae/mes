@@ -852,10 +852,12 @@ public class MakeController {
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         String scadaApiTp = paraMap.get("scadaApiTp").toString();
         String scadaApi = "";
+        Map<String,Object> rmap = null;
         int liCustNo = custNo.intValue();
         switch (liCustNo) {
-            case 10 : metal10.metalDetectOper(paraMap); break;
+            case 10 : rmap = metal10.metalDetectOper(paraMap); break;
         }
+        result.setData(rmap);
         return result;
     }
     /**
