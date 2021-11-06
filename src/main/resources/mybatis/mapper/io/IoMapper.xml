@@ -3815,7 +3815,7 @@
                                    , sum(iwh_qty) as iwh_qty
                               from matr_iwh
                               where used_yn = 'Y' and cust_no =#{custNo}
-                              and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+--                               and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) e on a.wh_no = e.wh_no and a.matr_no = e.matr_no
                    left join (select wh_no
@@ -3823,7 +3823,7 @@
                                    , sum(owh_qty) as owh_qty
                               from matr_owh
                               where used_yn = 'Y' and cust_no =#{custNo}
-                              and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+--                               and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
         where a.used_yn = 'Y'
@@ -3976,7 +3976,7 @@
                                     , sum(iwh_qty) as iwh_qty
                                from prod_iwh
                                where used_yn = 'Y' and cust_no =#{custNo}
-                                 and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+--                                  and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,prod_no
                               ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
                    left join (select prod_no
@@ -3984,7 +3984,7 @@
                                     , sum(owh_qty) as owh_qty
                                from prod_owh
                                where used_yn = 'Y' and cust_no =#{custNo}
-                                 and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+--                                  and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                                group by wh_no,prod_no
                               ) e on a.wh_no = e.wh_no and a.prod_no = e.prod_no
         where a.used_yn = 'Y'
