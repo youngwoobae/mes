@@ -3,6 +3,7 @@ package daedan.mes.user.service;
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
+import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.domain.DeptInfo;
@@ -273,10 +274,17 @@ public class UserServiceImpl implements UserService {
 			uvo.setRegDt(DateUtils.getCurrentDate());
 			uvo.setRegIp(paraMap.get("ipaddr").toString());
 			uvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-//			String password = paraMap.get("user_nm").toString();
-			uvo.setSecrtNo(BCrypt.hashpw("mes", BCrypt.gensalt()));
+			uvo.setSecrtNo(BCrypt.hashpw("adm", BCrypt.gensalt()));
 		}
 		uvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+
+		chkvo = userRepo.findByUserIdAndUsedYn(uvo.getUserId(),"Y");
+		if (chkvo != null) {
+			uvo.setRegDt(DateUtils.getCurrentDate());
+			uvo.setRegIp(paraMap.get("ipaddr").toString());
+			uvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+
+		}
 		ur.save(uvo);
 	}
 

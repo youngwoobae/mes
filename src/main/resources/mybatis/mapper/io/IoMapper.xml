@@ -3952,7 +3952,7 @@
     </select>
 
     <select id="getProdWhStkList" parameterType="map"  resultType="camelMap">
-        /* [현황통계 > 제품현황 조회 ] ioMapper.getProdWhStkList */
+        /* [현황통계 > 제품현황 > 창고명클릭시 ] ioMapper.getProdWhStkList */
         select  b.prod_no --자재번호
              , b.prod_nm
              , b.erp_prod_nm

@@ -292,7 +292,6 @@ public class UserController {
     public Result saveUser(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
         String tag = "UserController.saveUser => ";
 
-
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());

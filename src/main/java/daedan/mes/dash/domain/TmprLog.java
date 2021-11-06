@@ -8,21 +8,19 @@ import javax.persistence.*;
 @Data
 @Entity
 @NoArgsConstructor
-public class RcvTmpr {
-    private static final long serialVersionUID = 1L;
-
+public class TmprLog {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="rcvTmprNo",nullable = false)
-    private long rcvTmprNo;
+    @Column(name="tmprLogNo",nullable = false)
+    private long tmprLogNo;
 
     /*고객번호*/
     @Column(name="custNo",nullable = false )
     private Long custNo;
 
-    /*설비번호*/
-    @Column(name="equipNo",nullable = false )
-    private Long equipNo;
+    /*작업장소번호*/
+    @Column(name="spotNo",nullable = false )
+    private Long spotNo;
 
     /*수신시간*/
     @Column(name="unixHms",nullable = false)

@@ -6,6 +6,7 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.io.service.IoService;
+import daedan.mes.qc.service.QcService;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -450,6 +451,9 @@ public class IoController {
         Map<String, Object> rmap = new HashMap<String,Object>();
         paraMap.put("whTp",Long.parseLong(env.getProperty("wh_type_matr")));
         rmap.put("comboWhNo", cmmnService.getComboWh(paraMap));
+
+        paraMap.put("selectStr", "파레트선택");
+        rmap.put("comboPalet", codeService.getComboCodeList(paraMap));
 
         result.setData(rmap);
         return result;

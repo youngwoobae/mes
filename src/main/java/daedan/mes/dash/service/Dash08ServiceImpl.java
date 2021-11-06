@@ -1,7 +1,7 @@
-package daedan.mes.dash.service.Yyjg;
+package daedan.mes.dash.service;
 
 import daedan.mes.common.service.util.DateUtils;
-import daedan.mes.dash.mapper.yyjg.YyjgDashMapper;
+import daedan.mes.dash.mapper.Dash08Mapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +12,13 @@ import java.util.List;
 import java.util.Map;
 
 @Service("YyjgDashService")
-public class YyjgDashServiceImpl implements YyjgDashService {
+public class Dash08ServiceImpl implements Dash08Service {
     private Log log = LogFactory.getLog(this.getClass());
     @Autowired
     private Environment env;
 
     @Autowired
-    private YyjgDashMapper mapper;
+    private Dash08Mapper mapper;
 
 
     @Override

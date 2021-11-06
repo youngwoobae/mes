@@ -246,10 +246,12 @@ public class MatrController {
 
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.mngrbase"))); //관리기준
         rmap.put("comboMngrBase",codeService.getComboCodeList(paraMap));
-
+        /*KMJ 21.11.06 : 불필요할 것으로 보임 ,
+           1. code.base.used_tp(2900) 이 파렛트유형과 혼용되고 있음. :
+           2. 상품정보에서도 동일한 코드가 존재함.
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.used_tp"))); //원료구분
         rmap.put("usedTp",codeService.getComboCodeList(paraMap));
-
+        */
         result.setData(rmap);
         return result;
     }

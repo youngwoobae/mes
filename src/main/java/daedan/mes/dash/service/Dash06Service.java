@@ -1,9 +1,9 @@
-package daedan.mes.dash.service.DdKor;
+package daedan.mes.dash.service;
 
 import java.util.List;
 import java.util.Map;
 
-public interface DdKorDashService {
+public interface Dash06Service {
     List<Map<String, Object>> getFlowMeterList(Map<String, Object> Map);
     List<Map<String, Object>> getPowerList(Map<String, Object> Map);
 

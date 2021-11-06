@@ -3,12 +3,11 @@ package daedan.mes.dash.controller;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dash.service.DashService;
-import daedan.mes.dash.service.Yyjg.YyjgDashService;
+import daedan.mes.dash.service.Dash08Service;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,7 +29,7 @@ public class DashController {
 
     @Autowired
 
-    private YyjgDashService yyjgService;
+    private Dash08Service yyjgService;
 
 
     @PostMapping(value="/graphData")

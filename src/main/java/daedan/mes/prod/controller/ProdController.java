@@ -96,10 +96,13 @@ public class ProdController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.ccp_heat")));
         rmap.put("comboHeatTp",codeService.getComboCodeList(paraMap));
 
+        /*KMJ 21.11.06 : 불필요할 것으로 보임 ,
+           1. code.base.used_tp(2900) 이 파렛트유형과 혼용되고 있음. :
+           2. 상품정보에서도 동일한 코드가 존재함.
         paraMap.put("selectStr","제품구분선택");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.used_tp"))); //원료구분
         rmap.put("comboUsedTp",codeService.getComboCodeList(paraMap));
-
+        */
         paraMap.put("selectStr","속성구분선택");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_attr_tp"))); //원료구분
         rmap.put("comboAttrTp",codeService.getComboCodeList(paraMap));

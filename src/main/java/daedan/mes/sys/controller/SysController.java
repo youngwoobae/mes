@@ -185,7 +185,7 @@ public class SysController {
         return result;
     }
 
-    /*파렛트 리스트*/
+    /*파렛트 리스트:사용중지(21.11.06-getConditions에서 처리함.*/
     @PostMapping(value = "/palets")
     public Result palets(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();

@@ -1,4 +1,4 @@
-package daedan.mes.dash.mapper.yyjg;
+package daedan.mes.dash.mapper;
 
 
 import org.apache.ibatis.annotations.Mapper;
@@ -9,7 +9,7 @@ import java.util.Map;
 
 @Mapper
 @Component
-public interface YyjgDashMapper {
+public interface Dash08Mapper {
     List<Map<String, Object>> getYyjgProdIoList(Map<String, Object> paraMap);
     int getYyjgProdIoListCount(Map<String, Object> paraMap);
     Map<String, Object> getYyjgPhothCounter(Map<String, Object> paraMap);

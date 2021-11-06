@@ -1,7 +1,7 @@
-package daedan.mes.dash.controller.youjin;
+package daedan.mes.dash.controller;
 
 import daedan.mes.common.domain.Result;
-import daedan.mes.dash.service.youjin.Dash10Service;
+import daedan.mes.dash.service.Dash10Service;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,7 +16,7 @@ import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/daedan/mes/dash/youjin")
+@RequestMapping("/api/daedan/mes/dash10")
 public class Dash10Controller {
     private Log log = LogFactory.getLog(this.getClass());
 
@@ -41,6 +41,23 @@ public class Dash10Controller {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         result.setData(dashService.getTmpr10List(paraMap));
+        return result;
+    }
+
+
+    /**
+     * 온도모니터링 내용 저장
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getFinalMetalDetect")
+    public Result getFinalMetalDetect(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(dashService.getFinalMetalDetect(paraMap));
         return result;
     }
 }

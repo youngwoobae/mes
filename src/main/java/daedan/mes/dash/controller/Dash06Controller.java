@@ -1,8 +1,7 @@
-package daedan.mes.dash.controller.ddkor;
+package daedan.mes.dash.controller;
 
 import daedan.mes.common.domain.Result;
-import daedan.mes.dash.service.DashService;
-import daedan.mes.dash.service.DdKor.DdKorDashService;
+import daedan.mes.dash.service.Dash06Service;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -15,12 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/daedan/mes/dash/ddkor")
-public class DdkorDashController {
+public class Dash06Controller {
     private Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
@@ -28,7 +26,7 @@ public class DdkorDashController {
 
 
     @Autowired
-    private DdKorDashService dashService;
+    private Dash06Service dashService;
     /*배합실유량계*/
     @PostMapping(value="/flowMeterList")
     public Result flowMeterList(@RequestBody Map<String, Object> paraMap  , HttpSession session){

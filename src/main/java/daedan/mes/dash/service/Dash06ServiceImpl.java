@@ -1,6 +1,6 @@
-package daedan.mes.dash.service.DdKor;
+package daedan.mes.dash.service;
 
-import daedan.mes.dash.mapper.ddkor.DdKorDashMapper;
+import daedan.mes.dash.mapper.Dash06Mapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 
 @Service("ddkorDashService")
-public class DdKorDashServiceImpl implements DdKorDashService {
+public class Dash06ServiceImpl implements Dash06Service {
     private Log log = LogFactory.getLog(this.getClass());
     @Autowired
     private Environment env;
 
     @Autowired
-    private DdKorDashMapper mapper;
+    private Dash06Mapper mapper;
     /*유량계*/
     @Override
     public List<Map<String, Object>> getFlowMeterList(Map<String, Object> paraMap) {

@@ -1,29 +1,13 @@
 package daedan.mes.dash.service;
 
-import daedan.mes.dash.domain.RcvTmpr;
 import daedan.mes.dash.mapper.DashMapper;
-import daedan.mes.dash.mapper.yyjg.YyjgDashMapper;
-import daedan.mes.dash.repository.RcvTmprRepository;
-import daedan.mes.spot.domain.SpotInfo;
-import daedan.mes.spot.repository.SpotInfoRepository;
-import daedan.mes.websocket.model.ChatRoom;
+import daedan.mes.dash.mapper.Dash08Mapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +23,7 @@ public class DashServiceImpl implements  DashService {
     private DashMapper mapper;
 
     @Autowired
-    private YyjgDashMapper yyjgMapper;
+    private Dash08Mapper yyjgMapper;
 
     public List<Map<String, Object>> getGraphData(Map<String, Object> paraMap) {
         return mapper.getGraphData(paraMap);

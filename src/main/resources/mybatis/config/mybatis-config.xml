@@ -36,10 +36,12 @@
         <mapper resource="mybatis/mapper/ccp/CcpMapper.xml"/>
         <mapper resource="mybatis/mapper/io/IoMapper.xml"/>
         <mapper resource="mybatis/mapper/dash/DashMapper.xml"/>
-        <mapper resource="mybatis/mapper/dash/DdKor/DdKorDashMapper.xml"/>
-        <mapper resource="mybatis/mapper/dash/Youjin/Dash10Mapper.xml"/>
-        <mapper resource="mybatis/mapper/dash/Mh/Dash18Mapper.xml"/>
-        <mapper resource="mybatis/mapper/dash/Yyjg/YyjgDashMapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Dash06Mapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Dash08Mapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Dash10Mapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Dash17Mapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Dash18Mapper.xml"/>
+
 
         <mapper resource="mybatis/mapper/make/MakeIndcMapper.xml"/>
         <mapper resource="mybatis/mapper/make/HdfdMapper.xml"/>

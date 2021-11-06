@@ -1,26 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="daedan.mes.dash.mapper.mh.Dash10Mapper">
-    <select id="getTmpr10List" parameterType="map"  resultType="camelMap">
-        /* 유진 설비기준 최신시간 온도모니터링 리스트 (mpMapper.getTmpr10List) */
-        select a.equip_no  --설비번
-             , a.equip_nm  --설비
+<mapper namespace="daedan.mes.dash.mapper.Dash17Mapper">
+    <select id="getTmpr17List" parameterType="map"  resultType="camelMap">
+        /* 동양시스템 설비기준 최신시간 온도모니터링 리스트 (mpMapper.getTmpr17List) */
+        select a.spot_no  --작업장번
+             , a.spot_nm  --작업장명
              , b.rcv_msg  --메세지
              , b.rcv_tmpr  --측정온도
-             , to_char(to_timestamp(b.unix_hms) ,'HH:MM:SS') as rcv_dt --수신시각
-        from equip_info a join rcv_tmpr b on a.equip_no  = b.equip_no
-            and a.cust_no  = b.cust_no and b.used_yn  = 'Y'
-                          join (select equip_no, max(unix_hms) as unix_hms
-                                from rcv_tmpr
-                                where cust_no = #{custNo} and used_yn = 'Y'
-                                group by  equip_no
-        ) c on b.equip_no = c.equip_no and b.unix_hms  = c.unix_hms
-        where a.cust_no = #{custNo}   and a.used_yn  = 'Y'
+             , to_char(to_timestamp(b.unix_hms) ,'HH:MM:SS') as rcv_tm --수신시각
+        from spot_info a join tmpr_log b on a.spot_no  = b.spot_no
+            and b.used_yn  = 'Y' and b.cust_no  = a.cust_no
+                         join (select spot_no, max(unix_hms) as unix_hms
+                               from tmpr_log
+                               where used_yn = 'Y' and cust_no = #{custNo}
+                               group by spot_no
+        ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
+        where a.used_yn  = 'Y'
+          and a.cust_no = #{custNo}
+        order by spot_nm
     </select>
 
-    <select id="getMetalDetect10List" parameterType="map" resultType="camelMap">
-        /*금속검출 이력 (reportMapper.getMetalDetectHstr)*/
+    <select id="getMetalDetect17List" parameterType="map" resultType="camelMap">
+        /*불필요함 안정화시 지울 것. 금속검출 이력 (reportMapper.getMetalDetectHstr)*/
         select a.cust_no
         , b.cust_nm
         , to_char(to_timestamp(a.unix_hms),'YY-MM-DD HH24:MI:SS')  as chk_dt
@@ -38,8 +40,8 @@
     </select>
 
 
-    <select id="getMetalDetect10Hstr" parameterType="map" resultType="camelMap">
-        /*금속검출 이력 (reportMapper.getMetalDetectHstr)*/
+    <select id="getMetalDetect17Hstr" parameterType="map" resultType="camelMap">
+        /*금속검출 이력 불필요함 안정화시 지울 것. (reportMapper.getMetalDetectHstr)*/
         select a.cust_no
         , b.cust_nm
         , to_char(to_timestamp(a.unix_hms),'YY-MM-DD HH24:MI:SS')  as chk_dt
@@ -56,7 +58,7 @@
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="getMetalDetectHstr10Count" parameterType="map" resultType="int">
+    <select id="getMetalDetectHstr17Count" parameterType="map" resultType="int">
         select count(a.unix_hms)
         from (
         select a.unxx_hms

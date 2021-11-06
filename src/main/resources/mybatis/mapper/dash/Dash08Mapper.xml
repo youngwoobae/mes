@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="daedan.mes.dash.mapper.yyjg.YyjgDashMapper">
+<mapper namespace="daedan.mes.dash.mapper.Dash08Mapper">
 	<select id="getYyjgProdIoList" parameterType="map"  resultType="camelMap">
 		select g.prod_stk_clos_no --마감번호
 			 , to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일자
