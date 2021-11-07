@@ -2580,27 +2580,26 @@
 
     <select id="getMatrForIwhList" parameterType="map"  resultType="camelMap">
     /* 구매 과정없이 자재 입고처리하는 경우 : 간단 MES용 (ioMapper.getMatrForIwhList) */
-        select distinct a.matr_no
+        select  a.matr_no
               , a.matr_nm
               , a.valid_term
               , a.item_cd
               , coalesce (b.stk_qty,0) as stk_qty
               , case when d.purs_no is not null then 'Y' else 'N' end as purs_yn
-              , e.wh_nm
+              , f.wh_nm
               , fn_get_code_name('nm',f.save_tmpr) as save_tmpr_nm --보관창고온도명
-              , b.wh_no
+              , f.wh_no
               , f.wh_no as tmpr_wh_no
         from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr
                                        and f.wh_tp = 191
                                        and f.used_yn ='Y' and f.cust_no =#{custNo}
                     left join matr_stk b on a.matr_no = b.matr_no
                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                       and b.wh_no = f.wh_no
                     left join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
                     left join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
                                         and d.used_yn ='Y' and d.cust_no =#{custNo}
-                    left join wh_info e on b.wh_no = e.wh_no and e.used_yn = 'Y'
-                                        and e.used_yn ='Y' and e.cust_no =#{custNo}
     where a.used_yn = 'Y' and  a.cust_no =#{custNo}
         <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
         <if test="findStr != null and findStr != ''">
@@ -2634,21 +2633,23 @@
             </when>
             <otherwise> </otherwise>
         </choose>
-        order by purs_yn, a.matr_nm
+        order by purs_yn, a.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getMatrForIwhListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
-        from ( select distinct a.matr_no
-                 from matr_info a left join matr_stk b on a.matr_no = b.matr_no
-                                                      and b.used_yn ='Y' and b.cust_no =#{custNo}
-                                  left join purs_matr c on b.matr_no = c.matr_no
-                                                      and c.used_yn ='Y' and c.cust_no =#{custNo}
-                                  left join purs_info d on c.purs_no = d.purs_no
-                                                      and d.used_yn ='Y' and d.cust_no =#{custNo}
-                                  left join wh_info e on b.wh_no = e.wh_no
-                                                      and e.used_yn ='Y' and e.cust_no =#{custNo}
+        from ( select a.matr_no
+               from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr
+                                              and f.wh_tp = 191
+                                              and f.used_yn ='Y' and f.cust_no =#{custNo}
+                           left join matr_stk b on a.matr_no = b.matr_no
+                                               and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                               and b.wh_no = f.wh_no
+                           left join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
+                                                and c.used_yn ='Y' and c.cust_no =#{custNo}
+                           left join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
+                                                and d.used_yn ='Y' and d.cust_no =#{custNo}
                 where a.used_yn = 'Y'
                  and a.used_yn ='Y' and a.cust_no =#{custNo}
                 <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
@@ -3237,9 +3238,8 @@
         ) a
     </select>
 
-
-    <!--제품입고 목록 -->
     <select id="getStsProdIwhList" parameterType="map" resultType="camelMap">
+        /* 제품입고목록 (ioMapper.getStsProdIwhList) */
         select distinct coalesce ( (select
                                         <choose>
                                             <when test="custNo != null and custNo != ''and custNo == 6 ">
@@ -3786,7 +3786,7 @@
     </select>
 
     <select id="getMatrWhStkList" parameterType="map"  resultType="camelMap">
-        /*현황통계:원료현황_창고클리시.. (IoMapper.getMatrWhStkList)*/
+        /*현황통계:원료현황_창고클릭시.. (IoMapper.getMatrWhStkList)*/
         select a.matr_stk_no --적재관리번호
              , a.matr_no --자재번호
              , a.wh_no --창고번호
@@ -3808,14 +3808,14 @@
                              from matr_stk_clos
                               where 1 =1
                                 and used_yn = 'Y' and cust_no =#{custNo}
-                              and to_char(clos_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
+                               and to_char(clos_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
                              ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
                    left join (select wh_no
                                    , matr_no
                                    , sum(iwh_qty) as iwh_qty
                               from matr_iwh
                               where used_yn = 'Y' and cust_no =#{custNo}
---                               and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                              and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) e on a.wh_no = e.wh_no and a.matr_no = e.matr_no
                    left join (select wh_no
@@ -3823,23 +3823,27 @@
                                    , sum(owh_qty) as owh_qty
                               from matr_owh
                               where used_yn = 'Y' and cust_no =#{custNo}
---                               and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                              and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
-        where a.used_yn = 'Y'
-            and a.used_yn = 'Y' and a.cust_no =#{custNo}
-            and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
+        where  a.used_yn = 'Y'
+        and a.cust_no =#{custNo}
+        and a.wh_no = #{whNo}
+        --and  a.stk_qty <![CDATA[ > ]]>  0
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
+
     </select>
 
     <select id="getMatrWhStkListCount" parameterType="map"  resultType="int">
         select count(a.matr_stk_no)
         from ( select a.matr_stk_no --적재관리번호
-                 from matr_stk a join matr_info b on a.matr_no = b.matr_no
-                                              and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                                and b.used_yn = 'Y' and b.cust_no =#{custNo}
                 where a.used_yn = 'Y'
-                    and a.used_yn = 'Y' and a.cust_no =#{custNo}
-                    and a.wh_no = #{whNo} and  a.stk_qty <![CDATA[ > ]]>  0
+                and a.used_yn = 'Y' and a.cust_no =#{custNo}
+                and a.wh_no = #{whNo}
+                --and  a.stk_qty <![CDATA[ > ]]>  0
              ) a
     </select>
 
@@ -3850,13 +3854,19 @@
              , a.matr_nm
              , a.matr_no
              , coalesce (b.iwh_qty,0) as iwh_qty
+             , b.insp_er    --검수자id
+             , b.wh_no      --창고번호
+             , b.purs_no    --구매번호
+             , b.purs_matr_no --구매원료번호
+             , to_char(b.date_manufacture,'YYYY-MM-DD') as date_manufacture --제조일자
+             , b.palt_cd --파레트코드
+             , b.palt_qty --파레트수량
         from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
-        where a.used_yn = 'Y'
-          and a.used_yn = 'Y' and a.cust_no =#{custNo}
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
           order by b.iwh_dt
-            limit #{pageSz} offset #{pageNo}
+          limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getIwhMatrListCount" parameterType="map"  resultType="int">
@@ -3867,8 +3877,7 @@
                     , coalesce (b.iwh_qty,0) as iwh_qty
                from matr_info a join matr_iwh b on a.matr_no = b.matr_no
                                                and b.used_yn = 'Y' and b.cust_no =#{custNo}
-               where a.used_yn = 'Y'
-                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
+               where a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.matr_no = #{matrNo}
                order by b.iwh_dt
              ) a
@@ -3880,11 +3889,16 @@
              , b.owh_no
              , a.matr_nm
              , a.matr_no
-             , coalesce (b.owh_qty,0) as owh_qty
+             , b.wh_no --창고번호
+             , b.insp_er --검수자id
+             , b.indc_no --작업지시번호
+             , to_char(b.owh_req_dt,'YYYY-MM-DD') as owh_req_dt --출고요청일자
+             , coalesce (b.owh_req_qty,0) as owh_req_qty
+             , to_char(b.owh_dt,'YYYY-MM-DD') as owh_dt --출고일자
+             , coalesce (b.owh_qty,0) as owh_qty --출고수량
         from matr_info a join matr_owh b on a.matr_no = b.matr_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
-        where a.used_yn = 'Y'
-          and a.used_yn = 'Y' and a.cust_no =#{custNo}
+        where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
           order by b.owh_req_dt
           limit #{pageSz} offset #{pageNo}
@@ -3895,8 +3909,7 @@
         from ( select a.matr_no
                from matr_info a join matr_owh b on a.matr_no = b.matr_no
                                                and b.used_yn = 'Y' and b.cust_no =#{custNo}
-               where a.used_yn = 'Y'
-                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
+               where a.used_yn = 'Y' and a.cust_no =#{custNo}
                  and a.matr_no = #{matrNo}
                order by b.owh_req_dt
              ) a
@@ -3976,7 +3989,7 @@
                                     , sum(iwh_qty) as iwh_qty
                                from prod_iwh
                                where used_yn = 'Y' and cust_no =#{custNo}
---                                  and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                                  and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,prod_no
                               ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
                    left join (select prod_no
@@ -3984,7 +3997,7 @@
                                     , sum(owh_qty) as owh_qty
                                from prod_owh
                                where used_yn = 'Y' and cust_no =#{custNo}
---                                  and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                                  and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                                group by wh_no,prod_no
                               ) e on a.wh_no = e.wh_no and a.prod_no = e.prod_no
         where a.used_yn = 'Y'

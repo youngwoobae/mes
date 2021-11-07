@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -453,6 +454,7 @@ public class IoController {
         rmap.put("comboWhNo", cmmnService.getComboWh(paraMap));
 
         paraMap.put("selectStr", "파레트선택");
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.palet")));
         rmap.put("comboPalet", codeService.getComboCodeList(paraMap));
 
         result.setData(rmap);
@@ -1447,7 +1449,6 @@ public class IoController {
         ioService.getMatrOwhHistList(paraMap);
         return result;
     }
-
     @PostMapping(value = "/changeStkData")
     public Result changeStkData(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
         String tag = "ioController.changeStkData => ";
@@ -1457,7 +1458,6 @@ public class IoController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         ioService.changeStkData(paraMap);
-        ioService.changeTotalStkData(paraMap);
         return result;
     }
     @PostMapping(value = "/dropStkData")
@@ -1469,7 +1469,6 @@ public class IoController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         ioService.dropStkData(paraMap);
-        ioService.dropTotalStkData(paraMap);
         return result;
     }
 

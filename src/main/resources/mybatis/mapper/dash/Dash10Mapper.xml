@@ -14,11 +14,13 @@
                          join (select spot_no, max(unix_hms) as unix_hms
                                 from tmpr_log
                                 where used_yn = 'Y' and cust_no = #{custNo}
+                                  and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
                                 group by spot_no
         ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
         where a.used_yn  = 'Y'
           and a.cust_no = #{custNo}
         order by spot_nm
+        limit #{pageSz}
     </select>
 
     <select id="getFinalMetalDetect" parameterType="map" resultType="camelMap">
@@ -33,11 +35,9 @@
                          join (select max(metal_hstr_no)  as metal_hstr_no
                                from metal_log
                                where cust_no = #{custNo}
-                               --and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
+                               and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
                               ) c on a.metal_hstr_no = c.metal_hstr_no
         where a.cust_no = #{custNo}
-
-
     </select>
 
     <select id="getMetalDetect10List" parameterType="map" resultType="camelMap">

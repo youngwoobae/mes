@@ -54,6 +54,10 @@ public class MatrIwh {
     @Column(name="paltCd", columnDefinition = "numeric default 0")
     private Long paltCd;
 
+    /*파레트수량*/
+    @Column(name="paltQty", columnDefinition = "numeric default 0")
+    private Integer paltQty;
+
     /*입고일자*/
     @Column(name="iwh_dt",nullable = false)
     @Temporal(TemporalType.TIMESTAMP)

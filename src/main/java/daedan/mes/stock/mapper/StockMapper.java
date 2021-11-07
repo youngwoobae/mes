@@ -31,9 +31,9 @@ public interface StockMapper {
     void reduceStock(Map<String, Object> paraMap);
 
     void dropWhInfo(Map<String, Object> paraMap);
-    //실사재고
-    List<Map<String, Object>> getRealStockList(HashMap<String, Object> paraMap);
-    int getRealStockListCount(HashMap<String, Object> paraMap);
+    //원료실사재고
+    List<Map<String, Object>> getMatrRealStockList(HashMap<String, Object> paraMap);
+    int getMatrRealStockListCount(HashMap<String, Object> paraMap);
 
 
     List<Map<String, Object>> getMatrProdIoYearList(HashMap<String, Object> paraMap);
@@ -96,6 +96,6 @@ public interface StockMapper {
     List<Map<String, Object>> getMatrClosList(Map<String, Object> paraMap);
     List<Map<String, Object>> getProdClosList(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getRealStockHstr(HashMap<String, Object> paraMap);
-    int getRealStockHstrCount(Map<String, Object> paraMap);
+    List<Map<String, Object>> getMatrRealStockHstr(HashMap<String, Object> paraMap);
+    int getMatrRealStockHstrCount(Map<String, Object> paraMap);
 }

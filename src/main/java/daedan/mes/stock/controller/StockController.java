@@ -193,20 +193,20 @@ public class StockController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
-        result.setData(stockService.getRealStockList(paraMap));
-        result.setTotalCount(stockService.getRealStockListCount(paraMap));
+        result.setData(stockService.getMatrRealStockList(paraMap));
+        result.setTotalCount(stockService.getMatrRealStockListCount(paraMap));
         return result;
     }
-    //실사재고
-    @PostMapping(value="/realStockHstr")
-    public Result realStockHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
+    //원료실사재고
+    @PostMapping(value="/matrRealStockHstr")
+    public Result matrRealStockHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
-        result.setData(stockService.getRealStockHstr(paraMap));
-        result.setTotalCount(stockService.getRealStockHstrCount(paraMap));
+        result.setData(stockService.getMatrRealStockHstr(paraMap));
+        result.setTotalCount(stockService.getMatrRealStockHstrCount(paraMap));
         return result;
     }
 

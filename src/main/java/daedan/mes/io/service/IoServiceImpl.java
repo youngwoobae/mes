@@ -2767,9 +2767,14 @@ public class IoServiceImpl implements IoService {
             }
 
             try{
-                mivo.setPaltCd(Long.parseLong(paraMap.get("palt").toString()));
+                mivo.setPaltCd(Long.parseLong(paraMap.get("paltCd").toString()));
             }catch(NullPointerException ne){
                 mivo.setPaltCd(0L);
+            }
+            try{
+                mivo.setPaltQty(Integer.parseInt(paraMap.get("paltQty").toString()));
+            }catch(NullPointerException ne){
+                mivo.setPaltQty(0);
             }
 
             try{
@@ -3463,22 +3468,15 @@ public class IoServiceImpl implements IoService {
         return mapper.getOwhMatrListCount(paraMap);
     }
 
-
+    @Transactional
     @Override
     public void changeStkData(Map<String, Object> paraMap) {
         String tag = "vsvc.IoService.changeStkData => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         mapper.changeStkData(paraMap);
-
-    }
-
-    @Override
-    public void changeTotalStkData(Map<String, Object> paraMap) {
-        String tag = "vsvc.IoService.changeTotalStkData => ";
-        log.info(tag + "paraMap = " + paraMap.toString());
         mapper.changeTotalStkData(paraMap);
-
     }
+
 
     @Transactional
     @Override
@@ -3508,12 +3506,13 @@ public class IoServiceImpl implements IoService {
                 //입력된 원료량으로 재고 adjust
                 mivo.setUsedYn("N");
                 matrIwhRepo.save(mivo);
-            }else{
+            }
+            else{
                 MatrOwh movo = matrOwhRepo.findByCustNoAndOwhNoAndUsedYn(custNo, itemNo, "Y");
                 if (movo != null) {
                     //원료재고량을 변경전의 원료량많큼 감소시켜 재고 adjust
                     msvo = matrStkRepo.findByCustNoAndMatrNoAndUsedYn(custNo, movo.getMatrNo(), "Y");
-                    msvo.setStkQty(msvo.getStkQty() - movo.getOwhQty());
+                    msvo.setStkQty(msvo.getStkQty() + movo.getOwhQty());
                     msvo.setModDt(DateUtils.getCurrentBaseDateTime());
                     msvo.setModId(userId);
                     msvo.setModIp(ipaddr);
@@ -3545,7 +3544,7 @@ public class IoServiceImpl implements IoService {
                 if (povo != null) {
                     //재품재고량을 변경전의 원료량많큼 감소시켜 재고 adjust
                     psvo = prodStkRepo.findByCustNoAndProdNoAndUsedYn(custNo, povo.getProdNo(), "Y");
-                    psvo.setStkQty(psvo.getStkQty() - povo.getOwhQty());
+                    psvo.setStkQty(psvo.getStkQty() + povo.getOwhQty());
                     psvo.setModDt(DateUtils.getCurrentBaseDateTime());
                     psvo.setModId(userId);
                     psvo.setModId(userId);
@@ -3555,8 +3554,6 @@ public class IoServiceImpl implements IoService {
                 povo.setUsedYn("N");
                 prodOwhRepo.save(povo);
             }
-
-
         }
     }
 

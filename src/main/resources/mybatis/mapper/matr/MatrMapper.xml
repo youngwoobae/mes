@@ -403,7 +403,7 @@
     <select id="getMatrCmpyComboList" parameterType="map"  resultType="camelMap">
         /*선택된 원료의 구매거래처 콤보목록 (matrMapper.getMatrCmpyComboList)*/
         select distinct 0 as seq
-              ,  0 as value
+              ,  1 as value
               , '구매처미상'as text
         FROM   matr_cmpy a
         WHERE (select count(matr_no) from matr_cmpy where matr_no = #{matrNo}  and cust_no = #{custNo}  and used_yn = 'Y') = 0

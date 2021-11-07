@@ -296,8 +296,6 @@ public interface IoService {
 
     void changeStkData(Map<String, Object> paraMap);
 
-    void changeTotalStkData(Map<String, Object> paraMap);
-
     void dropStkData(Map<String, Object> paraMap);
 
     void dropTotalStkData(Map<String, Object> paraMap);

@@ -36,9 +36,9 @@ public interface StockService {
 
     void dropWhInfo(Map<String, Object> paraMap);
 
-    //실자재고
-    List<Map<String, Object>>  getRealStockList(HashMap<String, Object> paraMap);
-    int getRealStockListCount(HashMap<String, Object> paraMap);
+    //원료실사재고
+    List<Map<String, Object>>  getMatrRealStockList(HashMap<String, Object> paraMap);
+    int getMatrRealStockListCount(HashMap<String, Object> paraMap);
 
     @Transactional
     void adjustMatrStock(Map<String, Object> paraMap);
@@ -105,6 +105,6 @@ public interface StockService {
 
     void remakeDailyCloseData(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getRealStockHstr(HashMap<String, Object> paraMap);
-    int getRealStockHstrCount(Map<String, Object> paraMap);
+    List<Map<String, Object>> getMatrRealStockHstr(HashMap<String, Object> paraMap);
+    int getMatrRealStockHstrCount(Map<String, Object> paraMap);
 }

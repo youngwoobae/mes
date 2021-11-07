@@ -144,13 +144,13 @@ public class StockServiceImpl implements  StockService{
 
 
     @Override
-    public List<Map<String, Object>> getRealStockList(HashMap<String, Object> paraMap) {
-        return mapper.getRealStockList(paraMap);
+    public List<Map<String, Object>> getMatrRealStockList(HashMap<String, Object> paraMap) {
+        return mapper.getMatrRealStockList(paraMap);
     }
 
     @Override
-    public int getRealStockListCount(HashMap<String, Object> paraMap) {
-        return mapper.getRealStockListCount(paraMap);
+    public int getMatrRealStockListCount(HashMap<String, Object> paraMap) {
+        return mapper.getMatrRealStockListCount(paraMap);
     }
 
     @Override
@@ -1119,15 +1119,15 @@ public class StockServiceImpl implements  StockService{
     }
 
     @Override
-    public List<Map<String, Object>> getRealStockHstr(HashMap<String, Object> paraMap) {
+    public List<Map<String, Object>> getMatrRealStockHstr(HashMap<String, Object> paraMap) {
         String tag = "stockService.getRealStackHstr =>";
         log.info(tag + "paraMap = " + paraMap.toString());
-        return mapper.getRealStockHstr(paraMap);
+        return mapper.getMatrRealStockHstr(paraMap);
     }
 
     @Override
-    public int getRealStockHstrCount(Map<String, Object> paraMap) {
-        return mapper.getRealStockHstrCount(paraMap);
+    public int getMatrRealStockHstrCount(Map<String, Object> paraMap) {
+        return mapper.getMatrRealStockHstrCount(paraMap);
     }
 
 

@@ -239,8 +239,8 @@
     <update id="dropWhInfo" parameterType="map">
         update wh_info set used_yn = 'N' where wh_no = #{whNo} and cust_no = #{custNo}
     </update>
-    <!--살사재고목록-->
-    <select id="getRealStockList" parameterType="map" resultType="camelMap">
+    <!--원료실사재고목록-->
+    <select id="getMatrRealStockList" parameterType="map" resultType="camelMap">
             select a.matr_no --자재번호
                  , a.matr_nm --자재명
                  , a.sz      --자재규격
@@ -250,13 +250,12 @@
                  , c.wh_no   --창고번
                  , coalesce (c.stk_qty,0) as matr_stk --현재고(최종재고)
                  , d.wh_nm
-                 , e.code_nm as save_tmpr_nm --창고F
+                 , fn_get_code_name('nm',a.save_tmpr)  as save_tmpr__nm --창고F
                  --, b.chng_resn --변경사유코드
                  --, coalesce (b.stk_qty,0) as real_stk --실사재고
                  --, coalesce (b.used_yn,'Y')  as used_yn
                  --, z.code_alais as chng_resn_nm
-            from matr_info a join code_info e on a.save_tmpr = e.code_no
-                        left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+            from matr_info left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         --left join ( select a.*
                         --            from matr_stk_hstr a
                         --           where a.chng_no = (select max(chng_no) from matr_stk_hstr where matr_no = a.matr_no and used_yn = 'Y')
@@ -282,12 +281,11 @@
 
     </select>
 
-    <select id="getRealStockListCount" parameterType="int" resultType="int">
+    <select id="getMatrRealStockListCount" parameterType="int" resultType="int">
         select count(a.matr_no)
         from (
                 select a.matr_no --자재번호
-                from matr_info a join code_info e on a.save_tmpr = e.code_no
-                            left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                from matr_info left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                            --left join ( select a.*
                            --              from matr_stk_hstr a
                            --              where a.chng_no = (select max(chng_no) from matr_stk_hstr where matr_no = a.matr_no and used_yn = 'Y')
@@ -589,7 +587,8 @@
 
     <!--수불대장/자재-->
     <select id="getMatrStkClosList" parameterType="map" resultType="camelMap" >
-        select distinct a.wh_no --창고번호
+        /* 수불대장/자재(stockMapper.getMatrStkClosList) */
+        select a.wh_no --창고번호
              , e.wh_nm  --창고명
              , a.matr_no --원자재번호
              , b.matr_nm --원자재명
@@ -603,100 +602,125 @@
                     when h.stk_qty is null then '전일자료이관'
                     else '변경이력발생' --금일재고변경이력
                 end as stk_tp --재고발생사유
-        from matr_stk a  join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
-                         join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
-                                                                   and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
-                         join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y' and e.cust_no = #{custNo}
-                         left join ( select a.wh_no
-                                         , a.matr_no
-                                         , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
-                                         , coalesce (sum(stk_qty),0) as  stk_qty
-                                     from matr_stk_clos a
-                                     where to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD') and a.cust_no = #{custNo}
-                                     group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
-                                    ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
-                         left join ( select matr_no, wh_no, sum(iwh_qty) as iwh_qty
-                                    from matr_iwh
-                                    where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                    and used_yn = 'Y' and cust_no = #{custNo}
-                                    group by wh_no,matr_no
-                                   ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
-                         left join ( select matr_no, wh_no, sum(owh_qty) as owh_qty
-                                    from matr_owh
-                                    where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                    and used_yn = 'Y' and cust_no = #{custNo}
-                                    group by wh_no,matr_no
-                                    ) k on a.wh_no = k.wh_no and a.matr_no = k.matr_no
-                         left join ( select a.stk_qty
-                                    , a.matr_no
-                                    , a.wh_no
-                                    from matr_stk_hstr a
-                                    where chng_no = ( select max(k.chng_no)
-                                                        from matr_stk_hstr k
-                                                       where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                                         and a.matr_no = k.matr_no
-                                                         and a.wh_no = k.wh_no
-                                                         and k.cust_no = #{custNo}
-                                                    )
-                                                    and a.cust_no = #{custNo}
-                                    ) h on a.matr_no = h.matr_no and a.wh_no  = h.wh_no
-        where 1 = 1 and a.cust_no = #{custNo}
+        from matr_stk a  join matr_info b on a.matr_no = b.matr_no
+                                         and b.used_yn = 'Y'
+                                         and b.cust_no = #{custNo}
+                         join wh_info e on a.wh_no = e.wh_no
+                                       and e.used_yn = 'Y'
+                                       and e.cust_no = #{custNo}
+                    left join matr_stk_clos g on a.wh_no = g.wh_no
+                                             and a.matr_no = g.matr_no
+                                             and g.used_yn = 'Y'
+                                             and g.cust_no = #{custNo}
+                                             and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                    left join ( select a.wh_no
+                                     , a.matr_no
+                                     , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+                                     , coalesce (sum(stk_qty),0) as  stk_qty
+                                from matr_stk_clos a
+                                where a.used_yn = 'Y'
+                                and  to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD') and a.cust_no = #{custNo}
+                                group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
+                             ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
+                    left join ( select matr_no, wh_no, sum(iwh_qty) as iwh_qty
+                                from matr_iwh
+                                where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                and used_yn = 'Y'
+                                and cust_no = #{custNo}
+                                group by wh_no,matr_no
+                              ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
+                    left join ( select matr_no, wh_no, sum(owh_qty) as owh_qty
+                                from matr_owh
+                                where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                and used_yn = 'Y' and cust_no = #{custNo}
+                                group by wh_no,matr_no
+                              ) k on a.wh_no = k.wh_no and a.matr_no = k.matr_no
+                    left join ( select a.stk_qty
+                                     , a.matr_no
+                                     , a.wh_no
+                                from matr_stk_hstr a
+                                where chng_no = ( select max(k.chng_no)
+                                                    from matr_stk_hstr k
+                                                   where k.used_yn = 'Y'
+                                                     and to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                                     and a.matr_no = k.matr_no
+                                                     and a.wh_no = k.wh_no
+                                                     and k.cust_no = #{custNo}
+                                                )
+                                                and a.cust_no = #{custNo}
+                              ) h on a.matr_no = h.matr_no and a.wh_no  = h.wh_no
+        where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
            AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by clos_dt,matr_nm
+        order by clos_dt, matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getMatrStkClosListCount" parameterType="map" resultType="int" >
         select count(a.matr_stk_clos_no)
         from (
-                select distinct g.matr_stk_clos_no
-                  from matr_stk a  join matr_info b on a.matr_no = b.matr_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
-                                   join matr_stk_clos g on a.wh_no = g.wh_no and a.matr_no = g.matr_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
-                                                                             and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                   join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y' and e.cust_no = #{custNo}
+                select g.matr_stk_clos_no
+                  from matr_stk a  join matr_info b on a.matr_no = b.matr_no
+                                                   and b.used_yn = 'Y'
+                                                   and b.cust_no = #{custNo}
+                                   join wh_info e on a.wh_no = e.wh_no
+                                                 and e.used_yn = 'Y'
+                                                 and e.cust_no = #{custNo}
+                              left join matr_stk_clos g on a.wh_no = g.wh_no
+                                                       and a.matr_no = g.matr_no
+                                                       and g.used_yn = 'Y'
+                                                       and g.cust_no = #{custNo}
+                                                       and to_char(g.clos_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
                               left join ( select a.wh_no
-                                                , a.matr_no
-                                                , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
-                                                , coalesce (sum(stk_qty),0) as  stk_qty
+                                               , a.matr_no
+                                               , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
+                                               , coalesce (sum(stk_qty),0) as  stk_qty
                                             from matr_stk_clos a
-                                            where to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD') and a.cust_no = #{custNo}
+                                            where a.used_yn = 'Y'
+                                            and a.cust_no = #{custNo}
+                                            and to_char(clos_dt,'YYYY-MM-DD') = to_char(substring(#{closDt},1,10)::date +  '-1 day'::interval,'YYYY-MM-DD') and a.cust_no = #{custNo}
                                             group by wh_no,matr_no,to_char(clos_dt,'YYYY-MM-DD')
                                         ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
                               left join ( select matr_no, wh_no, sum(iwh_qty) as iwh_qty
                                             from matr_iwh
                                             where to_char(iwh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                            and used_yn = 'Y' and cust_no = #{custNo}
+                                            and used_yn = 'Y'
+                                            and cust_no = #{custNo}
                                             group by wh_no,matr_no
                                         ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
                               left join ( select matr_no, wh_no, sum(owh_qty) as owh_qty
                                             from matr_owh
                                             where to_char(owh_dt,'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                            and used_yn = 'Y' and cust_no = #{custNo}
+                                            and used_yn = 'Y'
+                                            and cust_no = #{custNo}
                                             group by wh_no,matr_no
                                          ) k on a.wh_no = k.wh_no and a.matr_no = k.matr_no
                               left join ( select a.stk_qty
                                                 , a.matr_no
                                                 , a.wh_no
                                             from matr_stk_hstr a
-                                            where chng_no = ( select max(k.chng_no)
-                                                                from matr_stk_hstr k
-                                                                where to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
-                                                                and a.matr_no = k.matr_no
-                                                                and a.wh_no = k.wh_no
-                                                                and k.cust_no = #{custNo}
-                                                             )
-                                                            and a.cust_no = #{custNo}
+                                            where a.used_yn = 'Y'
+                                            and chng_no = ( select max(k.chng_no)
+                                                            from matr_stk_hstr k
+                                                            where used_yn = 'Y'
+                                                            and to_char(coalesce (k.mod_dt,k.reg_dt),'YYYY-MM-DD') = substring(#{closDt},1,10)
+                                                            and a.matr_no = k.matr_no
+                                                            and a.wh_no = k.wh_no
+                                                            and k.cust_no = #{custNo}
+                                                           )
+                                            and a.cust_no = #{custNo}
                                         ) h on a.matr_no = h.matr_no and a.wh_no  = h.wh_no
-                  where 1 = 1 and a.cust_no = #{custNo}
-                <if test="findSz != null and findSz != ''">
-                    AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-                </if>
+                  where a.used_yn = 'Y'
+                    and a.cust_no = #{custNo}
+                    <if test="findSz != null and findSz != ''">
+                        AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
         ) a
     </select>
 
-    <!--수불대장/제품-->
     <select id="getProdStkClosList" parameterType="map" resultType="camelMap" >
+        /* 수불대장/제품(stockMapper.getProdStkClosList) */
         select g.prod_stk_clos_no --마감번호
               , to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일자
               , a.wh_no
@@ -754,7 +778,7 @@
                 or upper(replace(c.erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 )
        </if>
-        order by prod_nm,clos_dt
+        order by prod_nm collate "ko_KR.utf8" ,clos_dt
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getProdStkClosListCount" parameterType="map" resultType="int" >
@@ -1348,7 +1372,8 @@
         order by prod_no,wh_no
     </select>
     <!--원자재실사재고변경이력-->
-    <select id="getRealStockHstr" parameterType="map"  resultType="camelMap">
+    <select id="getMatrRealStockHstr" parameterType="map"  resultType="camelMap">
+        /* 원자재실사재고변경이력 (stockMapper.getMatrRealStockHstr) */
         select a.chng_no --변경이력번호
              , a.matr_no --자재번호
              , d.matr_nm --자재명
@@ -1366,7 +1391,7 @@
         order by chng_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
-    <select id="getRealStockHstrCount" parameterType="map"  resultType="int">
+    <select id="getMatrRealStockHstrCount" parameterType="map"  resultType="int">
         select count(a.chng_no)
         from (
                  select a.chng_no
