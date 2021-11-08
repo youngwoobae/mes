@@ -1233,6 +1233,7 @@
 
     <!--자재마감-->
     <select id="getMatrClosList" parameterType="map"  resultType="camelMap">
+        /* 자재마감 (stockMapper.getMatrClosList) */
         select a.matr_no --자재번호
              , f.matr_nm --자재명
              , coalesce (a.wh_no,0) as wh_no --자재창고번호
@@ -1302,6 +1303,7 @@
     </select>
     <!--제품마감-->
     <select id="getProdClosList" parameterType="map"  resultType="camelMap">
+        /*제품마감 대상 목록 (stockMapper.getProdClosList) */
         select a.prod_no --제품번호
              , f.prod_nm --제품명
              , coalesce (a.wh_no,0) as wh_no --제품창고번호

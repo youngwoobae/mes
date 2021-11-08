@@ -43,4 +43,19 @@ public class Dash18Controller {
         result.setData(dash18.getTmpr18List(paraMap));
         return result;
     }
+    /**
+     * 찜기 내용 저장
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getFinalHeatStatus")
+    public Result getFinalMetalDetect(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(dash18.getFinalHeatStatus(paraMap));
+        return result;
+    }
 }

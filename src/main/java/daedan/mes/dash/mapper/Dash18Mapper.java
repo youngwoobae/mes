@@ -10,4 +10,5 @@ import java.util.Map;
 @Component
 public interface Dash18Mapper {
     List<Map<String, Object>> getTmpr18List(Map<String, Object> paraMap);
+    Map<String, Object> getFinalHeatStatus(Map<String, Object> paraMap);
 }

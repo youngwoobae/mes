@@ -28,4 +28,13 @@ public class Dash18ServiceImpl implements Dash18Service {
         log.info(tag + "paraMap = " + paraMap.toString());
         return  mapper.getTmpr18List(paraMap);
     }
+
+    @Override
+    public Map<String, Object> getFinalHeatStatus(Map<String, Object> paraMap) {
+        String tag = "Dash18Service.getFinalHeatStatus => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return  mapper.getFinalHeatStatus(paraMap);
+    }
+
+
 }

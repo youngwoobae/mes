@@ -46,7 +46,7 @@ public class Dash10Controller {
 
 
     /**
-     * 온도모니터링 내용 저장
+     *  금속검출 모니터링 내용 저장
      *
      * @param paraMap
      * @param session

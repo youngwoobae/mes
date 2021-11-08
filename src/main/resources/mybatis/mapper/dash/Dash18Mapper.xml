@@ -20,4 +20,19 @@
           and a.cust_no = #{custNo}
         order by spot_nm
     </select>
+
+    <select id="getFinalHeatStatus" parameterType="map" resultType="camelMap">
+        /*미홍 초기화면 찜기 상태 (dash18Mapper.getFinalHeatStatus) */
+        select to_char(to_timestamp(a.unix_hms),'HH24:MI:SS')  as pass_tm
+             , a.rcv_msg
+             , a.oper_yn --작동상태
+        from heat_stat_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
+                         join (select max(heat_stat_log_no)  as heat_stat_log_no
+                               from heat_stat_log
+                               where cust_no = #{custNo}
+                                 and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
+        ) c on a.heat_stat_log_no = c.heat_stat_log_no
+        where a.cust_no = #{custNo}
+    </select>
+
 </mapper>
