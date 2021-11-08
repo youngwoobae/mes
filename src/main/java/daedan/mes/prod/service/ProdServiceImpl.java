@@ -318,12 +318,17 @@ public class ProdServiceImpl implements  ProdService {
         } catch (NullPointerException ne) {
 
         }
-        //EOL Addon by KMJ At  21.10.19 - 판매유형(OEM,ODM) 구분
+        //EOL Addon by KMJ At  21.10.19 - 판매유형(OEM,ODM,B2B) 구분
         ProdInfo prodInfo = new ProdInfo();
         prodInfo.setCustNo(custNo);
         prodInfo.setProdNo(prodNo);
         prodInfo.setProdNm(paraMap.get("prodNm").toString());
-        prodInfo.setProdTp(Long.parseLong(paraMap.get("prodTp").toString())); //AddOn By KMJ At 21.10.19 --판매구분(OEM,ODM,B2B)
+        try {
+            prodInfo.setProdTp(Long.parseLong(paraMap.get("prodTp").toString())); //AddOn By KMJ At 21.10.19 --판매구분(OEM,ODM,B2B)
+        }
+        catch (NullPointerException ne) {
+            prodInfo.setProdTp(Long.parseLong(env.getProperty("ord_prjt_cd")));
+        }
         prodInfo.setCmpyNo(cmpyNo); //AddOn By KMJ At 21.10.19 --OEM업체번호
         prodInfo.setCustNo(Long.parseLong(paraMap.get("custNo").toString())); //AddOn By KMJ At 21.10.21
         try {
@@ -362,11 +367,25 @@ public class ProdServiceImpl implements  ProdService {
         int squire = 1;
 
         /*SOL AddOn By KMJ At 21.10.30*/
-        Long saleUnitWgt = Long.parseLong(paraMap.get("saleUnitWgt").toString()); //판매단위중량
-        int qtyPerPkg = Integer.parseInt(paraMap.get("qtyPerPkg").toString()); //입수량
+        Long saleUnitWgt = 1L;
+        try {
+            saleUnitWgt = Long.parseLong(paraMap.get("saleUnitWgt").toString()); //판매단위중량
+        }
+        catch (NullPointerException ne) {
+            saleUnitWgt = 1L;
+        }
+        int qtyPerPkg = 1;
+        try {
+            Integer.parseInt(paraMap.get("qtyPerPkg").toString()); //입수량
+        }
+        catch (NullPointerException ne) {
+            qtyPerPkg = 1;
+        }
         prodInfo.setQtyPerPkg(qtyPerPkg);
+
         prodInfo.setSaleUnitWgt(saleUnitWgt);
         prodInfo.setSaleUnit(Long.parseLong(paraMap.get("saleUnit").toString()));
+
         if (prodInfo.getSaleUnit() == Long.parseLong(env.getProperty("code.base.sale_unit_g"))) { //gram
             squire = 1000; //단위중량이 gram인 경우 kg단위로 환산하기 위한 기준값
         }

@@ -43,4 +43,20 @@ public class Dash17Controller {
         result.setData(dash17.getTmpr17List(paraMap));
         return result;
     }
+
+    /**
+     * 카운터 저장
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getFinalProcCnt")
+    public Result getFinalCounter(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(dash17.getFinalProcCnt(paraMap));
+        return result;
+    }
 }

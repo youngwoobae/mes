@@ -3102,7 +3102,11 @@ public class IoServiceImpl implements IoService {
             } catch (NullPointerException | ParseException e) {
                 povo.setOwhDt(DateUtils.getCurrentDate());
             }
-
+            try {
+                povo.setDateManufacture(transFormat.parse(paraMap.get("crcateDt").toString().substring(0, 10)));
+            } catch (NullPointerException | ParseException e) {
+                povo.setDateManufacture(povo.getOwhDt());
+            }
             try{
                 povo.setOrdNo(Long.parseLong(el.get("ordNo").toString()));
             }catch(NullPointerException ne){

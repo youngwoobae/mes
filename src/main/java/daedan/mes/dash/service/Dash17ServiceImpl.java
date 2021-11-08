@@ -26,4 +26,11 @@ public class Dash17ServiceImpl implements Dash17Service{
         log.info(tag + "paraMap = " + paraMap.toString());
         return  mapper.getTmpr17List(paraMap);
     }
+
+    @Override
+    public Map<String, Object> getFinalProcCnt(Map<String, Object> paraMap) {
+        String tag = "Dash17Service.getFinalProcCnt => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return  mapper.getFinalProcCnt(paraMap);
+    }
 }

@@ -8,13 +8,13 @@
              , a.spot_nm  --작업장명
              , b.rcv_msg  --메세지
              , b.rcv_tmpr  --측정온도
-             , to_char(to_timestamp(b.unix_hms) ,'HH24:MI:SS') as rcv_tm --수신시각
+             , to_char(to_timestamp(b.unix_hms) ,'MM월DD일 HH24:MI:SS') as rcv_tm --수신시각
         from spot_info a join tmpr_log b on a.spot_no  = b.spot_no
                                         and b.used_yn  = 'Y' and b.cust_no  = a.cust_no
                          join (select spot_no, max(unix_hms) as unix_hms
                                 from tmpr_log
                                 where used_yn = 'Y' and cust_no = #{custNo}
-                                  and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
+                                  --and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
                                 group by spot_no
         ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
         where a.used_yn  = 'Y'
@@ -25,7 +25,7 @@
 
     <select id="getFinalMetalDetect" parameterType="map" resultType="camelMap">
         /*유진물산 초기화면 금속검출기 통과수량 (dash10Mapper.getFinalMetalDetect) */
-        select to_char(to_timestamp(a.unix_hms),'HH24:MI:SS')  as pass_tm
+        select to_char(to_timestamp(a.unix_hms),'MM월DD일 HH24:MI:SS')  as pass_tm
              , a.rcv_msg
              , a.pass_qty --통과수량
              , a.err_qty  as fail_qty --금속검출수량
@@ -35,7 +35,7 @@
                          join (select max(metal_hstr_no)  as metal_hstr_no
                                from metal_log
                                where cust_no = #{custNo}
-                               and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
+                               --and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
                               ) c on a.metal_hstr_no = c.metal_hstr_no
         where a.cust_no = #{custNo}
     </select>

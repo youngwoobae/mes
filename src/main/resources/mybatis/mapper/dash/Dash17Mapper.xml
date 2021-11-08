@@ -11,63 +11,33 @@
              , to_char(to_timestamp(b.unix_hms) ,'HH:MM:SS') as rcv_tm --수신시각
         from spot_info a join tmpr_log b on a.spot_no  = b.spot_no
             and b.used_yn  = 'Y' and b.cust_no  = a.cust_no
-                         join (select spot_no, max(unix_hms) as unix_hms
-                               from tmpr_log
-                               where used_yn = 'Y' and cust_no = #{custNo}
-                               group by spot_no
-        ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
+                         join ( select spot_no, max(unix_hms) as unix_hms
+                                from tmpr_log
+                                where used_yn = 'Y' and cust_no = #{custNo}
+                                group by spot_no
+                              ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
         where a.used_yn  = 'Y'
           and a.cust_no = #{custNo}
         order by spot_nm
     </select>
 
-    <select id="getMetalDetect17List" parameterType="map" resultType="camelMap">
-        /*불필요함 안정화시 지울 것. 금속검출 이력 (reportMapper.getMetalDetectHstr)*/
-        select a.cust_no
-        , b.cust_nm
-        , to_char(to_timestamp(a.unix_hms),'YY-MM-DD HH24:MI:SS')  as chk_dt
-        , a.rcv_msg
-        , a.pass_qty --통과수량
-        , a.err_qty --불량수량
-        , case when a.pass_qty = 0 then 0 else  100 - round((a.err_qty / a.pass_qty) * 100,2)  end as fault_rt
-        from metal_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
-        where a.cust_no =#{custNo}
+
+    <select id="getFinalProcCnt" parameterType="map" resultType="camelMap">
+        /*동양시스템 카운터 이력 등록. (dash17Mapper.getFinalProcCnt)*/
+        select  to_char(to_timestamp(a.unix_hms),'YY년MM월DD일 HH24시MI분SS초')  as pass_tm
+              , a.rcv_msg
+              , a.proc_cnt --카운터
+        from dys_cnt_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
+                           join ( select spot_no, max(unix_hms) as unix_hms
+                                  from dys_cnt_log
+                                  where used_yn = 'Y' and cust_no = #{custNo}
+                                  group by spot_no
+                                ) c on a.spot_no = c.spot_no and a.unix_hms  = c.unix_hms
+        where a.used_yn = 'Y'
+        and   a.cust_no =#{custNo}
         <if test="dateFr != null and dateFr != ''">
             AND to_char(to_timestamp(a.unix_hms),'YY-MM-DD') between #{dateFr} and #{dateTo}
         </if>
-        order by chk_dt desc
-        limit #{pageSz} offset #{pageNo}
-    </select>
-
-
-    <select id="getMetalDetect17Hstr" parameterType="map" resultType="camelMap">
-        /*금속검출 이력 불필요함 안정화시 지울 것. (reportMapper.getMetalDetectHstr)*/
-        select a.cust_no
-        , b.cust_nm
-        , to_char(to_timestamp(a.unix_hms),'YY-MM-DD HH24:MI:SS')  as chk_dt
-        , a.rcv_msg
-        , a.pass_qty --통과수량
-        , a.err_qty --불량수량
-        , case when a.pass_qty = 0 then 0 else  100 - round((a.err_qty / a.pass_qty) * 100,2)  end as fault_rt
-        from metal_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
-        where a.cust_no =#{custNo}
-        <if test="dateFr != null and dateFr != ''">
-            AND to_char(to_timestamp(a.unix_hms),'YY-MM-DD') between #{dateFr} and #{dateTo}
-        </if>
-        order by chk_dt desc
-        limit #{pageSz} offset #{pageNo}
-    </select>
-
-    <select id="getMetalDetectHstr17Count" parameterType="map" resultType="int">
-        select count(a.unix_hms)
-        from (
-        select a.unxx_hms
-        from metal_log a join cust_info b on a.cust_no = b.cust_no and b.used_yn = 'Y'
-        where a.cust_no =#{custNo}
-        <if test="dateFr != null and dateFr != ''">
-            AND to_char(to_timestamp(a.unix_hms),'YY-MM-DD') between #{dateFr} and #{dateTo}
-        </if>
-        ) a
     </select>
 
 </mapper>

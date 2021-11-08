@@ -68,6 +68,11 @@ public class ProdController {
 
         Map<String, Object> rmap = new HashMap<String,Object>();
 
+        paraMap.put("selectStr","제품분류선택");
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.proc_brnch")));
+        rmap.put("comboBrnchNo",prodService.getComboProcBrnch(paraMap));
+
+
         paraMap.put("selectStr","판매단위선택");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.saleunit")));
         rmap.put("comboSaleUnit", codeService.getComboCodeList(paraMap));
@@ -76,9 +81,6 @@ public class ProdController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.save_tmpr_cd")));
         rmap.put("comboSaveTmpr",codeService.getComboCodeList(paraMap));
 
-        paraMap.put("selectStr","제품분류선택");
-        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.proc_brnch")));
-        rmap.put("comboBrnchNo",prodService.getComboProcBrnch(paraMap));
 
         paraMap.put("selectStr","제품형태선택");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_shape")));

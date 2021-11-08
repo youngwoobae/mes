@@ -10,4 +10,5 @@ import java.util.Map;
 @Component
 public interface Dash17Mapper {
     List<Map<String, Object>> getTmpr17List(Map<String, Object> paraMap);
+    Map<String, Object> getFinalProcCnt(Map<String, Object> paraMap);
 }

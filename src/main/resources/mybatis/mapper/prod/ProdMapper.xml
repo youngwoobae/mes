@@ -1471,6 +1471,7 @@
     </select>
 
     <select id="getComboProcBrnch" parameterType="map" resultType="camelMap">
+        /*제품분류콤보구성 (prodMapper.getComboProcBrnch) */
         select code_no as value
              , code_nm as text
         from code_info

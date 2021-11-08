@@ -10,6 +10,7 @@ import daedan.mes.qc.service.QcService;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -1201,8 +1202,15 @@ public class IoController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("iwhDt", paraMap.get("iwhDt").toString().substring(0, 10));
         paraMap.put("createDt", paraMap.get("createDt").toString().substring(0, 10));
+
+        try {
+            paraMap.put("iwhDt", paraMap.get("iwhDt").toString().substring(0, 10));
+        }
+        catch (NullPointerException ne) {
+            paraMap.put("iwhDt", paraMap.get("createDt").toString().substring(0, 10));
+        }
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         ioService.saveProdIwhList(paraMap);
         return result;
