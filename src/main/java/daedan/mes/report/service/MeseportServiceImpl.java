@@ -52,4 +52,11 @@ public class MeseportServiceImpl implements MesReportService {
     public int getProdIwhHstrCount(Map<String, Object> paraMap) {
         return mapper.getProdIwhHstrCount(paraMap);
     }
+
+    @Override
+    public List<Map<String, Object>> getTmprLogHstr(Map<String, Object> paraMap) {
+        String tag = "reportService.getTmprLogHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getTmprLogHstr(paraMap);
+    }
 }

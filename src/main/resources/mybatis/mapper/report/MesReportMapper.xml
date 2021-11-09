@@ -106,4 +106,27 @@
             order by iwh_dt desc
         ) a
     </select>
+    <select id="getTmprLogHstr" parameterType="map" resultType="camelMap">
+        /*온도모니터링내역((reportMapper.getTmprLogHstr) */
+        select max(a.rcv_tmpr)   as max_val --최대
+             , min(a.rcv_tmpr)   as min_val --최소
+             , round(avg(a.rcv_tmpr),2) as avg_val --평균
+             , substring(rcv_tm,1,2) as rcv_tm --수신시간
+             , max(a.rcv_dt) as rcv_dt --수신일자
+        from (
+                select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                     , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
+                     , rcv_tmpr
+                from tmpr_log a
+                where cust_no = #{custNo}
+                --   and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                order by rcv_tm
+                ) a join ( select  max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
+                           from tmpr_log
+                           where cust_no= #{custNo}
+                          ) b on a.rcv_dt = b.rcv_dt
+        group by   substring(rcv_tm,1,2)
+        order by   rcv_tm
+    </select>
+
 </mapper>
