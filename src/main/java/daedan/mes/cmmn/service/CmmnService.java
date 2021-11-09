@@ -32,4 +32,6 @@ public interface CmmnService {
     Map<String, Object> getMakeHstrPreVal(Map<String, Object> paraMap);
 
     List<Map<String, Object>>  getComboWh(Map<String, Object> paraMap);
+    List<Map<String, Object>>  getComboSpot(Map<String, Object> paraMap);
+
 }

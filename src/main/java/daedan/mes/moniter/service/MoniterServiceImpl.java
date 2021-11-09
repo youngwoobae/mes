@@ -206,4 +206,17 @@ public class MoniterServiceImpl implements MoniterService{
         return mapper.getMatrOwhHstrCount(paraMap);
     }
 
+    @Override
+    public List<Map<String, Object>> getTmprLogHstr(Map<String, Object> paraMap) {
+        String tag = "reportService.getTmprLogHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getTmprLogHstr(paraMap);
+    }
+
+    @Override
+    public List<Map<String, Object>> getMetalLogHstr(Map<String, Object> paraMap) {
+        String tag = "reportService.getMetalLogHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getMetalLogHstr(paraMap);
+    }
 }

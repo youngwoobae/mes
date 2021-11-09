@@ -153,38 +153,5 @@ public class MesReportController {
         return result;
     }
 
-    /**
-     * 온도모니터링
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/getTmprLogHstr")
-    public Result getTmprLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(mesReportService.getTmprLogHstr(paraMap));
-        return result;
-    }
-
-    /**
-     * 금속검출모니터링
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/getMetalLogHstr")
-    public Result getMetalLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(mesReportService.getMetalLogHstr(paraMap));
-        return result;
-    }
 
 }

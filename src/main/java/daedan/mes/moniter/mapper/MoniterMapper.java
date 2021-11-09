@@ -53,4 +53,7 @@ public interface MoniterMapper {
     List<Map<String, Object>> getMatrOwhHstr(Map<String, Object> paraMap);
 
     int getMatrOwhHstrCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getTmprLogHstr(Map<String, Object> paraMap);
+    List<Map<String, Object>> getMetalLogHstr(Map<String, Object> paraMap);
 }

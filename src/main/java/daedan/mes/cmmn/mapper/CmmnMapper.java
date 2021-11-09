@@ -21,4 +21,6 @@ public interface CmmnMapper {
     int getWeekIdxByUnixTime(long iValue);
 
     List<Map<String, Object>> getComboWh(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getComboSpot(Map<String, Object> paraMap);
 }

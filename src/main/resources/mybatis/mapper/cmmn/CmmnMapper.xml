@@ -58,4 +58,22 @@
           and a.wh_tp = #{whTp}
         order by seq, text
     </select>
+
+
+    <select id="getComboSpot" parameterType="map" resultType="camelMap">
+        /* 콤보작업장 선택 (cmmnMapper.getComboSpot) */
+        select 0 as seq
+             ,0 as value
+             , '작업장선택'      as text
+        union
+        select 1 as seq
+             , spot_no as value
+             , spot_nm as text
+        from spot_info
+        where used_yn = 'Y'
+          and ccp_tp = #{ccpTp}
+          and cust_no = #{custNo}
+        order by seq,text
+    </select>
+
 </mapper>

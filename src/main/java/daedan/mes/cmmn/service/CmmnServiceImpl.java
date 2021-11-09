@@ -184,6 +184,15 @@ public class CmmnServiceImpl implements CmmnService {
     }
 
     @Override
+    public List<Map<String, Object>> getComboSpot(Map<String, Object> paraMap) {
+        String tag = "cmmnService.getComboSpot => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getComboSpot(paraMap);
+    }
+
+
+
+    @Override
     /*
         주의 : 월요일 = 1, 일요일 = 7로 나옴.
      */

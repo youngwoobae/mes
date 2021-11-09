@@ -1,9 +1,9 @@
 package daedan.mes.moniter.controller;
 
+import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.StringUtil;
-import daedan.mes.matr.service.MatrService;
 import daedan.mes.moniter.service.MoniterService;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
@@ -29,6 +29,9 @@ public class MoniterController {
 
     @Autowired
     private CodeService codeService;
+
+    @Autowired
+    private CmmnService cmmnService;
 
     @Autowired
     private MoniterService moniterService;
@@ -262,7 +265,56 @@ public class MoniterController {
 
         return result;
     }
+    /**
+     * 온도모니터링
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/conditions860")
+    public Result conditions860(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Map<String, Object> rmap = new HashMap<String,Object>();
+        rmap.put("comboSpot" , cmmnService.getComboSpot(paraMap));
+        result.setData(rmap);
+        return result;
+    }
+    /**
+     * 온도모니터링
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getTmprLogHstr")
+    public Result getTmprLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(moniterService.getTmprLogHstr(paraMap));
+        return result;
+    }
 
+    /**
+     * 금속검출모니터링
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getMetalLogHstr")
+    public Result getMetalLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(moniterService.getMetalLogHstr(paraMap));
+        return result;
+    }
 
 
 }
