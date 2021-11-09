@@ -2854,6 +2854,7 @@ public class IoServiceImpl implements IoService {
         Float stkQty = 0F;
         Long whNo = 0L;
         Float owhQty = 0F;
+        Float owhReqQty = 0F;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         for (Map<String,Object> el : ds) {
             MatrOwh movo = new MatrOwh();
@@ -2869,7 +2870,22 @@ public class IoServiceImpl implements IoService {
             }
             catch (NullPointerException ne) {
                 movo.setOwhDt(DateUtils.getCurrentDate());
+                log.info(tag + "자재출고일자를 기본값(현재일자)로 설정 = " + movo.getOwhDt());//kill
             }
+            try {
+                movo.setOwhReqDt(sdf.parse(paraMap.get("owhReqDt").toString()));
+            }
+            catch (NullPointerException ne) {
+                movo.setOwhReqDt(movo.getOwhDt());
+            }
+            try {
+                owhReqQty = Float.parseFloat(el.get("owhReqQty").toString());
+                movo.setOwhReqQty(owhReqQty);
+            }
+            catch (NullPointerException ne) {
+                movo.setOwhReqQty(movo.getOwhQty());
+            }
+
             movo.setUsedYn("Y");
             try {
                 movo.setRmk(paraMap.get("rmk").toString());
@@ -2880,7 +2896,6 @@ public class IoServiceImpl implements IoService {
 
             movo.setModDt(DateUtils.getCurrentDateTime());
             movo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-
             movo.setModIp(paraMap.get("ipaddr").toString());
             movo.setRegDt(DateUtils.getCurrentDateTime());
             movo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
@@ -2902,8 +2917,7 @@ public class IoServiceImpl implements IoService {
                 movo.setPaltCd(0L);
             }
 
-            movo.setOwhReqDt(DateUtils.getCurrentDateTime());
-            movo.setOwhReqQty(owhQty);
+
             try{
                 movo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
             }catch (NullPointerException en) {
