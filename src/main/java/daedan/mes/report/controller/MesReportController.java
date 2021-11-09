@@ -73,7 +73,6 @@ public class MesReportController {
         return result;
     }
 
-
     /**
      * 제품출고이력 검색조건 설정
      *
@@ -142,7 +141,7 @@ public class MesReportController {
      * @param session
      * @return Result
      */
-    @PostMapping(value="/getMetalDetectHstr") //구매현황
+    @PostMapping(value="/getMetalDetectHstr")
     public Result getMetalDetectHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
@@ -152,7 +151,40 @@ public class MesReportController {
         result.setTotalCount(mesReportService.getMetalDetectHstrCount(paraMap));
         //System.out.print("****" + result);
         return result;
+    }
 
+    /**
+     * 온도모니터링
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getTmprLogHstr")
+    public Result getTmprLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(mesReportService.getTmprLogHstr(paraMap));
+        return result;
+    }
+
+    /**
+     * 금속검출모니터링
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getMetalLogHstr")
+    public Result getMetalLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        result.setData(mesReportService.getMetalLogHstr(paraMap));
+        return result;
     }
 
 }

@@ -106,27 +106,76 @@
             order by iwh_dt desc
         ) a
     </select>
+
     <select id="getTmprLogHstr" parameterType="map" resultType="camelMap">
         /*온도모니터링내역((reportMapper.getTmprLogHstr) */
-        select max(a.rcv_tmpr)   as max_val --최대
+        select max(a.rcv_dt) as rcv_dt --수신일자
+             , max(a.rcv_tmpr)   as max_val --최대
              , min(a.rcv_tmpr)   as min_val --최소
              , round(avg(a.rcv_tmpr),2) as avg_val --평균
              , substring(rcv_tm,1,2) as rcv_tm --수신시간
-             , max(a.rcv_dt) as rcv_dt --수신일자
+             ,fn_get_spot_name(spot_no) as spot_nm --작업장명
         from (
                 select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
                      , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
+                     , spot_no
                      , rcv_tmpr
                 from tmpr_log a
                 where cust_no = #{custNo}
-                --   and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                <if test="spotNo != null and spotNo != ''">
+                    a.spot_no = #{soptNo}
+                </if>
+                <if test="rcvDt != null and rcvDt != ''">
+                    and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                </if>
                 order by rcv_tm
-                ) a join ( select  max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
+                ) a join ( select max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
                            from tmpr_log
                            where cust_no= #{custNo}
+                            <if test="spotNo != null and spotNo != ''">
+                                a.spot_no = #{soptNo}
+                            </if>
+                            <if test="rcvDt != null and rcvDt != ''">
+                                and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                            </if>
                           ) b on a.rcv_dt = b.rcv_dt
-        group by   substring(rcv_tm,1,2)
+        group by   substring(rcv_tm,1,2) , spot_no
         order by   rcv_tm
     </select>
-
+    <select id="getMetalLogHstr" parameterType="map" resultType="camelMap">
+        /*금속검출모니터링내역((reportMapper.getMetalLogHstr) */
+        select max(a.pass_qty)   as pass_qty --통과수량
+             , max(a.err_qty)   as err_val --검출수량
+             , max(a.rcv_dt)     as rcv_dt --측정일자
+             , substring(rcv_tm,1,2) as rcv_tm -- 측정시분
+             ,fn_get_spot_name(spot_no) as spot_nm --작업장명
+        from (
+                 select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                      , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
+                      , spot_no
+                      , err_qty
+                      , pass_qty
+                 from metal_log a
+                 where cust_no = #{custNo}
+                 and pass_qty > 0
+                 <if test="spotNo != null and spotNo != ''">
+                     and a.spot_no = #{soptNo}
+                 </if>
+                 <if test="rcvDt != null and rcvDt != ''">
+                     and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                 </if>
+                 order by rcv_tm
+             ) a join ( select  max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
+                        from tmpr_log
+                        where cust_no= #{custNo}
+                        <if test="spotNo != null and spotNo != ''">
+                            and a.spot_no = #{soptNo}
+                        </if>
+                        <if test="rcvDt != null and rcvDt != ''">
+                            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                        </if>
+                      ) b on a.rcv_dt = b.rcv_dt
+        group by   substring(rcv_tm,1,2) ,spot_no
+        order by   rcv_tm
+    </select>
 </mapper>
