@@ -180,7 +180,7 @@ public class MatrServiceImpl implements MatrService {
         //List<Map<String, Object>> cmpyList = (List<Map<String, Object>>) paraMap.get("cmpyList");
         log.info(tag + "saveMatr = " + mapMatr.toString());
         MatrInfo matrInfo = new MatrInfo();
-
+        StringBuffer buf = new StringBuffer();
         long userId = (int) paraMap.get("userId");
         String ipaddr = (String) paraMap.get("ipaddr");
 
@@ -198,6 +198,9 @@ public class MatrServiceImpl implements MatrService {
         }
         try {
             matrInfo.setValidTerm(Long.parseLong(mapMatr.get("validTerm").toString()));
+            buf.setLength(0);
+            buf.append(matrInfo.getValidTerm()).append(" month");
+            matrInfo.setStrValidTerm(buf.toString());
         } catch (NullPointerException ne) {
             matrInfo.setValidTerm(0L);
         }

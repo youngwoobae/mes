@@ -41,8 +41,7 @@
         <mapper resource="mybatis/mapper/dash/Dash10Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash17Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash18Mapper.xml"/>
-
-
+        <mapper resource="mybatis/mapper/dash/Dash19Mapper.xml"/>
         <mapper resource="mybatis/mapper/make/MakeIndcMapper.xml"/>
         <mapper resource="mybatis/mapper/make/HdfdMapper.xml"/>
         <mapper resource="mybatis/mapper/make/SfMapper.xml"/>

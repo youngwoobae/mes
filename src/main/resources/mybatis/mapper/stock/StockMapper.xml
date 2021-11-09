@@ -239,8 +239,8 @@
     <update id="dropWhInfo" parameterType="map">
         update wh_info set used_yn = 'N' where wh_no = #{whNo} and cust_no = #{custNo}
     </update>
-    <!--원료실사재고목록-->
     <select id="getMatrRealStockList" parameterType="map" resultType="camelMap">
+    /*원료재고목록 (stockMapper.getMatrRealStockList) */
             select a.matr_no --자재번호
                  , a.matr_nm --자재명
                  , a.sz      --자재규격
@@ -255,7 +255,7 @@
                  --, coalesce (b.stk_qty,0) as real_stk --실사재고
                  --, coalesce (b.used_yn,'Y')  as used_yn
                  --, z.code_alais as chng_resn_nm
-            from matr_info left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+            from matr_info a left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         --left join ( select a.*
                         --            from matr_stk_hstr a
                         --           where a.chng_no = (select max(chng_no) from matr_stk_hstr where matr_no = a.matr_no and used_yn = 'Y')
@@ -285,7 +285,7 @@
         select count(a.matr_no)
         from (
                 select a.matr_no --자재번호
-                from matr_info left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
+                from matr_info a left join matr_stk c on a.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                            --left join ( select a.*
                            --              from matr_stk_hstr a
                            --              where a.chng_no = (select max(chng_no) from matr_stk_hstr where matr_no = a.matr_no and used_yn = 'Y')

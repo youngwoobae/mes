@@ -2863,11 +2863,24 @@ public class IoServiceImpl implements IoService {
             movo.setMatrNo(matrNo);
             movo.setWhNo(whNo);
             movo.setOwhQty(owhQty);
-            movo.setOwhDt(sdf.parse(paraMap.get("owhDt").toString()));
-            movo.setOwhDt(DateUtils.getCurrentDate());
+            try {
+                movo.setOwhDt(sdf.parse(paraMap.get("owhDt").toString()));
+                log.info(tag + "자재출고일자 = " + movo.getOwhDt());//kill
+            }
+            catch (NullPointerException ne) {
+                movo.setOwhDt(DateUtils.getCurrentDate());
+            }
             movo.setUsedYn("Y");
+            try {
+                movo.setRmk(paraMap.get("rmk").toString());
+            }
+            catch (NullPointerException ne) {
+
+            }
+
             movo.setModDt(DateUtils.getCurrentDateTime());
             movo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+
             movo.setModIp(paraMap.get("ipaddr").toString());
             movo.setRegDt(DateUtils.getCurrentDateTime());
             movo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
@@ -2878,14 +2891,11 @@ public class IoServiceImpl implements IoService {
             }catch(NullPointerException ne){
                 movo.setOwhUnit(Long.parseLong(env.getProperty("code.base.sale_unit_Kg")));
             }
-
-
             try{
                 movo.setInspEr(Long.parseLong(paraMap.get("insp").toString()));
             }catch(NullPointerException ne){
                 movo.setInspEr(0L);
             }
-
             try{
                 movo.setPaltCd(Long.parseLong(paraMap.get("palt").toString()));
             }catch(NullPointerException ne){

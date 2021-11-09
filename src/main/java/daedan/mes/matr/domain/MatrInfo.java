@@ -56,9 +56,12 @@ public class MatrInfo {
 
 
     //유효기간
-    @Column(name="valid_term", columnDefinition = "numeric" , precision=5, scale=2 )
+    @Column(name="validTerm", columnDefinition = "numeric" , precision=5, scale=2 )
     private float validTerm;
 
+    //유효기간
+    @Column(name="strValidTerm" , length = 20  )
+    private String strValidTerm;
 
     //원산지
     @Column(name = "madein"  )
