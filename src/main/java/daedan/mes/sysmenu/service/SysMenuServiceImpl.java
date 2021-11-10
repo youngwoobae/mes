@@ -138,7 +138,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         sysvo.setCustNo(custNo);
         sysmenuRepo.save(sysvo);
     }
-    
+
 
     @Override
     public int getMenuListCount(Map<String, Object> paraMap) {
@@ -511,7 +511,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         /*1. 처리일자 추출*/
         Map<String,Object> rmap =  cmmnService.getMakeHstrPreVal(paraMap);
-        int makeTerm = Integer.parseInt(rmap.get("unixTerm").toString()); //날짜생성 기간처리용 unixTime(ex: 2021.08.22 18:00 - 2021.08.01 09:00 의 unixTime)
+        int makeTerm = Integer.parseInt(rmap.get("unixTime").toString()); //날짜생성 기간처리용 unixTime(ex: 2021.08.22 18:00 - 2021.08.01 09:00 의 unixTime)
         int startUnixTime = Integer.parseInt(rmap.get("startUnixTime").toString()); //날짜생성의 최초 시작일 (ex: 2021.08.01 09:00)
         int  menuCount = Integer.parseInt(rmap.get("menuCnt").toString()); //생성메뉴처리용 최대 범위를 설정하기 위한 max(sys_menu.make_seq)
         int  userCount = Integer.parseInt(rmap.get("userCnt").toString()); //생성사용자처리용 최대 범위를 설정하기 위한 max(user_info.make_seq)

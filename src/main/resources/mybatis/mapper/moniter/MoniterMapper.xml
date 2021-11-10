@@ -690,24 +690,25 @@
                 from tmpr_log a
                 where cust_no = #{custNo}
                 <if test="spotNo != null and spotNo != ''">
-                    a.spot_no = #{soptNo}
+                    and a.spot_no = #{spotNo}
                 </if>
                 <if test="rcvDt != null and rcvDt != ''">
-                    and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                    and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring(#{rcvDt},1,10)
                 </if>
                 order by rcv_tm
         ) a join ( select max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
                    from tmpr_log
                    where cust_no= #{custNo}
                    <if test="spotNo != null and spotNo != ''">
-                       a.spot_no = #{soptNo}
+                       and spot_no = #{spotNo}
                    </if>
                    <if test="rcvDt != null and rcvDt != ''">
-                       and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                       and to_char(to_timestamp(unix_hms),'YYYY-MM-DD') = substring(#{rcvDt},1,10)
                    </if>
                   ) b on a.rcv_dt = b.rcv_dt
         group by   substring(rcv_tm,1,2) , spot_no
         order by   rcv_tm
+
     </select>
 
     <select id="getMetalLogHstr" parameterType="map" resultType="camelMap">
@@ -727,17 +728,17 @@
                 where cust_no = #{custNo}
                 and pass_qty > 0
                 <if test="spotNo != null and spotNo != ''">
-                    and a.spot_no = #{soptNo}
+                    and a.spot_no = #{spotNo}
                 </if>
                 <if test="rcvDt != null and rcvDt != ''">
                     and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
                 </if>
                 order by rcv_tm
             ) a join ( select  max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
-                       from tmpr_log
+                       from metal_log
                        where cust_no= #{custNo}
                        <if test="spotNo != null and spotNo != ''">
-                           and a.spot_no = #{soptNo}
+                           and a.spot_no = #{spotNo}
                        </if>
                        <if test="rcvDt != null and rcvDt != ''">
                            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
@@ -745,6 +746,7 @@
                       ) b on a.rcv_dt = b.rcv_dt
         group by   substring(rcv_tm,1,2) ,spot_no
         order by   rcv_tm
+
     </select>
 </mapper>
 
