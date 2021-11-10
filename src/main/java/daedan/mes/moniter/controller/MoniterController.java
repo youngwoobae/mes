@@ -337,6 +337,4 @@ public class MoniterController {
         result.setData(moniterService.getMetalLogHstr(paraMap));
         return result;
     }
-
-
 }

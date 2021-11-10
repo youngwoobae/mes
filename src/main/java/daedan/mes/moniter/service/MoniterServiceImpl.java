@@ -219,4 +219,5 @@ public class MoniterServiceImpl implements MoniterService{
         log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getMetalLogHstr(paraMap);
     }
+
 }

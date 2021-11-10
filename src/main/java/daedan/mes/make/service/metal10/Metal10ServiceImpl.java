@@ -166,8 +166,19 @@ public class Metal10ServiceImpl implements Metal10Service {
             mlvo.setCustNo(custNo);
             mlvo.setUnixHms(System.currentTimeMillis() / 1000);
             mlvo.setWorkEr(Long.parseLong(paraMap.get("workEr").toString()));
-            mlvo.setPassQty(Integer.parseInt((String) jsonStr.get("run_ea")));
-            mlvo.setErrQty(Integer.parseInt((String) jsonStr.get("err_ea")));
+            try {
+                mlvo.setPassQty(Integer.parseInt((String) jsonStr.get("run_ea")));
+            }
+            catch (ClassCastException e) {
+                mlvo.setPassQty(0);
+            }
+            try {
+                mlvo.setErrQty(Integer.parseInt((String) jsonStr.get("err_ea")));
+            }
+            catch (ClassCastException e) {
+                mlvo.setErrQty(0);
+            }
+
             mlvo.setSpotNo(Long.parseLong(paraMap.get("spotNo").toString()));
             mlvo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
             mlvo.setStepNo(Integer.parseInt(paraMap.get("stepNo").toString()));
