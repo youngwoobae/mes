@@ -164,23 +164,7 @@
                 and a.prod_nm like '%' || #{findSz} || '%'
             </when>
             <otherwise>
-                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                         when ascii('ㄱ')  <![CDATA[ <= ]]>    ascii(a.prod_nm) and  ascii(a.prod_nm)  <![CDATA[ <= ]]>  ascii('ㅎ') then prod_nm
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('나') then 'ㄱ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('다') then 'ㄴ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('라') then 'ㄷ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('마') then 'ㄹ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('바') then 'ㅁ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('사') then 'ㅂ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('아') then 'ㅅ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('자') then 'ㅇ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('차') then 'ㅈ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('카') then 'ㅊ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('타') then 'ㅋ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('파') then 'ㅌ'
-                         when ascii(a.prod_nm) <![CDATA[ < ]]> ascii('하') then 'ㅍ'
-                         else 'ㅎ'
-                end = #{findSz}
+                AND fn_get_consonant(a.prod_nm) = #{findSz}
             </otherwise>
         </choose>
         order by c.indc_no, a.prod_nm
