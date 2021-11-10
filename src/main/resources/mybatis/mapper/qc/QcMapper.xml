@@ -69,7 +69,6 @@
             </if>
         </if>
         order by chk_tp, chk_mth , chk_cont
-        limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getProdOwhChkListCount" parameterType="map" resultType="int">

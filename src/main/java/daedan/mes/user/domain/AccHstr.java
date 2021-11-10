@@ -34,8 +34,8 @@ public class AccHstr {
     //@Column(name="sys_menu_no",nullable = false, columnDefinition = "numeric default 0",  updatable=false, insertable=false)
     //private Long sysMenuNo;
 
-    @Column(name = "accUnixTime", columnDefinition = "numeric default 0",  updatable=false, insertable=false)
-    private Integer accUnixTime;
+    @Column(name = "accUnixTime", columnDefinition = "numeric default 0")
+    private Long accUnixTime;
 
     @Column(name = "sysMenuNo" ,nullable = false ,columnDefinition = "numeric default 0")
     private Long sysMenuNo;

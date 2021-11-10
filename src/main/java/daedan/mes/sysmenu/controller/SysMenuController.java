@@ -191,6 +191,7 @@ public class SysMenuController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        paraMap.put("userId",uvo.getUserId());
         sysMenuService.makeAccHstr(paraMap);
         return result;
     }

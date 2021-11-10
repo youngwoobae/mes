@@ -461,6 +461,24 @@ public class IoController {
         result.setData(rmap);
         return result;
     }
+    @PostMapping(value="/conditions325")
+    public Result condition235(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+
+        Map<String, Object> rmap = new HashMap<String,Object>();
+        paraMap.put("whTp",Long.parseLong(env.getProperty("wh_type_prod")));
+        rmap.put("comboWhNo", cmmnService.getComboWh(paraMap));
+
+        paraMap.put("selectStr", "파레트선택");
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.palet")));
+        rmap.put("comboPalet", codeService.getComboCodeList(paraMap));
+
+        result.setData(rmap);
+        return result;
+    }
+
     @PostMapping(value="/conditions315")
     public Result condition315(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();

@@ -508,8 +508,12 @@ public class SysMenuServiceImpl implements SysMenuService {
      Double형 난수 발생 임의값 = 0.8888650101288209
      */
     public void makeAccHstr(Map<String, Object> paraMap) {
+        String tag  = "sysMenuService.makeAccHstr => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        /*1. 처리일자 추출*/
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        /*1. 처리일자 추출 : 강제 생성시에만  사용할 것.
         Map<String,Object> rmap =  cmmnService.getMakeHstrPreVal(paraMap);
         int makeTerm = Integer.parseInt(rmap.get("unixTerm").toString()); //날짜생성 기간처리용 unixTime(ex: 2021.08.22 18:00 - 2021.08.01 09:00 의 unixTime)
         int startUnixTime = Integer.parseInt(rmap.get("startUnixTime").toString()); //날짜생성의 최초 시작일 (ex: 2021.08.01 09:00)
@@ -528,12 +532,14 @@ public class SysMenuServiceImpl implements SysMenuService {
             int hour = Integer.parseInt(dateTime.substring(8,10));
             if (hour >= 9 && hour <= 18) break;
         }
-
+        */
 
         /*2. 처리메뉴*/
+        Long procUxixTime = System.currentTimeMillis() / 1000; //메뉴접근시간
         AccHstr ahvo = new AccHstr();
         ahvo.setAccNo(0L);
         ahvo.setAccUnixTime(procUxixTime);
+        /*강제생성시에만 사용할 것.
         Double  randomVal = Math.random();
         int menuNo = (int) (randomVal * menuCount );
         menuNo = (menuNo <= 0) ? 1 : menuNo;
@@ -546,15 +552,21 @@ public class SysMenuServiceImpl implements SysMenuService {
         UserInfo uvo = userRepo.findByMakeSeq(userNo );
 
         ahvo.setUserId( uvo.getUserId() )  ;
+         */
+        ahvo.setSysMenuNo(Long.parseLong(paraMap.get("sysMenuNo").toString()));
+
+        ahvo.setAccUnixTime(procUxixTime);
+        ahvo.setCustNo(custNo);
+        ahvo.setUserId(userId);
         ahvo.setAccNo(0L);
+        log.info(tag  + "메뉴접근시간 = " + ahvo.getAccUnixTime());//kill
+        //ahvo.setAccDt(new java.util.Date(procUxixTime*1000L));
 
-        ahvo.setAccDt(new java.util.Date(procUxixTime*1000L));
-
-        AccHstr chkvo = accHstrRepo.findByCustNoAndAccNo(custNo,ahvo.getAccNo());
-        if (chkvo == null) {
-            ahvo.setAccNo(0L);
+        //AccHstr chkvo = accHstrRepo.findByCustNoAndAccNo(custNo,ahvo.getAccNo());
+        //if (chkvo == null) {
+            //ahvo.setAccNo(0L);
             accHstrRepo.save(ahvo);
-        }
+       // }
     }
 
     @Override

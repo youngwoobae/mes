@@ -202,12 +202,13 @@
     </select>
 
     <select id="getHstrSummaryList" parameterType="map" resultType="camelMap">
+        /*접속일자별 메뉴 접속자수 (userMapper.getHstrSummaryList) */
         select count(distinct a.user_id) as acc_cnt --접속자수
              , to_char(a.acc_dt , 'YYYY-MM-DD') as acc_dt --접속일자
         from acc_hstr a
         where 1 = 1
         <if test="dateFr != null and dateFr != ''">
-            and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+            and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
         </if>
         group by to_char(a.acc_dt , 'YYYY-MM-DD')
         order by acc_dt desc
@@ -221,38 +222,39 @@
                  from acc_hstr a
                  where 1 = 1
                  <if test="dateFr != null and dateFr != ''">
-                    and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
+                    and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
                  </if>
                  group by to_char(a.acc_dt, 'YYYY-MM-DD')
              ) a
     </select>
 
     <select id="getHstrList" parameterType="map" resultType="camelMap">
+        /*접속일자별 메뉴 접속 이력  (userMapper.getHstrSummaryList) */
         select a.acc_no
-             , to_char(a.acc_dt , 'YYYY-MM-DD HH24:MI') as acc_dt
-             , c.acc_cnt
-             , b.user_id
-             , a.sys_menu_no
-             , b.user_nm
-             , b.dept_no
-             , d.sys_menu_nm
-             , e.dept_nm
+             , c.acc_dt --접속시분
+             , c.acc_cnt --접속카운터
+             , b.user_id --접속자id
+             , a.sys_menu_no --접속메뉴번호
+             , b.user_nm --접속자명
+             , b.dept_no --소속코드
+             , d.sys_menu_nm --접속메뉴명
+             , fn_get_dept_name(b.dept_no) as dept_nm --소속명
         from acc_hstr a join user_info b on a.user_id = b.user_id
                         join (select max(acc_no) as acc_no
                                    , count(acc_no) as acc_cnt
-                                   , to_char(acc_dt,'YYYY-MM-DD') as acc_dt
+                                   , TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD HH24:MI')  as acc_dt
                                    ,sys_menu_no
                                from acc_hstr
-                               group by to_char(acc_dt,'YYYY-MM-DD'),  sys_menu_no
+                               where cust_no = #{custNo}
+                               group by TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD HH24:MI'),  sys_menu_no
                             ) c on a.acc_no = c.acc_no
-                   left join sys_menu d on a.sys_menu_no = d.sys_menu_no
-                   left join dept_info e on b.dept_no = e.dept_no
-        where 1 = 1
+                   left join sys_menu d on a.sys_menu_no = d.sys_menu_no and d.cust_no = a.cust_no
+        where a.cust_no  = #{custNo}
             <if test="accDt != null and accDt != ''">
-                and TO_CHAR(a.acc_dt,'YYYY-MM-DD') = substring(#{accDt},1,10)
+                and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') = substr(#{accDt},1,10)
             </if>
             <if test="dateFr != null and dateFr != ''">
-                and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substr(#{dateTo},1,10)
+                and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
             </if>
             <if test="findSz != null and findTp != ''">
                 and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -268,18 +270,18 @@
                                 join (select max(acc_no) as acc_no
                                             , count(acc_no) as acc_cnt
                                             , to_char(acc_dt,'YYYY-MM-DD') as acc_dt
-                                            ,sys_menu_no
+                                            , sys_menu_no
                                       from acc_hstr
+                                      where cust_no = #{custNo}
                                       group by to_char(acc_dt,'YYYY-MM-DD'),  sys_menu_no
                                     ) c on a.acc_no = c.acc_no
-                            left join sys_menu d on a.sys_menu_no = d.sys_menu_no
-                            left join dept_info e on b.dept_no = e.dept_no
-                where 1 = 1
+                            left join sys_menu d on a.sys_menu_no = d.sys_menu_no and d.cust_no = a.cust_no
+                where a.cust_no  = #{custNo}
                 <if test="accDt != null and accDt != ''">
-                    and TO_CHAR(a.acc_dt,'YYYY-MM-DD') = substring(#{accDt},1,10)
+                    and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') = substr(#{accDt},1,10)
                 </if>
                 <if test="dateFr != null and dateFr != ''">
-                    and TO_CHAR(a.acc_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substr(#{dateTo},1,10)
+                    and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
                 </if>
                 <if test="findSz != null and findTp != ''">
                     and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
