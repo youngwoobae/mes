@@ -717,13 +717,15 @@
              , max(a.err_qty)   as err_val --검출수량
              , max(a.rcv_dt)     as rcv_dt --측정일자
              , substring(rcv_tm,1,2) as rcv_tm -- 측정시분
-             ,fn_get_spot_name(spot_no) as spot_nm --작업장명
+             , fn_get_prod_name(prod_no) as prod_nm -- 품명
+             , fn_get_spot_name(spot_no) as spot_nm --작업장명
         from (
                 select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
                      , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
                      , spot_no
                      , err_qty
                      , pass_qty
+                     , prod_no
                 from metal_log a
                 where cust_no = #{custNo}
                 and pass_qty > 0

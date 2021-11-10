@@ -311,7 +311,7 @@ public class MoniterController {
             minval.add(Float.parseFloat(dmap.get("minVal").toString()));
             avgval.add(Float.parseFloat(dmap.get("avgVal").toString()));
         }
-
+        rmap.put("griDs",ds);
         rmap.put("rcvTm",rcvTm);
         rmap.put("minVal", minval);
         rmap.put("avgVal",avgval);
