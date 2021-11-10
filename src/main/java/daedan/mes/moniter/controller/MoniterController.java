@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -295,7 +296,28 @@ public class MoniterController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(moniterService.getTmprLogHstr(paraMap));
+        Map<String, Object> rmap = new HashMap<String,Object>();
+        Map<String, Object> dmap = new HashMap<String,Object>();
+        List<Map<String,Object>> ds = (moniterService.getTmprLogHstr(paraMap));
+        int idx = -1;
+        ArrayList<String> rcvTm = new ArrayList<String>();
+        ArrayList<Float> maxval = new ArrayList<Float>();
+        ArrayList<Float> minval = new ArrayList<Float>();
+        ArrayList<Float> avgval = new ArrayList<Float>();
+        while(++idx < ds.size()) {
+            dmap = ds.get(idx);
+            rcvTm.add(dmap.get("rcvTm").toString());
+            maxval.add(Float.parseFloat(dmap.get("maxVal").toString()));
+            minval.add(Float.parseFloat(dmap.get("minVal").toString()));
+            avgval.add(Float.parseFloat(dmap.get("avgVal").toString()));
+        }
+
+        rmap.put("rcvTm",rcvTm);
+        rmap.put("minVal", minval);
+        rmap.put("avgVal",avgval);
+        rmap.put("maxVal",maxval);
+        result.setData(rmap);
+//        System.out.println(paraMap.get("*" + "max_val"));
         return result;
     }
 
