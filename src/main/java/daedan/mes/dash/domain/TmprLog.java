@@ -37,4 +37,5 @@ public class TmprLog {
     @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 
+
 }
