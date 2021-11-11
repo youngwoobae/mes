@@ -126,7 +126,7 @@ public class UserInfo {
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
-    @Column(name="moddt")
+    @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
 

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Data
 @Entity
@@ -32,4 +33,27 @@ public class ScadaApi {
 
     @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
+
+
+    @Column(name="regId", columnDefinition = "numeric")
+    private Long regId;
+
+    @Column(name="modId", columnDefinition = "numeric")
+    private Long modId;
+
+    @Column(name="regIp", length = 20)
+    private String regIp;
+
+    @Column(name="modIp", length = 20)
+    private String modIp;
+
+
+    @Column(name="regDt")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date regDt;
+
+
+    @Column(name="modDt")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date modDt;
 }

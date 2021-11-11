@@ -169,11 +169,11 @@ public class ProdInfo {
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
-    @Column(name="moddt")
+    @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
 
-    @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
+    @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 
 
