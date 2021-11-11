@@ -710,38 +710,5 @@
         order by   rcv_tm
 
     </select>
-
-    <select id="getMetalLogHstr" parameterType="map" resultType="camelMap">
-        /*금속검출모니터링내역((reportMapper.getMetalLogHstr) */
-        select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
-             , spot_no
-             , prod_no
-             , max(err_qty) as err_qty
-             , max(pass_qty) as pass_qty
-             , fn_get_spot_name(spot_no) as spot_nm --작업장명
-             , fn_get_prod_name(prod_no) as prod_nm --품명
-             , round(case when max(pass_qty) = 0 then 0  else ( max(err_qty) / max(pass_qty) ) * 100   end ,2)  as err_rt --불량율
-        from metal_log a
-        where cust_no = #{custNo}
-          and pass_qty  <![CDATA[ > ]]> 0
-          and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring('2021-11-11T15:00:00.000Z',1,10)
-        group by  to_char(to_timestamp(a.unix_hms),'HH24:MI') , spot_no , prod_no
-        order by rcv_tm
-    </select>
-
-    <select id="getMetalLogHstrCount" parameterType="map" resultType="int">
-        select count(a.prod_no)
-        from (
-            select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
-                 , spot_no
-                 , prod_no
-            from metal_log a
-            where cust_no = #{custNo}
-              and pass_qty  <![CDATA[ > ]]> 0
-              and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring('2021-11-11T15:00:00.000Z',1,10)
-            group by  to_char(to_timestamp(a.unix_hms),'HH24:MI') , spot_no , prod_no
-
-        ) a
-    </select>
 </mapper>
 

@@ -341,38 +341,4 @@ public class MoniterController {
         result.setData(rmap);
         return result;
     }
-    /**
-     * 금속검출모니터링
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/getMetalLogHstr")
-    public Result getMetalLogHstr(@RequestBody Map<String, Object> paraMap , HttpSession session){
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        Map<String, Object> rmap = new HashMap<String,Object>();
-        Map<String, Object> dmap = new HashMap<String,Object>();
-        List<Map<String,Object>> ds = (moniterService.getMetalLogHstr(paraMap));
-        int idx = -1;
-        ArrayList<String> rcvTm = new ArrayList<String>();
-        ArrayList<Integer> errList = new ArrayList<Integer>();
-        ArrayList<Integer> passList = new ArrayList<Integer>();
-        while(++idx < ds.size()) {
-            dmap = ds.get(idx);
-            rcvTm.add(dmap.get("rcvTm").toString());
-            errList.add(Integer.parseInt(dmap.get("errQty").toString()));
-            passList.add(Integer.parseInt(dmap.get("passQty").toString()));
-        }
-        rmap.put("metalList",ds);
-        rmap.put("labels",rcvTm);
-        rmap.put("passList",passList);
-        rmap.put("errList",errList);
-        result.setData(rmap);
-        result.setTotalCount(cust10.getMetalDetectHstrCount(paraMap));
-        return result;
-    }
 }
