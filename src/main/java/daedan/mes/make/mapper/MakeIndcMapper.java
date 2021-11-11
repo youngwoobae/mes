@@ -103,6 +103,9 @@ public interface MakeIndcMapper {
     List<Map<String, Object>> getMakeStatList(Map<String, Object> paraMap);
     int getMakeStatListCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getMakeStatMoreList(Map<String, Object> paraMap);
+    int getMakeStatMoreListCount(Map<String, Object> paraMap);
+
     List<Map<String, Object>> getMakeProcList(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMoniterItemList(Map<String, Object> paraMap);

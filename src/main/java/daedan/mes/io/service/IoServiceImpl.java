@@ -1429,13 +1429,13 @@ public class IoServiceImpl implements IoService {
     public Map<String, Object> getExportExecInfo(Map<String, Object> paraMap) {
         String tag = "ioService.getExportExecInfo => ";
         Map<String,Object> rmap = mapper.getExportExecInfo(paraMap);
-        String fileRoot = paraMap.get("fileRoot").toString();
-        if (rmap != null) {
-            StringBuffer buf = new StringBuffer();
-            buf.append(fileRoot).append("ord/").append(rmap.get("ordNo")).append(".png");
-            rmap.put("bar_code_url", buf.toString());
-            log.info(tag + "bar_code_url = " + rmap.get("barCodeUrl"));
-        }
+//        String fileRoot = paraMap.get("fileRoot").toString();
+//        if (rmap != null) {
+//            StringBuffer buf = new StringBuffer();
+//            buf.append(fileRoot).append("ord/").append(rmap.get("ordNo")).append(".png");
+//            rmap.put("bar_code_url", buf.toString());
+//            log.info(tag + "bar_code_url = " + rmap.get("barCodeUrl"));
+//        }
         return rmap;
     }
 

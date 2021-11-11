@@ -1108,6 +1108,7 @@
         select a.indc_no --지시번호
             , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
             , b.prod_nm --품명
+            , b.prod_no
             , d.code_nm as proc_nm --공정
             , to_char(e.make_dt,'YYYY-MM-DD') as make_dt --생상일자
             , b.sz  --규격
@@ -1222,6 +1223,59 @@
                 and upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
+        ) a
+    </select>
+
+
+    <select id="getMakeStatMoreList" parameterType="map"  resultType="camelMap">
+         select a.indc_rslt_no ,
+                a.indc_no ,
+                a.reg_dt, --일자
+                b.prod_no, -- 제품번호
+                c.prod_nm, -- 제품명
+                a.make_wgt, -- 중량
+                a.make_qty, -- 생산량
+                b.real_yield, -- 수율
+                d.proc_cd, -- 공정 번호
+                case when d.proc_cd = 723 then '염지중'
+                     when d.proc_cd = 727 THEN '열처리중'
+                     when d.proc_cd = 999 THEN '생산완료'
+                     else '생산중'
+                     end as now_proc -- 진행공정
+         from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no and a.cust_no = #{custNo}
+                               join prod_info c on b.prod_no = c.prod_no and a.cust_no = #{custNo}
+                               join proc_info d on b.proc_cd = d.proc_cd and a.cust_no = #{custNo}
+                               join code_info e on d.proc_cd = e.code_no
+         where a.used_yn and a.cust_no = #{custNo}
+         and c.prod_no = #{prodNo}
+         order by e.make_dt--, d.code_no
+         limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="getMakeStatMoreListCount" parameterType="map"  resultType="int">
+        select count(a.indc_rslt_no)
+        from (
+        select a.indc_rslt_no ,
+                a.indc_no ,
+                a.reg_dt, --일자
+                b.prod_no, -- 제품번호
+                c.prod_nm, -- 제품명
+                a.make_wgt, -- 중량
+                a.make_qty, -- 생산량
+                b.real_yield, -- 수율
+                d.proc_cd, -- 공정 번호
+                case when d.proc_cd = 723 then '염지중'
+                     when d.proc_cd = 727 THEN '열처리중'
+                     when d.proc_cd = 999 THEN '생산완료'
+                     else '생산중'
+                     end as now_proc -- 진행공정
+         from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no and a.cust_no = #{custNo}
+                               join prod_info c on b.prod_no = c.prod_no and a.cust_no = #{custNo}
+                               join proc_info d on b.proc_cd = d.proc_cd and a.cust_no = #{custNo}
+                               join code_info e on d.proc_cd = e.code_no
+         where a.used_yn and a.cust_no = #{custNo}
+         and c.prod_no = #{prodNo}
+         order by e.make_dt
         ) a
     </select>
 

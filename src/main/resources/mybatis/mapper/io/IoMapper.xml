@@ -3305,11 +3305,11 @@
                                         and j.wh_no = d.wh_no
                    left join ( select max(psc.stk_qty) as stk_qty, psc.prod_no
                                 from prod_stk_clos psc
-                                where psc.used_yn ='Y' and psc..cust_no =#{custNo}
+                                where psc.used_yn ='Y' and psc.cust_no =#{custNo}
                                group by psc.prod_no
                              ) k on b.prod_no = k.prod_no
         where a.used_yn = 'Y'
-          and a.used_yn ='Y' and a.cust_no =#{custNo}
+          and a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.owh_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>

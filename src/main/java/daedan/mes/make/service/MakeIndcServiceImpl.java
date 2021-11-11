@@ -1376,6 +1376,18 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         return mapper.getMakeStatListCount(paraMap);
     }
 
+    @Override
+    public List<Map<String, Object>> getMakeStatMoreList(Map<String, Object> paraMap) {
+        return mapper.getMakeStatMoreList(paraMap);
+    }
+
+    @Override
+    public int getMakeStatMoreListCount(Map<String, Object> paraMap) {
+        return mapper.getMakeStatMoreListCount(paraMap);
+    }
+
+
+
 
     @Override
     public List<Map<String, Object>> getMakeProcList(Map<String, Object> paraMap) {

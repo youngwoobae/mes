@@ -215,10 +215,9 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
         Map<String, Object> passMap = new HashMap<String,Object>();
         passMap = (Map<String, Object>) paraMap.get("dlvPlcInfo");
+        passMap.put("custNo", uvo.getCustInfo().getCustNo());
         passMap.put("userId",paraMap.get("userId"));
         passMap.put("ipaddr",NetworkUtil.getClientIp(request));
         cmpyService.saveDlvPlc(passMap);
