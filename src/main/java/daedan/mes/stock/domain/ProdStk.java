@@ -57,11 +57,11 @@ public class  ProdStk {
     @Column(name="mod_ip", length = 20)
     private String modIp;
 
-    @Column(name="reg_dt")
+    @Column(name="regDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
-    @Column(name="mod_dt")
+    @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
 

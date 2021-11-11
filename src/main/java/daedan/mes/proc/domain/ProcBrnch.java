@@ -80,7 +80,7 @@ public class ProcBrnch {
     @Column(name="modIp" , length = 20)
     private String modIp;
 
-    @Column(name="regdt")
+    @Column(name="regDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 

@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.net.URLEncoder;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -218,12 +215,26 @@ public class CmmnServiceImpl implements CmmnService {
         log.info(tag + "paraMap =" + paraMap.toString());
         String apiURL = paraMap.get("apiURL").toString();
         URL url = null;
-        JSONObject jsonStr = null;
+        JSONObject jsonStr = (JSONObject) paraMap.get("jsonStr");
         JSONParser parser = new JSONParser();
 
         try {
             url = new URL(apiURL);
-            URLConnection conn = url.openConnection();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoInput(true);
+            conn.setDoOutput(true); //POST 데이터를 OutputStream으로 넘겨 주겠다는 설정
+            conn.setUseCaches(false);
+            conn.setDefaultUseCaches(false);
+
+            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+            wr.write(String.valueOf(jsonStr)); //json 형식의 message 전달
+            wr.flush();
+
+            //BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
+            //bw.write(String.valueOf(jsonData));
+            //bw.flush();
+
             BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
             String line = br.readLine();
             jsonStr = (JSONObject) parser.parse(line);

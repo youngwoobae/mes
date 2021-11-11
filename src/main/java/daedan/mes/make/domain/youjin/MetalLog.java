@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Data
 @Entity
@@ -50,4 +51,25 @@ public class MetalLog {
     @Column(name="errQty",nullable = false, columnDefinition = "numeric default 0")
     private Integer errQty;
 
+    @Column(name="regId", columnDefinition = "numeric")
+    private Long regId;
+
+    @Column(name="modId", columnDefinition = "numeric")
+    private Long modId;
+
+    @Column(name="regIp", length = 20)
+    private String regIp;
+
+    @Column(name="modIp", length = 20)
+    private String modIp;
+
+
+    @Column(name="regDt")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date regDt;
+
+
+    @Column(name="modDt")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date modDt;
 }

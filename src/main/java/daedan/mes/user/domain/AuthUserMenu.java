@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.util.Date;
 
 
 @Data
@@ -60,4 +61,25 @@ public class AuthUserMenu {
     @Column(name="per_info_lvl",nullable = false, columnDefinition = "int default 0")
     private Integer perInfoLvl;
 
+    @Column(name="regId", columnDefinition = "numeric")
+    private Long regId;
+
+    @Column(name="modId", columnDefinition = "numeric")
+    private Long modId;
+
+    @Column(name="regIp", length = 20)
+    private String regIp;
+
+    @Column(name="modIp", length = 20)
+    private String modIp;
+
+
+    @Column(name="regDt")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date regDt;
+
+
+    @Column(name="modDt")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date modDt;
 }

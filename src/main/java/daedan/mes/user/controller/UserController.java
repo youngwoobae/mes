@@ -139,15 +139,17 @@ public class UserController {
 
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
                 log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
-
-                /* KPI API 세션 생성
+                /* KPI API 세션 생성 */
                 Map<String,Object> amap = new HashMap<String,Object>();
-                amap.put("apiUrl", env.getProperty("kpi.sessionURL"));
-                JSONObject jsonData = cmmnService.getRestApiData(amap);
-                if (jsonData.get("error") == null) {
-                    session.setAttribute("kipSessionId", jsonData.get("sessionId"));//사용자 및 고객사 특성정보
-                }
-                 */
+                JSONObject jsonData = new JSONObject();
+                jsonData.put("companyCode",uservo.getCustInfo().getSaupNo());
+                amap.put("apiURL", env.getProperty("kpi.sessionURL"));
+                amap.put("jsonStr",jsonData);
+                jsonData = cmmnService.getRestApiData(amap);
+                //if (jsonData.get("error") == null) {
+                    session.setAttribute("kpiSessId", jsonData.get("sessionId"));
+                //}
+
                 // MES 세션 생성
                 session.setAttribute("userInfo",uservo);//사용자 및 고객사 특성정보
                 //log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
