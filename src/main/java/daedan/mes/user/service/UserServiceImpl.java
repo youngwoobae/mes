@@ -97,7 +97,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public UserInfo signin(String mailAddr, String password) {
 		UserInfo userInfo = ur.findByMailAddrAndUsedYn(mailAddr,"Y");
-
+		log.info(userInfo+"userInfouserInfouserInfouserInfouserInfo");
 		if (userInfo != null) {
 			userInfo.setToken(null);
 			userRepo.save(userInfo);

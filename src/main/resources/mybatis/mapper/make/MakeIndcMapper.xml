@@ -1230,7 +1230,7 @@
     <select id="getMakeStatMoreList" parameterType="map"  resultType="camelMap">
          select a.indc_rslt_no ,
                 a.indc_no ,
-                a.reg_dt, --일자
+                to_char(a.reg_dt , 'YYYY-MM-DD') as reg_dt , --일자
                 b.prod_no, -- 제품번호
                 c.prod_nm, -- 제품명
                 a.make_wgt, -- 중량
@@ -1246,9 +1246,9 @@
                                join prod_info c on b.prod_no = c.prod_no and a.cust_no = #{custNo}
                                join proc_info d on b.proc_cd = d.proc_cd and a.cust_no = #{custNo}
                                join code_info e on d.proc_cd = e.code_no
-         where a.used_yn and a.cust_no = #{custNo}
+         where a.used_yn = 'Y' and a.cust_no = #{custNo}
          and c.prod_no = #{prodNo}
-         order by e.make_dt--, d.code_no
+         order by a.make_dt--, d.code_no
          limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1273,9 +1273,9 @@
                                join prod_info c on b.prod_no = c.prod_no and a.cust_no = #{custNo}
                                join proc_info d on b.proc_cd = d.proc_cd and a.cust_no = #{custNo}
                                join code_info e on d.proc_cd = e.code_no
-         where a.used_yn and a.cust_no = #{custNo}
+         where a.used_yn = 'Y' and a.cust_no = #{custNo}
          and c.prod_no = #{prodNo}
-         order by e.make_dt
+         order by a.make_dt
         ) a
     </select>
 
