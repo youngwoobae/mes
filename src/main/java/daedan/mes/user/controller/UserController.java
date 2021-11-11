@@ -77,6 +77,15 @@ public class UserController {
         result.setData(Integer.parseInt(env.getProperty("cust_no")));
         return result;
     }
+    @PostMapping(value="/chkEncStr")
+    public Result chkEncStr(@RequestBody HashMap<String, Object> paraMap) {
+        String tag = "userController.chkEncStr =>";
+        Result result = Result.successInstance();
+        String accStr = paraMap.get("accStr").toString();
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        log.info("인크립트 스트링 = " + cmmnService.encryptStr(custNo,accStr));
+        return result;
+    }
     @PostMapping(value="/autoSignin")
     public Result autoSignin(HttpServletRequest request, HttpServletResponse response  , HttpSession session) {
         String tag = "userController.autoSignIn =>";

@@ -48,6 +48,10 @@ public class ProdOwh {
     @Column(name="paltCd", columnDefinition = "numeric default 0")
     private Long paltCd;
 
+    /*파레트수량*/
+    @Column(name="paltQty", columnDefinition = "numeric default 0")
+    private Integer paltQty;
+
     /*제조일자*/
     @Column(name="date_manufacture")
     @Temporal(TemporalType.TIMESTAMP)

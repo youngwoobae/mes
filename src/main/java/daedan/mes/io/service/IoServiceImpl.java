@@ -3148,7 +3148,11 @@ public class IoServiceImpl implements IoService {
             }catch(NullPointerException ne){
                 povo.setPaltCd(0L);
             }
-
+            try{
+                povo.setPaltQty(Integer.parseInt(paraMap.get("paltQty").toString()));
+            }catch(NullPointerException ne){
+                povo.setPaltQty(0);
+            }
 
             povo.setUsedYn("Y");
             povo.setModDt(DateUtils.getCurrentDateTime());

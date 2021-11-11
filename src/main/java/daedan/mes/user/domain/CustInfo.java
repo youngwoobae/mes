@@ -37,6 +37,10 @@ public class CustInfo {
     @Column(name="lcnsCd", length = 250)
     private String lcnsCd;
 
+    /*사업자번호*/
+    @Column(name="saupNo", length = 10)
+    private String saupNo;
+
     /*BOM관리여부*/
     @Column(name = "bomYn", columnDefinition = "char(1) default 'N'")
     private String bomYn;
