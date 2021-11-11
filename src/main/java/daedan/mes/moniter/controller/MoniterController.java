@@ -4,6 +4,7 @@ import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.StringUtil;
+import daedan.mes.moniter.service.Cust10Service;
 import daedan.mes.moniter.service.MoniterService;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
@@ -36,6 +37,9 @@ public class MoniterController {
 
     @Autowired
     private MoniterService moniterService;
+
+    @Autowired
+    private Cust10Service cust10;
 
     @PostMapping(value="/conditionRunHist") //
     public Result conditionRunHistory(@RequestBody Map<String, Object> paraMap,HttpSession session){
@@ -355,23 +359,20 @@ public class MoniterController {
         List<Map<String,Object>> ds = (moniterService.getMetalLogHstr(paraMap));
         int idx = -1;
         ArrayList<String> rcvTm = new ArrayList<String>();
-        ArrayList<Float> maxval = new ArrayList<Float>();
-        ArrayList<Float> minval = new ArrayList<Float>();
-        ArrayList<Float> avgval = new ArrayList<Float>();
+        ArrayList<Integer> errList = new ArrayList<Integer>();
+        ArrayList<Integer> passList = new ArrayList<Integer>();
         while(++idx < ds.size()) {
             dmap = ds.get(idx);
             rcvTm.add(dmap.get("rcvTm").toString());
-            maxval.add(Float.parseFloat(dmap.get("maxVal").toString()));
-            minval.add(Float.parseFloat(dmap.get("minVal").toString()));
-            avgval.add(Float.parseFloat(dmap.get("avgVal").toString()));
+            errList.add(Integer.parseInt(dmap.get("errQty").toString()));
+            passList.add(Integer.parseInt(dmap.get("passQty").toString()));
         }
-        rmap.put("griDs",ds);
-        rmap.put("rcvTm",rcvTm);
-        rmap.put("minVal", minval);
-        rmap.put("avgVal",avgval);
-        rmap.put("maxVal",maxval);
+        rmap.put("metalList",ds);
+        rmap.put("labels",rcvTm);
+        rmap.put("passList",passList);
+        rmap.put("errList",errList);
         result.setData(rmap);
-//        System.out.println(paraMap.get("*" + "max_val"));
+        result.setTotalCount(cust10.getMetalDetectHstrCount(paraMap));
         return result;
     }
 }

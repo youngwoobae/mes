@@ -15,9 +15,11 @@ import daedan.mes.user.domain.IndsType;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
 import daedan.mes.user.service.UserService;
+import net.sf.json.JSON;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.tools.ant.taskdefs.condition.Http;
+import org.json.simple.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
@@ -29,6 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -134,8 +140,15 @@ public class UserController {
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
                 log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
 
-
-                // 세션 생성
+                /* KPI API 세션 생성
+                Map<String,Object> amap = new HashMap<String,Object>();
+                amap.put("apiUrl", env.getProperty("kpi.sessionURL"));
+                JSONObject jsonData = cmmnService.getRestApiData(amap);
+                if (jsonData.get("error") == null) {
+                    session.setAttribute("kipSessionId", jsonData.get("sessionId"));//사용자 및 고객사 특성정보
+                }
+                 */
+                // MES 세션 생성
                 session.setAttribute("userInfo",uservo);//사용자 및 고객사 특성정보
                 //log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
             }

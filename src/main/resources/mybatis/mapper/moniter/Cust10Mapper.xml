@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.moniter.mapper.Cust10Mapper">
+    <select id="getMetalDetctHstr" parameterType="map"  resultType="camelMap">
+        select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+             , spot_no
+             , fn_get_spot_name(spot_no) as spot_nm --작업장명
+             , max(err_qty) as err_qty --검출수량
+             , prod_no --품번
+             , fn_get_prod_nm(prod_no) as prod_nm --품명
+             , max(pass_qty) as pass_qty --통과수량
+             ,round(case when max(pass_qty) = 0 then 0  else ( max(err_qty) / max(pass_qty) ) * 100   end ,2)  as err_rt --불량율
+        from metal_log a
+        where cust_no = #{custNo}
+            <if test="spotNo != null and spotNo != ''">
+                and a.spot_no = #{spotNo}
+            </if>
+          and pass_qty  <![CDATA[ > ]]> 0
+          and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring('2021-11-11T15:00:00.000Z',1,10)
+        group by  to_char(to_timestamp(a.unix_hms),'HH24:MI') , spot_no  , prod_no
+        order by rcv_tm
+    </select>
+    <select id="getMetalDetctHstrCount" parameterType="map"  resultType="int">
+        select count(a.spot_no)
+        from (
+                 select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                      , spot_no
+                      , prod_no --품번
+                 from metal_log a
+                 where cust_no = #{custNo}
+                    <if test="spotNo != null and spotNo != ''">
+                        and a.spot_no = #{spotNo}
+                    </if>
+                   and pass_qty  <![CDATA[ > ]]> 0
+                   and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring('2021-11-11T15:00:00.000Z',1,10)
+                 group by  to_char(to_timestamp(a.unix_hms),'HH24:MI')  , spot_no , prod_no
+        ) a
+    </select>
+</mapper>

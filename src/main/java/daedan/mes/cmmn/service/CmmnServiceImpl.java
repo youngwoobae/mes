@@ -8,12 +8,18 @@ import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -43,7 +49,7 @@ public class CmmnServiceImpl implements CmmnService {
     }
 
     @Override
-    public byte[] encryptStr(Long custNo,String plainText) {
+    public byte[] encryptStr(Long custNo, String plainText) {
         String tag = "CmmnService.encryptStr => ";
         byte[] encryptedMessage = null;
         byte[] encArray = null;
@@ -52,7 +58,7 @@ public class CmmnServiceImpl implements CmmnService {
             byte[] pbszUserKey = custvo.getPbszUserKey().getBytes(StandardCharsets.UTF_8);
             byte[] pbszIv = custvo.getPbszIv().getBytes(StandardCharsets.UTF_8);
             encryptedMessage = KISA_SEED_CBC.SEED_CBC_Encrypt(pbszUserKey, pbszIv, plainText.getBytes(), 0, plainText.getBytes().length);
-           // log.info("암호화된 데이터1 => " + new String(encryptedMessage));
+            // log.info("암호화된 데이터1 => " + new String(encryptedMessage));
             //log.info("암호화된 데이터2 => " + encryptedMessage.toString());
 
             Base64.Encoder encoder = Base64.getEncoder();
@@ -71,7 +77,7 @@ public class CmmnServiceImpl implements CmmnService {
         String result = "";
         CustInfo custvo = custInfoRepo.findByCustNo(custNo);
 
-        if (encStr != null){
+        if (encStr != null) {
             String tag = "CmmnService.decryptStr => ";
             Base64.Decoder decoder = Base64.getDecoder();
             byte[] enc = decoder.decode(encStr);
@@ -143,7 +149,7 @@ public class CmmnServiceImpl implements CmmnService {
 //    }
 
     @Override
-    public byte[] getFileToBin(String filePath){
+    public byte[] getFileToBin(String filePath) {
         File file = new File(filePath);
         byte[] fileData = new byte[(int) file.length()];
         FileInputStream in = null;
@@ -191,7 +197,6 @@ public class CmmnServiceImpl implements CmmnService {
     }
 
 
-
     @Override
     /*
         주의 : 월요일 = 1, 일요일 = 7로 나옴.
@@ -207,4 +212,33 @@ public class CmmnServiceImpl implements CmmnService {
         return mapper.getWeekIdxByUnixTime(iValue);
     }
 
+    @Override
+    public JSONObject getRestApiData(Map<String, Object> paraMap) {
+        String tag = "CommService.getRestApiData => ";
+        log.info(tag + "paraMap =" + paraMap.toString());
+        String apiURL = paraMap.get("apiURL").toString();
+        URL url = null;
+        JSONObject jsonStr = null;
+        JSONParser parser = new JSONParser();
+
+        try {
+            url = new URL(apiURL);
+            URLConnection conn = url.openConnection();
+            BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+            String line = br.readLine();
+            jsonStr = (JSONObject) parser.parse(line);
+            log.info(tag + " APIResult=" + jsonStr.toString());
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } finally {
+            return jsonStr;
+        }
+    }
 }

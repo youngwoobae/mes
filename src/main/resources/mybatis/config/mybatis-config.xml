@@ -46,6 +46,7 @@
         <mapper resource="mybatis/mapper/make/HdfdMapper.xml"/>
         <mapper resource="mybatis/mapper/make/SfMapper.xml"/>
         <mapper resource="mybatis/mapper/make/Metal10Mapper.xml"/>
+        <mapper resource="mybatis/mapper/moniter/Cust10Mapper.xml"/>
         <mapper resource="mybatis/mapper/matr/MatrMapper.xml"/>
 
         <mapper resource="mybatis/mapper/moniter/DdkorMapper.xml"/>

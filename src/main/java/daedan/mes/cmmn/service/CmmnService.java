@@ -1,5 +1,7 @@
 package daedan.mes.cmmn.service;
 
+import org.json.simple.JSONObject;
+
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -34,4 +36,5 @@ public interface CmmnService {
     List<Map<String, Object>>  getComboWh(Map<String, Object> paraMap);
     List<Map<String, Object>>  getComboSpot(Map<String, Object> paraMap);
 
+    JSONObject getRestApiData(Map<String, Object> paraMap);
 }
