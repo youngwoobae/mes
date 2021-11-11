@@ -724,8 +724,8 @@
                      , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
                      , spot_no
                      , err_qty
-                     , pass_qty
                      , prod_no
+                     , pass_qty
                 from metal_log a
                 where cust_no = #{custNo}
                 and pass_qty > 0
@@ -740,13 +740,13 @@
                        from metal_log
                        where cust_no= #{custNo}
                        <if test="spotNo != null and spotNo != ''">
-                           and a.spot_no = #{spotNo}
+                           and spot_no = #{spotNo}
                        </if>
                        <if test="rcvDt != null and rcvDt != ''">
-                           and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = #{rcvDt}
+                           and to_char(to_timestamp(unix_hms),'YYYY-MM-DD') = #{rcvDt}
                        </if>
                       ) b on a.rcv_dt = b.rcv_dt
-        group by   substring(rcv_tm,1,2) ,spot_no
+        group by   substring(rcv_tm,1,2) ,spot_no, prod_no
         order by   rcv_tm
 
     </select>

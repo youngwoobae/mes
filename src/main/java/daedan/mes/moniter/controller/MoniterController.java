@@ -320,7 +320,23 @@ public class MoniterController {
 //        System.out.println(paraMap.get("*" + "max_val"));
         return result;
     }
-
+    /**
+     * 금속검출모니터링
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/conditions861")
+    public Result conditions861(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Map<String, Object> rmap = new HashMap<String,Object>();
+        rmap.put("comboSpot" , cmmnService.getComboSpot(paraMap));
+        result.setData(rmap);
+        return result;
+    }
     /**
      * 금속검출모니터링
      *
@@ -334,7 +350,28 @@ public class MoniterController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(moniterService.getMetalLogHstr(paraMap));
+        Map<String, Object> rmap = new HashMap<String,Object>();
+        Map<String, Object> dmap = new HashMap<String,Object>();
+        List<Map<String,Object>> ds = (moniterService.getMetalLogHstr(paraMap));
+        int idx = -1;
+        ArrayList<String> rcvTm = new ArrayList<String>();
+        ArrayList<Float> maxval = new ArrayList<Float>();
+        ArrayList<Float> minval = new ArrayList<Float>();
+        ArrayList<Float> avgval = new ArrayList<Float>();
+        while(++idx < ds.size()) {
+            dmap = ds.get(idx);
+            rcvTm.add(dmap.get("rcvTm").toString());
+            maxval.add(Float.parseFloat(dmap.get("maxVal").toString()));
+            minval.add(Float.parseFloat(dmap.get("minVal").toString()));
+            avgval.add(Float.parseFloat(dmap.get("avgVal").toString()));
+        }
+        rmap.put("griDs",ds);
+        rmap.put("rcvTm",rcvTm);
+        rmap.put("minVal", minval);
+        rmap.put("avgVal",avgval);
+        rmap.put("maxVal",maxval);
+        result.setData(rmap);
+//        System.out.println(paraMap.get("*" + "max_val"));
         return result;
     }
 }
