@@ -1287,7 +1287,6 @@ public class IoController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        paraMap.put("custNo", env.getProperty("cust_no"));
         result.setData(ioService.stsProdOwhList(paraMap));
         result.setTotalCount(ioService.stsProdOwhListCount(paraMap));
         return result;
@@ -1436,7 +1435,6 @@ public class IoController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         Result result = Result.successInstance();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        paraMap.put("custNo", env.getProperty("cust_no"));
         result.setData(ioService.getProdIwHstrList(paraMap));
         result.setTotalCount(ioService.getProdIwHstrListCount(paraMap));
         return result;
@@ -1448,7 +1446,6 @@ public class IoController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         Result result = Result.successInstance();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        paraMap.put("custNo", env.getProperty("cust_no"));
         result.setData(ioService.getProdOwHstrList(paraMap));
         result.setTotalCount(ioService.getProdOwHstrListCount(paraMap));
         return result;

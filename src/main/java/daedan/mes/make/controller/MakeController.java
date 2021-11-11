@@ -440,6 +440,18 @@ public class MakeController {
         return result;
     }
 
+    @PostMapping(value="/makeStatMoreList")
+    public Result makeStatMoreList(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        log.info("maekStatListController.paraMap = " + paraMap.toString());//kill
+        result.setData(moService.getMakeStatMoreList(paraMap));
+        result.setTotalCount(moService.getMakeStatMoreListCount(paraMap));
+        return result;
+    }
+
     /*생산일보*/
     @PostMapping(value="/makeDailyReportList")
     public Result MakeDailyReportList(@RequestBody Map<String, Object> paraMap , HttpSession session){
