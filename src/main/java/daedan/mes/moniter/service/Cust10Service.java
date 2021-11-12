@@ -4,6 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface Cust10Service {
-    List<Map<String,Object>> getMetalDetctHstr(Map<String, Object> paraMap);
-    int                      getMetalDetectHstrCount(Map<String, Object> paraMap);
+    List<Map<String,Object>> getMetalLogHstr(Map<String, Object> paraMap);
+    int getMetalLogHstrCount(Map<String, Object> paraMap);
 }

@@ -1,5 +1,6 @@
 package daedan.mes.cmmn.service;
 
+import org.json.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
@@ -37,4 +38,7 @@ public interface CmmnService {
     List<Map<String, Object>>  getComboSpot(Map<String, Object> paraMap);
 
     JSONObject getRestApiData(Map<String, Object> paraMap);
+
+    JSONArray getRestApiList(Map<String, Object> paraMap);
+
 }

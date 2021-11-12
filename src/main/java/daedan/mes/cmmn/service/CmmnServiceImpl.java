@@ -8,6 +8,7 @@ import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -252,4 +253,60 @@ public class CmmnServiceImpl implements CmmnService {
             return jsonStr;
         }
     }
+
+
+
+    @Override
+    public JSONArray getRestApiList(Map<String, Object> paraMap) {
+        String tag = "CommService.getRestApiDataList => ";
+        log.info(tag + "paraMap =" + paraMap.toString());
+        String apiURL = paraMap.get("apiURL").toString();
+        URL url = null;
+        JSONObject jsonStr = (JSONObject) paraMap.get("jsonStr");
+        JSONParser parser = new JSONParser();
+        JSONArray jsonArray = new JSONArray();
+        try {
+            url = new URL(apiURL);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoInput(true);
+            conn.setDoOutput(true); //POST 데이터를 OutputStream으로 넘겨 주겠다는 설정
+            conn.setUseCaches(false);
+            conn.setDefaultUseCaches(false);
+
+            OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream());
+            wr.write(String.valueOf(jsonStr)); //json 형식의 message 전달
+            wr.flush();
+
+            //BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), "UTF-8"));
+            //bw.write(String.valueOf(jsonData));
+            //bw.flush();
+
+            StringBuilder sb = new StringBuilder();
+            if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                //Stream을 처리해줘야 하는 귀찮음이 있음.
+                BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream(), "utf-8"));
+                String line;
+                while ((line = br.readLine()) != null) {
+                    sb.append(line).append("\n");
+                }
+                br.close();
+                log.info("" + sb.toString());
+
+                JSONArray jsonArr = new JSONArray(sb.toString());
+
+            } else {
+                log.info(conn.getResponseMessage());
+            }
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            return jsonArray;
+        }
+    }
+
 }

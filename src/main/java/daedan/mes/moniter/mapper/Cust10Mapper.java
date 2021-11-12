@@ -9,6 +9,6 @@ import java.util.Map;
 @Mapper
 @Component
 public interface Cust10Mapper {
-    List<Map<String,Object>> getMetalDetctHstr(Map<String, Object> paraMap);
-    int getMetalDetctHstrCount(Map<String, Object> paraMap);
+    List<Map<String,Object>> getMetalLogHstr(Map<String, Object> paraMap);
+    int getMetalLogHstrCount(Map<String, Object> paraMap);
 }
