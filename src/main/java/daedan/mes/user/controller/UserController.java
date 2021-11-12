@@ -133,8 +133,7 @@ public class UserController {
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
         if (uservo != null) {
             if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
-                log.info("chekLine");
-                String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
+                String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
                 Long custNo = Long.parseLong(strCustNo);
 
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
