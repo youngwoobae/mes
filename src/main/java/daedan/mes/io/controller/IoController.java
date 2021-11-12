@@ -1391,6 +1391,7 @@ public class IoController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(ioService.getIwhProdList(paraMap));
         result.setTotalCount(ioService.getIwhProdListCount(paraMap));
+        System.out.println("****************"+result);
         return result;
     }
 

@@ -60,7 +60,7 @@
         select count(a.owh_no)
         from (
             select a.owh_no
-            from prod_owh a join prod_iwh d on a.iwh_no = d.iwh_no and d.used_yn ='Y' and d.cust_no = d.cust_no
+            from prod_owh a left join prod_iwh d on a.iwh_no = d.iwh_no and d.used_yn ='Y' and d.cust_no = d.cust_no
             where a.cust_no= #{custNo} and a.used_yn = 'Y'
             <if test="dateFr != null and dateFr != ''">
                 AND to_char(a.owh_dt,'YYYY-MM-DD')  between #{dateFr} and #{dateTo}
