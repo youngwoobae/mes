@@ -3,7 +3,6 @@ package daedan.mes.user.service;
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
-import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.domain.DeptInfo;
@@ -63,6 +62,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserMapper mapper;
+
+	@Autowired
+	private UserHstrRepository uhr;
 
 	@Autowired
 	private CmmnService cmmnService;
@@ -734,6 +736,60 @@ public class UserServiceImpl implements UserService {
 		CustInfo chkvo =  custInfoRepo.findByCustNo(Long.parseLong(paraMap.get("custNo").toString()));
 		if  (chkvo != null) vo = chkvo;
 		return vo;
+	}
+
+
+	@Override
+	public List<Map<String, Object>> gethumanList(Map<String, Object> paraMap) {
+		String tag = "vsvc.userService.getAuthUserMenuList => ";
+		log.info(tag + "paramMap = " + paraMap.toString());
+		return mapper.gethumanList(paraMap);
+	}
+
+	@Override
+	public int gethumanListCount(Map<String, Object> paraMap) {
+		return mapper.gethumanListCount(paraMap);
+	}
+
+
+	@Override
+	public List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap) {
+		String tag = "vsvc.userService.getAuthUserMenuList => ";
+		log.info(tag + "paramMap = " + paraMap.toString());
+		return mapper.gethumanHstrList(paraMap);
+	}
+
+	@Override
+	public int gethumanHstrListCount(Map<String, Object> paraMap) {
+		return mapper.gethumanHstrListCount(paraMap);
+	}
+
+
+
+
+	@Override
+	public void hstrSave(Map<String, Object> paraMap) {
+		String tag = "UserService.hstrSave => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+		UserHstr userHstr = new UserHstr();
+		UserHstr uhchk = uhr.findByCustNoAndUserIdAndHstrDtAndUsedYn(custNo , Long.parseLong(paraMap.get("userNo").toString())  , paraMap.get("hstrDt").toString() , "Y");
+		if (uhchk == null){
+			userHstr.setHstrNo(0L);
+			userHstr.setCustNo(custNo);
+			userHstr.setUserId(Long.parseLong(paraMap.get("userNo").toString()));
+			userHstr.setHstrDt(paraMap.get("hstrDt").toString());
+		}else{
+			userHstr.setHstrNo(uhchk.getHstrNo());
+			userHstr.setCustNo(uhchk.getCustNo());
+			userHstr.setUserId(uhchk.getUserId());
+			userHstr.setHstrDt(uhchk.getHstrDt());
+		}
+		userHstr.setHstrFrDt(paraMap.get("hstrFrDt").toString());
+		userHstr.setHstrToDt(paraMap.get("hstrToDt").toString());
+		userHstr.setUsedYn("Y");
+
+		uhr.save(userHstr);
 	}
 }
 

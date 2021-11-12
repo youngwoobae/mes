@@ -448,4 +448,41 @@ public class UserController {
     }
 
 
+    @PostMapping(value="/gethumanList") //사용자별 상세메뉴권한
+    public Result gethumanList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(userService.gethumanList(paraMap)); //메뉴별상세접근권한
+        result.setTotalCount(userService.gethumanListCount(paraMap));
+        return result;
+    }
+
+
+    @PostMapping(value="/gethumanHstrList") //사용자별 상세메뉴권한
+    public Result gethumanHstrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(userService.gethumanHstrList(paraMap)); //메뉴별상세접근권한
+        result.setTotalCount(userService.gethumanHstrListCount(paraMap));
+        return result;
+    }
+
+    @PostMapping(value = "/hstrSave")
+    public Result hstrSave(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
+        String tag = "UserController.hstrSave => ";
+
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        userService.hstrSave(paraMap);
+        return result;
+    }
+
+
+
 }
