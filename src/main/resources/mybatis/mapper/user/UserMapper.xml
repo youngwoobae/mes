@@ -524,4 +524,63 @@
         ) a
     </select>
 
+    <select id="gethumanList" parameterType="map" resultType="camelMap">
+        select a.user_id --id
+        , a.user_nm --성명
+        from user_info a
+        where a.cust_no = #{custNo} and used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.user_nm
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="gethumanListCount" parameterType="map" resultType="int">
+        select count(a.user_id)
+        from (
+        select a.user_id --id
+             , a.user_nm --성명
+        from user_info a
+        where a.cust_no = #{custNo} and used_yn = 'Y'
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        order by a.user_nm
+        ) a
+    </select>
+
+
+
+    <select id="gethumanHstrList" parameterType="map" resultType="camelMap">
+        select a.user_id --id
+            , a.hstr_dt --성명
+            , a.hstr_fr_dt --성명
+            , a.hstr_to_dt --성명
+            , b.user_nm --성명
+        from user_hstr a join user_info b on a.user_id = b.user_id and b.cust_no = #{custNo}
+        where a.cust_no = #{custNo} and a.used_yn = 'Y'
+        and a.user_id = #{userNo}
+        order by a.hstr_dt
+        limit #{pageSz} offset #{pageNo}
+    </select>
+
+    <select id="gethumanHstrListCount" parameterType="map" resultType="int">
+        select count(a.user_id)
+        from (
+            select a.user_id --id
+                , a.hstr_dt --성명
+                , a.hstr_fr_dt --성명
+                , a.hstr_to_dt --성명
+                , b.user_nm --성명
+            from user_hstr a join user_info b on a.user_id = b.user_id and b.cust_no = #{custNo}
+            where a.cust_no = #{custNo} and a.used_yn = 'Y'
+            and a.user_id = #{userNo}
+            order by a.hstr_dt
+        ) a
+    </select>
 </mapper>

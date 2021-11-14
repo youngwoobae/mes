@@ -75,4 +75,12 @@ public interface UserService {
     UserInfo getUserInfByToken(HashMap<String, Object> paraMap);
     UserInfo getUserInfoById(Long userId);
     CustInfo getCustInfoByCustNo(HashMap<String, Object> paraMap);
+
+    List<Map<String, Object>> gethumanList(Map<String, Object> paraMap);
+    int gethumanListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap);
+    int gethumanHstrListCount(Map<String, Object> paraMap);
+
+    void hstrSave(Map<String, Object> paraMap);
 }

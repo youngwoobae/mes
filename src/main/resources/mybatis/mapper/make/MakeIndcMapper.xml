@@ -420,7 +420,7 @@
              , a.matr_req_able_yn --공정별 자재요청 가능 여부
         from proc_info a join code_info b on a.proc_cd = b.code_no
         where proc_cd = #{procCd}
-          and used_yn = 'Y' and cust_no =#{custNo}
+          and a.used_yn = 'Y' and cust_no =#{custNo}
     </select>
 
     <select  id="getMaxMakeCapacityPerDay" parameterType="map"  resultType="int">
