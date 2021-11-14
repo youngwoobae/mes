@@ -47,6 +47,7 @@
         <mapper resource="mybatis/mapper/make/SfMapper.xml"/>
         <mapper resource="mybatis/mapper/make/Metal10Mapper.xml"/>
         <mapper resource="mybatis/mapper/moniter/Cust10Mapper.xml"/>
+
         <mapper resource="mybatis/mapper/matr/MatrMapper.xml"/>
 
         <mapper resource="mybatis/mapper/moniter/DdkorMapper.xml"/>
@@ -56,6 +57,8 @@
         <mapper resource="mybatis/mapper/modbus/ModbusMapper.xml"/>
 
         <mapper resource="mybatis/mapper/ord/OrdMapper.xml"/>
+        <mapper resource="mybatis/mapper/ord/Ord18Mapper.xml"/>
+
         <mapper resource="mybatis/mapper/pms/PmsMapper.xml"/>
         <mapper resource="mybatis/mapper/pms/PmsMapper.xml"/>
         <mapper resource="mybatis/mapper/proc/ProcMapper.xml"/>

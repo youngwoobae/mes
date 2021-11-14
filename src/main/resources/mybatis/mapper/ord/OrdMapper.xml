@@ -8,12 +8,18 @@
     <select id="getOrdList" parameterType="map" resultType="camelMap">
         /*현황통계:주문목록(OrdMapper.getOrdList)*/
         SELECT a.cmpy_no
-             , coalesce (a.purs_no,0) as purs_no
              , a.ord_no
              , a.ord_tp --주문유형
-             , coalesce (a.ord_nm, coalesce (case when f.ord_cnt  <![CDATA[ > ]]>  0 then g.prod_nm || '외 ' || f.ord_cnt || '개 상품' else g.prod_nm end,d.cmpy_nm || ' 주문' )) as ord_nm
-             , coalesce (case when f.ord_cnt  <![CDATA[ > ]]>  0 then g.prod_nm || '외 ' || f.ord_cnt || '개 상품' else g.prod_nm || ' 주문' end, d.cmpy_nm || ' 주문')  as plan_nm --주문명
-          -- , (select plc_nm from cmpy_dlv_plc where plc_no = a.plc_no ) as plc_nm
+             , coalesce (a.ord_nm, coalesce ( case when f.ord_cnt  <![CDATA[ > ]]>  0
+                                                   then fn_get_prod_name(f.prod_no) || '외 ' || f.ord_cnt || '개 상품'
+                                                   else fn_get_prod_name(f.prod_no)
+                                               end,fn_get_cmpy_name(a.cmpy_no) || ' 주문' )
+                                             ) as ord_nm
+             , coalesce ( case when f.ord_cnt  <![CDATA[ > ]]>  0
+                               then fn_get_prod_name(f.prod_no) || '외 ' || f.ord_cnt || '개 상품'
+                               else fn_get_prod_name(f.prod_no) || ' 주문'
+                          end, fn_get_cmpy_name(a.cmpy_no) || ' 주문'
+                        ) as plan_nm --주문명
              , to_char(a.ord_dt,'YYYY-MM-DD') as ord_dt
              , to_char(a.dlv_req_dt,'YYYY-MM-DD') AS dlv_req_dt
              , to_char(a.dlv_dt,'YYYY-MM-DD') as dlv_dt
@@ -21,21 +27,15 @@
              , coalesce (k.owh_qty,0) as owh_qty --납품(출고)수량
              , a.plc_no --납풍장소번
              , a.ord_sts --주문상태
-             , e.code_nm as trk_cmpy_no --운송사코드번호
              , a.trk_no --송장번호
              , a.take_no --인수번호
-             , b.code_nm as ord_sts_nm
-             , c.code_nm as ord_tp_nm
-             , d.cmpy_nm --판매처명
-             , d.fax_no
-             , d.tel_no
-             , d.hp
-             , e.code_nm as trk_cmpy_nm --운송사명
+             , fn_get_code_name('nm',a.ord_sts) as ord_sts_nm --주문상태명
+             , fn_get_code_name('nm', a.ord_tp) ord_tp_nm
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --판매처명
+             , fn_get_code_name('nm', trk_cmpy_no) as ord_tp_nm --운송사명
              , (select coalesce(sum(ord_qty),0) from ord_prod op where op.ord_no = a.ord_no) as ord_qty
              , (select coalesce(sum(owh_qty),0) from prod_owh op where op.ord_no = a.ord_no) as owh_qty
-        FROM ord_info a join code_info b ON a.ord_sts = b.code_no
-                        join code_info c ON a.ord_tp = c.code_no
-                        join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
+        FROM ord_info a
                    left join (select max(d.prod_no) as prod_no
                                    , count(d.prod_no) -1 as ord_cnt
                                    , d.ord_no
@@ -43,8 +43,6 @@
                                 where d.used_yn = 'Y' and d.cust_no = #{custNo}
                                 group by d.ord_no
                              ) f on a.ord_no = f.ord_no
-                   left join prod_info g on g.prod_no = f.prod_no and g.cust_no = #{custNo}
-                   left join code_info e on a.trk_cmpy_no = e.code_no
                    left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) k on a.ord_no = k.ord_no
                    left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) m on a.ord_no = m.ord_no
                     <if test="prodNo != null and prodNo != ''">
@@ -80,9 +78,7 @@
     <select id="getOrdListCount" parameterType="map" resultType="int">
         SELECT count(a.cmpy_no)
         FROM ( SELECT a.cmpy_no
-                FROM ord_info a join code_info b ON a.ord_sts = b.code_no
-                                join code_info c ON a.ord_tp = c.code_no
-                                join cmpy_info d on a.cmpy_no = d.cmpy_no and d.cust_no = #{custNo}
+                FROM ord_info a
                                 left join (select max(d.prod_no) as prod_no
                                                 , count(d.prod_no) -1 as ord_cnt
                                                 , d.ord_no
@@ -90,15 +86,12 @@
                                                 where d.used_yn = 'Y' and d.cust_no = #{custNo}
                                                 group by d.ord_no
                                            ) f on a.ord_no = f.ord_no
-                                left join prod_info g on g.prod_no = f.prod_no and g.cust_no = #{custNo}
-                                left join code_info e on a.trk_cmpy_no = e.code_no
                                 left join (select ord_no , sum(owh_qty) as owh_qty from prod_owh where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) k on a.ord_no = k.ord_no
                                 left join (select ord_no,  sum(ord_qty) as ord_qty from ord_prod where used_yn = 'Y' and cust_no = #{custNo} group by ord_no ) m on a.ord_no = m.ord_no
                                 <if test="prodNo != null and prodNo != ''">
                                     join ord_prod h on h.ord_no = a.ord_no and h.cust_no = #{custNo}
                                 </if>
                 WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
-
                 <if test="cmpyNo != null and cmpyNo != ''">AND a.cmpy_no = #{cmpyNo}</if>
                 <if test="ordTp != null and ordTp != ''">AND a.ord_tp = #{ordTp}</if>
                 <if test="ordNo != null and ordNo != ''">AND a.ord_no = #{ordNo}</if>

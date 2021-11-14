@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.ord.mapper.Ord18Mapper">
+    <select id="getOrd18List" parameterType="map" resultType="camelMap">
+        /*미홍 주문목록(ord18Mapper.getOrd18List) */
+        SELECT a.ord_mh_no
+             , a.ord_no --주문번호
+             , a.ord_cust_nm --주문고객명
+             , a.ord_cust_cell_no --주문고객전화번호
+             , a.rcv_nm --수령고객명
+             , a.rcv_cell_no --수령고객전화번호
+             , a.rcv_Hr --수령시간
+             , a.rcv_mi --수령분
+             , a.rcv_addr --수령고객주소
+             , a.pkg_tp --포장벙법코드
+             , a.rcv_tp --수령방법코드
+             , a.fill_rmk --필링
+             , a.sheet_rmk --시트
+             , a.txt_rmk --문구
+             , a.note_rmk --비고
+             , b.ord_sts --상태
+             , to_char(b.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
+             , to_char(b.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --발송예정일자
+             , to_char(b.dlv_dt,'YYYY-MM-DD') as dlv_req_dt --발송일자
+             , fn_get_code_name('nm',a.pkg_tp) as pkg_tp_nm --포장방법명
+             , fn_get_code_name('nm',a.rcv_tp) as rcv_tp_nm --수령방법명
+        from ord_info18 a join ord_info b on a.ord_no = b.ord_no
+                                         and a.cust_no = b.cust_no
+                                         and b.used_yn = 'Y'
+                                         <if test="ordSts != null and ordSts != ''">
+                                            and b.ord_sts = #{ordSts}
+                                         </if>
+        where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'custNm'">
+                AND upper(replace(a.cust_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
+        <if test="dateFr != null and dateFr != ''">
+            and to_char(b.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        </if>
+        ORDER BY b.ord_dt desc, b.ord_nm
+        LIMIT #{pageSz} OFFSET #{pageNo}
+    </select>
+
+    <select id="getOrd18ListCount" parameterType="map" resultType="int">
+        select count(a.ord_mh_no)
+        from (
+                SELECT a.ord_mh_no
+                from ord_info18 a join ord_info b on a.ord_no = b.ord_no
+                                                 and a.cust_no = b.cust_no
+                                                 and b.used_yn = 'Y'
+                                                <if test="ordSts != null and ordSts != ''">
+                                                    and b.ord_sts = #{ordSts}
+                                                </if>
+                where a.used_yn = 'Y'
+                and a.cust_no = #{custNo}
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'custNm'">
+                        AND upper(replace(a.cust_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
+                <if test="dateFr != null and dateFr != ''">
+                    and to_char(b.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+                </if>
+             ) a
+    </select>
+
+</mapper>

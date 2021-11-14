@@ -1,23 +1,19 @@
 package daedan.mes.kpi.service;
 
 import daedan.mes.cmmn.service.CmmnService;
-import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.DateUtils;
-import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
-import org.json.JSONException;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import javax.servlet.http.HttpSession;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 @Service("kpiService")
 public class KpiServiceImpl implements KpiService {
     private Log log = LogFactory.getLog(this.getClass());
@@ -28,36 +24,47 @@ public class KpiServiceImpl implements KpiService {
     private CmmnService cmmnService;
 
     @Override
-    public Map<String, Object> operPerformRead(Map<String, Object> paraMap) {
+    public List<Map<String, Object>> operPerformRead(Map<String, Object> paraMap) {
         String tag = "KpiService.operPerformRead => ";
-        String kpiSessId = "";
         log.info(tag + "paraMap = " + paraMap.toString());
-
-        HttpSession session = (HttpSession) paraMap.get("session");
+        String kpiSess = paraMap.get("kpiSessId").toString();
 
         Map<String, Object> rmap = new HashMap<String, Object>();
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        String kpiSess = (String) session.getAttribute("kpiSessId");
-
-        //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
         Map<String, Object> amap = new HashMap<String, Object>();
         JSONObject jsonStr = new JSONObject();
         jsonStr.put("sessionId", kpiSess);
-        jsonStr.put("kpiDate", DateUtils.getCurrentDate("yyyy-MM-dd"));
-        amap.put("apiURL", env.getProperty("kpi.operPerformReadURL"));
-        JSONObject jsonData = cmmnService.getRestApiData(amap);
 
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        //String kpiDate = sdf.format(DateUtils.getCurrentDate());
+        //jsonStr.put("kpiDate", sdf.format( (Date) paraMap.get("kpiDate")));
+        String kpiYmd = paraMap.get("kpiDate").toString().substring(0,10);
+        log.info(tag + "KpiDate String = " + kpiYmd); //kill
+        jsonStr.put("kpiDate",  kpiYmd);
+
+        amap.put("apiURL", env.getProperty("kpi.operPerformReadURL"));
+        amap.put("jsonStr",jsonStr);
+
+        JSONObject jsonData = cmmnService.getRestApiList(amap);
+        JSONArray jsonDataList = (JSONArray) jsonData.get("resultList");
+        log.info(tag + "KPI LEVEL 1 운영데이터.LENGTH = " + jsonDataList.size()); //kill
+
+        ArrayList<Map<String, Object>> kpiList = new ArrayList<>();
         //운영성과추출
-        if (jsonData.get("status").toString().equals("200") && jsonData.get("error") == null) {
-            rmap.put("kpiDate", jsonData.get("kipDate"));
-            rmap.put("activeUserCnt", jsonData.get("activeUserCnt"));
-            rmap.put("systemMenuCnt", jsonData.get("systemMenuCnt"));
-            rmap.put("activeModuleCnt", jsonData.get("activeModuleCnt"));
-            rmap.put("tableCnt", jsonData.get("tableCnt"));
+        //if (jsonData.get("status").toString().equals("200") && jsonData.get("error") == null) {
+        JSONObject jsonObj = null;
+        for (int i = 0; i < jsonDataList.size(); i++) {
+            jsonObj = (JSONObject) jsonDataList.get(i);
+            rmap.put("kpiDate", jsonObj.get("kpiDate"));
+            rmap.put("activeUserCnt", jsonObj.get("activeUserCnt"));
+            rmap.put("systemMenuCnt", jsonObj.get("systemMenuCnt"));
+            rmap.put("activeModuleCnt", jsonObj.get("activeModuleCnt"));
+            rmap.put("tableCnt", jsonObj.get("tableCnt"));
+            rmap.put("recordCnt", jsonObj.get("recordCnt"));
+            log.info(tag + "kpiList.map(  " + i + ") = " + rmap.toString());
+            kpiList.add(rmap);
         }
-        return rmap;
+        log.info(tag + "KPI LiST = " + kpiList.size()); //kill
+        return kpiList;
     }
 
 
@@ -67,36 +74,41 @@ public class KpiServiceImpl implements KpiService {
         String kpiSessId = "";
         log.info(tag + "paraMap = " + paraMap.toString());
         Map<String, Object> rmap = new HashMap<String, Object>();
-        HttpSession session = (HttpSession) paraMap.get("session");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
 
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        String kpiSess = (String) session.getAttribute("kpiSessId");
-
-        //SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String kpiSess = paraMap.get("kpiSessId").toString();
         ArrayList<Map<String, Object>> kpiList = new ArrayList<>();
         Map<String, Object> amap = new HashMap<String, Object>();
         JSONObject jsonStr = new JSONObject();
         jsonStr.put("sessionId", kpiSess);
-        jsonStr.put("kpiDate", DateUtils.getCurrentDate("yyyy-MM-dd"));
-        amap.put("apiURL", env.getProperty("kpi.readURL"));
-        JSONArray jsonDataList = cmmnService.getRestApiList(amap);
-        log.info("aaaaaaaaaa = " + jsonDataList); //kill
 
-        org.json.JSONObject jsonObj = null;
-        for (int i = 0; i < jsonDataList.length(); i++) {
-            try {
-                jsonObj = jsonDataList.getJSONObject(i);
-                rmap.put("kpiDate", jsonObj.get("kipiDate"));
-                rmap.put("category", jsonObj.get("category"));
-                rmap.put("kpiName", jsonObj.get("kiiName"));
-                rmap.put("value", jsonObj.get("value"));
-                rmap.put("unit", jsonObj.get("unit"));
-                kpiList.add(rmap);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        //String kpiDate = sdf.format(DateUtils.getCurrentDate());
+        //jsonStr.put("kpiDate", sdf.format( (Date) paraMap.get("kpiDate")));
+
+        String kpiYmd = paraMap.get("kpiDate").toString().substring(0,10);
+        log.info(tag + "KpiDate String = " + kpiYmd); //kill
+        jsonStr.put("kpiDate",  kpiYmd);
+
+        amap.put("apiURL", env.getProperty("kpi.readURL"));
+        amap.put("jsonStr",jsonStr);
+
+        JSONObject jsonData = cmmnService.getRestApiList(amap);
+        JSONArray jsonDataList = (JSONArray) jsonData.get("resultList");
+        log.info(tag + "KPI LiST.LENGTH = " + jsonDataList.size()); //kill
+
+        JSONObject jsonObj = null;
+        for (int i = 0; i < jsonDataList.size(); i++) {
+            jsonObj = (JSONObject) jsonDataList.get(i);
+            rmap.put("kpiDate", jsonObj.get("kpiDate"));
+            rmap.put("category", jsonObj.get("category"));
+            rmap.put("kpiName", jsonObj.get("kpiName"));
+            rmap.put("value", jsonObj.get("value"));
+            rmap.put("unit", jsonObj.get("unit"));
+            log.info(tag + "kpiList.map(  " + i + ") = " + rmap.toString());
+            kpiList.add(rmap);
         }
+        log.info(tag + "KPI LiST = " + kpiList.size()); //kill
         return kpiList;
     }
 }

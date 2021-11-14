@@ -2,9 +2,7 @@ package daedan.mes.cmmn.service;
 
 import daedan.mes.cmmn.mapper.CmmnMapper;
 import daedan.mes.common.service.util.KISA_SEED_CBC;
-import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.user.domain.CustInfo;
-import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -257,14 +255,14 @@ public class CmmnServiceImpl implements CmmnService {
 
 
     @Override
-    public JSONArray getRestApiList(Map<String, Object> paraMap) {
+    public JSONObject getRestApiList(Map<String, Object> paraMap) {
         String tag = "CommService.getRestApiDataList => ";
         log.info(tag + "paraMap =" + paraMap.toString());
         String apiURL = paraMap.get("apiURL").toString();
         URL url = null;
         JSONObject jsonStr = (JSONObject) paraMap.get("jsonStr");
         JSONParser parser = new JSONParser();
-        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonResult = new JSONObject();
         try {
             url = new URL(apiURL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -291,10 +289,11 @@ public class CmmnServiceImpl implements CmmnService {
                     sb.append(line).append("\n");
                 }
                 br.close();
-                log.info("" + sb.toString());
+                log.info(tag + "JSONARRAY String=> " + sb.toString());
 
-                JSONArray jsonArr = new JSONArray(sb.toString());
-
+                Object obj = parser.parse( sb.toString() );
+                jsonResult = (JSONObject) obj;
+                log.info(tag + "JSONARRAY Object => " + JSONObject.toJSONString(jsonResult));
             } else {
                 log.info(conn.getResponseMessage());
             }
@@ -304,8 +303,11 @@ public class CmmnServiceImpl implements CmmnService {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            return jsonArray;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        finally {
+            return jsonResult;
         }
     }
 

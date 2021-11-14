@@ -31,10 +31,12 @@ public class OrdInfo {
     @Column(name="ord_path", columnDefinition = "numeric")
     private Long ordPath;
 
+    /*주문일자*/
     @Column(name="ord_dt",nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date ordDt;
 
+    /*주문상태*/
     @Column(name="ord_sts",nullable = false)
     private Long ordSts;
 
@@ -59,18 +61,19 @@ public class OrdInfo {
     private Long trkAmt;
 
     /*납품요청일*/
-    @Column(name="dlv_req_dt",nullable = false)
+    @Column(name="dlvReqDt",nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date dlvReqDt;
 
     /*납품일자*/
-    @Column(name="dlv_dt")
+    @Column(name="dlvDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date dlvDt;
 
     /*납품장소*/
-    @Column(name="plc_no" ,nullable = false)
+    @Column(name="plcNo" ,nullable = false)
     private Long plcNo;
+
 
     /*자재구매번호 Remarked By KMJ AT 21.09.04 12:20 : OrdProd로 이전됨.
     @Column(name="purs_no")
@@ -88,7 +91,6 @@ public class OrdInfo {
     /*부자재여부*/
     @Column(name="submatr_exist_yn", columnDefinition = "char default 'N'")
     private String submatrExistYn;
-
 
     @Column(name="reg_id")
     private Long regId;

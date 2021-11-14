@@ -1,6 +1,5 @@
 package daedan.mes.cmmn.service;
 
-import org.json.JSONArray;
 import org.json.simple.JSONObject;
 
 import javax.servlet.http.HttpServletRequest;
@@ -39,6 +38,6 @@ public interface CmmnService {
 
     JSONObject getRestApiData(Map<String, Object> paraMap);
 
-    JSONArray getRestApiList(Map<String, Object> paraMap);
+    JSONObject getRestApiList(Map<String, Object> paraMap);
 
 }

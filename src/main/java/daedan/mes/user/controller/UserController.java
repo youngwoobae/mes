@@ -178,7 +178,7 @@ public class UserController {
         log.info("orgLcnsCd=" + orgLcnsCd);
 
         String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt()); //단방향 암호화
-        String strCustNo = orgLcnsCd.substring( orgLcnsCd.length()-3, orgLcnsCd.length()-1);
+        String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
         paraMap.put("custNo",Long.parseLong(strCustNo));
         CustInfo custInfo = userService.getCustInfoByCustNo(paraMap);
         if (custInfo != null) {
