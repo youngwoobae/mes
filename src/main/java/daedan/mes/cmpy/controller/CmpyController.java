@@ -7,7 +7,10 @@ import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +44,8 @@ public class CmpyController {
     @Autowired
     private CmmnService cmmnService;
 
-
     @Autowired
-    private CmpyRepository cmpyRepository;
+    private UserService userService;
 
     @PostMapping(value="/cmpyList") //거래처목
     public Result cmpyList(@RequestBody HashMap<String, Object> paraMap  , HttpSession session){
@@ -52,10 +54,21 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getCmpyList(paraMap));
         result.setTotalCount(cmpyService.getCmpyListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -67,9 +80,19 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getCmpyExcelList(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -78,11 +101,21 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String,Object> rmap = new HashMap<String,Object>();
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.cmpy_mngrgbn")));
         rmap.put("comboSaleUnit", codeService.getComboCodeList(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         result.setData(rmap);
         return result;
     }
@@ -95,13 +128,24 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String,Object> cmpyMap = (Map<String,Object>) paraMap.get("cmpyInfo");
         cmpyMap.put("ipaddr", NetworkUtil.getClientIp(request));
         cmpyMap.put("userId", paraMap.get("userId"));
         cmpyMap.put("custNo",paraMap.get("custNo"));
         cmpyService.saveCmpy(cmpyMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     //판매거래처저장
@@ -112,13 +156,25 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String,Object> cmpyMap = (Map<String,Object>) paraMap.get("cmpyInfo");
         cmpyMap.put("ipaddr", NetworkUtil.getClientIp(request));
         cmpyMap.put("userId", paraMap.get("userId"));
         cmpyMap.put("custNo",paraMap.get("custNo"));
         cmpyService.saveCmpy(cmpyMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     //거래처삭제
@@ -128,11 +184,23 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         cmpyService.setUnusedCmpy(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     //원료 거래처 삭제
@@ -142,11 +210,23 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         cmpyService.dropMatrCmpy(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     //거래처추출
@@ -156,9 +236,18 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getCmpyInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     //구매거래처 자재목록
@@ -168,12 +257,22 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String,Object> rmap = new HashMap<String,Object>();
         rmap.put("pursInfo",cmpyService.getCmpyPursInfo(paraMap));
         rmap.put("pursMatrList",cmpyService.getCmpyPursMatrList(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -188,9 +287,18 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getDlvPlcInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -201,10 +309,19 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getCmpyDlvPlcList(paraMap));
         result.setTotalCount(cmpyService.getCmpyDlvPlcListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -217,10 +334,21 @@ public class CmpyController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Map<String, Object> passMap = new HashMap<String,Object>();
         passMap = (Map<String, Object>) paraMap.get("dlvPlcInfo");
-        passMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         passMap.put("userId",paraMap.get("userId"));
         passMap.put("ipaddr",NetworkUtil.getClientIp(request));
         cmpyService.saveDlvPlc(passMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -231,10 +359,21 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         cmpyService.deleteDlvPlc(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -245,10 +384,21 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         cmpyService.deleteDlvPlcInfo(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -261,10 +411,21 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getCmpyIpList(paraMap));
         result.setTotalCount(cmpyService.getCmpyIpListCount((HashMap<String, Object>) paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -276,10 +437,20 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setEqOptions(cmpyService.getEqOption(paraMap));
         result.setSysOptions(cmpyService.getSysOption(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -288,12 +459,19 @@ public class CmpyController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(cmpyService.getMatrCmpyList(paraMap));
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
-
 }
 

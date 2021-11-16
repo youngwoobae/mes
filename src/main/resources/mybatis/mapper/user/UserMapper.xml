@@ -583,4 +583,25 @@
             order by a.hstr_dt
         ) a
     </select>
+    <select id="getUserAccLogList" parameterType="map" resultType="camelMap">
+        /*사용자별 접속상세이력 (userMapper.getUserAccLogList) */
+        select a.sys_menu_no
+             , b.evnt_tp
+             , sum(b.trns_cnt) as trans_cnt
+             , fn_get_sys_menu_name(a.sys_menu_no) as sys_menu_nm
+        from acc_hstr a join acc_hstr_evnt b on a.cust_no = b.cust_no and a.acc_no = b.acc_no
+        group by    a.sys_menu_no , b.evnt_tp
+    </select>
+    <select id="getUserAccLogListCount" parameterType="map" resultType="int">
+        /*사용자별 접속상세이력 카운터 (userMapper.getUserAccLogList) */
+        select count(a.sys_menu_no)
+        from (
+                 select a.sys_menu_no
+                      , b.evnt_tp
+                      , sum(b.trns_cnt)                     as trans_cnt
+                 from acc_hstr a
+                          join acc_hstr_evnt b on a.cust_no = b.cust_no and a.acc_no = b.acc_no
+                 group by a.sys_menu_no, b.evnt_tp
+             ) a
+    </select>
 </mapper>

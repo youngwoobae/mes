@@ -51,4 +51,8 @@ public interface UserMapper {
     List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap);
 
     int gethumanHstrListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);
+
+    int getUserAccLogListCount(Map<String, Object> paraMap);
 }

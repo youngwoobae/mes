@@ -1,6 +1,7 @@
 package daedan.mes.sysmenu.service;
 
 import daedan.mes.sysmenu.domain.SysMenu;
+import daedan.mes.user.domain.AccHstr;
 
 import javax.transaction.Transactional;
 import java.util.HashMap;
@@ -39,7 +40,7 @@ public interface SysMenuService {
 
     List<Map<String, Object>> routerList(Map<String, Object> paraMap);
 
-    void makeAccHstr(Map<String, Object> paraMap);
+    AccHstr makeAccHstr(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getCircleMenuList(Map<String, Object> paraMap);
 

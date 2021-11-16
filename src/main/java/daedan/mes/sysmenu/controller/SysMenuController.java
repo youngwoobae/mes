@@ -5,6 +5,7 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.sysmenu.service.SysMenuService;
+import daedan.mes.user.domain.AccHstr;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -192,7 +193,8 @@ public class SysMenuController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("userId",uvo.getUserId());
-        sysMenuService.makeAccHstr(paraMap);
+        AccHstr vo = sysMenuService.makeAccHstr(paraMap);
+        session.setAttribute("acchstr", vo);
         return result;
     }
 }

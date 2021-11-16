@@ -10,10 +10,7 @@ import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.service.DeptService;
 import daedan.mes.sys.service.SysService;
-import daedan.mes.user.domain.CustInfo;
-import daedan.mes.user.domain.IndsType;
-import daedan.mes.user.domain.UserHstr;
-import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.domain.*;
 import daedan.mes.user.repository.CustInfoRepository;
 import daedan.mes.user.service.UserService;
 import net.sf.json.JSON;
@@ -484,7 +481,31 @@ public class UserController {
         session.setAttribute("uhvo", uhvo);
         return result;
     }
+    /**
+     * 사용자별 접속 상세이력
+     *
+     * @param paraMap
+     * @param session
+     * @return void
+     */
+    @PostMapping(value="/getUserAccLogList") //사용자별 상세메뉴권한
+    public Result getUserAccLogList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(userService.getUserAccLogList(paraMap));
+        result.setTotalCount(userService.getUserAccLogListCount(paraMap));
 
-
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+        return result;
+    }
 }

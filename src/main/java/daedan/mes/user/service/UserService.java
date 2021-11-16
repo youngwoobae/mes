@@ -85,6 +85,10 @@ public interface UserService {
     List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap);
     int gethumanHstrListCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);
+
+    int getUserAccLogListCount(Map<String, Object> paraMap);
+
     UserHstr hstrSave(Map<String, Object> paraMap);
 
     @Transactional    void saveHstrEvnt(Long custNo, Long hstrNo, EvntType evntTp, int transCnt);

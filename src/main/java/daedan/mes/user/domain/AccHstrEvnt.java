@@ -19,8 +19,8 @@ public class AccHstrEvnt {
     private Long custNo;
 
     /*접속로그관릭번호*/
-    @Column(name = "hstrNo" ,nullable = false, columnDefinition = "numeric default 0")
-    private Long hstrNo;
+    @Column(name = "accNo" ,nullable = false, columnDefinition = "numeric default 0")
+    private Long accNo;
 
     /*접속로그이벤트*/
     @Enumerated(EnumType.STRING)

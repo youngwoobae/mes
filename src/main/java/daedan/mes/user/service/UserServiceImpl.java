@@ -768,6 +768,18 @@ public class UserServiceImpl implements UserService {
 	}
 
 
+	@Override
+	public List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap) {
+		String tag = "vsvc.userService.getUserAccLogList => ";
+		log.info(tag + "paramMap = " + paraMap.toString());
+		return mapper.getUserAccLogList(paraMap);
+	}
+	@Override
+	public int getUserAccLogListCount(Map<String, Object> paraMap) {
+		String tag = "vsvc.userService.getUserAccLogListCount => ";
+		log.info(tag + "paramMap = " + paraMap.toString());
+		return mapper.getUserAccLogListCount(paraMap);
+	}
 
 	@Transactional
 	@Override
@@ -798,7 +810,7 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional
 	@Override
-	public void saveHstrEvnt(Long custNo, Long hstrNo, EvntType evntTp, int transCnt) {
+	public void saveHstrEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt) {
 		String tag = "UserService.hstrEnvtSave => ";
 		Map<String, Object> paraMap = new HashMap<String,Object>();
 		log.info(tag + " paraMap = " + paraMap.toString());
@@ -806,7 +818,7 @@ public class UserServiceImpl implements UserService {
 		AccHstrEvnt vo = new AccHstrEvnt();
 		vo.setAccEvntNo(0L);
 		vo.setCustNo(custNo);
-		vo.setHstrNo(hstrNo);
+		vo.setAccNo(accNo);
 		vo.setEvntTp(evntTp);
 		vo.setTransCnt(transCnt);
 		aheRepo.save(vo);

@@ -1459,6 +1459,7 @@ public class IoController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
+
         ioService.getOwhHstr(paraMap);
         return result;
     }

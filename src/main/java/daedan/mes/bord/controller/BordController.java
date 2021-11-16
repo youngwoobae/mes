@@ -4,10 +4,7 @@ import daedan.mes.bord.service.BordService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
-import daedan.mes.user.domain.EvntType;
-import daedan.mes.user.domain.IndsType;
-import daedan.mes.user.domain.UserHstr;
-import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.domain.*;
 import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -57,7 +54,7 @@ BordController {
 
         //SOL AddOn By KMJ AT 21.11.16
         UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.FIND,1);
+        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.READ,1);
 
 
         //EOL AddON By KMJ AT 21.11.26
@@ -80,8 +77,8 @@ BordController {
 
         //SOL AddOn By KMJ AT 21.11.16
         try {
-            UserHstr uhvo = (UserHstr) session.getAttribute("uhvo");
-            userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.FIND,2);
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo,acvo.getAccNo(), EvntType.READ,2);
         }
         catch(NullPointerException ne) {
 
@@ -102,11 +99,15 @@ BordController {
         paraMap.put("userId", paraMap.get("userId"));
         Result result = Result.successInstance();
         bordService.saveBord(paraMap);
-
         //SOL AddOn By KMJ AT 21.11.16
-        UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.FIND,1);
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(),EvntType.ISRT,1);
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+
+        }
         //EOL AddON By KMJ AT 21.11.26
 
         return result;
@@ -121,11 +122,16 @@ BordController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         bordService.deleteBord(paraMap);
 
-        //SOL AddOn By KMJ AT 21.11.16
-        UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(),EvntType.DROP,1);
-        //EOL AddON By KMJ AT 21.11.26
 
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value="/bordInfo") //게시판 목록 - 공지사항
@@ -139,9 +145,14 @@ BordController {
         result.setData(bordService.getBordInfo(paraMap,session));
 
         //SOL AddOn By KMJ AT 21.11.16
-        UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(),EvntType.FIND,1);
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 }
