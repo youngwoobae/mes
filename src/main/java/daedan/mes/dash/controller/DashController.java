@@ -224,7 +224,7 @@ public class DashController {
 
         String tag = "DashController=>";
         log.info(tag + "parCodeNo = " + paraMap.get("parCodeNo"));
-        List<Map<String,Object>> list = dashService.gethumanList(paraMap);
+        List<Map<String,Object>> list = dashService.getHumanList(paraMap);
         result.setData(list);
         result.setTotalCount(dashService.getToTalhumanCount(paraMap));
         return result;

@@ -4,6 +4,7 @@
 
 <mapper namespace="daedan.mes.equip.mapper.EquipMapper">
     <select id="getEquipList" parameterType="map"  resultType="camelMap">
+        /*(equipMapper.getEquipList) */
         SELECT a.equip_mast_no --설비번호
              , a.equip_nm --설비자재명
              , a.ware_cd  --제품코드
@@ -14,8 +15,9 @@
              , a.file_no     --이미지관리번호
              , c.org_file_nm --원본파일
          FROM equip_mast a JOIN code_info b on a.madein = b.code_no
-                      left join file_info c on a.file_no  = c.file_no
+                      left join file_info c on a.file_no  = c.file_no and a.cust_no = c.cust_no and c.used_yn ='Y'
         WHERE a.used_yn  = 'Y'
+          and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'equipNm'">
                 AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -37,8 +39,9 @@
         SELECT COUNT(a.equip_mast_no)
         FROM ( SELECT a.equip_mast_no --센서번호
                 FROM equip_mast a JOIN code_info b on a.madein = b.code_no
-                             left join file_info c on a.file_no  = c.file_no
+                             left join file_info c on a.file_no  = c.file_no and a.cust_no = c.cust_no and c.used_yn ='Y'
                 WHERE a.used_yn  = 'Y'
+                and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'equipNm'">
                         AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -58,6 +61,7 @@
     </select>
 
     <select id="getEquipDeviceList" parameterType="map"  resultType="camelMap">
+        /*(equipMapper.getEquipDeviceList) */
         SELECT a.equip_no --설비번호
              , a.equip_nm --설비자재명
              , c.mobl_no -- 테블릿번호
@@ -65,9 +69,10 @@
              , c.device_ip --통신 ip
              , c.device_port --통신Potr
              , d.sys_menu_nm  --작동메뉴명
-        FROM equip_info a join mobile_info c on a.equip_no = c.device_no
-                          join sys_menu    d on c.sys_menu_no  = d.sys_menu_no
+        FROM equip_info a join mobile_info c on a.equip_no = c.device_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+                          join sys_menu    d on c.sys_menu_no  = d.sys_menu_no and c.cust_no = d.cust_no and d.used_yn = 'Y'
         WHERE a.used_yn  = 'Y'
+        and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'equipNm'">
                 AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -79,9 +84,10 @@
     <select id="getEquipDeviceListCount" parameterType="map"  resultType="int">
         select count(a.equip_no)
         from ( SELECT a.equip_no --설비번호
-                FROM equip_info a join mobile_info c on a.equip_no = c.device_no
-                join sys_menu    d on c.sys_menu_no  = d.sys_menu_no
+                FROM equip_info a join mobile_info c on a.equip_no = c.device_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+                join sys_menu    d on c.sys_menu_no  = d.sys_menu_no and c.cust_no = d.cust_no and d.used_yn = 'Y'
                 WHERE a.used_yn  = 'Y'
+                and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'equipNm'">
                         AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -90,15 +96,22 @@
         ) a
     </select>
 
-    <update id="dropEquip" parameterType="map" >
-        UPDATE equip_info SET used_yn = 'N' ,mod_dt = NOW(), mod_id = #{userId}, mod_ip = #{ipaddr} WHERE equip_no = #{equipNo}
+    <update id="dropEquip" parameterType="map">
+        /*(equipMapper.dropEquip) */
+        UPDATE equip_info SET used_yn = 'N' ,mod_dt = NOW(), mod_id = #{userId}, mod_ip = #{ipaddr}
+        WHERE equip_no = #{equipNo}
+        and cust_no = #{custNo}
     </update>
 
     <update id="revervalEquip" parameterType="map" >
-        UPDATE equip_info SET used_yn = 'Y',mod_dt = NOW(), mod_id = #{userId}, mod_ip = #{ipaddr}  WHERE equip_no = #{equipNo}
+        /*(equipMapper.revervalEquip) */
+        UPDATE equip_info SET used_yn = 'Y',mod_dt = NOW(), mod_id = #{userId}, mod_ip = #{ipaddr}
+        WHERE equip_no = #{equipNo}
+          and cust_no = #{custNo}
     </update>
 
     <select id="getEquipRunStatList" parameterType="map"  resultType="camelMap">
+        /*(equipMapper.getEquipRunStatList) */
         SELECT a.equip_no --설비번호
              , a.equip_nm --설비자재명
              , c.mobl_no  --장치관리번호
@@ -109,11 +122,13 @@
              , substring(d.fr_hm,1,2) || ':'  || substring(d.fr_hm,3,2) as fr_hm--시작시간
              , substring(d.to_hm,1,2) || ':'  || substring(d.to_hm,3,2) as to_hm--종료시간
              , coalesce (case when e.max_make_wgt = 0 then 0 else (e.indc_wgt::numeric  / e.max_make_wgt) * 100 end ,0) as oper_rt --기동율
-        FROM equip_info a join mobile_info c on a.equip_no = c.equip_no
-        left join oper_mast d on a.equip_no  = d.equip_no and to_char(now(),'YYYYMMDD') = to_char(d.make_dt,'YYYYMMDD')
-        left join make_indc e on d.indc_no = e.indc_no
-                     left join prod_info f on e.prod_no  = f.prod_no
+        FROM equip_info a join mobile_info c on a.equip_no = c.equip_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+                     left join oper_mast d on a.equip_no  = d.equip_no and a.cust_no = d.cust_no and d.used_yn = 'Y'
+                                          and to_char(now(),'YYYYMMDD') = to_char(d.make_dt,'YYYYMMDD')
+                     left join make_indc e on d.indc_no = e.indc_no and a.cust_no = e.cust_no and e.used_yn = 'Y'
+                     left join prod_info f on e.prod_no  = f.prod_no and a.cust_no = f.cust_no and f.used_yn = 'Y'
         WHERE a.used_yn  = 'Y'
+        and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'equipNm'">
                 AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -125,11 +140,13 @@
     <select id="getEquipRunStatListCount" parameterType="map"  resultType="int">
         select count(a.equip_no)
         from ( SELECT a.equip_no --설비번호
-                FROM equip_info a join mobile_info c on a.equip_no = c.equip_no
-                            left join oper_mast d on a.equip_no  = d.equip_no and to_char(now(),'YYYYMMDD') = to_char(d.make_dt,'YYYYMMDD')
-                            left join make_indc e on d.indc_no = e.indc_no
-                            left join prod_info f on e.prod_no  = f.prod_no
+                FROM equip_info a join mobile_info c on a.equip_no = c.equip_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+                              left join oper_mast d on a.equip_no  = d.equip_no and a.cust_no = d.cust_no and d.used_yn = 'Y'
+                                                   and to_char(now(),'YYYYMMDD') = to_char(d.make_dt,'YYYYMMDD')
+                              left join make_indc e on d.indc_no = e.indc_no and a.cust_no = e.cust_no and e.used_yn = 'Y'
+                              left join prod_info f on e.prod_no  = f.prod_no and a.cust_no = f.cust_no and f.used_yn = 'Y'
                 WHERE a.used_yn  = 'Y'
+                and a.cust_no = #{custNo}
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'equipNm'">
                         AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -139,6 +156,7 @@
     </select>
 
     <select id="getEquipRunHstrList" parameterType="map"  resultType="camelMap">
+        /*(equipMapper.getEquipRunHstrList) */
         SELECT a.equip_no --설비번호
              , a.equip_nm --설비자재명
              , c.mobl_no  --장치관리번호
@@ -149,11 +167,12 @@
              , substring(d.fr_hm,1,2) || ':'  || substring(d.fr_hm,3,2) as fr_hm--시작시간
              , substring(d.to_hm,1,2) || ':'  || substring(d.to_hm,3,2) as to_hm--종료시간
              , coalesce (case when e.max_make_wgt = 0 then 0 else (e.indc_wgt::numeric  / e.max_make_wgt) * 100 end ,0) as oper_rt --기동율
-        FROM equip_info a join mobile_info c on a.equip_no = c.equip_no
-                      join oper_mast d on a.equip_no  = d.equip_no
-                      join make_indc e on d.indc_no = e.indc_no
-                      join prod_info f on e.prod_no  = f.prod_no
+        FROM equip_info a join mobile_info c on a.equip_no = c.equip_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+                          join oper_mast d on a.equip_no  = d.equip_no and a.cust_no = d.cust_no and d.used_yn ='Y'
+                          join make_indc e on d.indc_no = e.indc_no and a.cust_no = e.cust_no and e.used_yn ='Y'
+                          join prod_info f on e.prod_no  = f.prod_no and a.cust_no = f.cust_no and f.used_yn = 'Y'
         WHERE a.used_yn  = 'Y'
+          and a.cust_no = #{custNo}
           and to_char(d.make_dt,'YYYYMMDD') between #{dateFr} and #{dateTo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'equipNm'">
@@ -166,12 +185,13 @@
     <select id="getEquipRunHstrListCount" parameterType="map"  resultType="int">
         select count(a.equip_no)
         from ( SELECT a.equip_no --설비번호
-               FROM equip_info a join mobile_info c on a.equip_no = c.equip_no
-                                 join oper_mast d on a.equip_no  = d.equip_no
-                                 join make_indc e on d.indc_no = e.indc_no
-                                 join prod_info f on e.prod_no  = f.prod_no
-               WHERE a.used_yn  = 'Y'
-              and to_char(d.make_dt,'YYYYMMDD') between #{dateFr} and #{dateTo}
+                FROM equip_info a join mobile_info c on a.equip_no = c.equip_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+                                  join oper_mast d on a.equip_no  = d.equip_no and a.cust_no = d.cust_no and d.used_yn ='Y'
+                                  join make_indc e on d.indc_no = e.indc_no and a.cust_no = e.cust_no and e.used_yn ='Y'
+                                  join prod_info f on e.prod_no  = f.prod_no and a.cust_no = f.cust_no and f.used_yn = 'Y'
+                WHERE a.used_yn  = 'Y'
+                and a.cust_no = #{custNo}
+                and to_char(d.make_dt,'YYYYMMDD') between #{dateFr} and #{dateTo}
                <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'equipNm'">
                         AND upper(replace(a.equip_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -181,38 +201,50 @@
     </select>
 
     <select id="getOnlyEquipList" parameterType="map"  resultType="camelMap">
-    select a.spot_equip_no --—관리번
-     , a.spot_no --—작업장번호
-     , a.equip_no --—장비번호
-     , b.spot_nm --—작업장명
-     , c.equip_nm --—설비명
-     , b.svc_tp
-    from spot_equip a join spot_info b on a.spot_no = b.spot_no
-                      join equip_info c on a.equip_no  = c.equip_no
-                      join cust_info d on b.cust_no = d.cust_no and d.cust_no = #{cust_no}
-                      order by a.spot_no asc
+        /*(equipMapper.getOnlyEquipList) */
+        select a.spot_equip_no --—관리번호
+             , a.spot_no --—작업장번호
+             , a.equip_no --—장비번호
+             , b.spot_nm --—작업장명
+             , c.equip_nm --—설비명
+             , b.svc_tp
+        from spot_equip a join spot_info  b on a.spot_no  = b.spot_no and a.cust_no = b.cust_no and b.used_yn = 'Y'
+                          join equip_info c on a.equip_no = c.equip_no and a.cust_no = c.cust_no and c.used_yn ='Y'
+                          join cust_info  d on a.cust_no  = d.cust_no and d.used_yn ='Y'
+                          order by a.spot_no asc
+        where a.cust_no = #{custNo}
+        and  a.used_yn ='Y'
     </select>
+
     <select id="getOnlyEquipListCount" parameterType="map"  resultType="int">
          select count(a.spot_equip_no)
-    from spot_equip a join spot_info b on a.spot_no = b.spot_no
-                      join equip_info c on a.equip_no  = c.equip_no
-                      join cust_info d on b.cust_no = d.cust_no and d.cust_no = #{cust_no}
+         from spot_equip a join spot_info b on a.spot_no   = b.spot_no and a.cust_no = b.cust_no and b.used_yn = 'Y'
+                           join equip_info c on a.equip_no = c.equip_no and a.cust_no = c.cust_no and c.used_yn ='Y'
+                           join cust_info d on b.cust_no   = a.cust_no and d.used_yn ='Y'
+             where a.cust_no = #{custNo}
+             and  a.used_yn ='Y'
     </select>
 
     <select id="getEquipMngrItem" parameterType="map"  resultType="camelMap">
-        select * from equip_mngr_item where equip_no = #{equipNo} and used_yn = 'Y'
+        /* (equipMapper.getEquipMngrItem)*/
+        select * from equip_mngr_item
+        where cust_no = #{custNo}
+        and equip_no = #{equipNo}
+        and used_yn = 'Y'
     </select>
 
     <select id="getEquipMngrHstr" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getEquipMngrHstr)*/
          select a.min_lmt_val --—최소값
-             ,a.max_lmt_val --—최대값
-             ,a.meas_val --—측정값
-             ,c.spot_nm --—측정장
-             ,to_char(to_timestamp(a.unix_hms),'HH24:MI') as meas_dt -- —측정시
-        from   equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no
-                                 join spot_info c on b.spot_no = c.spot_no
+              , a.max_lmt_val --—최대값
+              , a.meas_val --—측정값
+              , c.spot_nm --—측정장
+              , to_char(to_timestamp(a.unix_hms),'HH24:MI') as meas_dt -- —측정시
+         from   equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no and a.cust_no = b.cust_no and b.used_yn = 'Y'
+                                  join spot_info  c on b.spot_no = c.spot_no and a.cust_no = c.cust_no and c.used_yn ='Y'
 		where  a.used_yn = 'Y'
-		and c.spot_no = #{spotNo}
+        and a.cust_no = #{custNo}
+        and c.spot_no = #{spotNo}
         and c.cust_no = #{custNo}
         and b.equip_no = #{equipNo}
         and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
@@ -222,6 +254,7 @@
 
 
     <select id="getEquipMngrHstrDoubleBack" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getEquipMngrHstrDoubleBack)*/
         SELECT a.meas_val AS 온도
 		     , b.meas_val AS 습도
 		     , a.spot_nm || b.spot_nm AS spot_nm
@@ -230,7 +263,9 @@
 			        ,d.spot_nm
 		   	FROM ( SELECT MAX(a.mngr_hstr_no) AS mngr_hstr_no
 			       FROM equip_mngr_hstr a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no AND b.spot_no = #{Num1}
-			                              JOIN spot_info C ON b.spot_no = c.spot_no
+			                                               and a.cust_no = b.cust_no and b.used_yn ='Y'
+			                              JOIN spot_info C ON b.spot_no = c.spot_no and a.cust_no = c.cusst_no and c.used_yn ='Y'
+		   	       where a.cust_no = #{custNo}
 			      ) a JOIN equip_mngr_hstr b ON a.mngr_hstr_no = b.mngr_hstr_no
 			          JOIN spot_equip C ON b.spot_equip_no = c.spot_equip_no
 			          JOIN spot_info d ON c.spot_no = d.spot_no
@@ -239,8 +274,10 @@
 		,	( SELECT b.meas_val
 		          ,d.spot_nm
 			FROM ( SELECT MAX(a.mngr_hstr_no) AS mngr_hstr_no
-			       FROM equip_mngr_hstr a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no AND b.spot_no = #{Num2}
-			                              JOIN spot_info C ON b.spot_no = c.spot_no
+                   FROM equip_mngr_hstr a JOIN spot_equip b ON a.spot_equip_no = b.spot_equip_no AND b.spot_no = #{Num1}
+                                                           and a.cust_no = b.cust_no and b.used_yn ='Y'
+                                          JOIN spot_info C ON b.spot_no = c.spot_no and a.cust_no = c.cusst_no and c.used_yn ='Y'
+                   where a.cust_no = #{custNo}
 			      ) a JOIN equip_mngr_hstr b ON a.mngr_hstr_no = b.mngr_hstr_no
 			          JOIN spot_equip C ON b.spot_equip_no = c.spot_equip_no
 			          JOIN spot_info d ON c.spot_no = d.spot_no
@@ -248,6 +285,7 @@
     </select>
 
     <select id="getEquipMngrHstrDouble" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getEquipMngrHstrDouble)*/
         SELECT
             b.*
         FROM
@@ -266,8 +304,10 @@
                     ,to_char(to_timestamp(a.unix_hms),'HH24:MI') as meas_dt -- —측정시
                     ,to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as meas_ymd -- —측정일
                 from   equip_mngr_hstr a join spot_equip b on a.spot_equip_no = b.spot_equip_no
-                                         join spot_info c on b.spot_no = c.spot_no
+                                                          and a.cust_no = b.cust_no and b.used_yn ='Y'
+                                         join spot_info c on b.spot_no = c.spot_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
                 where  a.used_yn = 'Y'
+                 and a.cust_no = #{custNo}
             ) b ON a.mngr_hstr_no = b.mngr_hstr_no
         where 1 = 1
         <if test="spotTp != null and spotTp != '' and spotTp == 'tow'">
@@ -284,6 +324,7 @@
 
 
     <select id="getEquipMngrHstrHdfdVer" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getEquipMngrHstrHdfdVer)*/
         SELECT
             b.*,
             e.fr_unix_hms
@@ -297,25 +338,36 @@
 		        	c.alarm_yn ,
 		        	c.meas_val ,
 		        	c.unix_hms
-		        from spot_equip a join spot_info b on a.spot_no = b.spot_no
-		           			      join equip_mngr_hstr c on a.spot_equip_no = c.spot_equip_no
+		        from spot_equip a join spot_info b on a.spot_no = b.spot_no and a.cust_no = b.cust_no and b.used_yn ='Y'
+		           			      join equip_mngr_hstr c on a.spot_equip_no = c.spot_equip_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
                 where  a.used_yn = 'Y'
+                and a.cust_no = #{custNo}
             ) b ON a.mngr_hstr_no = b.mngr_hstr_no
-            join (select spot_equip_no , max(oper_no) as oper_no from oper_mast om where spot_equip_no = 7817 group by spot_equip_no  ) c on 1 = 1 join oper_mast e on e.oper_no = c.oper_no
+            join (select spot_equip_no
+                       , cust_no
+                       , max(oper_no) as oper_no
+                   from oper_mast om
+                  where spot_equip_no = 7817
+                  and om.cust_no = #{custNo}
+                  group by spot_equip_no
+                  ) c join oper_mast e on e.oper_no = c.oper_no
     </select>
 
 
 
 
     <select id="getComboEquipList" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getComboEquipList)*/
         SELECT a.equip_no as value
              ,a.equip_nm  as text
         from  equip_info a
         where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
         order by equip_nm
     </select>
 
     <select id="getCheckItemList" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getCheckItemList)*/
         SELECT max(a.mngr_hstr_no) as mngr_hstr_no --이력번호
              , case when max(a.fe_yn) = 'Y' then 'O' else 'X' end as fe_yn --Fe 검출여부
              , case when max(a.sus_yn) = 'Y' then 'O' else 'X' end as sus_yn --SUS 검출여부
@@ -331,20 +383,23 @@
              , a.spot_equip_no -- 장비설비번호
              , f.spot_nm --설비명
              , max(g.equip_report_no ) as equip_report_no --보고서 번호
-        FROM equip_mngr_hstr a JOIN oper_mast c ON a.oper_no = c.oper_no
-                               JOIN prod_info d ON c.prod_no = d.prod_no
+        FROM equip_mngr_hstr a JOIN oper_mast c ON a.oper_no = c.oper_no and a.cust_no = c.cust_no and c.used_yn ='Y'
+                               JOIN prod_info d ON c.prod_no = d.prod_no and a.cust_no = d.cust_no and d.used_yn = 'Y'
                                join code_info b on d.prod_shape = b.code_no
-                               join spot_equip e on c.spot_equip_no = e.spot_equip_no
-                               join spot_info f on e.spot_no = f.spot_no
-                               left join equip_report g on a.mngr_hstr_no = g.mngr_hstr_no
-        where to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
+                               join spot_equip e on c.spot_equip_no = e.spot_equip_no and a.cust_no = e.cust_no and c.used_yn ='Y'
+                               join spot_info f on e.spot_no = f.spot_no and a.cust_no = f.cust_no and f.used_yn = 'Y'
+                          left join equip_report g on a.mngr_hstr_no = g.mngr_hstr_no and a.cust_n = g.cust_no and g.used_yn = 'Y'
+        where a.cust_no = #{custNo}
+          and a.used_yn ='Y'
+          and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
           and a.spot_equip_no = #{spotEquipNo}
         group by d.prod_nm, b.code_nm , a.spot_equip_no , f.spot_nm , d.prod_no
         order by max(a.mngr_hstr_no) desc
-        limit 15
+        limit 150
     </select>
 
     <select id="getOnlyOperList" parameterType="map"  resultType="camelMap">
+        /* (equipMapper.getOnlyOperList)*/
         SELECT
             a.oper_no,
             to_char(to_timestamp(a.fr_unix_hms),'YYYY-MM-DD HH24:MI') as fr_meas_dt,
@@ -352,20 +407,26 @@
             b.prod_nm,
             a.shape,
             a.oper_text
-        FROM oper_mast a JOIN prod_info b ON a.prod_no = b.prod_no
-        where a.to_unix_hms != 0
+        FROM oper_mast a JOIN prod_info b ON a.prod_no = b.prod_no and a.cust_no = b.cust_no and b.used_yn ='Y'
+        where a.cust_no = #{custNo}
+        and a.used_yn = 'Y'
+        and a.to_unix_hms != 0
         order by a.oper_no desc limit 10
     </select>
 
     <select id="getOperCount" parameterType="map"  resultType="int">
+        /* (equipMapper.getOperCount)*/
         SELECT count(a.mngr_hstr_no)
         FROM equip_mngr_hstr a JOIN code_info b ON a.test_tp = b.code_no
-							   JOIN oper_mast C ON a.oper_no = C.oper_no
-							   JOIN prod_info d ON c.prod_no = d.prod_no
-		where c.oper_no = #{oper_no}
+							   JOIN oper_mast C ON a.oper_no = C.oper_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
+							   JOIN prod_info d ON c.prod_no = d.prod_no and a.cust_no = c.cust_no and d.used_yn ='Y'
+		where a.cust_no = #{custNo}
+		  and a.used_yn ='Y'
+		  and a.oper_no = #{oper_no}
     </select>
 
     <select id="getEquipReportList" parameterType="map" resultType="camelMap">
+        /* (equipMapper.getEquipReportList)*/
         select a.equip_report_no
              , a.fe_yn
              , a.sus_yn
@@ -374,9 +435,10 @@
              , a.prod_sus_yn
              , a.meas_dt
              , b.prod_nm
-        from equip_report a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+        from equip_report a join prod_info b on a.prod_no = b.prod_no and a.cust_no = b.cust_no and and b.used_yn = 'Y'
         where a.used_yn = 'Y'
-        and to_char(a.reg_dt,'YYYY-MM-DD') = #{regDt}
+          and a.cust_no = #{custNo}
+          and to_char(a.reg_dt,'YYYY-MM-DD') = #{regDt}
         <if test="startHm != null and startHm != '' and endHm != null and endHm != ''">
             and a.meas_dt between #{startHm} and #{endHm}
         </if>
@@ -394,8 +456,9 @@
             , a.prod_sus_yn
             , a.meas_dt
             , b.prod_nm
-            from equip_report a join prod_info b on a.prod_no = b.prod_no and b.used_yn = 'Y'
+            from equip_report a join prod_info b on a.prod_no = b.prod_no and a.cust_no = b.cust_no and b.used_yn = 'Y'
             where a.used_yn = 'Y'
+              and a.cust_no = #{custNo}
             and to_char(a.reg_dt,'YYYY-MM-DD') = #{regDt}
             <if test="startHm != null and startHm != '' and endHm != null and endHm != ''">
                 and a.meas_dt between #{startHm} and #{endHm}

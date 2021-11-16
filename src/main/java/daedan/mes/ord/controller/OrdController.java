@@ -6,7 +6,10 @@ import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.ord.repository.OrdRepository;
 import daedan.mes.ord.service.OrdService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +40,14 @@ public class OrdController {
     private OrdService ordService;
 
     @Autowired
-    private OrdRepository ordRepository;
+    private UserService userService;
 
     @PostMapping(value = "/conditionsPopProdFind")
     public Result conditionsPopProdFind(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String, Object> rmap = new HashMap<String,Object>();
         paraMap.put("parCodeNo", Long.parseLong(env.getProperty("code.base.ord_gb")));
@@ -57,7 +61,9 @@ public class OrdController {
     public Result conditions1020(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
 
         Map<String, Object> rmap = new HashMap<String,Object>();
         rmap.put("comboOrdTp", codeService.getComboCodeList(paraMap));
@@ -69,7 +75,9 @@ public class OrdController {
     public Result conditions410(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("parCodeNo", Long.parseLong(env.getProperty("code.base.ordstat")));
         paraMap.put("selectStr", "주문상태선택");
 
@@ -83,7 +91,9 @@ public class OrdController {
     public Result conditions1030(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
 
         Map<String, Object> rmap = new HashMap<String,Object>();
         rmap.put("comboFindYy", ordService.geOwhDateList(paraMap));
@@ -95,7 +105,9 @@ public class OrdController {
     public Result OrdInfoControl(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
 
         Map<String, Object> rmap = new HashMap<String,Object>();
         if (paraMap.get("cmpyNo") != null) { //AddOn By KMJ AT 21.07.13 - client length문제 제거
@@ -123,7 +135,9 @@ public class OrdController {
     public Result initOrtCart(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
 
         ordService.initOrdCart(paraMap);
         return result;
@@ -133,7 +147,9 @@ public class OrdController {
     public Result moveOrdProdToCart(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
 
         ordService.moveOrdProdToCart(paraMap);
         return result;
@@ -142,12 +158,21 @@ public class OrdController {
     public Result prodStockList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getProcStockList(paraMap));
         result.setTotalCount(ordService.getProcStockListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -155,11 +180,21 @@ public class OrdController {
     public Result ordList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getOrdList(paraMap));
         result.setTotalCount(ordService.getOrdListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -174,22 +209,42 @@ public class OrdController {
         }
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getExOrdProdList(paraMap));
         result.setTotalCount(ordService.getExOrdProdListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value="/ordProdList")
     public Result ordProdList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getOrdProdList(paraMap));
         result.setTotalCount(ordService.getOrdProdListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -199,7 +254,9 @@ public class OrdController {
     public Result initOrdProdCart(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         ordService.initOrdProdCart(paraMap);
@@ -210,22 +267,41 @@ public class OrdController {
     public Result ordProdInfo(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getOrdProdInfo(paraMap));
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value="/ordProdBomList") //주문품목별 BOM LIST
     public Result ordProdBomList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getOrdProdBomList(paraMap));
         result.setTotalCount(ordService.getOrdProdBomListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -233,13 +309,23 @@ public class OrdController {
     public Result ordProdCartList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         List<Map<String, Object>> list = ordService.getOrdProdCartList(paraMap);
         int count = ordService.getOrdProdCartListCount(paraMap);
         result.setData(list);
         result.setTotalCount(count);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -247,20 +333,31 @@ public class OrdController {
     public Result ordProdCartBomList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         List<Map<String,Object>>list = ordService.getOrdProdCartBomList(paraMap);
         int    count = ordService.getOrdProdCartBomListCount(paraMap);
         result.setData(list);
         result.setTotalCount(count);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/ordInfo") //oem주문정보
     public Result ordInfo(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String, Object> rmap = new HashMap<>();
 
@@ -270,7 +367,14 @@ public class OrdController {
 
         result.setData(ordService.getOrdInfo(paraMap));
 
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -278,10 +382,20 @@ public class OrdController {
     public Result oemOrdInfo(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getOemOrdInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -289,10 +403,20 @@ public class OrdController {
     public Result prjOrdInfo(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getPrjOrdInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/saveOrd") //신규주문저장
@@ -300,18 +424,37 @@ public class OrdController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         ordService.saveOrd(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/updateOrd") //기존주문저장
     public Result updateOrd(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.updateOrd(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -320,7 +463,9 @@ public class OrdController {
     public Result saveOrdProdCart(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         ordService.saveOrdProdCart(paraMap);
 
@@ -330,10 +475,20 @@ public class OrdController {
     public Result apndOrdProd(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.apndOrdProd(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -342,7 +497,9 @@ public class OrdController {
     public Result apndOrdProdToCart(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.apndOrdProdToCart(paraMap);
@@ -353,8 +510,8 @@ public class OrdController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         ordService.addOnProdToCart(paraMap);
         return result;
     }
@@ -363,12 +520,22 @@ public class OrdController {
     public Result saveOrdProd(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.saveOrdProd(paraMap);
         result.setData(ordService.getOrdProdList(paraMap));
         result.setTotalCount(ordService.getOrdProdListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -377,12 +544,21 @@ public class OrdController {
     public Result OrdProdBomList(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.saveOrdProdCart(paraMap);
         result.setData(ordService.getOrdProdBomList(paraMap));
-//        result.setTotalCount(ordService.getOrdProdBomListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -392,10 +568,20 @@ public class OrdController {
     public Result dropOrdInfo(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.dropOrdInfo(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -403,7 +589,8 @@ public class OrdController {
     public Result dropOrdProdCarts(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         ordService.dropOrdProdCarts(paraMap);
         return result;
@@ -412,9 +599,19 @@ public class OrdController {
     public Result dropOrdProds(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
 
         ordService.dropOrdProds(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -423,7 +620,8 @@ public class OrdController {
     public Result dropOrdProdCart(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         ordService.dropOrdProdCart(paraMap);
         return result;
@@ -434,10 +632,20 @@ public class OrdController {
     public Result comboDlvPlc(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getComboDlvPlc(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -445,7 +653,9 @@ public class OrdController {
     public Result comboDlvPlcList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         List<Map<String, Object>> list = ordService.getComboDlvPlcList(paraMap);
@@ -457,11 +667,21 @@ public class OrdController {
     public Result firstHalfPerformList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getFirstHalfPerformList(paraMap));
         result.setTotalCount(ordService.getFirstHalfPerformListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -469,12 +689,21 @@ public class OrdController {
     public Result secondHalfPerformList(@RequestBody Map<String, Object> paraMap,HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getSecondHalfPerformList(paraMap));
         result.setTotalCount(ordService.getSecondHalfPerformListCount(paraMap));
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -482,7 +711,9 @@ public class OrdController {
     public Result ordIndfoByExcel(@RequestBody Map<String, Object> paraMap
                                , HttpServletRequest request, HttpSession session) throws Exception{
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("mngrGbnCd",env.getProperty("code.mngrgbn.purs")); //매입
@@ -490,6 +721,14 @@ public class OrdController {
         paraMap.put("session", session);
         Result result = Result.successInstance();
         ordService.ordIndfoByExcel(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -498,10 +737,20 @@ public class OrdController {
     public Result chkSubMatr(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         ordService.chkSubMatr(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -510,9 +759,18 @@ public class OrdController {
     public Result saveMakeAbleYn(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        ordService.saveMakeAbleYn(paraMap);
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
+        ordService.saveMakeAbleYn(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -520,11 +778,19 @@ public class OrdController {
     @PostMapping(value = "/updateDlvReqDt")
     public Result updateDlvReqDt(@RequestBody Map<String, Object> paraMap, HttpSession session){
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         ordService.updateDlvReqDt(paraMap);
         Result result = Result.successInstance();
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -534,9 +800,18 @@ public class OrdController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(ordService.getOrderBookList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }

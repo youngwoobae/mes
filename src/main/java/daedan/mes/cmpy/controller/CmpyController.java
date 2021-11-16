@@ -41,8 +41,6 @@ public class CmpyController {
     @Autowired
     private CodeService codeService;
 
-    @Autowired
-    private CmmnService cmmnService;
 
     @Autowired
     private UserService userService;
@@ -63,7 +61,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -88,7 +86,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -108,14 +106,6 @@ public class CmpyController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.cmpy_mngrgbn")));
         rmap.put("comboSaleUnit", codeService.getComboCodeList(paraMap));
 
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
-        }
-        //EOL AddON By KMJ AT 21.11.26
         result.setData(rmap);
         return result;
     }
@@ -140,8 +130,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -168,8 +157,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -194,8 +182,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -220,8 +207,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -243,7 +229,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -268,7 +254,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -277,7 +263,7 @@ public class CmpyController {
     }
 
     /**
-     * 축적할 데이터가 담긴 map을 db저장, 파일저장 함수에 호출
+     * 납품장소 정보
      *
      * @param paraMap(plcNo)
      * @return return result;
@@ -294,11 +280,12 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -317,7 +304,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -343,8 +330,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -368,8 +354,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -393,8 +378,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -420,8 +404,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -442,15 +425,6 @@ public class CmpyController {
 
         result.setEqOptions(cmpyService.getEqOption(paraMap));
         result.setSysOptions(cmpyService.getSysOption(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
-        }
-        catch(NullPointerException ne) {
-        }
-        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -466,7 +440,7 @@ public class CmpyController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }

@@ -2,8 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="daedan.mes.dash.mapper.Dash06Mapper">
-    <!--배합실유량계 그래프용-->
     <select id="getFlowMeterList" parameterType="map"  resultType="camelMap">
+        /*대동고려삼 배합실 유량계 그래프 데이터 */
        select to_char(to_timestamp(a.unix_hms),'HH24') as chk_tm
              , a.spot_equip_no
              , max(coalesce (meas_val12,0)  - c.max_flow )as max_flow --배합유량
@@ -41,6 +41,7 @@
     </select>
 
     <select id="getPowerList" parameterType="map"  resultType="camelMap">
+    /* 대동고려삼 전력량계 그래프데이터  */
     select to_char(to_timestamp(a.unix_hms),'HH24') as chk_tm
 --          , a.spot_equip_no
          , max(coalesce (meas_val13,0))        as max_pwr --최대전력량
@@ -58,6 +59,7 @@
 
 
     <select id="getDashSpotTmpr" parameterType="map"  resultType="camelMap">
+        /*대동고려삼 : 장비별 C02, 온도, 습도 데이터(dash06Mapper.getDashSpotTmpr) */
         select  a.spot_equip_no
             , b.spot_no
             , c.spot_nm
@@ -76,6 +78,7 @@
     </select>
 
     <select id="getDashMainData" parameterType="map"  resultType="camelMap">
+        /*대동고려삼 : (dash06Mapper.getDashMainData) */
         select a.spot_equip_no
              , max(round(coalesce (a.pass_qty,0),2)) as pass_qty -- 통과수량(정상수량)
              , max(round(coalesce (a.weight_qty,0),2)) as weight_qty -- 중량미달수량
@@ -89,6 +92,7 @@
     </select>
 
     <select id="getDashWrapRoomData" resultType="camelMap" parameterType="map">
+        /*대동고려삼 : (dash06Mapper.getDashWrapRoomData) */
         select a.spot_equip_no
              , b.spot_no
              , c.spot_nm

@@ -7,7 +7,10 @@ import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.make.service.MakeIndcService;
 import daedan.mes.make.service.metal10.Metal10Service;
 import daedan.mes.modbus.service.ModbusService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.io.Resources;
@@ -40,13 +43,16 @@ public class MakeController {
     @Autowired
     private ModbusService modbusService;
 
+    @Autowired
+    private UserService userService;
 
     @PostMapping(value="/conditionEmpIndcMp")
     public Result conditionEmpIndcMp(@RequestBody Map<String, Object> paraMap , HttpSession session){
         String tag = "makeController.conditionEmpIndcMp => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base_proc")));
         rmap.put("comboProc", codeService.getComboCodeList(paraMap));
@@ -59,7 +65,8 @@ public class MakeController {
         String tag = "makeController.conditionEmpIndcMp => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.indcTp")));
@@ -80,7 +87,8 @@ public class MakeController {
         String tag = "makeController.comboWorkDay => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         log.info(tag + "params = " + paraMap.toString());
         result.setData(moService.getComboWorkDay(paraMap));
         return result;
@@ -90,7 +98,8 @@ public class MakeController {
         String tag = "makeController.comboEmbIndc => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
         String typeCd = paraMap.get("typeCd").toString();
         log.info("123 paraMap : " + paraMap);
@@ -120,7 +129,8 @@ public class MakeController {
         String tag = "makeController.comboOrdrCmpyList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getComboOrdrCmpyList(paraMap));
         return result;
     }
@@ -130,7 +140,8 @@ public class MakeController {
         String tag = "makeController.makeIndcList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         try {
             paraMap.put("dateFr", paraMap.get("dateFr").toString().substring(0, 10));
@@ -142,6 +153,14 @@ public class MakeController {
         log.info(tag + "paraMap = " + paraMap.toString());
         result.setData(moService.getMakeIndcList(paraMap));
         result.setTotalCount(moService.getMakeIndcListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value="/makeIndcInfo")
@@ -149,8 +168,18 @@ public class MakeController {
         String tag = "makeController.makeIndcInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMakeIndcInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -159,9 +188,19 @@ public class MakeController {
         String tag = "makeController.autoSaveIndcMp => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.autoSaveIndcMp(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -171,8 +210,18 @@ public class MakeController {
         String tag = "makeController.maxMakeCapacity => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMaxMakeCapacity(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -184,9 +233,19 @@ public class MakeController {
         log.info(tag);
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("baseUrl",env.getProperty("base_file_url"));
         result.setData(moService.getOperProdList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -196,8 +255,18 @@ public class MakeController {
         String tag = "makeController.maxMakeCapacityPerDay => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMaxMakeCapacityPerDay(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*작업현황에서 drag & drop으로 작업기간을 옮긴경*/
@@ -207,8 +276,18 @@ public class MakeController {
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         moService.resetMakeTermByDragDrop(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -218,11 +297,21 @@ public class MakeController {
         String tag = "makeController.saveMakeIndcFullByPlan => ";
         Result result = Result.successInstance();;
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
         moService.saveMakeIndcFullByPlan(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -232,11 +321,21 @@ public class MakeController {
         String tag = "makeController.saveMakeIndcFull => ";
         Result result = Result.successInstance();;
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
         result.setData(moService.saveMakeIndcFull(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -246,11 +345,21 @@ public class MakeController {
         String tag = "makeController.getProdIndcNo => ";
         Result result = Result.successInstance();;
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
         result.setData(moService.getProdIndcNo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -260,11 +369,21 @@ public class MakeController {
         String tag = "makeController.saveMakeIndc => ";
         Result result = Result.successInstance();;
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
         moService.saveMakeIndc(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/dropMakeIndc")
@@ -272,9 +391,19 @@ public class MakeController {
         String tag = "makeController.dropMakeIndc => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.dropMakeIndc(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -284,9 +413,19 @@ public class MakeController {
         String tag = "makeController.saveMakeIndcMp => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.saveMakeIndcMp(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -296,11 +435,21 @@ public class MakeController {
         String tag = "makeController.makeIndcMpInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
 
         result.setData(moService.getMakeIndcMpInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*작업지시상세-투입인력목록*/
@@ -309,13 +458,23 @@ public class MakeController {
         String tag = "makeController.makeIndcMpList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("ocpnKind", Long.parseLong(env.getProperty("ocpn_kind_blue").toString()));
         log.info(tag + "paraMap = " + paraMap.toString());
 
         result.setData(moService.getMakeIndcMpList(paraMap));
         result.setTotalCount(moService.getMakeIndcMpListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/makeStatusList")
@@ -323,11 +482,21 @@ public class MakeController {
         String tag = "makeController.makeStatusList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
         result.setData(moService.getMakeStatusList(paraMap));
         result.setTotalCount(moService.getMakeStatusListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -337,9 +506,11 @@ public class MakeController {
         String tag = "makeController.timeStrinfg => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(moService.getTimeString(paraMap));
+
         return result;
     }
 
@@ -350,11 +521,21 @@ public class MakeController {
         String tag = "makeController.reqMatrList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
         result.setData(moService.getReqMatrList(paraMap));
         result.setTotalCount(moService.getReqMatrListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -364,9 +545,19 @@ public class MakeController {
         String tag = "makeController.saveReqMatr => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.saveReqMatr(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -376,8 +567,18 @@ public class MakeController {
         String tag = "makeController.makeIndcRsltInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMakeIndcRsltInfo(paraMap));;
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
 
     }
@@ -388,10 +589,20 @@ public class MakeController {
         String tag = "makeController.makeIndcProc => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("indcNo",Long.parseLong(paraMap.get("indc_no").toString()));
         result.setData(moService.makeIndcProc(paraMap));;
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*공정별 작업처리결과 저장*/
@@ -400,9 +611,19 @@ public class MakeController {
         String tag = "makeController.saveIndcRslt => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.saveIndcRslt(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/dropIndcRslt")
@@ -410,9 +631,19 @@ public class MakeController {
         String tag = "makeController.dropIndcRslt => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.dropIndcRslt(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -423,8 +654,18 @@ public class MakeController {
         paraMap.put("ordSts",null); //출고대
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getExportPlanList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*생산현황:입고상태인자료만 대상으로 함.*/
@@ -432,11 +673,21 @@ public class MakeController {
     public Result MakeStatList(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info("maekStatListController.paraMap = " + paraMap.toString());//kill
         result.setData(moService.getMakeStatList(paraMap));
         result.setTotalCount(moService.getMakeStatListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -444,11 +695,21 @@ public class MakeController {
     public Result makeStatMoreList(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info("maekStatListController.paraMap = " + paraMap.toString());//kill
         result.setData(moService.getMakeStatMoreList(paraMap));
         result.setTotalCount(moService.getMakeStatMoreListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -458,11 +719,21 @@ public class MakeController {
         String tag = "makeController.MakeDailyReportList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("procCd",Long.parseLong(env.getProperty("proc.code.complete")));
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moService.getMakeDailyReportList(paraMap));
         result.setTotalCount(moService.getMakeDailyReportListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*생산결과*/
@@ -471,10 +742,20 @@ public class MakeController {
         String tag = "makeController.MakeDailyReportList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moService.getMakeIndcRsltList(paraMap));
         result.setTotalCount(moService.getMakeIndcRsltListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*생산직목록*/
@@ -485,8 +766,17 @@ public class MakeController {
         //paraMap.put("ocpnKind", Long.parseLong(env.getProperty("ocpn_kind_blue").toString()));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getWorkerList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -496,13 +786,23 @@ public class MakeController {
         String tag = "makeController.mpUsedList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("ocpnKind", Long.parseLong(env.getProperty("ocpn_kind_blue").toString()));
         log.info(tag + "paraMap = " + paraMap.toString());
 
         result.setData(moService.getMpUsedList(paraMap));
         result.setTotalCount(moService.getMpUsedListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*투입인력상세*/
@@ -511,12 +811,22 @@ public class MakeController {
         String tag = "makeController.mpUsedDetlList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
         log.info("emplKind = " + paraMap.get("emplKind"));
         result.setData(moService.getMpUsedDetlList(paraMap));
         result.setTotalCount(moService.getMpUsedDetlListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*투입인력정보저장*/
@@ -525,9 +835,19 @@ public class MakeController {
         String tag = "makeController.mpInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.saveMpInfo(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*투입인력 삭제*/
@@ -535,8 +855,17 @@ public class MakeController {
     public Result mpdropInfo(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         moService.getMpDropInfo(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -546,7 +875,8 @@ public class MakeController {
         String tag = "makeController.faultList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         try {
             paraMap.put("dateFr", paraMap.get("dateFr").toString().substring(0, 10));
@@ -557,6 +887,15 @@ public class MakeController {
         }
         result.setData(moService.getFaultList(paraMap));
         result.setTotalCount(moService.getFaultListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -567,7 +906,8 @@ public class MakeController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Result result = Result.successInstance();
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         String resource = "config/mes.properties";
         Properties properties = new Properties();
@@ -582,6 +922,15 @@ public class MakeController {
             e.printStackTrace();
             Objects.requireNonNull(null, properties.getProperty("property_file_not_found"));
         }
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /*작업현황*/
@@ -589,13 +938,23 @@ public class MakeController {
     public Result makeStatusReport(@RequestBody Map<String, Object> paraMap , HttpSession session){
         String tag = "makeController.makeStatusReport => ";
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("baseProcNo",Long.parseLong(env.getProperty("code_base_proc")));
         log.info(tag + "params = " + paraMap.toString());
         Result result = Result.successInstance();
         result.setData(moService.getMakeStatusReport(paraMap));
         result.setTotalCount(moService.getMakeStatusReportCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -606,9 +965,19 @@ public class MakeController {
         String tag = "makeController.makePlanList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moService.getMakePlanList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -617,11 +986,21 @@ public class MakeController {
         String tag = "makeController.makePlanOrdList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageSz", 10);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moService.getMakePlanProdList(paraMap));
         result.setTotalCount(moService.getMakePlanProdListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -630,7 +1009,8 @@ public class MakeController {
         String tag = "makeController.prodProdList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getComboProdProcList(paraMap));
         return result;
     }
@@ -639,8 +1019,18 @@ public class MakeController {
         String tag = "makeController.getMakeMainProc => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMakeMainProc(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/makeExtraProc") //상품별 제조공정 이외의 추가 추출용
@@ -648,8 +1038,18 @@ public class MakeController {
         String tag = "makeController.getMakeExtraProc => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMakeExtraProc(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/condition104ProcStd")
@@ -657,7 +1057,8 @@ public class MakeController {
         String tag = "makeController.condition104ProcStd => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("procList", moService.getMakeProcList(paraMap)); //최초공정
@@ -669,10 +1070,20 @@ public class MakeController {
         String tag = "makeController.condition104ProcStd => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("procList", moService.getMoniterItemList(paraMap)); //최초공정
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         result.setData(rmap);
         return result;
     }
@@ -681,7 +1092,8 @@ public class MakeController {
         String tag = "makeController.manPowerSummaryList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String, Object>();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("dateFr", paraMap.get("dateFr").toString().substring(0, 10));
@@ -689,6 +1101,15 @@ public class MakeController {
         log.info(tag + "paraMap = " + paraMap.toString());
         result.setData(moService.getManPowerSummaryList(paraMap));
         result.setTotalCount(moService.getManPowerSummaryListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/manPowerList")
@@ -696,13 +1117,23 @@ public class MakeController {
         String tag = "makeController.manPowerList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String, Object>();
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("mpUsedDt", paraMap.get("mpUsedDt").toString().substring(0,10));
 
         result.setData(moService.getManPowerList(paraMap));
         result.setTotalCount(moService.getManPowerListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/wgtchkSummaryList")
@@ -710,11 +1141,21 @@ public class MakeController {
         String tag = "makeController.wgtchkSummaryList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
         result.setData(moService.getWgtchkSummaryList(paraMap));
         result.setTotalCount(moService.getWgtchkSummaryListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/wgtchkDiareyList")
@@ -722,11 +1163,21 @@ public class MakeController {
         String tag = "makeController.wgtchkDiaryList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
         result.setData(moService.getWgtchkDiaryList(paraMap));
         result.setTotalCount(moService.getWgtchkDiaryListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -737,8 +1188,17 @@ public class MakeController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMakeIndcPrintList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -750,8 +1210,17 @@ public class MakeController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMakeIndcBfPrintList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -763,8 +1232,17 @@ public class MakeController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getProcCtntList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -776,8 +1254,17 @@ public class MakeController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getMatchIndcList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -787,8 +1274,18 @@ public class MakeController {
         String tag = "vsvc..MakeController.needProdBomList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getNeedProdBomList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -798,8 +1295,18 @@ public class MakeController {
         log.info(tag + "paraMap = " +paraMap.toString());
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(moService.getIndcListByProc(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -809,10 +1316,20 @@ public class MakeController {
         log.info(tag + "paraMap = " +paraMap.toString());
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(moService.getIndcSaltList(paraMap));
         result.setTotalCount(moService.getIndcSaltListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -822,9 +1339,19 @@ public class MakeController {
         log.info(tag + "paraMap = " +paraMap.toString());
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.saveIndcSaltList(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -834,9 +1361,19 @@ public class MakeController {
         log.info(tag + "paraMap = " +paraMap.toString());
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.saveIndcPrintText(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -846,9 +1383,19 @@ public class MakeController {
         String tag = "makeController.mpInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.planSave(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -874,6 +1421,15 @@ public class MakeController {
             case 10 : rmap = metal10.metalDetectOper(paraMap); break;
         }
         result.setData(rmap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -889,15 +1445,24 @@ public class MakeController {
         String tag = "MakeController.startMetalOper => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        long custNo = uvo.getCustInfo().getCustNo();
-        switch ((int) custNo) {
+        switch (custNo.intValue()) {
             case 2 : //서울식품
                 modbusService.startOper(paraMap);
                 moService.saveIndcPrintText(paraMap);
                 break;
         }
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -913,12 +1478,12 @@ public class MakeController {
         String tag = "MakeController.getCurMetalLog => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        long custNo = uvo.getCustInfo().getCustNo();
         Map<String,Object> rmap = new HashMap<String,Object>();
 
-        switch ((int) custNo) {
+        switch (custNo.intValue()) {
             case 2 : //서울식품
                 break;
             case 10 : //유진물산
@@ -928,8 +1493,15 @@ public class MakeController {
 
         //rmap = metal10.getCurMetalLog(paraMap);
         result.setData(rmap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
-
-
 }

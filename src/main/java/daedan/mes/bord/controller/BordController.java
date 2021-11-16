@@ -48,17 +48,13 @@ BordController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 
-
         paraMap.put("term",env.getProperty("boardInterval"));
         result.setData(bordService.getFindBoardTerm(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.READ,1);
-
-
+        AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+        userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
         //EOL AddON By KMJ AT 21.11.26
-
 
         return result;
     }
@@ -78,7 +74,7 @@ BordController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo,acvo.getAccNo(), EvntType.READ,2);
+            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,2);
         }
         catch(NullPointerException ne) {
 
@@ -102,8 +98,8 @@ BordController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
         }
         catch(NullPointerException ne) {
 
@@ -122,11 +118,10 @@ BordController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         bordService.deleteBord(paraMap);
 
-
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
         }
         catch(NullPointerException ne) {
 
@@ -147,7 +142,7 @@ BordController {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }

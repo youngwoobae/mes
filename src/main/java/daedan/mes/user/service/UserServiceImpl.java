@@ -516,14 +516,13 @@ public class UserServiceImpl implements UserService {
 		String tag = "vsvc.makeAccHstr => ";
 		log.info(tag + "paraMap = " + paraMap.toString());
 		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-		AccHstr hstrvo = new AccHstr();
-		hstrvo.setAccDt(DateUtils.getCurrentBaseDateTime());
-		hstrvo.setUserId(Long.parseLong(paraMap.get("emplId").toString()));
+		AccHstr vo = new AccHstr();
+		vo.setUserId(Long.parseLong(paraMap.get("emplId").toString()));
 		try {
-			hstrvo.setSysMenuNo(Long.parseLong(paraMap.get("sysMenuNo").toString()));
-			AccHstr chkvo = accHstrRepo.findByCustNoAndAccNo(custNo,hstrvo.getAccNo());
+			vo.setSysMenuNo(Long.parseLong(paraMap.get("sysMenuNo").toString()));
+			AccHstr chkvo = accHstrRepo.findByCustNoAndAccNo(custNo,vo.getAccNo());
 			if (chkvo == null) {
-				accHstrRepo.save(hstrvo);
+				accHstrRepo.save(vo);
 
 				SysMenu mvo = sysmenuService.getSysMenuToVo(paraMap);
 				if (mvo != null) {
@@ -743,28 +742,28 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public List<Map<String, Object>> gethumanList(Map<String, Object> paraMap) {
+	public List<Map<String, Object>> getHumanList(Map<String, Object> paraMap) {
 		String tag = "vsvc.userService.getAuthUserMenuList => ";
 		log.info(tag + "paramMap = " + paraMap.toString());
-		return mapper.gethumanList(paraMap);
+		return mapper.getHumanList(paraMap);
 	}
 
 	@Override
-	public int gethumanListCount(Map<String, Object> paraMap) {
-		return mapper.gethumanListCount(paraMap);
+	public int getHumanListCount(Map<String, Object> paraMap) {
+		return mapper.getHumanListCount(paraMap);
 	}
 
 
 	@Override
-	public List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap) {
+	public List<Map<String, Object>> getHumanHstrList(Map<String, Object> paraMap) {
 		String tag = "vsvc.userService.getAuthUserMenuList => ";
 		log.info(tag + "paramMap = " + paraMap.toString());
-		return mapper.gethumanHstrList(paraMap);
+		return mapper.getHumanHstrList(paraMap);
 	}
 
 	@Override
-	public int gethumanHstrListCount(Map<String, Object> paraMap) {
-		return mapper.gethumanHstrListCount(paraMap);
+	public int getHumanHstrListCount(Map<String, Object> paraMap) {
+		return mapper.getHumanHstrListCount(paraMap);
 	}
 
 
@@ -803,14 +802,27 @@ public class UserServiceImpl implements UserService {
 		userHstr.setHstrFrDt(paraMap.get("hstrFrDt").toString());
 		userHstr.setHstrToDt(paraMap.get("hstrToDt").toString());
 		userHstr.setUsedYn("Y");
-
 		return uhr.save(userHstr);
 
 	}
 
+	@Override
+	public AccHstr saveAccHstr(Map<String, Object> paraMap) {
+		String tag = "UserService.saveAccHstr => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+		AccHstr accHstr = new AccHstr();
+		accHstr.setAccNo(0L);
+		accHstr.setCustNo(custNo);
+		accHstr.setSysMenuNo(Long.parseLong(paraMap.get("sysMenuNo").toString()));
+		accHstr.setUserId(Long.parseLong(paraMap.get("userId").toString()));
+		accHstr.setAccDt(DateUtils.getCurrentBaseDateTime());
+		return accHstrRepo.save(accHstr);
+	}
+
 	@Transactional
 	@Override
-	public void saveHstrEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt) {
+	public void saveAccLogEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt) {
 		String tag = "UserService.hstrEnvtSave => ";
 		Map<String, Object> paraMap = new HashMap<String,Object>();
 		log.info(tag + " paraMap = " + paraMap.toString());

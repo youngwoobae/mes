@@ -47,7 +47,7 @@ public class Dash06Controller {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -82,7 +82,7 @@ public class Dash06Controller {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 3);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 3);
         }
         catch(NullPointerException ne) {
         }
@@ -107,7 +107,7 @@ public class Dash06Controller {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -129,7 +129,7 @@ public class Dash06Controller {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
@@ -149,14 +149,12 @@ public class Dash06Controller {
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveHstrEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
         }
         catch(NullPointerException ne) {
         }
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
-
-
 
 }

@@ -123,8 +123,8 @@ public class DashServiceImpl implements  DashService {
 
 
     @Override
-    public List<Map<String, Object>> gethumanList(Map<String, Object> paraMap){
-        return mapper.gethumanList(paraMap);
+    public List<Map<String, Object>> getHumanList(Map<String, Object> paraMap){
+        return mapper.getHumanList(paraMap);
     }
 
     @Override
