@@ -43,6 +43,7 @@ import daedan.mes.stock.repository.MatrStkRepository;
 import daedan.mes.stock.repository.ProdStkRepository;
 import daedan.mes.stock.service.StockService;
 import daedan.mes.user.domain.UserInfo;
+import lombok.SneakyThrows;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.jdbc.Null;
@@ -81,6 +82,10 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Autowired
     private MakeMpRepository makeMpRepo;
+
+    @Autowired
+    private MakeWorkPlanRepository makeWorkPlanRepo;
+
     @Autowired
     private ProdIwhRepository prodIwhRepo;
 
@@ -2489,5 +2494,37 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         michkvo.setCustNo(custNo);
         makeIndcRepo.save(michkvo);
 
+    }
+
+    @SneakyThrows
+    @Transactional
+    @Override
+    public void planSave(Map<String, Object> paraMap) {
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        MakeWorkPlan mwpvo = new MakeWorkPlan();
+
+        MakeWorkPlan chkvo = makeWorkPlanRepo.findByCustNoAndPlanDtAndBrnchNoAndUsedYn(custNo, sdf.parse(paraMap.get("planDt").toString()), Long.parseLong(paraMap.get("brnchNo").toString()), "Y");
+
+        if (chkvo != null) {
+            mwpvo.setBrnchNo(chkvo.getBrnchNo());
+            mwpvo.setCustNo(chkvo.getCustNo());
+            mwpvo.setPlanDt(chkvo.getPlanDt());
+            mwpvo.setPlanNo(chkvo.getPlanNo());
+            mwpvo.setUsedYn("Y");
+
+            mwpvo.setTextArea(paraMap.get("textArea").toString());
+        } else {
+            mwpvo.setBrnchNo(Long.parseLong(paraMap.get("brnchNo").toString()));
+            mwpvo.setCustNo(custNo);
+            mwpvo.setPlanDt(sdf.parse(paraMap.get("planDt").toString()));
+            mwpvo.setPlanNo(0L);
+            mwpvo.setUsedYn("Y");
+
+            mwpvo.setTextArea(paraMap.get("textArea").toString());
+        }
+
+
+        makeWorkPlanRepo.save(mwpvo);
     }
 }

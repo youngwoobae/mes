@@ -839,6 +839,18 @@ public class MakeController {
         moService.saveIndcPrintText(paraMap);
         return result;
     }
+
+    /*투입인력정보저장*/
+    @PostMapping(value="/planSave")
+    public Result planSave(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
+        String tag = "makeController.mpInfo => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        moService.planSave(paraMap);
+        return result;
+    }
     /**
      * 금속검출기 시작버튼 클릭
      *
@@ -918,5 +930,6 @@ public class MakeController {
         result.setData(rmap);
         return result;
     }
+
 
 }
