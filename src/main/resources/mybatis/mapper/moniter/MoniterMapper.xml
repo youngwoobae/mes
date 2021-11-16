@@ -680,10 +680,10 @@
              , max(a.rcv_tmpr)   as max_val --최대
              , min(a.rcv_tmpr)   as min_val --최소
              , round(avg(a.rcv_tmpr),2) as avg_val --평균
-             , rcv_tm --수신시간
+             , to_char( TIMESTAMP WITH TIME ZONE 'epoch' + INTERVAL '1 second' * round(extract('epoch' from rcv_tm) / 300) * 1800 ,'HH24:MI') as rcv_tm --수신시간
              ,fn_get_spot_name(spot_no) as spot_nm --작업장명
         from (
-                select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                select to_timestamp(a.unix_hms) as rcv_tm
                      , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
                      , spot_no
                      , rcv_tmpr
@@ -706,7 +706,7 @@
                        and to_char(to_timestamp(unix_hms),'YYYY-MM-DD') = substring(#{rcvDt},1,10)
                    </if>
                   ) b on a.rcv_dt = b.rcv_dt
-        group by   rcv_tm , spot_no
+        group by   to_char( TIMESTAMP WITH TIME ZONE 'epoch' + INTERVAL '1 second' * round(extract('epoch' from rcv_tm) / 300) * 1800 ,'HH24:MI') , spot_no
         order by   rcv_tm
 
     </select>
