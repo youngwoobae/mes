@@ -79,8 +79,13 @@ BordController {
         result.setTotalCount(bordService.getBordListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
-        userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.FIND,2);
+        try {
+            UserHstr uhvo = (UserHstr) session.getAttribute("uhvo");
+            userService.saveHstrEvnt(custNo,uhvo.getHstrNo(), EvntType.FIND,2);
+        }
+        catch(NullPointerException ne) {
+
+        }
         //EOL AddON By KMJ AT 21.11.26
         return result;
 
