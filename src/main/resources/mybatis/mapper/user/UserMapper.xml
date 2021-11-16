@@ -108,7 +108,7 @@
         <if test="indcNo != null and indcNo != ''">
             and a.user_id not in (select user_id from make_indc_mp where indc_no = #{indcNo} )
         </if>
-        
+
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
                 and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -590,7 +590,8 @@
              , sum(b.trns_cnt) as trans_cnt
              , fn_get_sys_menu_name(a.sys_menu_no) as sys_menu_nm
         from acc_hstr a join acc_hstr_evnt b on a.cust_no = b.cust_no and a.acc_no = b.acc_no
-        group by    a.sys_menu_no , b.evnt_tp
+        where b.acc_no = #{accNo}
+        group by a.sys_menu_no , b.evnt_tp
     </select>
     <select id="getUserAccLogListCount" parameterType="map" resultType="int">
         /*사용자별 접속상세이력 카운터 (userMapper.getUserAccLogList) */
@@ -598,9 +599,10 @@
         from (
                  select a.sys_menu_no
                       , b.evnt_tp
-                      , sum(b.trns_cnt)                     as trans_cnt
+                      , sum(b.trns_cnt) as trans_cnt
                  from acc_hstr a
                           join acc_hstr_evnt b on a.cust_no = b.cust_no and a.acc_no = b.acc_no
+                 where b.acc_no = #{accNo}
                  group by a.sys_menu_no, b.evnt_tp
              ) a
     </select>
