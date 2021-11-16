@@ -67,6 +67,9 @@ public class UserServiceImpl implements UserService {
 	private UserHstrRepository uhr;
 
 	@Autowired
+	private AccHstrEvntRepository aheRepo;
+
+	@Autowired
 	private CmmnService cmmnService;
 
 	@Autowired
@@ -766,9 +769,9 @@ public class UserServiceImpl implements UserService {
 
 
 
-
+	@Transactional
 	@Override
-	public void hstrSave(Map<String, Object> paraMap) {
+	public UserHstr hstrSave(Map<String, Object> paraMap) {
 		String tag = "UserService.hstrSave => ";
 		log.info(tag + " paraMap = " + paraMap.toString());
 		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
@@ -789,8 +792,27 @@ public class UserServiceImpl implements UserService {
 		userHstr.setHstrToDt(paraMap.get("hstrToDt").toString());
 		userHstr.setUsedYn("Y");
 
-		uhr.save(userHstr);
+		return uhr.save(userHstr);
+
 	}
+
+	@Transactional
+	@Override
+	public void saveHstrEvnt(Long custNo, Long hstrNo, EvntType evntTp, int transCnt) {
+		String tag = "UserService.hstrEnvtSave => ";
+		Map<String, Object> paraMap = new HashMap<String,Object>();
+		log.info(tag + " paraMap = " + paraMap.toString());
+
+		AccHstrEvnt vo = new AccHstrEvnt();
+		vo.setAccEvntNo(0L);
+		vo.setCustNo(custNo);
+		vo.setHstrNo(hstrNo);
+		vo.setEvntTp(evntTp);
+		vo.setTransCnt(transCnt);
+		aheRepo.save(vo);
+	}
+
+
 }
 
 

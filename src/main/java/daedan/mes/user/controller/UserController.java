@@ -12,6 +12,7 @@ import daedan.mes.dept.service.DeptService;
 import daedan.mes.sys.service.SysService;
 import daedan.mes.user.domain.CustInfo;
 import daedan.mes.user.domain.IndsType;
+import daedan.mes.user.domain.UserHstr;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
 import daedan.mes.user.service.UserService;
@@ -477,8 +478,10 @@ public class UserController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("sessId", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        userService.hstrSave(paraMap);
+        UserHstr uhvo = userService.hstrSave(paraMap);
+        session.setAttribute("uhvo", uhvo);
         return result;
     }
 

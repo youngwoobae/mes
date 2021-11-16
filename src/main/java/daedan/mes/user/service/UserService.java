@@ -2,8 +2,11 @@ package daedan.mes.user.service;
 
 
 import daedan.mes.user.domain.CustInfo;
+import daedan.mes.user.domain.EvntType;
+import daedan.mes.user.domain.UserHstr;
 import daedan.mes.user.domain.UserInfo;
 
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,5 +85,7 @@ public interface UserService {
     List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap);
     int gethumanHstrListCount(Map<String, Object> paraMap);
 
-    void hstrSave(Map<String, Object> paraMap);
+    UserHstr hstrSave(Map<String, Object> paraMap);
+
+    @Transactional    void saveHstrEvnt(Long custNo, Long hstrNo, EvntType evntTp, int transCnt);
 }
