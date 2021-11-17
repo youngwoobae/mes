@@ -1,9 +1,7 @@
 package daedan.mes.sys.service;
 
+import daedan.mes.cmmn.io.datamgr.rawdata.RawDataController;
 import daedan.mes.common.service.util.DateUtils;
-import daedan.mes.haccp.common.datamgr.io.server.SockServer;
-import daedan.mes.haccp.common.datamgr.rawdata.RawDataController;
-import daedan.mes.haccp.common.error_handle.CustomErrorHandler;
 import daedan.mes.sys.mapper.SysMapper;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -22,7 +20,6 @@ import daedan.mes.io.repository.ProdIwhRepository;
 import daedan.mes.stock.repository.ProdStkRepository;
 import daedan.mes.make.repository.MakeIndcRsltRepository;
 
-import javax.transaction.Transactional;
 import java.util.*;
 
 @Service("sysService")
@@ -148,6 +145,7 @@ public class SysServiceImpl implements daedan.mes.sys.service.SysService {
     @Override
     public void invokeChatServer() {
         // 프로그램이 serverSocket일 경우
+        /*kmjkmj
         Runnable rServerSocket = new SockServer();
         Thread tServerSocket = new Thread(rServerSocket);
         tServerSocket.setDaemon(true);
@@ -156,6 +154,7 @@ public class SysServiceImpl implements daedan.mes.sys.service.SysService {
             tServerSocket.setName("serverSocket");
             tServerSocket.start();
         }
+        */
 
         // 서버 소켓으로 수신된 데이터가 담긴 큐를 poll하는 쓰레드
         Runnable rRawData = new RawDataController();
