@@ -1547,12 +1547,19 @@ public class IoServiceImpl implements IoService {
 //                }
 //                else {
                     ProdInfo vo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
+                    log.info(paraMap+"paraMqppkgOwhQtypkgOwhQtypkgOwhQtypkgOwhQty");
                     try{
                         qty = Float.parseFloat(paraMap.get("owhQty").toString());
                     }catch (NullPointerException en){
                         qty = 0F;
                     }
-                    Float pkgQty = Float.parseFloat(paraMap.get("pkgOwhQty").toString());
+                     Float pkgQty = 0F;
+                    try{
+                        pkgQty = Float.parseFloat(paraMap.get("pkgOwhQty").toString());
+                    }catch (NullPointerException en){
+                        pkgQty = 0F;
+                    }
+
                     if (qty == 0) {
                         owhvo.setOwhQty(pkgQty * vo.getQtyPerPkg());
                     }
