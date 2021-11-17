@@ -46,7 +46,7 @@ public class  CodeInfo {
     @Column(name="ccp_lmt_std_no", length = 1, columnDefinition = "char default 'N'")
     private String ccpLmtStdNo;
 
-    @Column(name="sys_code_yn",nullable = true, length = 1, columnDefinition = "char default 'N'")
+    @Column(name="sys_code_yn", length = 1, columnDefinition = "char default 'N'")
 
     private String sysCodeYn;
 
@@ -55,44 +55,32 @@ public class  CodeInfo {
     @Column(name="ccp_tp",  length = 10 , columnDefinition = "varchar default 'NONE'")
     private CcpType ccpTp;
 
-    @Column(name="used_yn",nullable = true, length = 1, columnDefinition = "char default 'Y'")
+    @Column(name="used_yn", length = 1, columnDefinition = "char default 'Y'")
     private String usedYn;
 
     @Column(name="mod_able_yn",nullable = false, length = 1, columnDefinition = "char default 'N'")
     private String modableYn;
 
 
-    @Column(name="reg_id",nullable = true, columnDefinition = "numeric")
+    @Column(name="reg_id", columnDefinition = "numeric")
     private Long regId;
 
-    @Column(name="mod_id",nullable = true, columnDefinition = "numeric")
+    @Column(name="mod_id", columnDefinition = "numeric")
     private Long modId;
 
-    @Column(name="reg_ip",nullable = true, length = 20)
+    @Column(name="regIp", length = 20)
     private String regIp;
 
-    @Column(name="mod_ip",nullable = true, length = 20)
+    @Column(name="modIp", length = 20)
     private String modIp;
 
 
-    @Column(name="reg_dt",nullable = true)
+    @Column(name="regDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
 
-    @Column(name="mod_dt",nullable = true)
+    @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
-
-    public Date getRegDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
-
-    public Date getModDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
 }

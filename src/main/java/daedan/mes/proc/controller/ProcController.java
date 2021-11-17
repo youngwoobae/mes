@@ -188,11 +188,11 @@ public class ProcController {
     @PostMapping(value = "/saveProcWork")
     public Result saveProcWork(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
-        procService.saveProcWork(paraMap);
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        procService.saveProcWork(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");

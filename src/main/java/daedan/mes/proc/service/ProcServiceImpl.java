@@ -19,6 +19,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -82,12 +83,12 @@ public class ProcServiceImpl implements ProcService {
         return mapper.getProcBrnchListCount(paraMap);
     }
     @Override
-    @Transactional
+
     public void saveProcWork(Map<String, Object> paraMap) {
         String tag = "vsvc.ProcService.saveProcWork => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        //paraMap = {procBrnchNo=43, procCd=721, procSeq=1, brnchNo=1251, maxMakeQty=0, needDtVal=1, nextStepVal=0, procGrpCd=1901, ccpTp=NONE, userId=5, ipaddr=127.0.0.1}
+        // paraMap : {procBrnchNo=null, procCd=1015078, procNm=테스트공정2, procSeq=7, brnchNo=1252, maxMakeQty=0, needDtVal=1, nextStepVal=0, procGrpCd=713344, ccpTp=NONE, userId=5}
         Long brnchNo = Long.parseLong(paraMap.get("brnchNo").toString());
         Long procCd = 0L;
         try{
@@ -109,7 +110,13 @@ public class ProcServiceImpl implements ProcService {
             cdvo.setCodeBrief(procNm);
             cdvo.setCodeAlais(procNm);
             cdvo.setCodeSeq(procSeq);
-            cdvo.setCcpTp(CcpType.valueOf(paraMap.get("ccpTp").toString()));
+
+            try {
+                cdvo.setCcpTp(CcpType.valueOf(paraMap.get("ccpTp").toString()));
+            }
+            catch (NullPointerException ne) {
+                cdvo.setCcpTp(CcpType.NONE);
+            }
             cdvo.setUsedYn("Y");
             cdvo.setModableYn("N");
             cdvo.setCcpLmtStdNo("N");
@@ -129,13 +136,19 @@ public class ProcServiceImpl implements ProcService {
             cdvo.setCodeBrief(procNm);
             cdvo.setCodeAlais(procNm);
             cdvo.setCodeSeq(procSeq);
-            cdvo.setCcpTp(CcpType.valueOf(paraMap.get("ccpTp").toString()));
+            try {
+                cdvo.setCcpTp(CcpType.valueOf(paraMap.get("ccpTp").toString()));
+            }
+            catch (NullPointerException ne) {
+                cdvo.setCcpTp(CcpType.NONE);
+            }
             cdvo.setModDt(DateUtils.getCurrentBaseDateTime());
             cdvo.setModIp(paraMap.get("ipaddr").toString());
             cdvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
             cdvo.setCustNo(custNo);
             codeRepo.save(cdvo);
         }
+
         //코드순서 재조정 (입력된 코드순서 이하 코드를 몽땅 입력된 코드번호 + 1씩 증가시켜 재설정)
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base_proc")));
         paraMap.put("codeSeq",procSeq);
@@ -175,7 +188,7 @@ public class ProcServiceImpl implements ProcService {
         pivo.setCustNo(custNo);
         procRepo.save(pivo);
 
-        /*프로세스 출력순서를 공정작업코드 출력순서와 동기화 */
+        /*프로세스 출력순서를 공정작업코드 출력순서와 동기화
         idx = -1;
         while(++idx < ds.size()) {
             Map<String,Object> dsMap = ds.get(idx);
@@ -186,6 +199,7 @@ public class ProcServiceImpl implements ProcService {
                 procRepo.save(pivo);
             }
         }
+        */
 
         Long procBrnchNo= 0L;
         ProcBrnch pbvo = new ProcBrnch();
@@ -206,7 +220,8 @@ public class ProcServiceImpl implements ProcService {
         //pbvo.setCodeInfo(codeRepo.findByCodeNoAndUsedYn(Long.parseLong(el.get("proc_cd").toString()),"Y"));
         //pbvo.setProcSeq(pbvo.getCodeInfo().getCodeSeq());
 
-        pbvo.setProcSeq(cdvo.getCodeSeq());
+        //pbvo.setProcSeq(cdvo.getCodeSeq());
+        pbvo.setProcSeq(Integer.parseInt(paraMap.get("procSeq").toString()));
         pbvo.setModDt(DateUtils.getCurrentBaseDateTime());
         pbvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
         pbvo.setModIp(paraMap.get("ipaddr").toString());
@@ -218,7 +233,7 @@ public class ProcServiceImpl implements ProcService {
             procBrnchNo = 0L;
         }
         /*공정분류정보 저장*/
-        ProcBrnch chkvo = procBrnchRepo.findByCustNoAndProcBrnchNoAndUsedYn(custNo,procBrnchNo,"Y");
+        ProcBrnch chkvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo,brnchNo,pbvo.getProcCd(),"Y");
         if (chkvo != null) {
             pbvo.setProcBrnchNo(chkvo.getProcBrnchNo());
             pbvo.setRegDt(chkvo.getRegDt());
@@ -234,18 +249,24 @@ public class ProcServiceImpl implements ProcService {
         pbvo.setCustNo(custNo);
         procBrnchRepo.save(pbvo);
 
-        /*공정분류 출력순서를 공정작업코드 출력순서와 동기화 */
+        /*공정분류 출력순서를 공정작업코드 출력순서와 동기화
         idx = -1;
         while(++idx < ds.size()) {
             Map<String,Object> dsMap = ds.get(idx);
-            chkvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo,pbvo.getBrnchNo(),Long.parseLong(dsMap.get("codeNo").toString()),"Y");
-            if (chkvo != null ) {
-                pbvo.setProcCd(procCd);
-                pbvo.setProcSeq(procSeq + idx);
-                pbvo.setCustNo(custNo);
-                procBrnchRepo.save(pbvo);
+            try {
+                chkvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo, pbvo.getBrnchNo(), Long.parseLong(dsMap.get("codeNo").toString()), "Y");
+                if (chkvo != null) {
+                    pbvo.setProcCd(procCd);
+                    pbvo.setProcSeq(procSeq + idx);
+                    pbvo.setCustNo(custNo);
+                    procBrnchRepo.save(pbvo);
+                }
+            }
+            catch (IncorrectResultSizeDataAccessException ie) {
+                continue;
             }
         }
+        */
     }
 
     @Override
@@ -439,16 +460,58 @@ public class ProcServiceImpl implements ProcService {
     }
 
     @Override
+    @Transactional
     public void saveProcStd(Map<String, Object> paraMap){
         String tag = "ProcService.saveProcStd => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+
+        CodeInfo codeInfo = new CodeInfo();
+
+        codeInfo.setCodeNm(paraMap.get("procNm").toString());
+        codeInfo.setCodeAlais(paraMap.get("procNm").toString());
+        codeInfo.setCodeBrief(paraMap.get("procNm").toString());
+        codeInfo.setSysCodeYn("N");
+
+        codeInfo.setModDt(DateUtils.getCurrentBaseDateTime());
+        codeInfo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+        codeInfo.setModIp(paraMap.get("ipaddr").toString());
+        CodeInfo chkcdvo = null;
+        try {
+            chkcdvo = codeRepo.findByCodeNoAndUsedYn(Long.parseLong(paraMap.get("procCd").toString()), "Y");
+            codeInfo.setCodeNo(chkcdvo.getCodeNo());
+            codeInfo.setRegDt(chkcdvo.getRegDt());
+            codeInfo.setRegId(chkcdvo.getRegId());
+            codeInfo.setRegIp(chkcdvo.getRegIp());
+            codeInfo.setCodeSeq(chkcdvo.getCodeSeq());
+        }
+        catch(NullPointerException ne) {
+            codeInfo.setCodeNo(0L);
+            codeInfo.setCodeSeq(0);
+            codeInfo.setRegDt(DateUtils.getCurrentBaseDateTime());
+            codeInfo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+            codeInfo.setRegIp(paraMap.get("ipaddr").toString());
+        }
+        codeInfo.setParCodeNo(Long.parseLong(env.getProperty("code_base_proc")));
+        codeInfo.setModableYn("Y");
+        codeInfo.setUsedYn("Y");
+        codeInfo = codeRepo.save(codeInfo);
+        if (codeInfo.getCodeSeq() == 0) {
+            codeInfo.setCodeSeq(codeInfo.getCodeNo().intValue());
+            codeRepo.save(codeInfo);
+        }
+
         ProcInfo infovo = new ProcInfo();
         infovo.setUsedYn("Y");
 
         infovo.setMaxMakeQty(Integer.parseInt(paraMap.get("maxMakeQty").toString()));
         infovo.setProcUnit(Long.parseLong(paraMap.get("procUnit").toString()));
-        infovo.setProcSeq(Integer.parseInt(paraMap.get("procSeq").toString()));
+        try {
+            infovo.setProcSeq(Integer.parseInt(paraMap.get("procSeq").toString()));
+        }
+        catch(NullPointerException ne) {
+            infovo.setProcSeq(codeInfo.getCodeSeq());
+        }
         try {
             infovo.setUsedMpLvlt(Integer.parseInt(paraMap.get("usedMpLvlt").toString()));
         }
@@ -467,10 +530,11 @@ public class ProcServiceImpl implements ProcService {
         catch (NullPointerException ne) {
             infovo.setUsedMpLvlb(0);
         }
-        infovo.setModDt(DateUtils.getCurrentDate()); //
+        infovo.setModDt(DateUtils.getCurrentBaseDateTime()); //
         infovo.setModId(Long.parseLong(paraMap.get("userId").toString())); //
         infovo.setModIp(paraMap.get("ipaddr").toString()); //
         infovo.setProcCtnt(paraMap.get("procCtnt").toString());
+
         try {
             infovo.setFileNo(Long.parseLong(paraMap.get("fileNo").toString()));
         }
@@ -483,28 +547,29 @@ public class ProcServiceImpl implements ProcService {
         catch (NullPointerException ne) {
             infovo.setNeedHm(0);
         }
-        infovo.setProcCd(Long.parseLong(paraMap.get("procCd").toString()));
-
-        ProcInfo chkvo = procRepo.findByCustNoAndProcCdAndUsedYn(custNo,infovo.getProcCd(), infovo.getUsedYn());
-        if (chkvo != null) {
-            infovo.setProcCd(chkvo.getProcCd());
-            infovo.setRegDt(DateUtils.getCurrentDate());
-            infovo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-            infovo.setRegIp(paraMap.get("ipaddr").toString()); //
-        }
-        else {
-            infovo.setProcCd(0L);
+        infovo.setProcCd(codeInfo.getCodeNo());
+        ProcInfo chkvo = null;
+        infovo.setProcCd(codeInfo.getCodeNo());
+        try {
+            chkvo = procRepo.findByCustNoAndProcCdAndUsedYn(custNo,infovo.getProcCd(), infovo.getUsedYn());
+            infovo.setProcNo(chkvo.getProcNo());
             infovo.setRegDt(chkvo.getRegDt()); //
             infovo.setRegId(chkvo.getRegId()); //
             infovo.setRegIp(chkvo.getRegIp()); //
         }
+        catch (NullPointerException ne) {
+            infovo.setProcNo(0L);
+            infovo.setRegDt(DateUtils.getCurrentDate());
+            infovo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+            infovo.setRegIp(paraMap.get("ipaddr").toString()); //
+        }
         infovo.setCustNo(custNo);
-        procRepo.save(infovo);
-
-        CodeInfo codeInfo = codeRepo.findByCodeNoAndUsedYn(Long.parseLong(paraMap.get("procCd").toString()),"Y");
-        codeInfo.setCodeNm(paraMap.get("procNm").toString());
-        codeInfo.setCustNo(custNo);
-        codeRepo.save(codeInfo);
+        infovo.setUsedYn("Y");
+        infovo = procRepo.save(infovo);
+        if (infovo.getProcSeq() == 0) {
+            infovo.setProcSeq(infovo.getProcCd().intValue());
+            procRepo.save(infovo);
+        }
     }
     @Override
     public void dropProcStd(Map<String, Object> paraMap){

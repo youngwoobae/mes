@@ -6,6 +6,7 @@ import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.ord.service.Ord18Service;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.core.util.SystemNanoClock;
@@ -33,6 +34,9 @@ public class Ord18Controller {
 
     @Autowired
     private Ord18Service ord18Service;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 미홍 주문장 입력 컨트롤 생성
