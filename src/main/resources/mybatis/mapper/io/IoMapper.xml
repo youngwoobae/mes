@@ -3687,14 +3687,14 @@
                              from matr_stk_clos
                               where 1 =1
                                 and used_yn = 'Y' and cust_no =#{custNo}
-                               and to_char(clos_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
+                               and to_char(mod_dt,'YYYY-MM-DD') = to_char(now()::date -1,'YYYY-MM-DD')
                              ) d on a.wh_no = d.wh_no and a.matr_no = d.matr_no
                    left join (select wh_no
                                    , matr_no
                                    , sum(iwh_qty) as iwh_qty
                               from matr_iwh
                               where used_yn = 'Y' and cust_no =#{custNo}
-                              and to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                              and to_char(mod_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) e on a.wh_no = e.wh_no and a.matr_no = e.matr_no
                    left join (select wh_no
@@ -3702,7 +3702,7 @@
                                    , sum(owh_qty) as owh_qty
                               from matr_owh
                               where used_yn = 'Y' and cust_no =#{custNo}
-                              and to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                              and to_char(mod_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
                               group by wh_no,matr_no
                              ) f on a.wh_no = f.wh_no and a.matr_no = f.matr_no
         where  a.used_yn = 'Y'
