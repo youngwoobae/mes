@@ -2580,7 +2580,8 @@
 
     <select id="getMatrForIwhList" parameterType="map"  resultType="camelMap">
     /* 구매 과정없이 자재 입고처리하는 경우 : 간단 MES용 (ioMapper.getMatrForIwhList) */
-        select  a.matr_no
+        select concat(c.purs_matr_no , '-' , purs_qty) as item_no
+              , a.matr_no
               , a.matr_nm
               , a.valid_term
               , a.item_cd
@@ -2590,15 +2591,16 @@
               , fn_get_code_name('nm',f.save_tmpr) as save_tmpr_nm --보관창고온도명
               , f.wh_no
               , f.wh_no as tmpr_wh_no
+              , c.purs_qty
         from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr
                                        and f.wh_tp = 191
                                        and f.used_yn ='Y' and f.cust_no =#{custNo}
                     left join matr_stk b on a.matr_no = b.matr_no
                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
                                        and b.wh_no = f.wh_no
-                    left join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
+                         join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
-                    left join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
+                         join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
                                         and d.used_yn ='Y' and d.cust_no =#{custNo}
     where a.used_yn = 'Y' and  a.cust_no =#{custNo}
         <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
