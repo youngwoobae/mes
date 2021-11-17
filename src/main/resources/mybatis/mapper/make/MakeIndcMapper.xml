@@ -307,9 +307,8 @@
                                               and b.used_yn = 'Y' and b.cust_no =#{custNo}
                          left join ( select count(proc_cd) as mpCount
                                           , mi.proc_cd
-                                     from make_indc mi join make_indc_mp mim on mi.indc_no = mim.indc_no group by proc_cd
-                                                                            and mim.used_yn = 'Y' and mim.cust_no =#{custNo}
-                                      where mi.used_yn = 'Y' and mi.cust_no =#{custNo}
+                                     from make_indc mi join make_indc_mp mim on mi.indc_no = mim.indc_no  and mim.used_yn = 'Y' and mim.cust_no =#{custNo}
+                                      where mi.used_yn = 'Y' and mi.cust_no =#{custNo} group by proc_cd
         ) e on a.proc_cd = e.proc_cd
         where a.indc_no = #{indcNo}
           and a.used_yn = 'Y' and a.cust_no =#{custNo}
@@ -420,7 +419,7 @@
              , a.matr_req_able_yn --공정별 자재요청 가능 여부
         from proc_info a join code_info b on a.proc_cd = b.code_no
         where proc_cd = #{procCd}
-          and a.used_yn = 'Y' and cust_no =#{custNo}
+          and a.used_yn = 'Y' and a.cust_no =#{custNo}
     </select>
 
     <select  id="getMaxMakeCapacityPerDay" parameterType="map"  resultType="int">
