@@ -8,6 +8,7 @@ import daedan.mes.ord.service.Ord18Service;
 import daedan.mes.user.domain.UserInfo;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.core.util.SystemNanoClock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,11 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @RestController
-@RequestMapping("/api/daedan/mes/ord/18")
+@RequestMapping("/api/daedan/mes/ord/")
 public class Ord18Controller {
     private Log log = LogFactory.getLog(this.getClass());
 
@@ -65,13 +65,86 @@ public class Ord18Controller {
 
     @PostMapping(value = "/ord18List") //주문자생산
     public Result ord18List(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+        String tag = "Ord18Controller.ord18List =>";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
-        result.setData(ord18Service.getOrd18List(paraMap));
-        result.setTotalCount(ord18Service.getOrd18ListCount(paraMap));
+        HashMap<String ,Object> rmap = new HashMap<String,Object>();
+
+        List<Map<String, Object>> ds = ord18Service.getOrd18List(paraMap);
+        ArrayList<Map<String, Object>> result22 = new ArrayList<>();
+//        StringBuffer sbuffer = new StringBuffer();
+
+        int i;
+        boolean isFillRight = false;
+        int count = 0;
+        HashMap<String,Object> dmap = new HashMap<String,Object>();
+        for( i = 0; i < ds.size(); i++) {
+            rmap = (HashMap<String, Object>) ds.get(i);
+            log.info(tag + "rmap = " + rmap.toString());
+            switch (i % 2) {
+                case 0:
+                    count++;
+                    dmap.put("ordNoL", rmap.get("ordNo"));
+                    dmap.put("ordNo2L" , rmap.get("ordNo"));
+                    dmap.put("ordCustNmL" , rmap.get("ordCustNm"));
+                    dmap.put("ordCustCellNoL" , rmap.get("ordCustCellNo"));
+                    dmap.put("rcvNmL" , rmap.get("rcvNm"));
+                    dmap.put("rcvCellNoL", rmap.get("rcvCellNo"));
+                    dmap.put("rcvAddrL" , rmap.get("rcvAddr"));
+                    dmap.put("rcvTpL" , rmap.get("rcvTp"));
+                    dmap.put("rcvHrL" , rmap.get("rcvHr"));
+                    dmap.put("sheetRmkL" , rmap.get("sheetRmk"));
+                    dmap.put("txtRmkL" , rmap.get("txtRmk"));
+                    dmap.put("noteRmkL" , rmap.get("noteRmk"));
+                    dmap.put("prodNoL" , rmap.get("prodNo"));
+                    isFillRight = false;
+                    if(count%3 == 0){
+                        result22.add(dmap);
+                    }
+                    log.info(tag + "dmap = " + dmap.toString());
+                    break;
+                case 1:
+                    count++;
+                    dmap.put("ordNoR", rmap.get("ordNo"));
+                    dmap.put("ordNoR", rmap.get("ordNo"));
+                    dmap.put("ordNo2R", rmap.get("ordNo"));
+                    dmap.put("ordCustNmR", rmap.get("ordCustidxNm"));
+                    dmap.put("ordCustCellNoR", rmap.get("ordCustCellNo"));
+                    dmap.put("rcvNmR", rmap.get("rcvNm"));
+                    dmap.put("rcvCellNoR", rmap.get("rcvCellNo"));
+                    dmap.put("rcvAddrR", rmap.get("rcvAddr"));
+                    dmap.put("rcvTpR", rmap.get("rcvTp"));
+                    dmap.put("rcvHrR", rmap.get("rcvHr"));
+                    dmap.put("sheetRmkR", rmap.get("sheetRmk"));
+                    dmap.put("txtRmkR", rmap.get("txtRmk"));
+                    dmap.put("noteRmkR", rmap.get("noteRmk"));
+                    dmap.put("prodNoR", rmap.get("prodNo"));
+                    log.info(tag + "dmap = " + dmap.toString());
+                    result22.add(dmap);
+                    dmap = new HashMap<String,Object>();
+                    isFillRight = true;
+                    break;
+            }
+            if (!isFillRight) {
+                dmap.put("ordNoR", " ");
+                dmap.put("ordNoR2", " ");
+                dmap.put("ordCustNmR", " ");
+                dmap.put("ordCustCellNoR", " ");
+                dmap.put("rcvNmR", " ");
+                dmap.put("rcvCellNoR", " ");
+                dmap.put("rcvAddrR", " ");
+                dmap.put("rcvTpR", " ");
+                dmap.put("rcvHrR ", " ");
+                dmap.put("sheetRmkR", " ");
+                dmap.put("txtRmkR", " ");
+                dmap.put("noteRmkR", " ");
+                dmap.put("prodNoR", " ");
+            }
+        }
+        result.setData(result22);
         return result;
     }
 
