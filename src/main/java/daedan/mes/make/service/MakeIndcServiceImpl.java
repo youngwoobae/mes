@@ -1063,7 +1063,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Long matrNo = Long.parseLong(el.get("matrNo").toString());
         Long custNo = Long.parseLong(el.get("custNo").toString());
         MakeIndcMatr matrvo = new MakeIndcMatr();
-        Long indcNo = Long.parseLong(el.get("indcno").toString());
+        Long indcNo = Long.parseLong(el.get("indcNo").toString());
 
         matrvo.setIndcNo(indcNo);
         matrvo.setMatrNo(matrNo);

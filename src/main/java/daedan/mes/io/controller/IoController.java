@@ -1323,6 +1323,7 @@ public class IoController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("whTp",Long.parseLong(env.getProperty("wh_type_prod")));
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(ioService.prodWhNm(paraMap));
         result.setTotalCount(ioService.prodWhNmCount(paraMap));
         return result;
@@ -1459,6 +1460,7 @@ public class IoController {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         Result result = Result.successInstance();
+
         ioService.getOwhHstr(paraMap);
         return result;
     }

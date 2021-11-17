@@ -1,7 +1,7 @@
 package daedan.mes.common.service.util;
 
 
-import daedan.mes.haccp.common.error_handle.CustomErrorException;
+import daedan.mes.common.error_handle.CustomErrorException;
 import net.minidev.json.parser.ParseException;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -75,7 +75,7 @@ public class CommonUtils {
 	 * 
 	 * getlocale
 	 * 
-	 * @param request
+	 * @param session
 	 * @return String
 	 */
 	public static String getLocale(HttpSession session) {
@@ -91,7 +91,7 @@ public class CommonUtils {
 	 * 
 	 * getSessionLocaleInfo
 	 * 
-	 * @param request
+	 * @param session
 	 * @return Map<String,Object>
 	 */
 	public static Map<String, Object> getSessionLocaleInfo(HttpSession session) {
@@ -104,7 +104,7 @@ public class CommonUtils {
 	/**
 	 * getUserId
 	 * 
-	 * @param request
+	 * @param session
 	 * @return String
 	 */
 	public static String getUserId(HttpSession session) {
@@ -119,7 +119,7 @@ public class CommonUtils {
 	/**
 	 * getSessionInfo
 	 * 
-	 * @param request
+	 * @param session
 	 * @return Map<String,Object>
 	 */
 	public static Map<String, Object> getSessionInfo(HttpSession session) {
@@ -132,7 +132,7 @@ public class CommonUtils {
 	/**
 	 * isEmpty
 	 * 
-	 * @param s
+	 * @param obj
 	 * @return boolean
 	 */
 	public static boolean isEmpty(Object obj) {
@@ -466,7 +466,7 @@ public class CommonUtils {
 	/**
 	 * getMapFromRequest : GET 메소드 전용. Request 파라미터 Map을 추출하여 맵으로 민들기
 	 * 
-	 * @param HttpServletRequest request
+	 * @param request
 	 * @return Map<String, Object>
 	 */
 	public static Map<String, Object> getMapFromRequest(HttpServletRequest request) {
@@ -499,7 +499,7 @@ public class CommonUtils {
 	 * getMapFromRequestWithDevextreme : GET 메소드 전용. Request 파라미터 Map을 추출하여 맵으로 민들기.
 	 * Devextreme의 파라미터도 받아와 Java에서도 읽을 수 있게 함.
 	 * 
-	 * @param HttpServletRequest request
+	 * @param request
 	 * @return Map<String, Object>
 	 * @throws ParseException
 	 */
@@ -540,13 +540,15 @@ public class CommonUtils {
 	/**
 	 * convertToFileFromMultipart : MultipartFile을 File로 컨버트
 	 * 
-	 * @param MultipartFile mf
+	 * @param  mf
+	 * @param  directoryPath
 	 * @return File
+	 * @throws IOException
 	 * @throws CustomErrorException
 	 */
 	// http://blog.naver.com/PostView.nhn?blogId=stork838&logNo=220142660973&parentCategoryNo=&categoryNo=37&viewDate=&isShowPopularPosts=true&from=search
 	public static File convertToFileFromMultipart(MultipartFile mf, String directoryPath)
-			throws IOException, CustomErrorException {
+			throws IOException ,CustomErrorException {
 		File file = null;
 		FileOutputStream fos = null;
 		String docFileName = null;
@@ -588,7 +590,8 @@ public class CommonUtils {
 	 * convertToFileFromMultipartWithCustomName : MultipartFile을 File로 컨버트. 그리고 지정한
 	 * 이름으로 파일 생성
 	 * 
-	 * @param MultipartFile mf
+	 * @param  mf
+	 * @param  directoryPath
 	 * @return File
 	 */
 	// http://blog.naver.com/PostView.nhn?blogId=stork838&logNo=220142660973&parentCategoryNo=&categoryNo=37&viewDate=&isShowPopularPosts=true&from=search
@@ -617,7 +620,6 @@ public class CommonUtils {
 	/**
 	 * convertFileToBlob : File을 SQL로 컨버트
 	 * 
-	 * @param File flie
 	 * @return Blob
 	 * @throws SQLException
 	 * @throws IOException
@@ -659,7 +661,7 @@ public class CommonUtils {
 	/**
 	 * blobToByteArr : Bolb을 DB에 저장 할 byte[]로 컨버트
 	 * 
-	 * @param Blob blob
+	 * @param blob
 	 * @return byte[]
 	 */
 	public static byte[] blobToByteArr(Blob blob) throws Exception {
@@ -673,10 +675,10 @@ public class CommonUtils {
 	/**
 	 * sendHttpPostWithMultipart :HTTP Post 방식으로 URL 및 MultipartFile을 보낸다.
 	 * 
-	 * @param String url
-	 * @param String imagePath
-	 * @param        Map<String, String> paramStringMap
-	 * @param        Map<String, MultipartFile> paramMultipartMap
+	 * @param url
+	 * @param imagePath
+	 * @param paramStringMap
+	 * @param paramMultipartMap
 	 * @return Map<String, Object>
 	 */
 	public static Map<String, Object> sendHttpPostWithMultipart(String url, String imagePath,
@@ -758,9 +760,9 @@ public class CommonUtils {
 	/**
 	 * sendHttpPostWithFile :HTTP Post 방식으로 URL 및 MultipartFile을 보낸다.
 	 * 
-	 * @param String url
-	 * @param        Map<String, String> paramStringMap
-	 * @param        Map<String, File> paramFileMap
+	 * @param url
+	 * @param paramStringMap
+	 * @param paramFileMap
 	 * @return Map<String, Object>
 	 * @throws ParseException
 	 * @throws IOException
@@ -851,9 +853,8 @@ public class CommonUtils {
 	/**
 	 * sendHttpPost :HTTP Post 방식으로 URL 및 맵을 보낸다
 	 * 
-	 * @param String url
-	 * @param        Map<String, String> paramStringMap
-	 * @param        Map<String, File> paramFileMap
+	 * @param url
+	 * @param paramStringMap
 	 * @return Map<String, Object>
 	 * @throws IOException
 	 * @throws ClientProtocolException
@@ -922,7 +923,8 @@ public class CommonUtils {
 	/**
 	 * toProperCase : 카멜케이스 toCamelCase 함수를 보조하는 역할로 camecase 만드는데 쓰인다.
 	 * 
-	 * @param String s
+	 * @param s
+	 * @param isCapital
 	 * @return String
 	 */
 	public static String toProperCase(String s, boolean isCapital) {
@@ -940,7 +942,7 @@ public class CommonUtils {
 	/**
 	 * toCamelCase : 문자열을 카멜 케이스로 만든다.
 	 * 
-	 * @param String s
+	 * @param  s
 	 * @return String
 	 */
 	public static String toCamelCase(String s) {

@@ -75,7 +75,7 @@ public class PursMatr {
     @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 
-    @Column(name="purs_sts",nullable = false)
+    @Column(name="purs_sts" ,columnDefinition = "numeric default 0")
     private Long pursSts;
 
     public Date getRegDt(){

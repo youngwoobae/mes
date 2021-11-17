@@ -507,12 +507,13 @@ public class SysMenuServiceImpl implements SysMenuService {
 
      Double형 난수 발생 임의값 = 0.8888650101288209
      */
-    public void makeAccHstr(Map<String, Object> paraMap) {
+    public AccHstr makeAccHstr(Map<String, Object> paraMap) {
         String tag  = "sysMenuService.makeAccHstr => ";
         log.info(tag + "paraMap = " + paraMap.toString());
 
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long userId = Long.parseLong(paraMap.get("userId").toString());
+
         /*1. 처리일자 추출 : 강제 생성시에만  사용할 것.
         Map<String,Object> rmap =  cmmnService.getMakeHstrPreVal(paraMap);
         int makeTerm = Integer.parseInt(rmap.get("unixTime").toString()); //날짜생성 기간처리용 unixTime(ex: 2021.08.22 18:00 - 2021.08.01 09:00 의 unixTime)
@@ -539,6 +540,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         AccHstr ahvo = new AccHstr();
         ahvo.setAccNo(0L);
         ahvo.setAccUnixTime(procUxixTime);
+
         /*강제생성시에만 사용할 것.
         Double  randomVal = Math.random();
         int menuNo = (int) (randomVal * menuCount );
@@ -565,8 +567,9 @@ public class SysMenuServiceImpl implements SysMenuService {
         //AccHstr chkvo = accHstrRepo.findByCustNoAndAccNo(custNo,ahvo.getAccNo());
         //if (chkvo == null) {
             //ahvo.setAccNo(0L);
-            accHstrRepo.save(ahvo);
+            ahvo = accHstrRepo.save(ahvo);
        // }
+        return ahvo;
     }
 
     @Override

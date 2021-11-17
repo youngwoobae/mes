@@ -33,7 +33,7 @@ public interface DashService {
 
     List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> gethumanList(Map<String, Object> paraMap);
+    List<Map<String, Object>> getHumanList(Map<String, Object> paraMap);
     int getToTalhumanCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getYyjgMatrIoList(Map<String, Object> paraMap);

@@ -9,7 +9,10 @@ import daedan.mes.file.repository.FileRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.file.domain.FileInfo;
+import daedan.mes.user.domain.AccHstrEvnt;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +41,9 @@ public class BordServiceImpl implements BordService {
 
     @Autowired
     private BordService bordService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private BordMapper mapper;

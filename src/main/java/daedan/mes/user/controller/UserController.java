@@ -10,9 +10,7 @@ import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.service.DeptService;
 import daedan.mes.sys.service.SysService;
-import daedan.mes.user.domain.CustInfo;
-import daedan.mes.user.domain.IndsType;
-import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.domain.*;
 import daedan.mes.user.repository.CustInfoRepository;
 import daedan.mes.user.service.UserService;
 import net.sf.json.JSON;
@@ -113,8 +111,6 @@ public class UserController {
         if (uvo == null) {
             session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
         }
-
-
         response.setHeader("authorization", token);
         result.setData(uservo);
         return result;
@@ -141,13 +137,18 @@ public class UserController {
                 /* KPI API 세션 생성 */
                 Map<String,Object> amap = new HashMap<String,Object>();
                 JSONObject jsonData = new JSONObject();
-                jsonData.put("companyCode",uservo.getCustInfo().getSaupNo());
-                amap.put("apiURL", env.getProperty("kpi.sessionURL"));
-                amap.put("jsonStr",jsonData);
-                jsonData = cmmnService.getRestApiData(amap);
-                //if (jsonData.get("error") == null) {
+                try {
+                    jsonData.put("companyCode", uservo.getCustInfo().getSaupNo());
+                    amap.put("apiURL", env.getProperty("kpi.sessionURL"));
+                    amap.put("jsonStr", jsonData);
+                    jsonData = cmmnService.getRestApiData(amap);
+                    //if (jsonData.get("error") == null) {
                     session.setAttribute("kpiSessId", jsonData.get("sessionId"));
-                //}
+                    //}
+                }
+                catch (NullPointerException ne) {
+
+                }
 
                 // MES 세션 생성
                 session.setAttribute("userInfo",uservo);//사용자 및 고객사 특성정보
@@ -225,7 +226,8 @@ public class UserController {
     public Result conditionsUser9020(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String,Object> rmap = new HashMap<String,Object>();
 
         paraMap.put("selectStr","직종구분선택");
@@ -240,14 +242,14 @@ public class UserController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.user_stat")));
         rmap.put("comboUserStat", codeService.getComboCodeList(paraMap));
         result.setData(rmap);
-
         return result;
     }
     @PostMapping(value = "/conditionsEmpUser")
     public Result conditionsEmpUser(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String,Object> rmap = new HashMap<String,Object>();
 
         paraMap.put("selectStr","직종구분선택");
@@ -274,31 +276,57 @@ public class UserController {
     @PostMapping(value = "/userList")
     public Result userList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         result.setData(userService.getUserList(paraMap));
         result.setTotalCount(userService.getUserListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/authUserList")
     public Result authUserList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(userService.getAuthUserList(paraMap));
         result.setTotalCount(userService.getAuthUserListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/renewalAuthUser")
     public Result renewalAuthUser(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         userService.renewalAuthUser(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -306,10 +334,19 @@ public class UserController {
     public Result userInfo(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(userService.getUserInfo(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
         return result;
+        //EOL AddON By KMJ AT 21.11.26
     }
     @PostMapping(value = "/saveUser")
     public Result saveUser(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
@@ -317,17 +354,35 @@ public class UserController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         userService.saveUser(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/dropUser")
     public Result dropUser(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         userService.dropUser(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -335,8 +390,13 @@ public class UserController {
     public Result userData(@RequestBody HashMap<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(userService.getUserData(paraMap.get("email").toString(), paraMap.get("password").toString(),paraMap.get("newPassword").toString()));
+        //SOL AddOn By KMJ AT 21.11.16
+        AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+        userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -345,9 +405,18 @@ public class UserController {
     public Result renewalUserData(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         userService.renewalUserData(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -355,7 +424,8 @@ public class UserController {
     public Result getComboDeptList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(userService.getComboDeptList(paraMap));
         result.setTotalCount(userService.getComboDeptListCount(paraMap));
@@ -366,11 +436,19 @@ public class UserController {
     public Result getTabletWorkerList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(userService.getTabletWorkerList(paraMap));
         result.setTotalCount(userService.getTabletWorkerListCount(paraMap));
-
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/makeAccHstr")
@@ -378,7 +456,6 @@ public class UserController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
         userService.makeAccHstr(paraMap);
         return result;
     }
@@ -386,33 +463,60 @@ public class UserController {
     public Result accHstrSummaryList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(userService.getHstrSummaryList(paraMap));
         result.setTotalCount(userService.getHstrSummaryListCount(paraMap));
 
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/accHstrList")
     public Result getHstrList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(userService.getHstrList(paraMap));
         result.setTotalCount(userService.getHstrListCount(paraMap));
 
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/authUserMenuList")
     public Result authUserMenuList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(userService.getAuthUserMenuList(paraMap));
         result.setTotalCount(userService.getAuthUserMenuListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -420,10 +524,19 @@ public class UserController {
     public Result authUserMenuInfo(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         Map<String,Object> rmap = new HashMap<String,Object>();
         result.setData(cmmnService.getAuthUserMenuInfo(paraMap)); //메뉴별상세접근권한
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -432,41 +545,79 @@ public class UserController {
     public Result saveAuthUserMenu(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         userService.saveAuthUserMenu(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value = "/saveToken") /*사용자별 세부 메뉴 권한 처리*/
     public Result saveToken(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(userService.saveToken(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
 
-    @PostMapping(value="/gethumanList") //사용자별 상세메뉴권한
-    public Result gethumanList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+    @PostMapping(value="/getHumanList")
+    public Result getHumanList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.gethumanList(paraMap)); //메뉴별상세접근권한
-        result.setTotalCount(userService.gethumanListCount(paraMap));
+        result.setData(userService.getHumanList(paraMap)); //메뉴별상세접근권한
+        result.setTotalCount(userService.getHumanListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 21);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
 
-    @PostMapping(value="/gethumanHstrList") //사용자별 상세메뉴권한
-    public Result gethumanHstrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+    @PostMapping(value="/getHumanHstrList")
+    public Result getHumanHstrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.gethumanHstrList(paraMap)); //메뉴별상세접근권한
-        result.setTotalCount(userService.gethumanHstrListCount(paraMap));
+        result.setData(userService.getHumanHstrList(paraMap));
+        result.setTotalCount(userService.getHumanHstrListCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 2);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -477,11 +628,29 @@ public class UserController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("sessId", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        userService.hstrSave(paraMap);
+        UserHstr uhvo = userService.hstrSave(paraMap);
+        session.setAttribute("uhvo", uhvo);
         return result;
     }
 
-
-
+    /**
+     * 사용자별 접속 상세이력
+     *
+     * @param paraMap
+     * @param session
+     * @return void
+     */
+    @PostMapping(value="/getUserAccLogList")
+    public Result getUserAccLogList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(userService.getUserAccLogList(paraMap));
+        result.setTotalCount(userService.getUserAccLogListCount(paraMap));
+        return result;
+    }
 }

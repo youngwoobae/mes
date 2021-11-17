@@ -41,7 +41,7 @@
     </select>
 
 
-    <select id="gethumanList" parameterType="map"  resultType="camelMap">
+    <select id="getHumanList" parameterType="map"  resultType="camelMap">
         select a.user_id
              , b.user_nm
              , c.code_nm

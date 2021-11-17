@@ -1007,10 +1007,10 @@
                                                      and b.purs_yn = 'Y'
                                                      and b.cust_no = #{custNo}
                                       join prod_info c on b.prod_no = c.prod_no
-                                                      and c.purs_yn = 'Y'
+                                                      and b.purs_yn = 'Y'
                                                       and c.cust_no = #{custNo}
                                       join matr_info d on b.matr_no = d.matr_no
-                                                      and d.purs_yn = 'Y'
+                                                      and b.purs_yn = 'Y'
                                                       and d.cust_no = #{custNo}
                                                       and d.base_cal_yn = 'Y'
                       where a.used_yn = 'Y'
@@ -1023,7 +1023,7 @@
                         left join (
                             select indc_qty from make_indc mi
                              where indc_no = #{indcNo}
-                             and cust_no = #{custNo}
+                             and mi.cust_no = #{custNo}
                         ) w on 1 = 1
                     </if>
         where a.used_yn = 'Y'
@@ -1069,7 +1069,7 @@
                     , round(b.consist_rt::numeric,2) as consist_rt
                 from ord_prod a join ord_info k on a.ord_no = k.ord_no
                                                 and k.used_yn  = 'Y'
-                                                and cust_no = #{custNo}
+                                                and k.cust_no = #{custNo}
                                 join prod_bom b on a.prod_no = b.prod_no
                                                 and b.prod_no = #{prodNo}
                                                 and b.purs_yn = 'Y'
@@ -1093,13 +1093,13 @@
                                                                         and b.purs_yn = 'Y'
                                                         join prod_info c on b.prod_no = c.prod_no
                                                                         and c.cust_no = #{custNo}
-                                                                        and c.purs_yn = 'Y'
+                                                                        and b.purs_yn = 'Y'
                                                         join matr_info d on b.matr_no = d.matr_no
                                                                         and d.cust_no = #{custNo}
-                                                                        and ㅇ.purs_yn = 'Y'
+                                                                        and b.purs_yn = 'Y'
                                                                         and d.base_cal_yn = 'Y'
                                         where a.used_yn = 'Y'
-                                          and a.purs_yn = 'Y'
+                                          and b.purs_yn = 'Y'
                                           and a.prod_no =  #{prodNo}
                                           and a.ord_no = #{ordNo}
 

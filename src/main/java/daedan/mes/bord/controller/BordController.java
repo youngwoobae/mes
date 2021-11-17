@@ -4,7 +4,8 @@ import daedan.mes.bord.service.BordService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
-import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.domain.*;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.io.Resources;
@@ -36,15 +37,25 @@ BordController {
     @Autowired
     private BordService bordService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping(value="/conditions110Notice") //게시판 목록 - 공지사항
     public Result conditions110Notice(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("term",env.getProperty("boardInterval"));
         result.setData(bordService.getFindBoardTerm(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+        userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -53,24 +64,48 @@ BordController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(bordService.getBordList(paraMap));
         result.setTotalCount(bordService.getBordListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,2);
+        }
+        catch(NullPointerException ne) {
+
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
+
     }
 
     @PostMapping(value="/saveBord") //공지사항 리스트 출력, 저장, 삭제
     public Result saveBord(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session){
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("userId", paraMap.get("userId"));
         Result result = Result.successInstance();
         bordService.saveBord(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -78,12 +113,20 @@ BordController {
     public Result DeleteBord(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-
-        result.setData(bordService.getBordInfo(paraMap,session));
         bordService.deleteBord(paraMap);
 
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        }
+        catch(NullPointerException ne) {
+
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value="/bordInfo") //게시판 목록 - 공지사항
@@ -91,9 +134,20 @@ BordController {
         String tag = "BoardController.BordInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
         result.setData(bordService.getBordInfo(paraMap,session));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 }

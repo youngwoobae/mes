@@ -108,7 +108,7 @@
         <if test="indcNo != null and indcNo != ''">
             and a.user_id not in (select user_id from make_indc_mp where indc_no = #{indcNo} )
         </if>
-        
+
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
                 and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -204,13 +204,13 @@
     <select id="getHstrSummaryList" parameterType="map" resultType="camelMap">
         /*접속일자별 메뉴 접속자수 (userMapper.getHstrSummaryList) */
         select count(distinct a.user_id) as acc_cnt --접속자수
-             , to_char(a.acc_dt , 'YYYY-MM-DD') as acc_dt --접속일자
+              , to_char(to_timestamp( a.acc_unix_time),'YYYY-MM-DD') as acc_dt --접속일자
         from acc_hstr a
-        where 1 = 1
+        where a.cust_no = #{custNo}
         <if test="dateFr != null and dateFr != ''">
             and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
         </if>
-        group by to_char(a.acc_dt , 'YYYY-MM-DD')
+        group by to_char(to_timestamp( a.acc_unix_time),'YYYY-MM-DD')
         order by acc_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -220,7 +220,7 @@
                  select count(a.user_id)                as acc_cnt --접속자수
                       , to_char(a.acc_dt, 'YYYY-MM-DD') as acc_dt  --접속일자
                  from acc_hstr a
-                 where 1 = 1
+                 where a.cust_no = #{custNo}
                  <if test="dateFr != null and dateFr != ''">
                     and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
                  </if>
@@ -229,35 +229,31 @@
     </select>
 
     <select id="getHstrList" parameterType="map" resultType="camelMap">
-        /*접속일자별 메뉴 접속 이력  (userMapper.getHstrSummaryList) */
+        /*접속일자별 메뉴 접속 이력  (userMapper.getHstrList) */
         select a.acc_no
              , c.acc_dt --접속시분
              , c.acc_cnt --접속카운터
-             , b.user_id --접속자id
-             , a.sys_menu_no --접속메뉴번호
-             , b.user_nm --접속자명
-             , b.dept_no --소속코드
-             , d.sys_menu_nm --접속메뉴명
-             , fn_get_dept_name(b.dept_no) as dept_nm --소속명
-        from acc_hstr a join user_info b on a.user_id = b.user_id
-                        join (select max(acc_no) as acc_no
-                                   , count(acc_no) as acc_cnt
-                                   , TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD HH24:MI')  as acc_dt
-                                   ,sys_menu_no
-                               from acc_hstr
-                               where cust_no = #{custNo}
-                               group by TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD HH24:MI'),  sys_menu_no
-                            ) c on a.acc_no = c.acc_no
-                   left join sys_menu d on a.sys_menu_no = d.sys_menu_no and d.cust_no = a.cust_no
+             , a.user_id --접속자id
+             , fn_get_dept_name_by_user(a.user_id) as dept_nm --소속명
+             , fn_get_user_name(a.user_id) as user_nm --접속자명
+             , fn_get_sys_menu_name(a.cust_no, a.sys_menu_no) as sys_menu_nm
+        from acc_hstr a join ( select max(a.acc_no) as acc_no
+                                    , count(a.acc_no) as acc_cnt
+                                    , TO_CHAR(to_timestamp(max(a.acc_unix_time)),'YY-MM-DD HH24:MI')  as acc_dt
+                                from acc_hstr a join acc_hstr_evnt b on a.acc_no = b.acc_no
+                                                                    and a.cust_no = b.cust_no
+                                    where a.cust_no = #{custNo}
+                                    group by a.sys_menu_no
+                                ) c on a.acc_no = c.acc_no
         where a.cust_no  = #{custNo}
-            <if test="accDt != null and accDt != ''">
+        <if test="accDt != null and accDt != ''">
                 and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') = substr(#{accDt},1,10)
             </if>
             <if test="dateFr != null and dateFr != ''">
                 and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
             </if>
             <if test="findSz != null and findTp != ''">
-                and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                and upper(replace(fn_get_user_name(a.user_id),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         order by a.acc_dt desc, a.acc_no asc
         limit #{pageSz} offset #{pageNo}
@@ -265,18 +261,18 @@
     <select id="getHstrListCount" parameterType="map" resultType="int">
         select count(a.acc_no)
         from (
-                select a.acc_no
-                from acc_hstr a join user_info b on a.user_id = b.user_id
-                                join (select max(acc_no) as acc_no
-                                            , count(acc_no) as acc_cnt
-                                            , to_char(acc_dt,'YYYY-MM-DD') as acc_dt
-                                            , sys_menu_no
-                                      from acc_hstr
-                                      where cust_no = #{custNo}
-                                      group by to_char(acc_dt,'YYYY-MM-DD'),  sys_menu_no
-                                    ) c on a.acc_no = c.acc_no
-                            left join sys_menu d on a.sys_menu_no = d.sys_menu_no and d.cust_no = a.cust_no
-                where a.cust_no  = #{custNo}
+                 select a.acc_no
+                 from acc_hstr a join ( select max(a.acc_no) as acc_no
+                                            , count(a.acc_no) as acc_cnt
+                                            , TO_CHAR(to_timestamp(max(a.acc_unix_time)),'YY-MM-DD HH24:MI')  as acc_dt
+                                            , a.sys_menu_no
+                                        from acc_hstr a join acc_hstr_evnt b on a.acc_no = b.acc_no
+                                                                           and a.cust_no = b.cust_no
+                                        where a.cust_no = #{custNo}
+                                        group by sys_menu_no
+                                      ) c on a.acc_no = c.acc_no
+                 where a.cust_no  = #{custNo}
+
                 <if test="accDt != null and accDt != ''">
                     and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') = substr(#{accDt},1,10)
                 </if>
@@ -284,7 +280,7 @@
                     and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') between substr(#{dateFr},1,10) and substr(#{dateTo},1,10)
                 </if>
                 <if test="findSz != null and findTp != ''">
-                    and upper(replace(b.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    and upper(replace(fn_get_user_name(a.user_id),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 </if>
         ) a
     </select>
@@ -524,7 +520,8 @@
         ) a
     </select>
 
-    <select id="gethumanList" parameterType="map" resultType="camelMap">
+    <select id="getHumanList" parameterType="map" resultType="camelMap">
+        /*사용자ID,성명 목록 (uperMapper.getHumanList) */
         select a.user_id --id
         , a.user_nm --성명
         from user_info a
@@ -538,25 +535,25 @@
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="gethumanListCount" parameterType="map" resultType="int">
+    <select id="getHumanListCount" parameterType="map" resultType="int">
         select count(a.user_id)
         from (
-        select a.user_id --id
-             , a.user_nm --성명
-        from user_info a
-        where a.cust_no = #{custNo} and used_yn = 'Y'
-        <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'userNm'">
-                and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            select a.user_id --id
+                 , a.user_nm --성명
+            from user_info a
+            where a.cust_no = #{custNo} and used_yn = 'Y'
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'userNm'">
+                    and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
             </if>
-        </if>
-        order by a.user_nm
         ) a
     </select>
 
 
 
-    <select id="gethumanHstrList" parameterType="map" resultType="camelMap">
+    <select id="getHumanHstrList" parameterType="map" resultType="camelMap">
+        /*(userMapper.getHumanHstrList)*/
         select a.user_id --id
             , a.hstr_dt --성명
             , a.hstr_fr_dt --성명
@@ -569,7 +566,7 @@
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="gethumanHstrListCount" parameterType="map" resultType="int">
+    <select id="getHumanHstrListCount" parameterType="map" resultType="int">
         select count(a.user_id)
         from (
             select a.user_id --id
@@ -582,5 +579,31 @@
             and a.user_id = #{userNo}
             order by a.hstr_dt
         ) a
+    </select>
+    <select id="getUserAccLogList" parameterType="map" resultType="camelMap">
+        /*사용자별 접속상세이력 (userMapper.getUserAccLogList) */
+        select a.sys_menu_no --메뉴명
+             , b.evnt_tp --처리유형
+             , fn_get_user_name(a.user_id) as user_nm --접속자명
+             , sum(b.trns_cnt) as trans_cnt --트랜잭션수
+             , fn_get_sys_menu_name(a.sys_menu_no) as sys_menu_nm --메뉴명
+        from acc_hstr a join acc_hstr_evnt b on a.cust_no = b.cust_no and a.acc_no = b.acc_no
+        where a.acc_no = #{accNo}
+          and a.cust_no = #{custNo}
+        group by a.sys_menu_no , b.evnt_tp , a.user_id
+    </select>
+    <select id="getUserAccLogListCount" parameterType="map" resultType="int">
+        /*사용자별 접속상세이력 카운터 (userMapper.getUserAccLogList) */
+        select count(a.sys_menu_no)
+        from (
+                 select a.sys_menu_no
+                      , b.evnt_tp
+                      , a.user_id
+                      , sum(b.trns_cnt) as trans_cnt
+                 from acc_hstr a join acc_hstr_evnt b on a.cust_no = b.cust_no and a.acc_no = b.acc_no
+                 where a.acc_no = #{accNo}
+                   and a.cust_no = #{custNo}
+                 group by a.sys_menu_no, b.evnt_tp, a.user_id
+             ) a
     </select>
 </mapper>

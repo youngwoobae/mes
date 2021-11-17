@@ -5,7 +5,10 @@ import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.report.service.MesReportService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +30,15 @@ public class MesReportController {
     @Autowired
     private Environment env;
 
-    @Autowired
-    private CodeService codeService;
+
     @Autowired
     private CmmnService cmmnService;
 
     @Autowired
     private MesReportService mesReportService;
+
+    @Autowired
+    private UserService userService;
     /**
      * 제품입고이력 검색조건 설정
      *
@@ -45,12 +50,11 @@ public class MesReportController {
     public Result conditions1044(@RequestBody Map<String, Object> paraMap,HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
-        //paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base.proc_stat")));
-        //rmap.put("comboProcStat", codeService.getComboCodeList(paraMap));
         result.setData(rmap);
         return result;
     }
@@ -66,10 +70,18 @@ public class MesReportController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(mesReportService.getProdIwhHstr(paraMap));
         result.setTotalCount(mesReportService.getProdIwhHstrCount(paraMap));
-        System.out.print("****" + result);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -84,12 +96,11 @@ public class MesReportController {
     public Result conditionsEmbPmsOrd(@RequestBody Map<String, Object> paraMap,HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
-        //paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base.proc_stat")));
-        //rmap.put("comboProcStat", codeService.getComboCodeList(paraMap));
         result.setData(rmap);
         return result;
     }
@@ -105,12 +116,11 @@ public class MesReportController {
     public Result conditions1050(@RequestBody Map<String, Object> paraMap,HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
-        //paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code_base.proc_stat")));
-        //rmap.put("comboProcStat", codeService.getComboCodeList(paraMap));
         result.setData(rmap);
         return result;
     }
@@ -128,9 +138,19 @@ public class MesReportController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         result.setData(mesReportService.getProdOwhHstr(paraMap));
         result.setTotalCount(mesReportService.getProdOwhHstrCount(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -145,11 +165,20 @@ public class MesReportController {
     public Result getMetalDetectHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(mesReportService.getMetalDetectHstr(paraMap));
         result.setTotalCount(mesReportService.getMetalDetectHstrCount(paraMap));
-        //System.out.print("****" + result);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 

@@ -1,9 +1,9 @@
 package daedan.mes.user.service;
 
 
-import daedan.mes.user.domain.CustInfo;
-import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.domain.*;
 
+import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -76,11 +76,18 @@ public interface UserService {
     UserInfo getUserInfoById(Long userId);
     CustInfo getCustInfoByCustNo(HashMap<String, Object> paraMap);
 
-    List<Map<String, Object>> gethumanList(Map<String, Object> paraMap);
-    int gethumanListCount(Map<String, Object> paraMap);
+    List<Map<String, Object>> getHumanList(Map<String, Object> paraMap);
+    int getHumanListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> gethumanHstrList(Map<String, Object> paraMap);
-    int gethumanHstrListCount(Map<String, Object> paraMap);
+    List<Map<String, Object>> getHumanHstrList(Map<String, Object> paraMap);
+    int getHumanHstrListCount(Map<String, Object> paraMap);
 
-    void hstrSave(Map<String, Object> paraMap);
+    List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);
+
+    int getUserAccLogListCount(Map<String, Object> paraMap);
+
+    UserHstr hstrSave(Map<String, Object> paraMap);
+
+    @Transactional  AccHstr saveAccHstr(Map<String, Object> paraMap);
+    @Transactional    void saveAccLogEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt);
 }

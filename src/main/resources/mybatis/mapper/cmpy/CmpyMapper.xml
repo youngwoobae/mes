@@ -80,6 +80,9 @@
             <if test="matrNo != null and matrNo !=  ''">
                 and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
             </if>
+            <if test="oemYn != null and oemYn ==  ''">
+            and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
+            </if>
             order by cmpy_nm
             limit #{pageSz} offset #{pageNo}
     </select>

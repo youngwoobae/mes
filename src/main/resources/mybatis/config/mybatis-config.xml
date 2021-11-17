@@ -80,62 +80,9 @@
         <mapper resource="mybatis/mapper/sys/SysMapper.xml"/>
 
         <!--인증원 표준 HACCP -->
-        <mapper resource="mybatis/mapper/haccp/common/datamgr/errdata/errdata_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/common/datamgr/mondata/mondata_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/common/datamgr/rawdata/rawdata_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/common/datamgr/io/socketio_mapper.xml"/>
-
-        <mapper resource="mybatis/mapper/haccp/project/admin/alert_period/alert_period_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/approve/approve_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/comMng/comMng_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/equips/equips_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/error_list/error_list_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/mdfyHist/modfyHist_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/recordMng/recordMng_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/strdMng/standardMng_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/admin/userMng/userMng_mapper.xml"/>
-
-        <mapper resource="mybatis/mapper/haccp/project/equip_ctrl/heater/heater_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/equip_ctrl/monitoring/monitoring_mapper.xml"/>
-
-        <mapper resource="mybatis/mapper/haccp/project/haccp_mgmt/C0001/C0001_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/haccp_mgmt/C0002/C0002_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/haccp_mgmt/C0010/C0010_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/haccp_mgmt/C0020/C0020_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/haccp_mgmt/C0030/C0030_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/haccp_mgmt/common/common_mapper.xml"/>
-        <!--
-        <mapper resource="mybatis/mapper/haccp/project/login/login.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/login/main_xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/login/rec_common.xml"/>
-        -->
-        <mapper resource="mybatis/mapper/haccp/project/mgmt/appr/appr_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/mgmt/board/board_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/mgmt/calendar/calendar_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/mgmt/codes/codes_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/mgmt/db_backup/db_backup_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/mgmt/my_page/my_page_mapper.xml"/>
-
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0010/p0010_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0020/p0020_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0021/p0021_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0030/p0030_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0040/p0040_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0050/p0050_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0060/p0060_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0070/p0070_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0080/p0080_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0090/p0090_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0100/p0100_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0110/p0110_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0120/p0120_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0130/p0130_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0140/p0140_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0150/p0150_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0151/p0151_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0160/p0160_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0170/p0170_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0180/p0180_mapper.xml"/>
-        <mapper resource="mybatis/mapper/haccp/project/pre_rec_mgmt/P0190/p0190_mapper.xml"/>
+        <mapper resource="mybatis/mapper/cmmn/io/datamgr/errdata/errdata_mapper.xml"/>
+        <mapper resource="mybatis/mapper/cmmn/io/datamgr/mondata/mondata_mapper.xml"/>
+        <mapper resource="mybatis/mapper/cmmn/io/datamgr/rawdata/rawdata_mapper.xml"/>
+        <mapper resource="mybatis/mapper/cmmn/io/datamgr/io/socketio_mapper.xml"/>
     </mappers>
 </configuration>
