@@ -44,14 +44,7 @@ public class CmpyServiceImpl implements  CmpyService {
     @Override
     public List<Map<String, Object>> getCmpyList(Map<String, Object> map) {
         String tag = "cmpyService.getCmpyList => ";
-        /*
-        log.info(tag + "mngrGbnCd = " + map.get("mngrGbnCd"));
-        log.info(tag + "matrNo = " + map.get("matrNo"));
-        log.info(tag + "findTp = " + map.get("findTp"));
-        log.info(tag + "findSz = " + map.get("findSz"));
-        log.info(tag + "pageSz = " + map.get("pageSz"));
-        log.info(tag + "pageNo = " + map.get("pageNo"));
-         */
+        log.info(tag + "paraMap = " + map.toString());
         return  cmpyMapper.getCmpyList(map);
     }
 

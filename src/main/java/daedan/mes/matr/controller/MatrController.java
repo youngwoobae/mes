@@ -12,6 +12,7 @@ import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
@@ -478,6 +479,12 @@ public class MatrController {
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("fileRoot",uvo.getCustInfo().getCustNo());
+        try {
+            Integer bomLvl = Integer.parseInt(paraMap.get("bomLvl").toString());
+        }
+        catch (NullPointerException ne) {
+            paraMap.put("bomLvl",1);
+        }
         matrService.saveProdBom(paraMap);
         result.setData(matrService.getMatrProdList(paraMap));
         result.setTotalCount(matrService.getMatrProdListCount(paraMap));

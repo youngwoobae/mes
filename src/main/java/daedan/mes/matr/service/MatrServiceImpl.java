@@ -177,7 +177,7 @@ public class MatrServiceImpl implements MatrService {
         Map<String, Object> mapMatr     = (Map<String, Object>) paraMap.get("matrInfo");
         Map<String, Object> mapSafeStk = (Map<String, Object>) paraMap.get("safeStk");
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        //List<Map<String, Object>> cmpyList = (List<Map<String, Object>>) paraMap.get("cmpyList");
+
         log.info(tag + "saveMatr = " + mapMatr.toString());
         MatrInfo matrInfo = new MatrInfo();
         StringBuffer buf = new StringBuffer();
