@@ -54,7 +54,7 @@ public class PursInfo {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dlvDt;
 
-    @Column(name="purs_sts",nullable = false)
+    @Column(name="purs_sts" ,columnDefinition = "numeric default 0")
     private Long pursSts;
 
     @Column(name="reg_id")
