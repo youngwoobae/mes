@@ -54,7 +54,7 @@
         from prod_info a join wh_info b on a.save_tmpr = b.save_tmpr
                                      and  b.used_yn = 'Y' and b.cust_no = #{custNo}
         where 1 = 1
-          and a``.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a .used_yn = 'Y' and a.cust_no = #{custNo}
           and b.wh_tp = #{whTp}
           and a.prod_no = #{prodNo}
     </select>
@@ -1435,7 +1435,7 @@
              = (select sum(coalesce(iwh_qty, 0 ))
                 from prod_iwh
                 where indc_rslt_no = #{indcRsltNo}
-                  and c.used_yn = 'Y' and cust_no = #{custNo}
+                  and used_yn = 'Y' and cust_no = #{custNo}
                 )
             )
     </update>
