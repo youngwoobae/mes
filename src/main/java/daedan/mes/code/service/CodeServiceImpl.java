@@ -199,25 +199,25 @@ public class CodeServiceImpl implements CodeService {
     public CodeInfo saveCode(Map<String, Object> paraMap) {
         CodeInfo vo = new CodeInfo();
         vo.setUsedYn("Y");
-        vo.setParCodeNo(Long.parseLong(paraMap.get("par_code_no").toString()));
+        vo.setParCodeNo(Long.parseLong(paraMap.get("parCodeNo").toString()));
 
         try{
-            vo.setCodeNo(Long.parseLong(paraMap.get("code_no").toString()));
+            vo.setCodeNo(Long.parseLong(paraMap.get("codeNo").toString()));
         }catch(NullPointerException ne){
             vo.setCodeNo(0L);
         }
-        vo.setCodeNm(paraMap.get("code_nm").toString());
+        vo.setCodeNm(paraMap.get("codeNm").toString());
         try {
-            vo.setCodeBrief(paraMap.get("code_brief").toString());
+            vo.setCodeBrief(paraMap.get("codeBrief").toString());
         }
         catch (NullPointerException ne) {
-            vo.setCodeBrief(paraMap.get("code_nm").toString());
+            vo.setCodeBrief(paraMap.get("codeNm").toString());
         }
         try {
-            vo.setCodeAlais(paraMap.get("code_alais").toString());
+            vo.setCodeAlais(paraMap.get("codeAlais").toString());
         }
         catch (NullPointerException ne) {
-            vo.setCodeAlais(paraMap.get("code_nm").toString());
+            vo.setCodeAlais(paraMap.get("codeNm").toString());
         }
 
         vo.setModableYn("Y");
@@ -238,11 +238,11 @@ public class CodeServiceImpl implements CodeService {
             vo.setRegDt(DateUtils.getCurrentDate());
 
             try {
-                vo.setCodeSeq(Integer.parseInt(paraMap.get("code_seq").toString()));
+                vo.setCodeSeq(Integer.parseInt(paraMap.get("codeSeq").toString()));
             }
             catch (NullPointerException ne) {
                 Map<String, Object> cntMap = new HashMap<String,Object>();
-                cntMap.put("parCodeNo", Long.parseLong(paraMap.get("par_code_no").toString()));
+                cntMap.put("parCodeNo", Long.parseLong(paraMap.get("parCodeNo").toString()));
                 vo.setCodeSeq(mapper.getCodeListCount(cntMap));
             }
         }

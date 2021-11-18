@@ -366,7 +366,7 @@ public class ProcServiceImpl implements ProcService {
         List<Map<String,Object>> ts = (List<Map<String, Object>>) paraMap.get("totalList");
 
         for (Map<String,Object> el : ts) {
-            ProcBrnch chkvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo,brnchNo, Long.parseLong(el.get("proc_cd").toString()),"Y");
+            ProcBrnch chkvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo,brnchNo, Long.parseLong(el.get("procCd").toString()),"Y");
             if (chkvo != null) {
                 chkvo.setUsedYn("N");
                 chkvo.setCustNo(custNo);
@@ -378,34 +378,34 @@ public class ProcServiceImpl implements ProcService {
             pbvo = new ProcBrnch();
             pbvo.setBrnchNo(brnchNo);
             try {
-                pbvo.setProcGrpCd(Long.parseLong(el.get("proc_grp_cd").toString()));
+                pbvo.setProcGrpCd(Long.parseLong(el.get("procGrpCd").toString()));
             }
             catch (NullPointerException ne) {
                 pbvo.setProcGrpCd(0L);
             }
 
             try {
-                pbvo.setMaxMakeQty(Long.parseLong(el.get("max_make_qty").toString()));
+                pbvo.setMaxMakeQty(Long.parseLong(el.get("maxMakeQty").toString()));
             }
             catch (NullPointerException ne) {
                 pbvo.setMaxMakeQty(0L);
             }
 
             try {
-                pbvo.setNeedDtVal(Integer.parseInt(el.get("need_dt_val").toString()));
+                pbvo.setNeedDtVal(Integer.parseInt(el.get("needDtval").toString()));
             }
             catch (NullPointerException ne) {
                 pbvo.setNeedDtVal(1);
             }
             try {
-                pbvo.setNextStepVal(Integer.parseInt(el.get("next_step_val").toString()));
+                pbvo.setNextStepVal(Integer.parseInt(el.get("nextStepVal").toString()));
             }
             catch (NullPointerException ne) {
                 pbvo.setNextStepVal(0);
             }
 
             try{
-                pbvo.setProcSeq(Integer.parseInt(el.get("proc_seq").toString()));
+                pbvo.setProcSeq(Integer.parseInt(el.get("procSeq").toString()));
             }catch(NullPointerException ne){
                 pbvo.setProcSeq(Integer.parseInt(pbvo.getProcCd().toString()));
             }
@@ -414,7 +414,7 @@ public class ProcServiceImpl implements ProcService {
 //            pbvo.setCodeInfo(codeRepo.findByCodeNoAndUsedYn(Long.parseLong(el.get("proc_cd").toString()),"Y"));
 //            pbvo.setProcSeq(pbvo.getCodeInfo().getCodeSeq());
 
-            pbvo.setProcCd(Long.parseLong(el.get("proc_cd").toString()));
+            pbvo.setProcCd(Long.parseLong(el.get("procCd").toString()));
 
 
             pbvo.setModDt(DateUtils.getCurrentDate());
@@ -423,7 +423,7 @@ public class ProcServiceImpl implements ProcService {
             pbvo.setUsedYn("Y");
 
             try {
-                procBrnchNo = Long.parseLong(el.get("proc_brnch_no").toString());
+                procBrnchNo = Long.parseLong(el.get("procBrnchNo").toString());
             }
             catch (NullPointerException ne) {
                 procBrnchNo = 0L;
