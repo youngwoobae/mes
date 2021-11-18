@@ -37,6 +37,7 @@
     </select>
 
     <select id="getProcBrnchList" parameterType="map" resultType="camelMap">
+        /*기본정보 > 생산 > 공정분류 : 작업목록 (procMapper.getProcBrnchList)*/
         select b.proc_cd --공정코드
              , a.code_nm as proc_nm --공정명
              , coalesce (a.code_seq,0) as proc_seq  --공정순서
@@ -46,6 +47,7 @@
              , coalesce (c.need_dt_val,0) as need_dt_val --공정소요시간
              , coalesce (c.next_step_val,0) as next_step_val --다음공정STEP(다음공정시작일 = 직전공정 종료일 + next_step_val)
              , d.code_nm as proc_grp_nm --인력투입그룹명
+             , b.max_make_qty --일간최대 생산량
              , a.ccp_tp --관리공정
         from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
                     left join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
@@ -105,6 +107,7 @@
     </select>
 
     <select id="getProcList" parameterType="map" resultType="camelMap">
+        /* 공정코드 목록 (procMapper.getProcList) */
         select a.proc_cd --공정코드
               , a.max_make_qty --일간생산량
               , case when length(a.proc_ctnt) <![CDATA[ > ]]> 60 then substr(a.proc_ctnt,1,60) || '...' else a.proc_ctnt end as proc_ctnt --공정표준

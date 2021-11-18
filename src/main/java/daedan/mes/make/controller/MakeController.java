@@ -1377,7 +1377,6 @@ public class MakeController {
         return result;
     }
 
-    /*투입인력정보저장*/
     @PostMapping(value="/planSave")
     public Result planSave(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
         String tag = "makeController.mpInfo => ";
@@ -1385,7 +1384,6 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         moService.planSave(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
         try {

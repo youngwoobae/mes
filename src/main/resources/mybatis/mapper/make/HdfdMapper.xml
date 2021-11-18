@@ -33,9 +33,9 @@
     <select id="planList" parameterType="map" resultType="camelMap">
         select
              a.text_area,
-             a.plan_dt,
+             a.plan_dt
         from make_work_plan a
-        where a.used_yn = 'Y' and a.brnch_no = #{brnchNo} and a.cust_no = {custNo}
-        and to_char(a.planDt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
+        where a.used_yn = 'Y' and a.brnch_no = #{brnchNo} and a.cust_no = #{custNo}
+        and to_char(a.plan_dt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
     </select>
 </mapper>

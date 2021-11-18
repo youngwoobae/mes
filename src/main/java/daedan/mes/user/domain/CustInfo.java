@@ -110,6 +110,10 @@ public class CustInfo {
     @Column(name = "prodCdYn", nullable = false, columnDefinition = "char(1) default 'Y'")
     private String prodCdYn;
 
+    /*작업정보에서 CCP관리공정 사용여부*/
+    @Column(name = "proCcpYn", columnDefinition = "char(1) default 'N'")
+    private String procCcpYn;
+
     // 제품형태 사용 여부       ( 대동고려삼 ) Y
     @Column(name = "prodShapeYn", nullable = false, columnDefinition = "char(1) default 'N'")
     private String prodShapeYn;

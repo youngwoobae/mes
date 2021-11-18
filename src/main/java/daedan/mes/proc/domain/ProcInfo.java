@@ -14,8 +14,10 @@ public class ProcInfo {
 
 
     @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name="procNo",nullable = false)
+    private Long procNo;
+
     @Column(name="procCd",nullable = false)
     private Long procCd;
 
@@ -61,7 +63,7 @@ public class ProcInfo {
     @Column(name="fileNo")
     private Long fileNo;
 
-    @Column(name="usedYn" ,nullable = false, length = 1)
+    @Column(name="usedYn" ,nullable = false, length = 1, columnDefinition = "char default 'Y'")
     private String usedYn;
 
     @Column(name="regId" ,columnDefinition = "bigint default 0")
