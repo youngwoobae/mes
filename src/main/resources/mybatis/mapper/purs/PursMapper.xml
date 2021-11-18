@@ -563,15 +563,12 @@
         , to_char(d.dlv_req_dt ,'YYYY-MM-DD') as dlv_req_dt --입고요청일
         , to_char(d.dlv_dt ,'YYYY-MM-DD') as dlv_dt --입고일
         , to_char(e.ord_dt,'YYYY-MM-DD') as ord_dt --관련주문정보/주문일자
-        , case when coalesce (a.cmpy_no,0) = 0 then '-' else f.cmpy_nm end as purs_cmpy_nm
-        , e.cmpy_no as ord_cmpy_no --관련주분정보/주문거래처번
+        , fn_get_cmpy_name(e.cmpy_no) as cmpy_nm-- 구매처
         , e.ord_no --주문번호
         , d.indc_no --작업지시번호
         , case when coalesce (e.ord_no::varchar,'0') = '0' then '-' else 'Y' end as ord_yn --주문연동여부
         , case when coalesce(d.indc_no::varchar,'0') = '0' then 'N' else 'Y' end as indc_yn --작업지시연동여부
-        , a.cmpy_no --구매처번
         , d.purs_sts --구매상태
-        , coalesce (f.cmpy_nm,'구매처미상') as cmpy_nm-- 구매처
         , y.code_nm AS purs_sts_nm --구매상태명
         , d.purs_no --구매의뢰번호
         from purs_matr a join matr_info b on a.matr_no = b.matr_no  and b.used_yn ='Y' and b.cust_no = #{custNo}
@@ -579,7 +576,6 @@
         join purs_info d on a.purs_no = d.purs_no and d.used_yn ='Y' and d.cust_no = #{custNo}
         join code_info y ON d.purs_sts = y.code_no
         left join ord_info e on d.purs_no = e.purs_no  and e.used_yn ='Y' and e.cust_no = #{custNo}
-        left join cmpy_info f on a.cmpy_no = f.cmpy_no  and f.used_yn ='Y' and f.cust_no = #{custNo}
         where a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
             and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)
@@ -604,7 +600,6 @@
                          join purs_info d on a.purs_no = d.purs_no  and d.used_yn ='Y' and d.cust_no = #{custNo}
                          join code_info y ON d.purs_sts = y.code_no
                      left join ord_info e on d.purs_no = e.purs_no  and e.used_yn ='Y' and e.cust_no = #{custNo}
-                     left join cmpy_info f on a.cmpy_no = f.cmpy_no  and f.used_yn ='Y' and f.cust_no = #{custNo}
         where a.used_yn ='Y' and a.cust_no = #{custNo}
         <if test="cmpyNo != null and cmpyNo != 0">
             and  #{cmpyNo} in (select cmpy_no from matr_cmpy where matr_no = a.matr_no)

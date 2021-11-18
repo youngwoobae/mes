@@ -90,6 +90,7 @@ public class UserController {
         log.info("인크립트 스트링 = " + cmmnService.encryptStr(custNo,accStr));
         return result;
     }
+
     @PostMapping(value="/autoSignin")
     public Result autoSignin(HttpServletRequest request, HttpServletResponse response  , HttpSession session) {
         String tag = "userController.autoSignIn =>";

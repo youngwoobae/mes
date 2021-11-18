@@ -2793,21 +2793,21 @@
 
     <select id="getProdForOwhList" parameterType="map"  resultType="camelMap">
         /* 구매 과정없이 제품 출고처리하는 경우 : 간단 MES용 (ioMapper.getProdForOwhList) */
-        select distinct a.prod_no
-             , a.prod_nm
-             , coalesce (c.stk_qty) as stk_qty
-             , case when b.indc_no is not null then 'Y' else 'N' end as indc_yn
-             , d.wh_nm
-             , c.wh_no
+        select distinct a.prod_no --품번
+             , a.prod_nm --품명
+             , coalesce (c.stk_qty) as stk_qty --재고수량
+             , case when b.indc_no is not null then 'Y' else 'N' end as indc_yn --지시여부
+             , fn_get_wh_name(c.wh_no) as wh_nm --창고명
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --oem업체명
+             , coalesce(a.cmpy_no,-1) as cmpy_no --OEM업체번호
+             , c.wh_no --창고번호
         from prod_info a left join make_indc b on a.prod_no = b.prod_no
-                                              and b.used_yn ='Y' and b.cust_no =#{custNo}
+                                              and b.used_yn ='Y' and b.cust_no = #{custNo}
                          join prod_stk c on a.prod_no = c.prod_no
-                                          and c.used_yn ='Y' and c.cust_no =#{custNo}
-                         join wh_info d on c.wh_no = d.wh_no
-                                       and d.used_yn ='Y' and d.cust_no =#{custNo}
-        where a.used_yn ='Y' and a.cust_no =#{custNo}
+                                          and c.used_yn ='Y' and c.cust_no = #{custNo}
+        where a.used_yn ='Y' and a.cust_no = #{custNo}
         and a.prod_no not in (select prod_no from prod_owh
-                             where used_yn ='Y' and cust_no =#{custNo}
+                             where used_yn ='Y' and cust_no = #{custNo}
                                and coalesce (wh_no, 0 ) = 0)
         and c.stk_qty <![CDATA[ > ]]> 0
         <if test="findStr != null and findStr != ''">
@@ -2840,8 +2840,6 @@
                                                       and b.used_yn ='Y' and b.cust_no =#{custNo}
                                  join prod_stk c on a.prod_no = c.prod_no
                                                 and c.used_yn ='Y' and c.cust_no =#{custNo}
-                                 join wh_info d on c.wh_no = d.wh_no
-                                                and d.used_yn ='Y' and d.cust_no =#{custNo}
                 where a.used_yn ='Y' and a.cust_no =#{custNo}
                 and a.prod_no not in (select prod_no
                                        from prod_owh
