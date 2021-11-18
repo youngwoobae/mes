@@ -532,13 +532,13 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             ordNo = 0L;
         }
 
-        //OrdInfo chkvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
+        OrdInfo chkvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
         Map<String,Object> tmpMap = new HashMap<String,Object>();
         tmpMap.put("custNo",custNo);
-        tmpMap.put("ordNo",paraMap.get("ordNo"));
-        OrdInfo chkvo = new OrdInfo();
-        tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
-        chkvo = (OrdInfo) StringUtil.mapToVo(tmpMap,chkvo);
+        tmpMap.put("ordNo",ordNo);
+//        OrdInfo chkvo = new OrdInfo();
+//        tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
+//        chkvo = (OrdInfo) StringUtil.mapToVo(tmpMap,chkvo);
         if(chkvo != null){
             oivo.setOrdNo(chkvo.getOrdNo());
         }else{

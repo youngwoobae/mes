@@ -17,8 +17,7 @@
         where par_code_no = #{parCodeNo}
           and used_yn = 'Y'
           and code_no in (select proc_cd from proc_info
-                           where matr_req_able_yn = 'N'
-                           and used_yn = 'Y' and cust_no =#{custNo}
+                           where used_yn = 'Y' and cust_no =#{custNo}
                         )
         order by prt_seq,code_seq
     </select>
@@ -41,7 +40,12 @@
               , to_char(g.make_to_dt,'YYYY-MM-DD') as tostk_dt --생산완료일(상품창고 입고처리 대상으로 변경된 생산완료일을 의미함.)
               , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
               , a.indc_wgt --지시중량
-              , coalesce(a.indc_qty / e.qty_per_pkg ,0) as indc_qty --지시량
+                <if test="custNo == 3">
+                    , coalesce(a.indc_qty / e.qty_per_pkg ,0) * 1000  as indc_qty --지시량
+                </if>
+                <if test="custNo != 3">
+                    , coalesce(a.indc_qty / e.qty_per_pkg ,0)  as indc_qty --지시량
+                </if>
               , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
               , case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
                      when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
@@ -286,7 +290,7 @@
              , a.indc_qty --지시수량
              , a.make_unit --생산단위
              , a.proc_cd --공정코드
-             , c.matr_req_able_yn --bom기반 자재요청 가능여부 (최초공정인경우에 설정됨)
+--              , c.matr_req_able_yn --bom기반 자재요청 가능여부 (최초공정인경우에 설정됨)
              , d.code_nm as proc_nm --공정명
              , a.max_make_qty --공정별최대생산수량
              , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --생산시작일
