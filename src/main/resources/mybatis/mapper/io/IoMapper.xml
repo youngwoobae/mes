@@ -2675,6 +2675,9 @@
                                              and c.used_yn ='Y' and c.cust_no =#{custNo}
         where a.used_yn = 'Y' and a.cust_no =#{custNo}
         and a.stk_qty <![CDATA[ > ]]> 0
+        <if test="indcNo != null and indcNo != ''">
+            and c.indc_no = #{indcNo}
+        </if>
         <if test="findStr != null and findStr != ''">
             AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
         </if>
@@ -3912,7 +3915,7 @@
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.prod_no = #{prodNo}
-        order by b.iwh_dt dsec
+        order by b.iwh_dt desc
             limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getIwhProdListCount" parameterType="map"  resultType="int">
