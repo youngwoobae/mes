@@ -84,9 +84,15 @@
             <if test="matrNo != null and matrNo !=  ''">
                 and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
             </if>
-            <if test="oemYn != null and oemYn !=  ''">
-            and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
-            </if>
+
+            <choose>
+                <when test="oemYn != null and oemYn == 35">
+                    and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
+                </when>
+                <otherwise>
+                    and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
+                </otherwise>
+            </choose>
             order by cmpy_nm
             limit #{pageSz} offset #{pageNo}
     </select>
@@ -122,9 +128,14 @@
         <if test="matrNo != null and matrNo !=  ''">
             and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
         </if>
-        <if test="oemYn != null and oemYn != ''">
-            and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
-        </if>
+        <choose>
+            <when test="oemYn != null and oemYn == 35">
+                and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
+            </when>
+            <otherwise>
+                and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
+            </otherwise>
+        </choose>
         ) a
     </select>
 

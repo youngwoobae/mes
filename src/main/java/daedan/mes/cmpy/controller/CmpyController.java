@@ -317,16 +317,13 @@ public class CmpyController {
     public Result saveDlvPlc(@RequestBody Map<String, Object> paraMap, HttpServletRequest request  , HttpSession session){
         String tag = "cmpyController.saveDlvPlc => ";
         Result result = Result.successInstance();
-
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Map<String, Object> passMap = new HashMap<String,Object>();
-        passMap = (Map<String, Object>) paraMap.get("dlvPlcInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 
-        passMap.put("userId",paraMap.get("userId"));
-        passMap.put("ipaddr",NetworkUtil.getClientIp(request));
-        cmpyService.saveDlvPlc(passMap);
+        paraMap.put("userId",paraMap.get("userId"));
+        paraMap.put("ipaddr",NetworkUtil.getClientIp(request));
+        cmpyService.saveDlvPlc(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");

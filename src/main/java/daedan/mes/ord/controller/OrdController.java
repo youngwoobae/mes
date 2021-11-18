@@ -632,8 +632,9 @@ public class OrdController {
     public Result comboDlvPlc(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
+            Long custNo = uvo.getCustInfo().getCustNo();
+            paraMap.put("custNo", custNo);
+
 
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
