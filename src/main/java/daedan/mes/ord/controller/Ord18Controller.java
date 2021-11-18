@@ -5,7 +5,10 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.ord.service.Ord18Service;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.core.util.SystemNanoClock;
@@ -33,7 +36,8 @@ public class Ord18Controller {
 
     @Autowired
     private Ord18Service ord18Service;
-
+    @Autowired
+    private UserService userService;
     /**
      * 미홍 주문장 입력 컨트롤 생성
      *
@@ -68,8 +72,11 @@ public class Ord18Controller {
         String tag = "Ord18Controller.ord18List =>";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+
 
         HashMap<String ,Object> rmap = new HashMap<String,Object>();
 
@@ -145,8 +152,18 @@ public class Ord18Controller {
             }
         }
         result.setData(result22);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
+
 
     @PostMapping(value = "/getOrdInfo18") //미홍주문정보
     public Result getOrd18Info(@RequestBody Map<String, Object> paraMap, HttpSession session) {
