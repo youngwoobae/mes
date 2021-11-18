@@ -526,6 +526,7 @@
         , a.user_nm --성명
         from user_info a
         where a.cust_no = #{custNo} and used_yn = 'Y'
+          and a.ocpn_kind = 222 --생산직만
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
                 and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -542,6 +543,7 @@
                  , a.user_nm --성명
             from user_info a
             where a.cust_no = #{custNo} and used_yn = 'Y'
+              and a.ocpn_kind = 222 --생산직만
             <if test="findSz != null and findSz != ''">
                 <if test="findTp != null and findTp == 'userNm'">
                     and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
@@ -553,15 +555,18 @@
 
 
     <select id="getHumanHstrList" parameterType="map" resultType="camelMap">
-        /*(userMapper.getHumanHstrList)*/
+        /*근태현황 (userMapper.getHumanHstrList)*/
         select a.user_id --id
             , a.hstr_dt --성명
             , a.hstr_fr_dt --성명
             , a.hstr_to_dt --성명
             , b.user_nm --성명
-        from user_hstr a join user_info b on a.user_id = b.user_id and b.cust_no = #{custNo}
+        from user_hstr a join user_info b on a.user_id = b.user_id
+                                         and b.cust_no = #{custNo}
+                                         and b.ocpn_kind = 222 --생산직만
         where a.cust_no = #{custNo} and a.used_yn = 'Y'
         and a.user_id = #{userNo}
+
         order by a.hstr_dt
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -574,8 +579,11 @@
                 , a.hstr_fr_dt --성명
                 , a.hstr_to_dt --성명
                 , b.user_nm --성명
-            from user_hstr a join user_info b on a.user_id = b.user_id and b.cust_no = #{custNo}
+            from user_hstr a join user_info b on a.user_id = b.user_id
+                                             and b.cust_no = #{custNo}
+                                             and b.ocpn_kind = 222 --생산직만
             where a.cust_no = #{custNo} and a.used_yn = 'Y'
+
             and a.user_id = #{userNo}
             order by a.hstr_dt
         ) a

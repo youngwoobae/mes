@@ -90,10 +90,13 @@ public class ProdInfo {
     private Long saleUnit;
 
     /*판매단위중량 (유지물산은 kg 기타 g임)*/
-    @Column(name="saleUnitWgt", columnDefinition = "numeric" )
+    @Column(name="saleUnitgt", columnDefinition = "numeric" )
     private Long saleUnitWgt;
 
-
+    /*창고번호 : 제품적재창고 : 나중에 사용할 예정임.
+    @Column(name="wh_no", columnDefinition = "numeric default 0")
+    private Long whNo;
+    */
     /*관리단위 : 중량 or 질랑*/
     @Column(name="mngrUnit",  columnDefinition = "numeric default 1701"  ) //17101=중량
     private Long mngrUnit;

@@ -1916,7 +1916,7 @@
              , d.purs_unit --자재구매단가
              , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
              , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )  ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
-             ,  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )  ) * #{ctlFillYield}  as need_qty --소요량(Kg)
+             , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )  ) * #{ctlFillYield} ) as need_qty --소요량(Kg)
              , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )
                            - coalesce (q.purs_qty,0) --주문제품의 BOM에 의거한 구매량 (ord_prod.purs_no > 0 인 자료)
                            - coalesce ( e.stk_qty,0 )  <![CDATA[ >= ]]>   0
