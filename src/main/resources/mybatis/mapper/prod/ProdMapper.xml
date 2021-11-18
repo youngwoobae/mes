@@ -286,6 +286,7 @@
             , g.wh_nm --창고명
             , b.wh_no --창고번호
             , b.stk_no --창고번호
+            , a.valid_term --유효기간
            -- , f.prod_real_no as prod_real_no -- 실재고상품번호
             , coalesce (b.stk_qty,0) as stk_qty --현재고
         from prod_info a join code_info d on a.sale_unit  = d.code_no
@@ -296,6 +297,9 @@
           and a.cust_no = #{custNo}
         <if test="saveTmpr != null and saveTmpr != ''">
             and a.save_tmpr = #{saveTmpr}
+        </if>
+        <if test="whNo != null and whNo != ''">
+            and g.wh_no = #{whNo}
         </if>
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'prodNm'">
