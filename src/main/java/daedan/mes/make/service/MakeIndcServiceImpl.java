@@ -474,7 +474,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }
             EOL Remarked By KMJ AT 21.09.10 08:58 */
 
-            log.info(tag + "3.생산지시 상품기준 소요자재정보 관리 (지시상품기준 BOM 리스트갯수)===> " + ds.size());
+            log.info(tag + "3.생산지시 상품기준 소요자재정보 관리 (지시상품기준 BOM 리스트갯수)===> " + ds);
             int idx = 0;
             for (Map<String, Object> el : ds) {
                 ++idx;

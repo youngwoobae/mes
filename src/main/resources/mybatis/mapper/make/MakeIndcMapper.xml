@@ -40,12 +40,7 @@
               , to_char(g.make_to_dt,'YYYY-MM-DD') as tostk_dt --생산완료일(상품창고 입고처리 대상으로 변경된 생산완료일을 의미함.)
               , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
               , a.indc_wgt --지시중량
-                <if test="custNo == 3">
-                    , coalesce(a.indc_qty / e.qty_per_pkg ,0) * 1000  as indc_qty --지시량
-                </if>
-                <if test="custNo != 3">
-                    , coalesce(a.indc_qty / e.qty_per_pkg ,0)  as indc_qty --지시량
-                </if>
+              , trunc(coalesce(a.indc_qty / e.qty_per_pkg ,0))  as indc_qty --지시량
               , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
               , case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
                      when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)

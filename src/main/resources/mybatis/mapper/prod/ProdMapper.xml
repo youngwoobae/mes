@@ -799,7 +799,7 @@
     <select id="getProdBomListByIndc" parameterType="map"  resultType="camelMap">
         select a.matr_no
              , round(a.consist_rt::numeric,2) as consist_rt
-             , ceil((a.consist_rt * 0.01) * #{indcQty} * c.vol ) as need_qty --소요량(Kg)
+             , ceil(#{indcQty} * c.vol / 1000 ) as need_qty --소요량(Kg)
         from prod_bom a  join prod_info c on a.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                     left join ( select matr_no, sum(stk_qty) as stk_qty
                                 from  matr_stk
