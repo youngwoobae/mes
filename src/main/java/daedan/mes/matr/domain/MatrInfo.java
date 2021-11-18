@@ -93,12 +93,12 @@ public class MatrInfo {
 
 
     /*구매단위*/
-    @Column(name="purs_unit" )
+    @Column(name="pursUnit" )
     private Long pursUnit;
 
 
     /*관리단위(무게,질량)*/
-    @Column(name="mngr_unit" )
+    @Column(name="mngrUnit" )
     private Long mngrUnit;
 
     /*패킷유닛(업로드시점에 사용됨.. 내부적으로 딱히 사용할 곳은 없음.)*/
@@ -110,40 +110,41 @@ public class MatrInfo {
     private Long pursUnitWgt;
 
     /*구매단가*/
-    @Column(name="purs_unit_prc" )
+    @Column(name="pursUnitPrc" )
     private Long pursUnitPrc;
 
     //원료속성(연근,진세노사이드,브릭스,고형분,점도,색도등 : 대동고려삼..)
     @OneToOne (fetch = FetchType.LAZY, optional=true)
     private MatrAttr matrAttr;
 
-    @Column(name="file_no" )
+    @Column(name="fileNo" )
     private Long fileNo;
 
-    @Column(name="reg_id")
+    @Column(name="regId")
     private Long regId;
 
-    @Column(name="mod_id")
+    @Column(name="modId")
     private Long modId;
 
-    @Column(name="reg_ip", length = 20)
+    @Column(name="regIp", length = 20)
     private String regIp;
 
-    @Column(name="mod_ip", length = 20)
+    @Column(name="modIp", length = 20)
     private String modIp;
 
-    @Column(name="reg_dt")
+    @Column(name="regDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
-    @Column(name="mod_dt")
+    @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
 
-    @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
+    @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 
-    @Column(name="base_cal_yn", length = 1 , columnDefinition = "char default 'N'")
+    //AddOn by KMJ At 21.05.05 23:00 --하담푸드에서 생산지시량 설정에 필요해서 추가 (지시량이 총량이 아니고 원율이라 계산식이 바뀜))
+    @Column(name="baseCalYn", length = 1 , columnDefinition = "char default 'N'")
     private String baseCalYn;
 
 

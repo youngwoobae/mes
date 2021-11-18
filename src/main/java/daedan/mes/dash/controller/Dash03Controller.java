@@ -1,7 +1,7 @@
 package daedan.mes.dash.controller;
 
 import daedan.mes.common.domain.Result;
-import daedan.mes.dash.service.Dash18Service;
+import daedan.mes.dash.service.Dash03Service;
 import daedan.mes.user.domain.AccHstr;
 import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
@@ -19,8 +19,8 @@ import javax.servlet.http.HttpSession;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/daedan/mes/dash18")
-public class Dash18Controller {
+@RequestMapping("/api/daedan/mes/dash03")
+public class Dash03Controller {
     private Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
@@ -28,7 +28,7 @@ public class Dash18Controller {
 
 
     @Autowired
-    private Dash18Service dash18;
+    private Dash03Service dash03;
 
     @Autowired
     private UserService userService;
@@ -40,40 +40,14 @@ public class Dash18Controller {
      * @param session
      * @return Result
      */
-    @PostMapping(value="/getTmpr18List")
-    public Result getTmpr18List(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+    @PostMapping(value="/getTmpr03List")
+    public Result getTmpr03List(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 
-        result.setData(dash18.getTmpr18List(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
-
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        return result;
-    }
-    /**
-     * 찜기 내용 저장
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/getFinalHeatStatus")
-    public Result getFinalMetalDetect(@RequestBody Map<String, Object> paraMap  , HttpSession session){
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        result.setData(dash18.getFinalHeatStatus(paraMap));
+        result.setData(dash03.getTmpr03List(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         try {

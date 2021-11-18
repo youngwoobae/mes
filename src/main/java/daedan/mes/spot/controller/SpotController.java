@@ -65,6 +65,7 @@ public class SpotController {
         paraMap.put("selectStr", "CCP 구분");
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.ccp_tp")));
         Map<String,Object> rmap = new HashMap<String,Object>();
+
         rmap.put("comboCcpTp",codeService.getComboCodeList(paraMap));
         result.setData(rmap);
         return result;

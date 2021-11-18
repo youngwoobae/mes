@@ -540,9 +540,10 @@ public class MatrController {
         paraMap.put("custNo", custNo);
 
         Map<String, Object> passMap = (Map<String, Object>)paraMap.get("safeStk");
+        passMap.put("custNo", custNo);
         matrService.saveSafeStk(passMap);
 
-        passMap.put("matrNo",passMap.get("matr_no"));
+        passMap.put("matrNo",passMap.get("matrNo"));
         result.setData(matrService.getSafeStk(passMap));
 
         //SOL AddOn By KMJ AT 21.11.16

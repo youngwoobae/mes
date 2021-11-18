@@ -51,7 +51,7 @@ public class DashServiceImpl implements  DashService {
     @Override
     public List<Map<String, Object>> getScadaTmprList(Map<String, Object> paraMap) {
         String tag = "DashServiceImpl.getScadaTrmpList => ";
-        paraMap.put("custNo",Integer.parseInt(env.getProperty("cust_no")));
+        paraMap.put("custNo",Integer.parseInt(paraMap.get("custNo").toString()));
         paraMap.put("equipNo",1L);
         List<Map<String,Object>> ds = mapper.getScadaTmprSpotList(paraMap);
         List<Map<String,Object>> rsltDs = new ArrayList<Map<String,Object>>();
@@ -60,7 +60,7 @@ public class DashServiceImpl implements  DashService {
         StringBuffer buf = new StringBuffer();
         while (++idx < ds.size()) {
             Map<String, Object> spotmap = ds.get(idx);
-            paraMap.put("spotNo", Long.parseLong(spotmap.get("spot_no").toString()));
+            paraMap.put("spotNo", Long.parseLong(spotmap.get("spotNo").toString()));
 
             rsltMap = new HashMap<String, Object>();
             rsltMap.put("spot", mapper.getScadaTmprList(paraMap));
