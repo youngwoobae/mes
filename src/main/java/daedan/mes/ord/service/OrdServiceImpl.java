@@ -392,19 +392,19 @@ public class OrdServiceImpl implements  OrdService {
         vo.setOrdNo(Long.parseLong(paraMap.get("ordNo").toString()));
         vo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
         try{
-            vo.setOrdSz((String) paraMap.get("ord_sz"));
+            vo.setOrdSz((String) paraMap.get("ordSz"));
         }catch (NullPointerException ne){
             vo.setOrdSz(null);
         }
 
         try {
-            vo.setSaleUnit(Long.parseLong(paraMap.get("sale_unit").toString()));
+            vo.setSaleUnit(Long.parseLong(paraMap.get("saleUnit").toString()));
         }
         catch (NullPointerException ne) {
             vo.setSaleUnit(Long.parseLong(env.getProperty("code.saleunit_default")));
         }
         try {
-            vo.setQtyPerPkg(Integer.parseInt(paraMap.get("qty_per_pkg").toString()));
+            vo.setQtyPerPkg(Integer.parseInt(paraMap.get("qtyPerPkg").toString()));
         }
         catch (NullPointerException ne) {
             vo.setQtyPerPkg(1);
@@ -428,7 +428,7 @@ public class OrdServiceImpl implements  OrdService {
         }
 
         try {
-            Float ordQty =  Float.parseFloat(paraMap.get("ord_qty").toString());
+            Float ordQty =  Float.parseFloat(paraMap.get("ordQty").toString());
             vo.setOrdQty(ordQty * qtyParPkg);
         } catch (NullPointerException ne) {
             vo.setOrdQty(0F);

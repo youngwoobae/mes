@@ -84,11 +84,48 @@
             <if test="matrNo != null and matrNo !=  ''">
                 and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
             </if>
-            <if test="oemYn != null and oemYn ==  ''">
+            <if test="oemYn != null and oemYn !=  ''">
             and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
             </if>
             order by cmpy_nm
             limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getCmpyListCount" parameterType="map"  resultType="int">
+        select   count(a.cmpy_no)
+        from (
+            select   a.cmpy_no --거래처관리번호
+            from cmpy_info a join code_info z on a.cmpy_tp  = z.code_no
+                             join code_info y on a.mngr_gbn_cd  = y.code_no
+                        left join ( select cmpy_no,count(prod_no) as prod_cnt
+                                    from  prod_info
+                                    where used_yn = 'Y' and cust_no = #{custNo}
+                                    and cmpy_no is not null
+                                    group by cmpy_no
+                                  ) x on a.cmpy_no = x.cmpy_no
+                        left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = a.cust_no
+                        left join ( select cmpy_no, count(matr_no) as matr_qty from matr_cmpy
+                                    where used_yn = 'Y'
+                                    and  cust_no = #{custNo}
+                                    group by cmpy_no
+                                  ) e on a.cmpy_no = e.cmpy_no
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="cmpyTpCd != null and cmpyTpCd != ''">
+            AND a.cmpy_tp = #{cmpyTpCd}
+        </if>
+
+        <if test="mngrGbnCd != null and mngrGbnCd != ''">
+            AND a.mngr_gbn_cd = #{mngrGbnCd}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
+        </if>
+        <if test="matrNo != null and matrNo !=  ''">
+            and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
+        </if>
+        <if test="oemYn != null and oemYn != ''">
+            and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
+        </if>
+        ) a
     </select>
 
     <select id="getCmpyExcelList" parameterType="map"  resultType="camelMap">
@@ -136,32 +173,7 @@
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="getCmpyListCount" parameterType="map"  resultType="int">
-        select   count(a.cmpy_no)
-        from (select a.cmpy_no
-              from cmpy_info a left join file_info d on a.file_no = d.file_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
-                               left join ( select cmpy_no, count(matr_no) as matr_qty
-                                           from matr_cmpy
-                                           where 1 = 1
-                                           and used_yn = 'Y' and cust_no = #{custNo}
-                                           group by cmpy_no
-                                         ) e on a.cmpy_no = e.cmpy_no
-            where 1 = 1
-             and a.used_yn = 'Y' and a.cust_no = #{custNo}
-            <if test="cmpyTpCd != null and cmpyTpCd != ''">
-                AND a.cmpy_tp = #{cmpyTpCd}
-            </if>
-            <if test="mngrGbnCd != null and mngrGbnCd != ''">
-                AND a.mngr_gbn_cd = #{mngrGbnCd}
-            </if>
-            <if test="findSz != null and findSz != ''">
-                AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
-            </if>
-            <if test="matrNo != null and matrNo != ''">
-                and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo})
-            </if>
-        ) a
-    </select>
+
 
     <update id="setUnusedCmpy" parameterType="map"  >
         update cmpy_info set used_yn = 'N'

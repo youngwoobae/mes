@@ -769,9 +769,16 @@
                          left join code_info d on a.prod_shape = d.code_no
         where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
           AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
-        <if test="cmpyNo != null and cmpyNo != ''">
-            AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
-        </if>
+
+        <choose>
+            <when test='cmpyNo != null and cmpyNo != ""'>
+                AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
+            </when>
+            <otherwise>
+                and coalesce (a.cmpy_no , 0) = 0
+            </otherwise>
+        </choose>
+
         <if test="ordNo != null and ordNo != ''">
             and a.prod_no not in (select prod_no from ord_prod where used_yn = 'Y' and ord_no=#{ordNo})
         </if>
@@ -794,9 +801,14 @@
                                 left join code_info c on a.mngr_unit = c.code_no
                 where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
                  AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
-                <if test="cmpyNo != null and cmpyNo != ''">
-                    AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
-                </if>
+                <choose>
+                    <when test='cmpyNo != null and cmpyNo != ""'>
+                        AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
+                    </when>
+                    <otherwise>
+                        and coalesce (a.cmpy_no , 0) = 0
+                    </otherwise>
+                </choose>
                 <if test="ordNo != null and ordNo != ''">
                     and a.prod_no not in (select prod_no from ord_prod where used_yn = 'Y' and ord_no=#{ordNo})
                 </if>
