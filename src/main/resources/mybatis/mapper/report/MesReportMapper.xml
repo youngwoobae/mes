@@ -53,7 +53,7 @@
            and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
        </if>
-        order by owh_dt  desc
+        order by to_char(a.owh_dt,'YYYY-MM-DD')  desc
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getProdOwhHstrCount" parameterType="map" resultType="int">
@@ -90,7 +90,7 @@
                 and upper(replace(fn_get_prod_name(a.prod_no),' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by iwh_dt desc
+        order by to_char(a.iwh_dt,'YYYY-MM-DD') desc
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getProdIwhHstrCount" parameterType="map" resultType="int">

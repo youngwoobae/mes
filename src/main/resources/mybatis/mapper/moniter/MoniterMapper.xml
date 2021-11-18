@@ -607,7 +607,7 @@
                 and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by iwh_dt desc
+        order by to_char(b.date_manufacture,'YYYY-MM-DD') desc
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -650,7 +650,7 @@
                 and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by owh_dt desc
+        order by to_char(b.owh_req_dt,'YYYY-MM_DD') desc
         limit #{pageSz} offset #{pageNo}
     </select>
 

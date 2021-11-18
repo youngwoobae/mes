@@ -3746,7 +3746,7 @@
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
-          order by b.iwh_dt
+          order by b.iwh_dt desc
           limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -3781,7 +3781,7 @@
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.matr_no = #{matrNo}
-          order by b.owh_req_dt
+          order by b.owh_req_dt desc
           limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -3903,6 +3903,7 @@
     </select>
 
     <select id="getIwhProdList" parameterType="map"  resultType="camelMap">
+        /*제품입고목록 (ipMapper.getIwhProdList) */
         select to_char(b.iwh_dt,'YYYY-MM-DD') as iwh_dt
              , b.iwh_no
              , a.prod_nm
@@ -3913,7 +3914,7 @@
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.prod_no = #{prodNo}
-        order by b.iwh_dt
+        order by b.iwh_dt dsec
             limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getIwhProdListCount" parameterType="map"  resultType="int">
@@ -3932,6 +3933,7 @@
     </select>
 
     <select id="getOwhProdList" parameterType="map"  resultType="camelMap">
+        /*제품출고목록 (ipMapper.getOwhProdList) */
         select to_char(b.owh_dt,'YYYY-MM-DD') as owh_dt
              , b.owh_no
              , a.prod_nm
@@ -3942,7 +3944,7 @@
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y' and a.cust_no =#{custNo}
           and a.prod_no = #{prodNo}
-        order by b.owh_dt
+        order by b.owh_dt desc
             limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getOwhProdListCount" parameterType="map"  resultType="int">
