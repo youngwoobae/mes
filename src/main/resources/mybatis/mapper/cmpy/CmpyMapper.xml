@@ -78,6 +78,7 @@
             <if test="mngrGbnCd != null and mngrGbnCd != ''">
                 AND a.mngr_gbn_cd = #{mngrGbnCd}
             </if>
+
             <if test="findSz != null and findSz != ''">
                 AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
             </if>
@@ -89,9 +90,9 @@
                 <when test="oemYn != null and oemYn == 35">
                     and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
                 </when>
-                <otherwise>
+                <when test="oemYn != null and oemYn == 36">
                     and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
-                </otherwise>
+                </when>
             </choose>
             order by cmpy_nm
             limit #{pageSz} offset #{pageNo}
@@ -132,9 +133,9 @@
             <when test="oemYn != null and oemYn == 35">
                 and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
             </when>
-            <otherwise>
+            <when test="oemYn != null and oemYn == 36">
                 and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
-            </otherwise>
+            </when>
         </choose>
         ) a
     </select>
