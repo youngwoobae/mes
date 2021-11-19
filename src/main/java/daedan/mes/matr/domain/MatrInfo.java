@@ -71,6 +71,10 @@ public class MatrInfo {
     @Column(name = "made" , length = 100  )
     private String made;
 
+    /*창고번호 : 원료적재창고 : 나중에 사용할 예정임.*/
+    @Column(name="wh_no", columnDefinition = "numeric default 0")
+    private Long whNo;
+
     /*관리단위 : 용량(ml)=1702, 질량(gram)=1701 기본값은 */
     @Column(name="mngr_base", columnDefinition = "numeric default 1701"  )
     private Long mngrBase;

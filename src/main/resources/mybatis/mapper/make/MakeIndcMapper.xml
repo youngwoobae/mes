@@ -23,6 +23,7 @@
     </select>
 
     <select id="getMakeIndcList" parameterType="map"  resultType="camelMap">
+        /*작업지시목록 (makMapper.getMakeIndcList) */
         select  a.par_indc_no --부모지시번호
               , a.ord_no
               , a.indc_no  --지시번호

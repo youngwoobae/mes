@@ -92,7 +92,7 @@
              ,  equip_no
              , equip_nm
         from equip_info
-        where used_yn = 'Y' and a.cust_no = #{custNo}
+        where used_yn = 'Y' and cust_no = #{custNo}
         order by seq, text
     </select>
     <select id="getComboTabletMenuList" parameterType="map"  resultType="camelMap">
@@ -106,7 +106,7 @@
         from sys_menu
         where mobl_yn = 'Y'
           and used_yn ='Y'
-          and a.cust_no = #{custNo}
+          and cust_no = #{custNo}
         order by ord, value
     </select>
 
