@@ -207,7 +207,7 @@ public class PursController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        paraMap.put("pursNo",Long.parseLong(env.getProperty("purs.sts.complete"))); //입고 추출
+        paraMap.put("pursNo",Long.parseLong(env.getProperty("purs.sts.end"))); //입고 추출
         result.setData(pursService.pursInfoList(paraMap));
         result.setTotalCount(pursService.pursInfoListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16

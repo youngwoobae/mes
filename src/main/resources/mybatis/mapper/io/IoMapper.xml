@@ -2579,7 +2579,7 @@
 
 
     <select id="getMatrForIwhList" parameterType="map"  resultType="camelMap">
-    /* 구매 과정없이 자재 입고처리하는 경우 : 간단 MES용 (ioMapper.getMatrForIwhList) */
+    /* 간단 MES용 (ioMapper.getMatrForIwhList) */
         select concat(c.purs_matr_no , '-' , purs_qty) as item_no
               , a.matr_no
               , a.matr_nm
@@ -2589,9 +2589,12 @@
               , case when d.purs_no is not null then 'Y' else 'N' end as purs_yn
               , f.wh_nm
               , fn_get_code_name('nm',f.save_tmpr) as save_tmpr_nm --보관창고온도명
-              , f.wh_no
+              , f.wh_no --창고번호
               , f.wh_no as tmpr_wh_no
-              , c.purs_qty
+              , c.purs_qty --구매수량
+              , c.purs_no --구매번호
+              , c.purs_matr_no --구매자재관리번호
+              , to_char(d.purs_dt,'YYYY-MM-DD') as purs_dt --구매일자
         from matr_info a join wh_info f on a.save_tmpr = f.save_tmpr
                                        and f.wh_tp = 191
                                        and f.used_yn ='Y' and f.cust_no =#{custNo}
@@ -2602,6 +2605,7 @@
                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
                          join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'
                                         and d.used_yn ='Y' and d.cust_no =#{custNo}
+                                        and d.purs_sts in (162,164)
     where a.used_yn = 'Y' and  a.cust_no =#{custNo}
         <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
         <if test="findStr != null and findStr != ''">
@@ -2619,7 +2623,7 @@
             </when>
             <otherwise> </otherwise>
         </choose>
-        order by purs_yn, a.matr_nm collate "ko_KR.utf8"
+        order by purs_yn, purs_dt , a.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 

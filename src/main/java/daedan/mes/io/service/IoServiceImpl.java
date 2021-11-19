@@ -2,6 +2,7 @@ package daedan.mes.io.service;
 
 
 import daedan.mes.common.service.util.DateUtils;
+import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.io.domain.MatrIwh;
 import daedan.mes.io.domain.MatrOwh;
 import daedan.mes.io.domain.ProdIwh;
@@ -25,6 +26,7 @@ import daedan.mes.ord.service.OrdService;
 import daedan.mes.prod.domain.ProdInfo;
 import daedan.mes.prod.repository.ProdRepository;
 import daedan.mes.purs.domain.PursInfo;
+import daedan.mes.purs.domain.PursMatr;
 import daedan.mes.purs.mapper.PursMapper;
 import daedan.mes.purs.repository.PursInfoRepository;
 import daedan.mes.purs.repository.PursMatrRepository;
@@ -58,6 +60,7 @@ public class IoServiceImpl implements IoService {
 
     @Autowired
     private OrdRepository ordRepository;
+
     @Autowired
     private ProdRepository prodRepo;
 
@@ -76,7 +79,7 @@ public class IoServiceImpl implements IoService {
     @Autowired
     private PursInfoRepository pursRepo;
 
-    @Autowired
+      @Autowired
     private PursMatrRepository pmr;
 
     @Autowired
@@ -1128,7 +1131,7 @@ public class IoServiceImpl implements IoService {
     @Transactional
     @Override
     public void cnfmIwh(Map<String, Object> paraMap) {
-       paraMap.put("pursSts", Long.parseLong(env.getProperty("purs.sts.complete")));//구매완료
+       paraMap.put("pursSts", Long.parseLong(env.getProperty("purs.sts.end")));//구매완료
         mapper.cnfmIwh(paraMap);
     }
 
@@ -2744,21 +2747,36 @@ public class IoServiceImpl implements IoService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("iwhList");
         Long matrNo = 0L;
+        Long whNo = 0L;
         Float stkQty = 0F;
-        Long whNo = Long.parseLong(paraMap.get("whNo").toString());
+
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         for (Map<String,Object> el : ds) {
             MatrIwh mivo = new MatrIwh();
+
             matrNo= Long.parseLong(el.get("matrNo").toString());
             mivo.setMatrNo(matrNo);
+
+            whNo = Long.parseLong(el.get("whNo").toString());
             mivo.setWhNo(whNo);
+
             mivo.setIwhQty(Float.parseFloat(el.get("iwhQty").toString()));
             mivo.setCmpyNo(Long.parseLong(paraMap.get("cmpyNo").toString()));
-            mivo.setIwhDt(sdf.parse(paraMap.get("iwhDt").toString()));
-            mivo.setPursMatrNo(0L);
-            mivo.setPursNo(0L);
-            mivo.setDateManufacture(sdf.parse(paraMap.get("createDt").toString()));
-            mivo.setUsedYn("Y");
+            mivo.setIwhDt(sdf.parse(paraMap.get("iwhDt").toString())); //입고일자
+            try {
+                mivo.setPursMatrNo(Long.parseLong(el.get("pursMatrNo").toString()));
+            }
+            catch (NullPointerException ne) { //유진물산외 구매과정없이 입고되는 경우
+                mivo.setPursMatrNo(0L);
+            }
+            try {
+                mivo.setPursNo(Long.parseLong(el.get("pursNo").toString()));
+            }
+            catch (NullPointerException ne) {//유진물산외 구매과정없이 입고되는 경우
+                mivo.setPursNo(0L);
+            }
+
+            mivo.setDateManufacture(sdf.parse(paraMap.get("createDt").toString())); //제조일자
             mivo.setModDt(DateUtils.getCurrentDateTime());
             mivo.setModId(Long.parseLong(paraMap.get("userId").toString()));
             mivo.setModIp(paraMap.get("ipaddr").toString());
@@ -2768,7 +2786,7 @@ public class IoServiceImpl implements IoService {
 
 
             try{
-                mivo.setInspEr(Long.parseLong(paraMap.get("insp").toString()));
+                mivo.setInspEr(Long.parseLong(paraMap.get("insp").toString())); //검수자
             }catch(NullPointerException ne){
                 mivo.setInspEr(0L);
             }
@@ -2785,21 +2803,54 @@ public class IoServiceImpl implements IoService {
             }
 
             try{
-                mivo.setRetnQty(Float.parseFloat(paraMap.get("retnQty").toString()));
+                mivo.setRetnQty(Float.parseFloat(paraMap.get("retnQty").toString())); //반품수량
             }catch (NullPointerException en) {
                 mivo.setRetnQty(0F);
             }try{
-                mivo.setRetnResn(Long.parseLong(paraMap.get("retnResn").toString()));
+                mivo.setRetnResn(Long.parseLong(paraMap.get("retnResn").toString())); //반품사유
             }catch (NullPointerException en){
                 mivo.setRetnResn(0L);
             }
+
+            log.info(tag + "1.자재입고 처리..");
             mivo.setCustNo(custNo);
+            mivo.setUsedYn("Y");
             matrIwhRepo.save(mivo);
+
+
+            Long pursIng = Long.parseLong(env.getProperty("purs.sts.ing"));
+            Long pursEnd = Long.parseLong(env.getProperty("purs.sts.end"));
+            if (mivo.getPursNo() > 0L) {
+                PursInfo pursvo = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo, mivo.getPursNo(), "Y");
+                if (pursvo != null) {
+                    log.info(tag + "2.구매마스터 상태 설정");
+                    pursvo.setCmpyNo(mivo.getCmpyNo());
+                    pursvo.setPursSts(paraMap.get("finishYn").toString().equals("Y") ? pursEnd : pursIng);
+                    pursvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    pursvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                    pursvo.setModIp(paraMap.get("ipaddr").toString());
+                    pursRepo.save(pursvo);
+                }
+                PursMatr pmvo = pmr.findByCustNoAndPursMatrNoAndUsedYn(custNo, mivo.getPursMatrNo(),"Y" );
+                if (pmvo != null) {
+                    log.info(tag + "3.구매제품 상태 설정");
+                    pmvo.setCmpyNo(mivo.getCmpyNo());
+                    pmvo.setWhNo(mivo.getWhNo());
+                    log.info(tag + "3.1.1 구매수량 = " + pmvo.getPursQty());
+                    log.info(tag + "3.1.2 입고수량 = " + mivo.getIwhQty());
+
+
+                    pmvo.setPursSts(mivo.getIwhQty() == pmvo.getPursQty() ? pursEnd : pursIng);
+                    pmvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    pmvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                    pmvo.setModIp(paraMap.get("ipaddr").toString());
+                    pmr.save(pmvo);
+                }
+            }
 
             MatrStk msvo = new MatrStk();
             msvo.setUsedYn("Y");
-
-            MatrStk chkvo = matrStkRepo.findByCustNoAndMatrNoAndUsedYn(custNo,matrNo,"Y");
+            MatrStk chkvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,whNo, matrNo,"Y");
             if(chkvo != null){
                 stkQty = chkvo.getStkQty();
                 stkQty += Float.parseFloat(el.get("iwhQty").toString());
@@ -2815,6 +2866,7 @@ public class IoServiceImpl implements IoService {
             else{
                 msvo.setMatrStkNo(0L);
                 msvo.setMatrNo(matrNo);
+                msvo.setWhNo(whNo);
                 msvo.setStkQty(Float.parseFloat(el.get("iwhQty").toString()));
                 msvo.setStatCd(Long.parseLong(env.getProperty("code.stk_iwh_stat")));
 
@@ -2828,10 +2880,12 @@ public class IoServiceImpl implements IoService {
 
                 msvo.setWhNo(whNo);
             }
+            log.info(tag + "4.재고조정 처리.");
+            msvo.setUsedYn("Y");
             msvo.setCustNo(custNo);
             matrStkRepo.save(msvo);
 
-            this.makeInspHstr(mivo);
+            this.makeInspHstr(mivo); //검수이력 저장
         }
     }
     

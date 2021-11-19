@@ -236,7 +236,7 @@ public class PursServiceImpl implements  PursService {
             pmvo = pmr.save(pmvo);
 
             /*창고별 구매자재 위치관리 설정
-            if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.complete"))) {
+            if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.end"))) {
                 Map<String, Object> posmap = StringUtil.voToMap(pmvo);
                 posmap.put("whNm", el.get("wh_nm").toString());
                 posmap.put("ipaddr",pursMap.get("ipaddr").toString());
@@ -245,7 +245,7 @@ public class PursServiceImpl implements  PursService {
                 stockService.savePursMatrPos(posmap);
             }
 
-            if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.complete")) ) { //구매완료된경우 재고조정
+            if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.end")) ) { //구매완료된경우 재고조정
                 stockService.resetMatrStock(paraMap);
             }
 

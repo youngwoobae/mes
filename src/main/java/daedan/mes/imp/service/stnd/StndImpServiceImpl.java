@@ -667,7 +667,7 @@ public class StndImpServiceImpl implements StndImpService {
                 ivo.setPursDt(tdf.parse(row.getCell(1).getStringCellValue())); //구매일자
                 ivo.setDlvReqDt(tdf.parse(row.getCell(1).getStringCellValue())); //납품요청일자
                 ivo.setDlvDt(tdf.parse(row.getCell(1).getStringCellValue())); //납품일자
-                ivo.setPursSts(Long.parseLong(env.getProperty("purs.sts.complete"))); //구매상태(완료)
+                ivo.setPursSts(Long.parseLong(env.getProperty("purs.sts.end"))); //구매상태(완료)
                 ivo.setIndcNo(0L);//생산지시번호(기본값설정)
                 ivo.setOrdNo(0L); //주문번호(기본값설정)
                 ivo.setUsedYn("Y");//사용구분(기본값설정)
