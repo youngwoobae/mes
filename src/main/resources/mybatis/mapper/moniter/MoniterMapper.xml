@@ -676,39 +676,23 @@
 
     <select id="getTmprLogHstr" parameterType="map" resultType="camelMap">
         /*온도모니터링내역((reportMapper.getTmprLogHstr) */
-        select max(a.rcv_dt) as rcv_dt --수신일자
-             , max(a.rcv_tmpr)   as max_val --최대
-             , min(a.rcv_tmpr)   as min_val --최소
-             , round(avg(a.rcv_tmpr),2) as avg_val --평균
-             , to_char( TIMESTAMP WITH TIME ZONE 'epoch' + INTERVAL '1 second' * round(extract('epoch' from rcv_tm) / 300) * 1800 ,'HH24:MI') as rcv_tm --수신시간
-             ,fn_get_spot_name(spot_no) as spot_nm --작업장명
-        from (
-                select to_timestamp(a.unix_hms) as rcv_tm
-                     , to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') as rcv_dt
-                     , spot_no
-                     , rcv_tmpr
-                from tmpr_log a
-                where cust_no = #{custNo}
-                <if test="spotNo != null and spotNo != ''">
-                    and a.spot_no = #{spotNo}
-                </if>
-                <if test="rcvDt != null and rcvDt != ''">
-                    and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring(#{rcvDt},1,10)
-                </if>
-                order by rcv_tm
-        ) a join ( select max(to_char(to_timestamp(unix_hms),'YYYY-MM-DD')) as rcv_dt
-                   from tmpr_log
-                   where cust_no= #{custNo}
-                   <if test="spotNo != null and spotNo != ''">
-                       and spot_no = #{spotNo}
-                   </if>
-                   <if test="rcvDt != null and rcvDt != ''">
-                       and to_char(to_timestamp(unix_hms),'YYYY-MM-DD') = substring(#{rcvDt},1,10)
-                   </if>
-                  ) b on a.rcv_dt = b.rcv_dt
-        group by   to_char( TIMESTAMP WITH TIME ZONE 'epoch' + INTERVAL '1 second' * round(extract('epoch' from rcv_tm) / 300) * 1800 ,'HH24:MI') , spot_no
-        order by   rcv_tm
+        select  to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm --수신일자
+              , fn_get_spot_name(spot_no) as spot_nm --작업장명
+              , max(a.rcv_tmpr) as max_val --최대
+              , avg(a.rcv_tmpr) avg_val --평균
+              , min(a.rcv_tmpr) as min_val --최소
+        from tmpr_log a
+        where TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 10 in (0,1,2,3,4,5)
+        <if test="rcvDt != null and rcvDt != ''">
+            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring(#{rcvDt},1,10)
+        </if>
+        <if test="spotNo != null and spotNo != ''">
+            and a.spot_no = #{spotNo}
+        </if>
 
+        and a.cust_no = #{custNo}
+        group by fn_get_spot_name(spot_no),  to_char(to_timestamp(a.unix_hms),'HH24:MI')
+        order by rcv_tm
     </select>
 </mapper>
 

@@ -92,6 +92,7 @@ public class SpotServiceImpl implements SpotService {
 
         }
         spotIn.setCcpTp(Long.parseLong(paraMap.get("ccpTp").toString()));
+        spotIn.setSensTp(Long.parseLong(paraMap.get("sensTp").toString()));
         spotIn.setSpotNm((String) paraMap.get("spotNm"));
         spotIn.setSpotRmk((String) paraMap.get("spotRmk"));
         try {

@@ -40,6 +40,7 @@
               ,a.scada_api_ing --scada api(진행)
               ,a.scada_api_end --scada api(종료)
               ,fn_get_code_name('nm',a.ccp_tp) as ccp_tp_nm --CCP구분명
+              ,fn_get_code_name('nm',a.sens_tp) as sens_tp_nm --측정요소명
         FROM spot_info a
         WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
         <if test="ccpTp != null and  ccpTp != ''">

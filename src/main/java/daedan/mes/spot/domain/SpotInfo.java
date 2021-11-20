@@ -29,8 +29,13 @@ public class SpotInfo {
     private Long ccpTp;
 
     //api 분류
-    @Column(name = "svc_tp",nullable = false, length = 20 , columnDefinition = "varchar(255) default  'DIRECT'")
+    @Column(name = "svcTp",nullable = false, length = 20 , columnDefinition = "varchar(255) default  'DIRECT'")
     private String svcTp;
+
+    //측정구분(codeBase=3600:온습도..)
+    @Column(name = "sensTp",columnDefinition = "numeric default 0")
+    private Long sensTp;
+
     //ScadaApi (시작)
     @Column(name = "scadaApiInv", length = 100 )
     private String scadaApiInv;

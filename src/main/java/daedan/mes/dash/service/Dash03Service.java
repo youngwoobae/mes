@@ -5,6 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface Dash03Service {
-    @Transactional
-    List<Map<String, Object>> getTmpr03List(Map<String, Object> paraMap);
+    Map<String, Object> getTemp03GraphData(Map<String, Object> paraMap);
+    List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap);
 }

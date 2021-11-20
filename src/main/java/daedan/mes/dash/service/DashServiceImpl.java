@@ -105,6 +105,7 @@ public class DashServiceImpl implements  DashService {
         return yyjgMapper.getYyjgProdIoListCount(paraMap);
     }
 
+
     @Override
     public List<Map<String, Object>> getYyjgMatrIoList(Map<String, Object> paraMap) {
         String tag = "vsvc.DashService.getYyjgMatrIoList=>";
@@ -114,11 +115,6 @@ public class DashServiceImpl implements  DashService {
     @Override
     public int getYyjgMatrIoListCount(Map<String, Object> paraMap) {
         return yyjgMapper.getYyjgMatrIoListCount(paraMap);
-    }
-
-    @Override
-    public List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap) {
-        return mapper.getEvtMsgList(paraMap);
     }
 
 

@@ -68,17 +68,6 @@
     </select>
 
 
-    <select id="getEvtMsgList" parameterType="map"  resultType="camelMap">
-        select to_char(send_dt,'YYYY-MM-DD HH24:MI:SS') as msg_date --발송일자
-             , msg_tp --발송유형
-              ,msg_cont --발내용
-        from evt_msg
-        order by send_dt desc
-        limit 3
-    </select>
-
-
-
 
     <select id="getToDayProduction" parameterType="map"  resultType="camelMap">
         select

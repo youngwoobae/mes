@@ -9,5 +9,6 @@ import java.util.Map;
 @Mapper
 @Component
 public interface Dash03Mapper {
-    List<Map<String, Object>> getTmpr03List(Map<String, Object> paraMap);
+    List<Map<String, Object>> getTmpr03GraphData(Map<String, Object> paraMap);
+    List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap);
 }

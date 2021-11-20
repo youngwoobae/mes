@@ -339,30 +339,6 @@ public class DashController {
         return result;
     }
 
-    @PostMapping(value="/evtMsgList")
-    public Result evtMsgList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
-        Result result = Result.successInstance();
-
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-
-        List<Map<String,Object>> list = dashService.getEvtMsgList(paraMap);
-        result.setData(list);
-
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
-
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        return result;
-    }
-
-
     @PostMapping(value="/humanList")
     public Result humanList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();

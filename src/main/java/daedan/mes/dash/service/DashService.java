@@ -31,8 +31,6 @@ public interface DashService {
     List<Map<String, Object>>  getYyjgProdIoList(Map<String, Object> paraMap);
     int  getYyjgProdIoListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap);
-
     List<Map<String, Object>> getHumanList(Map<String, Object> paraMap);
     int getToTalhumanCount(Map<String, Object> paraMap);
 

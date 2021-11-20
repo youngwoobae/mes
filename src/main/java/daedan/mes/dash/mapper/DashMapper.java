@@ -37,8 +37,6 @@ public interface DashMapper {
 
     int getPhoneDashRsltInfoCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap);
-
     List<Map<String, Object>> getHumanList(Map<String, Object> paraMap);
     int getToTalhumanCount(Map<String, Object> paraMap);
 

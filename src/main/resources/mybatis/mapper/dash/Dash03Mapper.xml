@@ -2,22 +2,58 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="daedan.mes.dash.mapper.Dash03Mapper">
-   <select id="getTmpr03List" parameterType="map"  resultType="camelMap">
-    /* 하담푸드 설비기준 최신시간 온도모니터링 리스트 (dash03Mapper.getTmpr03List) */
-    select a.spot_no  --작업장번
-         , a.spot_nm  --작업장명
-         , b.rcv_msg  --메세지
-         , b.rcv_tmpr  --측정온도
-         , to_char(to_timestamp(b.unix_hms) ,'HH:MM:SS') as rcv_tm --수신시각
-    from spot_info a join tmpr_log b on a.spot_no  = b.spot_no
-                                    and b.used_yn  = 'Y' and b.cust_no  = a.cust_no
-                     join ( select spot_no, max(unix_hms) as unix_hms
-                            from tmpr_log
-                            where used_yn = 'Y' and cust_no = #{custNo}
-                            group by spot_no
-                          ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
-    where a.used_yn  = 'Y'
-    and a.cust_no = #{custNo}
-    order by spot_nm
+   <select id="getTmpr03GraphData" parameterType="map"  resultType="camelMap">
+    /* 하담푸드 설비기준 그래프 처리용 온도모니터링 리스트 (dash03Mapper.getTmpr03List) */
+    select  a.rcv_tm
+          , a.spot_nm as spot1_nm
+          , a.rcv_val  as rcv1_val
+          , b.spot_nm as spot2_nm
+          , b.rcv_val  as rcv2_val
+          , c.spot_nm as spot3_nm
+          , c.rcv_val  as rcv3_val
+    from
+        (
+            select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                 , a.spot_no
+                 , fn_get_spot_name(spot_no) as spot_nm --작업장명
+                 ,max(a.rcv_tmpr) as rcv_val
+            from tmpr_log a
+            where a.spot_no =30786
+            and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 10 in ( 0,1,2,3,4,5)
+            and a.cust_no = #{custNo}
+            group by spot_no,  to_char(to_timestamp(a.unix_hms),'HH24:MI')
+            order by rcv_tm desc
+        ) a join  (
+            select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                 , a.spot_no
+                 , fn_get_spot_name(spot_no) as spot_nm --작업장명
+                 , max(a.rcv_tmpr) as rcv_val
+            from tmpr_log a
+            where a.spot_no =30791
+            and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 10 in ( 0,1,2,3,4,5)
+            and a.cust_no = #{custNo}
+            group by spot_no,  to_char(to_timestamp(a.unix_hms),'HH24:MI')
+        ) b on a.rcv_tm = b.rcv_tm
+            join  (
+            select to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm
+                 , a.spot_no
+                 , fn_get_spot_name(spot_no) as spot_nm --작업장명
+                 ,max(a.rcv_tmpr) as rcv_val
+            from tmpr_log a
+            where a.spot_no =30788
+            and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 10 in ( 0,1,2,3,4,5)
+            and a.cust_no = #{custNo}
+            group by spot_no,  to_char(to_timestamp(a.unix_hms),'HH24:MI')
+        ) c on a.rcv_tm = c.rcv_tm
+        order by rcv_tm
    </select>
+
+    <select id="getEvtMsgList" parameterType="map"  resultType="camelMap">
+        select to_char(send_dt,'YY-MM-DD HH24:MI') as msg_date --발송일자
+             , msg_tp --발송유형
+             ,msg_cont --발내용
+        from evt_msg
+        order by send_dt desc
+            limit 3
+    </select>
 </mapper>

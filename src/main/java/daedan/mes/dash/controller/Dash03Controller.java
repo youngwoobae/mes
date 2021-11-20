@@ -1,6 +1,7 @@
 package daedan.mes.dash.controller;
 
 import daedan.mes.common.domain.Result;
+import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.dash.service.Dash03Service;
 import daedan.mes.user.domain.AccHstr;
 import daedan.mes.user.domain.EvntType;
@@ -16,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpSession;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -40,14 +44,35 @@ public class Dash03Controller {
      * @param session
      * @return Result
      */
-    @PostMapping(value="/getTmpr03List")
-    public Result getTmpr03List(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+    @PostMapping(value="/getTemp03GraphData")
+    public Result getTemp03GraphData(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        paraMap.put("custNo", custNo);
+        Date curDate = DateUtils.getCurrentDate("YYYY-MM-DD");
+        paraMap.put("rcvDt",sdf.format(curDate));
+        result.setData(dash03.getTemp03GraphData(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+        return result;
+    }
+    @PostMapping(value="/evtMsgList")
+    public Result evtMsgList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 
-        result.setData(dash03.getTmpr03List(paraMap));
+        result.setData(dash03.getEvtMsgList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         try {

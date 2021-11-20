@@ -125,8 +125,12 @@ public class SpotController {
         Map<String,Object> rmap = new HashMap<String,Object>();
 
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.ccp_tp")));
-        paraMap.put("selectStr", "CCP 구분");
+        paraMap.put("selectStr", "CCP구분선택");
         rmap.put("comboCcpTp", codeService.getComboCodeList(paraMap));
+
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.sens_tp")));
+        paraMap.put("selectStr", "측정유형선택");
+        rmap.put("comboSensTp", codeService.getComboCodeList(paraMap));
         result.setData(rmap);
         return result;
     }
