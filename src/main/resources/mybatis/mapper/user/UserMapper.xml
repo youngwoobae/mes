@@ -530,7 +530,7 @@
         <if test="ocpnKind != null and ocpnKind != ''">
             and a.ocpn_kind = #{ocpnKind}
         </if>
-        <if test="emplKind != null and emplKind != ''">
+        <if test="emplKind != null and emplKind != '' and (emplKind != '0'.toString())">
             and a.empl_kind = #{emplKind}
         </if>
 
@@ -567,7 +567,7 @@
 
 
 
-    <select id="getHumanHstrList" parameterType="map" resultType="camelMap">
+    <select id="getWorkHstr" parameterType="map" resultType="camelMap">
         /*근태현황 (userMapper.getHumanHstrList)*/
         select a.user_id --id
             , a.hstr_dt --성명
@@ -584,7 +584,7 @@
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="getHumanHstrListCount" parameterType="map" resultType="int">
+    <select id="getWorkHstrCount" parameterType="map" resultType="int">
         select count(a.user_id)
         from (
             select a.user_id --id
