@@ -338,9 +338,15 @@ public class DashController {
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
-
-    @PostMapping(value="/humanList")
-    public Result humanList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+    /**
+     * 작업자현황
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getWorkerList")
+    public Result getWorkerList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
@@ -348,9 +354,9 @@ public class DashController {
 
         String tag = "DashController=>";
         log.info(tag + "parCodeNo = " + paraMap.get("parCodeNo"));
-        List<Map<String,Object>> list = dashService.getHumanList(paraMap);
+        List<Map<String,Object>> list = dashService.getWorkerList(paraMap);
         result.setData(list);
-        result.setTotalCount(dashService.getToTalhumanCount(paraMap));
+        result.setTotalCount(dashService.getWorkerListCount(paraMap));
         return result;
     }
     @PostMapping(value="/getYyjgPhothCounter")

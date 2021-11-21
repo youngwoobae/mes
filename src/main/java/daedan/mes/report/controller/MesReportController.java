@@ -35,6 +35,9 @@ public class MesReportController {
     private CmmnService cmmnService;
 
     @Autowired
+    private CodeService codeService;
+
+    @Autowired
     private MesReportService mesReportService;
 
     @Autowired
@@ -55,6 +58,28 @@ public class MesReportController {
         Map<String, Object> rmap = new HashMap<String,Object>();
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
+        result.setData(rmap);
+        return result;
+    }
+    /**
+     * 근태현황
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/conditions1092")
+    public Result conditionsUser1092(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        Map<String,Object> rmap = new HashMap<String,Object>();
+
+        paraMap.put("selectStr","채용구분선택");
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("base_empl_kind"))); ///작업자구분(내국인,외국인,용역)
+        rmap.put("comboEmplKind", codeService.getComboCodeList(paraMap));
+
         result.setData(rmap);
         return result;
     }

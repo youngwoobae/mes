@@ -481,26 +481,7 @@ public class UserController {
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
-    @PostMapping(value = "/accHstrList")
-    public Result getHstrList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.getHstrList(paraMap));
-        result.setTotalCount(userService.getHstrListCount(paraMap));
 
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        return result;
-    }
     @PostMapping(value = "/authUserMenuList")
     public Result authUserMenuList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
@@ -580,15 +561,15 @@ public class UserController {
     }
 
 
-    @PostMapping(value="/getHumanList")
-    public Result getHumanList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+    @PostMapping(value="/getWorkerList")
+    public Result getWorkerList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.getHumanList(paraMap)); //메뉴별상세접근권한
-        result.setTotalCount(userService.getHumanListCount(paraMap));
+        result.setData(userService.getWorkerList(paraMap));
+        result.setTotalCount(userService.getWorkerListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
@@ -602,15 +583,15 @@ public class UserController {
     }
 
 
-    @PostMapping(value="/getHumanHstrList")
-    public Result getHumanHstrList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+    @PostMapping(value="/getWorkHstr")
+    public Result getWorkHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.getHumanHstrList(paraMap));
-        result.setTotalCount(userService.getHumanHstrListCount(paraMap));
+        result.setData(userService.getWorkHstr(paraMap));
+        result.setTotalCount(userService.getWorkHstrCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");

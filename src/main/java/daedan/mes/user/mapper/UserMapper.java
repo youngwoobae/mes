@@ -44,13 +44,13 @@ public interface UserMapper {
     int getAuthUserMenuListCount(Map<String, Object> paraMap);
 
 
-    List<Map<String, Object>> getHumanList(Map<String, Object> paraMap);
+    List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap);
 
-    int getHumanListCount(Map<String, Object> paraMap);
+    int getWorkerListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getHumanHstrList(Map<String, Object> paraMap);
+    List<Map<String, Object>> getWorkHstr(Map<String, Object> paraMap);
 
-    int getHumanHstrListCount(Map<String, Object> paraMap);
+    int getWorkHstrCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);
 

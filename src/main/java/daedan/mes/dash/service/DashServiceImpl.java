@@ -26,23 +26,33 @@ public class DashServiceImpl implements  DashService {
     private Dash08Mapper yyjgMapper;
 
     public List<Map<String, Object>> getGraphData(Map<String, Object> paraMap) {
+        String tag = "DashService.getGraphData => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getGraphData(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getDashTotalMakeIndc(Map<String, Object> paraMap) {
+        String tag = "DashService.getDashTotalMakeIndc => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getDashTotalMakeIndc(paraMap);
     }
 
     @Override
     public List<Map<String, Object>> getDashTotalMakeIndcRslt(Map<String, Object> paraMap) {
+        String tag = "DashService.getDashTotalMakeIndcRslt => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getDashTotalMakeIndcRslt(paraMap);
     }
 
     public List<Map<String, Object>> getToDayQuality(Map<String, Object> paraMap) {
+        String tag = "DashService.getToDayQuality => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getToDayQuality(paraMap);
     }
     public List<Map<String, Object>> ToDayStoreQuality(Map<String, Object> paraMap) {
+        String tag = "DashService.ToDayStoreQuality => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.ToDayStoreQuality(paraMap);
     }
 
@@ -50,7 +60,7 @@ public class DashServiceImpl implements  DashService {
 
     @Override
     public List<Map<String, Object>> getScadaTmprList(Map<String, Object> paraMap) {
-        String tag = "DashServiceImpl.getScadaTrmpList => ";
+        String tag = "dashServiceImpl.getScadaTrmpList => ";
         paraMap.put("custNo",Integer.parseInt(paraMap.get("custNo").toString()));
         paraMap.put("equipNo",1L);
         List<Map<String,Object>> ds = mapper.getScadaTmprSpotList(paraMap);
@@ -96,7 +106,7 @@ public class DashServiceImpl implements  DashService {
 
     @Override
     public List<Map<String, Object>> getYyjgProdIoList(Map<String, Object> paraMap) {
-        String tag = "vsvc.DashService.getYyjgProdIoList=>";
+        String tag = "dashService.getYyjgProdIoList=>";
         log.info(tag + "paraMap = " + paraMap.toString());
         return yyjgMapper.getYyjgProdIoList(paraMap);
     }
@@ -108,7 +118,7 @@ public class DashServiceImpl implements  DashService {
 
     @Override
     public List<Map<String, Object>> getYyjgMatrIoList(Map<String, Object> paraMap) {
-        String tag = "vsvc.DashService.getYyjgMatrIoList=>";
+        String tag = "dashService.getYyjgMatrIoList=>";
         log.info(tag + "paraMap = " + paraMap.toString());
         return yyjgMapper.getYyjgMatrIoList(paraMap);
     }
@@ -119,18 +129,22 @@ public class DashServiceImpl implements  DashService {
 
 
     @Override
-    public List<Map<String, Object>> getHumanList(Map<String, Object> paraMap){
-        return mapper.getHumanList(paraMap);
+    public List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap){
+        String tag = "dashService.getWorkerList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getWorkerList(paraMap);
     }
 
     @Override
-    public int getToTalhumanCount(Map<String, Object> paraMap){
-        return mapper.getToTalhumanCount(paraMap);
+    public int getWorkerListCount(Map<String, Object> paraMap){
+        return mapper.getWorkerListCount(paraMap);
     }
 
 
     @Override
     public List<Map<String, Object>> getMetalLog(Map<String, Object> paraMap){
+        String tag = "dashService.getMetalLog => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getMetalLog(paraMap);
     }
 

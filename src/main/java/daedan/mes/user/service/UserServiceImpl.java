@@ -503,15 +503,6 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getHstrList(Map<String, Object> paraMap){
-		return mapper.getHstrList(paraMap);
-	}
-	@Override
-	public int getHstrListCount(Map<String, Object> paraMap){
-		return mapper.getHstrListCount(paraMap);
-	}
-
-	@Override
 	public void makeAccHstr(Map<String, Object> paraMap) {
 		String tag = "vsvc.makeAccHstr => ";
 		log.info(tag + "paraMap = " + paraMap.toString());
@@ -742,28 +733,28 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public List<Map<String, Object>> getHumanList(Map<String, Object> paraMap) {
-		String tag = "vsvc.userService.getAuthUserMenuList => ";
+	public List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap) {
+		String tag = "vsvc.userService.getWorkerList => ";
 		log.info(tag + "paramMap = " + paraMap.toString());
-		return mapper.getHumanList(paraMap);
+		return mapper.getWorkerList(paraMap);
 	}
 
 	@Override
-	public int getHumanListCount(Map<String, Object> paraMap) {
-		return mapper.getHumanListCount(paraMap);
+	public int getWorkerListCount(Map<String, Object> paraMap) {
+		return mapper.getWorkerListCount(paraMap);
 	}
 
 
 	@Override
-	public List<Map<String, Object>> getHumanHstrList(Map<String, Object> paraMap) {
-		String tag = "vsvc.userService.getAuthUserMenuList => ";
+	public List<Map<String, Object>> getWorkHstr(Map<String, Object> paraMap) {
+		String tag = "userService.getWorkHstr => ";
 		log.info(tag + "paramMap = " + paraMap.toString());
-		return mapper.getHumanHstrList(paraMap);
+		return mapper.getWorkHstr(paraMap);
 	}
 
 	@Override
-	public int getHumanHstrListCount(Map<String, Object> paraMap) {
-		return mapper.getHumanHstrListCount(paraMap);
+	public int getWorkHstrCount(Map<String, Object> paraMap) {
+		return mapper.getWorkHstrCount(paraMap);
 	}
 
 

@@ -520,30 +520,43 @@
         ) a
     </select>
 
-    <select id="getHumanList" parameterType="map" resultType="camelMap">
-        /*사용자ID,성명 목록 (uperMapper.getHumanList) */
+    <select id="getWorkerList" parameterType="map" resultType="camelMap">
+        /*사용자ID,성명 목록 (userMapper.getWorkerList) */
         select a.user_id --id
-        , a.user_nm --성명
+              , a.user_nm --성명
+              ,fn_get_code_name('nm',a.empl_kind) as empl_kind_nm
         from user_info a
         where a.cust_no = #{custNo} and used_yn = 'Y'
-          and a.ocpn_kind = 222 --생산직만
+        <if test="ocpnKind != null and ocpnKind != ''">
+            and a.ocpn_kind = #{ocpnKind}
+        </if>
+        <if test="emplKind != null and emplKind != ''">
+            and a.empl_kind = #{emplKind}
+        </if>
+
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
                 and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by a.user_nm
+        order by empl_kind_nm, user_nm
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="getHumanListCount" parameterType="map" resultType="int">
+    <select id="getWorkerListCount" parameterType="map" resultType="int">
         select count(a.user_id)
         from (
             select a.user_id --id
                  , a.user_nm --성명
             from user_info a
             where a.cust_no = #{custNo} and used_yn = 'Y'
-              and a.ocpn_kind = 222 --생산직만
+            <if test="ocpnKind != null and ocpnKind != '' ">
+                and a.ocpn_kind = #{ocpnKind}
+            </if>
+            <if test="emplKind != null and emplKind != '' and (emplKind != '0'.toString())">
+            and a.empl_kind = #{emplKind}
+            </if>
+
             <if test="findSz != null and findSz != ''">
                 <if test="findTp != null and findTp == 'userNm'">
                     and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'

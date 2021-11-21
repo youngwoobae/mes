@@ -3,45 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="daedan.mes.dash.mapper.DashMapper">
-<!--    <select id="gethumanList" parameterType="map"  resultType="camelMap">-->
-<!--        select-->
-<!--            u.empl_kind,-->
-<!--            m.mp_used_dt-->
-<!--        from make_indc_mp m join user_info u on m.user_id = u.user_id-->
-<!--        where 1 = 1-->
-<!--        <choose>-->
-<!--            <when test="custNo != null and custNo == 2">-->
-<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() - '1 day'::interval,'YYYY-MM-DD')-->
-<!--            </when>-->
-<!--            <otherwise>-->
-<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() ,'YYYY-MM-DD')-->
-<!--            </otherwise>-->
-<!--        </choose>-->
-<!--    </select>-->
-
-<!--    <select id="gethumanListCount" parameterType="map"  resultType="camelMap">-->
-<!--        select-->
-<!--            u.empl_kind,-->
-<!--            m.mp_used_dt-->
-<!--        from make_indc_mp m join user_info u on m.user_id = u.user_id-->
-<!--        where 1 - 1-->
-<!--        <choose>-->
-<!--            <when test="custNo != null and custNo == 2">-->
-<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() - '1 day'::interval,'YYYY-MM-DD')-->
-<!--            </when>-->
-<!--            <otherwise>-->
-<!--                and TO_CHAR(m.mp_used_dt,'YYYY-MM-DD') = TO_CHAR(now() ,'YYYY-MM-DD')-->
-<!--            </otherwise>-->
-<!--        </choose>-->
-<!--    </select>-->
-
-    <select id="getToTalhumanCount" parameterType="map"  resultType="int">
-        select count(user_id)
-        from user_info ui where used_yn = 'Y' and ocpn_kind = 222
-    </select>
-
-
-    <select id="getHumanList" parameterType="map"  resultType="camelMap">
+    <select id="getWorkerList" parameterType="map"  resultType="camelMap">
         select a.user_id
              , b.user_nm
              , c.code_nm
@@ -67,6 +29,34 @@
         group by a.user_id ,b.user_nm ,c.code_nm , c.code_no
     </select>
 
+    <select id="getWorkerListCount" parameterType="map"  resultType="int">
+        select count(a.user_id)
+        from (
+            select a.user_id
+                 , b.user_nm
+                 , c.code_nm
+                 , c.code_no
+            from make_indc_mp a join user_info b on a.user_id = b.user_id and b.used_yn = 'Y'
+                                join code_info c on c.code_no = b.empl_kind and c.used_yn = 'Y'
+                                join make_indc d on a.indc_no = d.indc_no and d.used_yn = 'Y'
+            where a.used_yn ='Y'
+            and d.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = d.par_indc_no)
+            <choose>
+                <when test="weekDay == 0 or weekDay == 1">
+                    <if test="weekDay == 0 ">
+                        and to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(now() - '2 day'::interval,'YYYY-MM-DD')
+                    </if>
+                    <if test="weekDay == 1 ">
+                        and to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(now() - '1 day'::interval,'YYYY-MM-DD')
+                    </if>
+                </when>
+                <otherwise>
+                    and to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(now() - '1 day'::interval,'YYYY-MM-DD')
+                </otherwise>
+            </choose>
+            group by a.user_id ,b.user_nm ,c.code_nm , c.code_no
+        ) a
+    </select>
 
 
     <select id="getToDayProduction" parameterType="map"  resultType="camelMap">
