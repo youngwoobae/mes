@@ -8,4 +8,6 @@ public interface CodeRepository extends JpaRepository<CodeInfo, Long> {
     CodeInfo findByCodeNmAndUsedYn(String codeNm, String yn);
     CodeInfo findByCodeNoAndUsedYn(Long codeNo, String y);
     CodeInfo findByParCodeNoAndCodeNmAndUsedYn(Long fileExt, String toUpperCase, String y);
+
+    CodeInfo findByCustNoAndCodeNoAndUsedYn(Long custNo, Long codeNo, String y);
 }

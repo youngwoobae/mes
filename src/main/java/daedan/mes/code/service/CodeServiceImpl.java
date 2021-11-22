@@ -96,7 +96,7 @@ public class CodeServiceImpl implements CodeService {
         log.info(tag + "paraMap = " +paraMap.toString());
         CodeInfo cvo = new CodeInfo();
         cvo.setCodeNo(Long.parseLong(paraMap.get("codeNo").toString()));
-        CodeInfo rvo = codeRepo.findByCodeNmAndUsedYn(cvo.getCodeNm(),"Y");
+        CodeInfo rvo = codeRepo.findByCustNoAndCodeNoAndUsedYn(custNo,cvo.getCodeNo(),"Y");
         return StringUtil.voToMap(rvo);
     }
 
