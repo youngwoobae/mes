@@ -36,7 +36,7 @@
 		                          ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
 		where  1 = 1
 		  and c.used_yn = 'Y' and c.cust_no = #{custNo}
-		order by prod_nm
+		order by prod_nm collate "ko_KR.utf8"
 	</select>
 
 	<select id="getYyjgProdIoListCount" parameterType="map"  resultType="int">

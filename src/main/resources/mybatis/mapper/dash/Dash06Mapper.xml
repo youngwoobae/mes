@@ -73,7 +73,7 @@
         group by a.spot_equip_no
         , b.spot_no
         , c.spot_nm
-        order by spot_nm
+        order by spot_nm collate "ko_KR.utf8"
         limit 10 offset 0
     </select>
 

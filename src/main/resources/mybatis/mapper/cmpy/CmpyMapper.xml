@@ -181,7 +181,7 @@
                                    where matr_no = #{matrNo}
                                    and used_yn = 'Y' and cust_no = #{custNo})
         </if>
-        order by cmpy_nm
+        order by cmpy_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -206,7 +206,7 @@
         <if test="cmpyNo != null and cmpyNo != ''">
             AND a.cmpy_no = #{cmpyNo}
         </if>
-        order by plc_nm
+        order by plc_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -219,7 +219,7 @@
                 <if test="cmpyNo != null and cmpyNo != ''">
                     AND a.cmpy_no = #{cmpyNo}
                 </if>
-                order by plc_nm
+                order by plc_nm collate "ko_KR.utf8"
           ) a
     </select>
 
@@ -269,7 +269,7 @@
                          left join wh_info h on g.wh_no = h.wh_no
         where e.purs_no = #{pursNo}
           and a.used_yn = 'Y' and a.cust_no = #{custNo}
-        order by purs_yn desc, b.matr_nm
+        order by purs_yn desc, b.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getCmpyIpList" parameterType="map"  resultType="camelMap">
