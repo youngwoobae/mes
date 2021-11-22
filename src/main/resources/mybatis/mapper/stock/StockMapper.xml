@@ -276,7 +276,7 @@
                 </if>
             </if>
 
-             order by matr_nm
+             order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
 
     </select>
@@ -875,7 +875,7 @@
                     )
             </if>
         </if>
-        order by clos_dt,matr_nm,prod_nm
+        order by clos_dt,matr_nm collate "ko_KR.utf8", prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -937,7 +937,7 @@
         where 1 = 1 and a.cust_no = #{custNo}
         <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo} </if>
         <if test="prodNo != null and prodNo != ''"> AND e.prod_no = #{prodNo} </if>
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getStkClosMatrIwhDetlHstrCount" parameterType="map" resultType="int" >
@@ -981,7 +981,7 @@
         where 1 = 1 and a.cust_no = #{custNo}
         <if test="matrNo != null and matrNo != ''"> AND a.matr_no = #{matrNo} </if>
         <if test="prodNo != null and prodNo != ''"> AND e.prod_no = #{prodNo} </if>
-        order by iwh_dt desc , matr_nm
+        order by iwh_dt desc , matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1023,7 +1023,7 @@
                          left join cmpy_info g on f.cmpy_no  = g.cmpy_no  and g.cust_no = #{custNo}
         where a.used_yn =  'Y' and a.cust_no = #{custNo}
         <if test="prodNo != null and prodNo != ''"> AND a.prod_no = #{prodNo} </if>
-        order by iwh_dt desc , prod_nm, cmpy_nm
+        order by iwh_dt desc , prod_nm collate "ko_KR.utf8", cmpy_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getStkClosProdIwhDetlHstrCount" parameterType="map" resultType="int" >
@@ -1060,7 +1060,7 @@
                     left join cmpy_info g on f.cmpy_no  = g.cmpy_no and g.cust_no = #{custNo}
         where a.used_yn =  'Y' and a.cust_no = #{custNo}
         <if test="prodNo != null and prodNo != ''"> AND a.prod_no = #{prodNo} </if>
-        order by dlv_req_dt desc , prod_nm, cmpy_nm
+        order by dlv_req_dt desc , prod_nm collate "ko_KR.utf8", cmpy_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getStkClosProdOwhDetlHstrCount" parameterType="map" resultType="int" >
@@ -1110,7 +1110,7 @@
                 end = #{findSz}
             </otherwise>
         </choose>
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
     </select>
     <select id="getMatrForRealStkListCount" parameterType="map" resultType="int">
         select count(a.matr_no)
@@ -1145,7 +1145,7 @@
                             end = #{findSz}
                         </otherwise>
                     </choose>
-                    order by matr_nm
+                    order by matr_nm collate "ko_KR.utf8"
                 ) a
 
     </select>
@@ -1183,7 +1183,7 @@
                 end = #{findSz}
             </otherwise>
         </choose>
-        order by prod_nm
+        order by prod_nm collate "ko_KR.utf8"
     </select>
     <select id="getProdForRealStkListCount" parameterType="map" resultType="int">
         select count(a.prod_no)
@@ -1218,7 +1218,7 @@
                         end = #{findSz}
                     </otherwise>
                 </choose>
-                order by prod_nm
+                order by prod_nm collate "ko_KR.utf8"
         ) a
     </select>
 
