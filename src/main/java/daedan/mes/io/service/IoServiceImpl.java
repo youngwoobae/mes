@@ -2739,6 +2739,21 @@ public class IoServiceImpl implements IoService {
         return mapper.getMatrForIwhListCount(paraMap);
     }
 
+
+    //구매 과정없이 자재 입고처리하는 경우 : 간단 MES용
+    @Override
+    public List<Map<String, Object>> getMatrForIwhListByT(Map<String, Object> paraMap) {
+        String tag = "ioService.getMatrForIwhListByT => ";
+        log.info(tag + " paraMap = > " + paraMap.toString());
+        return mapper.getMatrForIwhListByT(paraMap);
+    }
+
+    @Override
+    public int getMatrForIwhListByTCount(Map<String, Object> paraMap) {
+        return mapper.getMatrForIwhListByTCount(paraMap);
+    }
+
+
     @SneakyThrows
     @Override
     public void saveMatrIwhList(Map<String, Object> paraMap) {

@@ -183,6 +183,10 @@ public interface IoService {
     List<Map<String,Object>> getMatrForIwhList(Map<String,Object> paraMap);
     int getMatrForIwhListCount(Map<String,Object> paraMap);
 
+    //구매 과정없이 자재 입고처리하는 경우 : 간단 MES용
+    List<Map<String,Object>> getMatrForIwhListByT(Map<String,Object> paraMap); // AddOn By KMJ At 21.11.22 getMatrForIwhList 대체용
+    int getMatrForIwhListByTCount(Map<String,Object> paraMap); //AddOn By KMJ At 21.11.22  getMatrForIwhListCount 대체용
+
     // 테블릿 자재 입고
     void saveMatrIwhList(Map<String, Object> paraMap);
 

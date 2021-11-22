@@ -2581,6 +2581,48 @@
         
     </insert>
 
+    <select id="getMatrForIwhListByT" parameterType="map"  resultType="camelMap">
+        /* 간단 MES용 (ioMapper.getMatrForIwhListByT) -> ioMapper.getMatrForIwhList 대체용) */
+        select a.matr_no
+             , a.purs_no
+             , a.purs_matr_no
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm
+             , fn_get_matr_name(a.matr_no) as matr_nm
+             , a.purs_qty
+        from purs_matr a join matr_info b on a.matr_no = b.matr_no and a.cust_no = b.cust_no and b.used_yn ='Y'
+        where a.cust_no = #{custNo}
+          and matr_no in (select matr_no from prod_bom where prod_no = 697716 and cust_no = a.cust_no and used_yn = 'Y')
+          and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
+        <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
+        <if test="findStr != null and findStr != ''">
+            AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
+        </if>
+        <choose>
+            <when test="findTp != null and findTp == 'en'">
+                and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
+            </when>
+            <when test="findTp != null and findTp == 'no'">
+                and a.matr_nm like '%' || #{findSz} || '%'
+            </when>
+            <when test="findTp != null and findTp == 'ko'">
+                AND fn_get_consonant(a.matr_nm) = #{findSz}
+            </when>
+            <otherwise> </otherwise>
+        </choose>
+        order by purs_yn, purs_dt , a.matr_nm collate "ko_KR.utf8"
+        limit #{pageSz} offset #{pageNo}
+
+    </select>
+    <select id="getMatrForIwhListByTCount" parameterType="map"  resultType="camelMap">
+        select count(a.matr_no)
+        fom (
+            select a.matr_no
+            from purs_matr a join matr_info b on a.matr_no = b.matr_no and a.cust_no = b.cust_no and b.used_yn ='Y'
+            where a.cust_no = #{custNo}
+              and matr_no in (select matr_no from prod_bom where prod_no = 697716 and cust_no = a.cust_no and used_yn = 'Y')
+              and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
+        ) a
+    </select>
 
     <select id="getMatrForIwhList" parameterType="map"  resultType="camelMap">
     /* 간단 MES용 (ioMapper.getMatrForIwhList) */

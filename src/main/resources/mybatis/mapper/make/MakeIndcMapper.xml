@@ -1104,11 +1104,12 @@
 
     <!--생산현황-->
     <select id="getMakeStatList" parameterType="map"  resultType="camelMap">
+        /* 생산관리 > 생산현황 (makeIndcMapper.getMakeStatList) */
         select a.indc_no --지시번호
             , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
             , b.prod_nm --품명
             , b.prod_no
-            , d.code_nm as proc_nm --공정
+            , fn_get_code_name('nm',c.proc_cd) as prod_nm --공정
             , to_char(e.make_dt,'YYYY-MM-DD') as make_dt --생상일자
             , b.sz  --규격
             , b.mess --단위중량
@@ -1135,8 +1136,7 @@
                                          and b.used_yn = 'Y' and b.cust_no =#{custNo}
                          join proc_info c on a.proc_cd = c.proc_cd
                                          and c.used_yn = 'Y' and c.cust_no =#{custNo}
-                         join code_info d on c.proc_cd  = d.code_no and d.used_yn = 'Y'
-                    left join make_indc_rslt e on a.indc_no = e.indc_no
+                         join make_indc_rslt e on a.indc_no = e.indc_no
                                               and e.used_yn = 'Y' and e.cust_no =#{custNo}
                     left join ( select prod_no, sum(stk_qty) as stk_qty
                                 from prod_stk_clos
@@ -1184,8 +1184,7 @@
                                                 and b.used_yn = 'Y' and b.cust_no =#{custNo}
                                 join proc_info c on a.proc_cd = c.proc_cd
                                                 and c.used_yn = 'Y' and c.cust_no =#{custNo}
-                                join code_info d on c.proc_cd  = d.code_no
-                           left join make_indc_rslt e on a.indc_no = e.indc_no
+                                join make_indc_rslt e on a.indc_no = e.indc_no
                                                      and e.used_yn = 'Y' and e.cust_no =#{custNo}
                           left join ( select prod_no, sum(stk_qty) as stk_qty
                                       from prod_stk_clos

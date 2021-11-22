@@ -199,6 +199,9 @@ public interface IoMapper {
     List<Map<String, Object>> getMatrForIwhList(Map<String, Object> paraMap);
     int getMatrForIwhListCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getMatrForIwhListByT(Map<String, Object> paraMap); //AddOn By KMJ AT 21.11.22 - getMatrForIwhList 대체용
+    int getMatrForIwhListByTCount(Map<String, Object> paraMap); //AddOn By KMJ AT 21.11.22 - getMatrForIwhListCount 대체용
+
     // 테블릿 자재 출고 목록
     List<Map<String, Object>> getMatrForOwhList(Map<String, Object> paraMap);
     int getMatrForOwhListCount(Map<String, Object> paraMap);
