@@ -464,7 +464,7 @@
                                 where cust_no = #{custNo}
                                ) e on c.matr_no = e.matr_no
         where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
-        order by c.matr_nm
+        order by c.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -544,7 +544,7 @@
                                 where cust_no = #{custNo}
                                ) e on c.matr_no = e.matr_no
         where a.prod_no = #{prodNo} and a.cust_no = #{custNo}
-        order by c.matr_nm
+        order by c.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -620,7 +620,7 @@
 		  where used_yn = 'Y'
 		   and cmpy_no = #{cmpyNo}
 		   and cust_no = #{custNo}
-      order by base_plc_yn desc, plc_nm
+      order by base_plc_yn desc, plc_nm collate "ko_KR.utf8"
 	</select>
 
     <!--출고대기자재목록-->
@@ -790,7 +790,7 @@
                     )
             </if>
         </if>
-        order by prod_nm
+        order by prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -830,7 +830,7 @@
 		  from cmpy_dlv_plc
 		  where cmpy_no = #{cmpyNo}
 		    and cust_no = #{custNo}
-      order by base_plc_yn desc, plc_nm
+      order by base_plc_yn desc, plc_nm collate "ko_KR.utf8"
 	</select>
 
     <select id="updateOrdProdQty" parameterType="map" >

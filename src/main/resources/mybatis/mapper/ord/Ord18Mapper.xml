@@ -45,7 +45,7 @@
 <!--        <if test="dateFr != null and dateFr != ''">-->
 <!--            and to_char(b.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)-->
 <!--        </if>-->
-        ORDER BY b.ord_dt desc, b.ord_nm
+        ORDER BY b.ord_dt desc, b.ord_nm collate "ko_KR.utf8"
         LIMIT #{pageSz} OFFSET #{pageNo}
     </select>
 
