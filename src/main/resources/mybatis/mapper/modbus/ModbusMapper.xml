@@ -28,7 +28,7 @@
         WHERE a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="spotNo != null and spotNo != ''"> and c.spot_no = #{spotNo} </if>
         <if test="equipNo != null and equipNo != ''"> and b.equip_no = #{equipNo} </if>
-        order by spot_nm
+        order by spot_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
 
     </select>
@@ -167,7 +167,7 @@
                 AND fn_get_consonant(a.prod_nm) = #{findSz}
             </otherwise>
         </choose>
-        order by c.indc_no, a.prod_nm
+        order by c.indc_no, a.prod_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getTrkList" parameterType="map" resultType="camelMap">
