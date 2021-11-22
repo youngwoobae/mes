@@ -231,7 +231,7 @@
                 AND upper(replace(a.user_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by user_nm
+        order by user_nm collate "ko_KR.utf8"
     </select>
 
 
