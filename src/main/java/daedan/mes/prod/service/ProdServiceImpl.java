@@ -476,6 +476,12 @@ public class ProdServiceImpl implements  ProdService {
             prodInfo.setMaxPh(7F);
         }
 
+        try {
+            prodInfo.setWhNo(Long.parseLong(paraMap.get("whNo").toString()));
+        } catch (NullPointerException ne) {
+            prodInfo.setWhNo(0L);
+        }
+
 
         try {
             prodInfo.setFileNo(fileNo);
