@@ -2583,17 +2583,22 @@
 
     <select id="getMatrForIwhListByT" parameterType="map"  resultType="camelMap">
         /* 간단 MES용 (ioMapper.getMatrForIwhListByT) -> ioMapper.getMatrForIwhList 대체용) */
-        select a.matr_no
-             , a.purs_no
-             , a.purs_matr_no
-             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm
-             , fn_get_matr_name(a.matr_no) as matr_nm
+        select concat(a.purs_matr_no , '-' , a.purs_qty) as item_no
+             , a.matr_no --원료번호
+             , a.purs_no --구매번호
+             , a.purs_matr_no --구매원료관리번호
+             , b.wh_no --창고번호
+             , to_char(c.purs_dt,'YYYY-MM-DD') as purs_dt --구매일자
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --구매처명
+             , fn_get_matr_name(a.matr_no) as matr_nm --원료명
+             , fn_get_wh_name(b.wh_no) as wh_nm --창고명
              , a.purs_qty
         from purs_matr a join matr_info b on a.matr_no = b.matr_no and a.cust_no = b.cust_no and b.used_yn ='Y'
+                         join purs_info c on a.purs_no = c.purs_no and c.used_yn ='Y'
         where a.cust_no = #{custNo}
-          and matr_no in (select matr_no from prod_bom where prod_no = 697716 and cust_no = a.cust_no and used_yn = 'Y')
+          and a.matr_no in (select matr_no from prod_bom where prod_no = #{prodNo} and cust_no = a.cust_no and used_yn = 'Y')
           and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
-        <if test="whNo != null and whNo != ''">  and b.wh_no = #{whNo}   </if>
+        <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
         </if>
@@ -2609,17 +2614,18 @@
             </when>
             <otherwise> </otherwise>
         </choose>
-        order by purs_yn, purs_dt , a.matr_nm collate "ko_KR.utf8"
+        order by  c.purs_dt , b.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
 
     </select>
-    <select id="getMatrForIwhListByTCount" parameterType="map"  resultType="camelMap">
+    <select id="getMatrForIwhListByTCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
-        fom (
+        from (
             select a.matr_no
             from purs_matr a join matr_info b on a.matr_no = b.matr_no and a.cust_no = b.cust_no and b.used_yn ='Y'
+                             join purs_info c on a.purs_no = c.purs_no and c.used_yn ='Y'
             where a.cust_no = #{custNo}
-              and matr_no in (select matr_no from prod_bom where prod_no = 697716 and cust_no = a.cust_no and used_yn = 'Y')
+              and a.matr_no in (select matr_no from prod_bom where prod_no = #{prodNo} and cust_no = a.cust_no and used_yn = 'Y')
               and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
         ) a
     </select>

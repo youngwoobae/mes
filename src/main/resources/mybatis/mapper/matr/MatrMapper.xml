@@ -416,7 +416,7 @@
         WHERE  a.used_yn = 'Y'
           AND  a.matr_no = #{matrNo}
           and  a.cust_no = #{custNo}
-        ORDER BY seq, text collate "ko_KR.utf8"
+        ORDER BY seq, text
     </select>
 
     <select id="getCmpyMatrCombo" parameterType="map"  resultType="camelMap">
@@ -427,7 +427,7 @@
         WHERE  a.used_yn = 'Y'
           AND  a.cmpy_no = #{cmpyNo}
           and a.cust_no = #{custNo}
-        ORDER BY text collate "ko_KR.utf8"
+        ORDER BY text
     </select>
 
     <update id="resetLineFeedToSpaceToMatrNm" >
