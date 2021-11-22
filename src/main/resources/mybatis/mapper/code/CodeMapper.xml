@@ -299,4 +299,20 @@
 	<select id="getMaxCodeSeq" parameterType="map" resultType="int">
 		select max(code_seq+1) from code_info where par_code_no = #{parCodeNo}
 	</select>
+
+	<select id="getComboMatrWhList" parameterType="map"  resultType="camelMap">
+		/*자재창고목록 (WhInfo.getComboMatrWhList)*/
+		select
+			wh_no as value,
+			wh_nm as text
+		 from wh_info where cust_no = #{custNo} and wh_tp = 191 and used_yn ='Y'
+	</select>
+
+	<select id="getComboProdWhList" parameterType="map"  resultType="camelMap">
+		/*자재창고목록 (WhInfo.getComboMatrWhList)*/
+		select
+			wh_no as value,
+			wh_nm as text
+		 from wh_info where cust_no = #{custNo} and wh_tp = 192 and used_yn ='Y'
+	</select>
 </mapper>

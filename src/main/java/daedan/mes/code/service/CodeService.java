@@ -33,4 +33,8 @@ public interface CodeService {
     List<Map<String, Object>> getComboUserDeptList(Map<String, Object> paraMap);
 
     List<Object> getCodeTree(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getComboMatrWhList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getComboProdWhList(Map<String, Object> paraMap);
 }

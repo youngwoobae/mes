@@ -2653,7 +2653,7 @@
                     left join matr_stk b on a.matr_no = b.matr_no
                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
                                        and b.wh_no = f.wh_no
-                         join purs_matr c on b.matr_no = c.matr_no and c.used_yn = 'Y'
+                         join purs_matr c on a.matr_no = c.matr_no and c.used_yn = 'Y'
                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
 
                          join purs_info d on c.purs_no = d.purs_no and d.used_yn = 'Y'

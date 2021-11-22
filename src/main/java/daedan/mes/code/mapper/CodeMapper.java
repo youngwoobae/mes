@@ -31,4 +31,8 @@ public interface CodeMapper {
 
 
     Integer getMaxCodeSeq(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getComboMatrWhList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getComboProdWhList(Map<String, Object> paraMap);
 }

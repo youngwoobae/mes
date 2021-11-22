@@ -177,6 +177,7 @@
             , e.code_nm as mngr_unit_nm --관리기준
             , g.code_nm as madein_nm --원산지명
             , a.spga
+            , a.wh_no
         from matr_info a join code_info b on a.matr_tp = b.code_no
                     left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
                     left join code_info d on a.purs_unit = d.code_no
@@ -330,6 +331,7 @@
              , a.base_cal_yn --AddOn By KMJ AT 21.08.05 23:00 --하담푸드 원육여부 설정 : 지시량이 총량베이스가 아니고 원윩베이스이브로 make_indc_rslt 생성시 need_qty 계신식이 달라짐 (원육여부 확인용)
              , a.matr_attr_matr_attr_no  --원료속성
              , #{baseUrl} || c.acc_url as acc_url
+             , a.wh_no
         from matr_info a join code_info b on a.matr_tp = b.code_no
                          left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
                          left join code_info d on a.purs_unit = d.code_no
@@ -381,7 +383,6 @@
         WHERE  a.USER_ID = #{userId}
           and  a.cust_no = #{custNo}
           AND  a.matr_no = #{matrNo}
-        ORDER BY cmpy_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMatrCmpyListCount" parameterType="map"  resultType="int">

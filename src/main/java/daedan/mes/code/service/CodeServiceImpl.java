@@ -603,4 +603,21 @@ public class CodeServiceImpl implements CodeService {
         return menuList1;
     }
 
+
+    @Override
+    public List<Map<String, Object>> getComboMatrWhList(Map<String, Object> paraMap) {
+        String tag = "CodeService.getComboMatrWhList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+
+        return mapper.getComboMatrWhList(paraMap);
+    }
+
+    @Override
+    public List<Map<String, Object>> getComboProdWhList(Map<String, Object> paraMap) {
+        String tag = "CodeService.getComboProdWhList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+
+        return mapper.getComboProdWhList(paraMap);
+    }
+
 }

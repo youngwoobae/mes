@@ -1910,24 +1910,24 @@
     <select id="getNeedProdBomList" parameterType="map" resultType="camelMap">
         /*생산계획에서 원료확인시 사용 (makeIndcMapper.getNeedProdBomList)*/
         select distinct d.matr_no --자재번호
-             , d.matr_nm --자재명
-             , d.item_cd --자재코드
-             , d.sz      --자재규격
-             , d.purs_unit --자재구매단가
-             , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
-             , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )  ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
-             , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )  ) * #{ctlFillYield} ) as need_qty --소요량(Kg)
-             , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )
-                           - coalesce (q.purs_qty,0) --주문제품의 BOM에 의거한 구매량 (ord_prod.purs_no > 0 인 자료)
-                           - coalesce ( e.stk_qty,0 )  <![CDATA[ >= ]]>   0
-                     then coalesce (q.purs_qty,0) - coalesce (mi.iwh_qty ,0)
-                     else coalesce (q.purs_qty,0) - coalesce(q.purs_qty,0)
-               end as wait_iwh_qty --입고대기량(Kg)
-             , coalesce (e.stk_qty,0) as stk_qty --재고량(Kg)
-             , get_matr_stk_sts(  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol * 0.001 )  * c.spga )::numeric
-                                 , coalesce ( e.stk_qty,0)::numeric
-                                 , coalesce (q.purs_qty,0)::numeric
-                               ) as purs_need
+                        , d.matr_nm --자재명
+                        , d.item_cd --자재코드
+                        , d.sz      --자재규격
+                        , d.purs_unit --자재구매단가
+                        , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
+                        , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
+                        , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)) * #{ctlFillYield} ) as need_qty --소요량(Kg)
+                        , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)
+                        - coalesce (q.purs_qty,0) --주문제품의 BOM에 의거한 구매량 (ord_prod.purs_no > 0 인 자료)
+                        - coalesce ( e.stk_qty,0 )  <![CDATA[ >= ]]>   0
+                        then coalesce (q.purs_qty,0) - coalesce (mi.iwh_qty ,0)
+                        else coalesce (q.purs_qty,0) - coalesce(q.purs_qty,0)
+                        end as wait_iwh_qty --입고대기량(Kg)
+                        , coalesce (e.stk_qty,0) as stk_qty --재고량(Kg)
+                        , get_matr_stk_sts(  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) * c.spga )::numeric
+                        , coalesce ( e.stk_qty,0)::numeric
+                        , coalesce (q.purs_qty,0)::numeric
+                        ) as purs_need
         from ord_prod a join ord_info  k on a.ord_no = k.ord_no and k.used_yn  = 'Y' and k.cust_no = #{custNo}
                         join prod_bom  b on a.prod_no = b.prod_no and b.purs_yn = 'Y' and b.prod_no = #{prodNo} and b.cust_no = #{custNo}
                         join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}

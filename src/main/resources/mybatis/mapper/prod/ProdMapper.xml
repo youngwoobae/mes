@@ -754,6 +754,7 @@
              , a.ce_tp
              , a.prod_tp --판매유형(OEM,ODM) 구분, Addon by KMJ At  21.10.19
              , a.cmpy_no --OEM상품의 주문업체 , Addon by KMJ At  21.10.19
+             , a.wh_no
         from prod_info a left join file_info b on a.file_no = b.file_no and b.used_yn = 'Y' and b.cust_no =#{custNo}
                          left join code_info c on a.save_tmpr = c.code_no
                          left join code_info d on a.sale_unit = d.code_no
@@ -1596,7 +1597,7 @@
     </select>
 
     <select id="getProdBom" parameterType="map"  resultType="camelMap">
-        select distinct   a.prod_no --품번
+        select   a.prod_no --품번
                         , a.prod_nm --자재명
                         , a.erp_prod_nm --ERP제품명
                         , a.spga --비중
@@ -1619,6 +1620,7 @@
                         , f.brnch_nm --분류명
                         , d.code_nm as matr_tp_nm -- 원부자재구분
                         , b.bom_lvl --BOM레벨
+                        , a.wh_no
 --                         , k.wh_no --창고번호
 --                         , k.wh_nm --창고명
                 from prod_info a join prod_bom  b on a.prod_no = b.prod_no
