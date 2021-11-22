@@ -491,7 +491,10 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             boolean chk = true;
             MakeIndc inchk = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,parIndcNo ,"Y");
             if(inchk != null){
-                List<Map<String, Object>> dl = mapper.chkStkByIndc(parIndcNo); // 재고 파악
+                Map<String,Object> datas = new HashMap<String,Object>();
+                datas.put("custNo",custNo);
+                datas.put("indcNo",parIndcNo);
+                List<Map<String, Object>> dl = mapper.chkStkByIndc(datas); // 재고 파악
                 for (Map<String, Object> es : dl) {
                     if (Float.parseFloat(es.get("reqPursQty").toString()) < 0) { //구매수량 < 필요수량인 경우
                         chk = false;
