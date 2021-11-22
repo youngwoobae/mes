@@ -120,7 +120,7 @@
                     )) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by k.cmpy_nm, a.matr_nm
+        order by k.cmpy_nm collate "ko_KR.utf8", a.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -296,7 +296,7 @@
                 )
             </if>
         </if>
-        order by a.matr_nm
+        order by a.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -381,7 +381,7 @@
         WHERE  a.USER_ID = #{userId}
           and  a.cust_no = #{custNo}
           AND  a.matr_no = #{matrNo}
-        ORDER BY cmpy_nm
+        ORDER BY cmpy_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMatrCmpyListCount" parameterType="map"  resultType="int">
@@ -416,7 +416,7 @@
         WHERE  a.used_yn = 'Y'
           AND  a.matr_no = #{matrNo}
           and  a.cust_no = #{custNo}
-        ORDER BY seq, text
+        ORDER BY seq, text collate "ko_KR.utf8"
     </select>
 
     <select id="getCmpyMatrCombo" parameterType="map"  resultType="camelMap">
@@ -427,7 +427,7 @@
         WHERE  a.used_yn = 'Y'
           AND  a.cmpy_no = #{cmpyNo}
           and a.cust_no = #{custNo}
-        ORDER BY text
+        ORDER BY text collate "ko_KR.utf8"
     </select>
 
     <update id="resetLineFeedToSpaceToMatrNm" >
@@ -483,7 +483,7 @@
                 AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by prod_nm,matr_nm
+        order by prod_nm collate "ko_KR.utf8",matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -529,7 +529,7 @@
         <if test="findSz != null and findSz != ''">
             AND upper(replace(a.cmpy_nm,' ','')) LIKE '%' || upper(replace(#{findSz},' ','')) || '%'
         </if>
-        order by cmpy_nm
+        order by cmpy_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -585,7 +585,7 @@
                 AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by prod_nm
+        order by prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -762,7 +762,7 @@
                 </if>
             </if>
         </if>
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1029,7 +1029,7 @@
         <if test="dateFr != null">
             and to_char(i.make_dt,'YYYY-MM-DD') =  substring(#{dateFr},1,10)
         </if>
-        order by g.code_nm
+        order by g.code_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getmakeIndcExcelList" parameterType="map" resultType="camelMap">
@@ -1166,7 +1166,7 @@
                 and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
