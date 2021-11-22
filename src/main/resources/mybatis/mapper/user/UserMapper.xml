@@ -119,7 +119,7 @@
                 and upper(replace(b.dept_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by user_posn,dept_no, user_nm
+        order by user_posn,dept_no, user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -301,7 +301,7 @@
                 and upper(replace(a.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by c.dept_nm ,a.user_posn, a.user_nm
+        order by c.dept_nm collate "ko_KR.utf8",a.user_posn, a.user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -539,7 +539,7 @@
                 and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by empl_kind_nm, user_nm
+        order by empl_kind_nm collate "ko_KR.utf8", user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
