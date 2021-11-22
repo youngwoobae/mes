@@ -746,15 +746,15 @@ public class UserServiceImpl implements UserService {
 
 
 	@Override
-	public List<Map<String, Object>> getWorkHstr(Map<String, Object> paraMap) {
-		String tag = "userService.getWorkHstr => ";
+	public List<Map<String, Object>> getWorkList(Map<String, Object> paraMap) {
+		String tag = "userService.getWorkList => ";
 		log.info(tag + "paramMap = " + paraMap.toString());
-		return mapper.getWorkHstr(paraMap);
+		return mapper.getWorkList(paraMap);
 	}
 
 	@Override
-	public int getWorkHstrCount(Map<String, Object> paraMap) {
-		return mapper.getWorkHstrCount(paraMap);
+	public int getWorkListCount(Map<String, Object> paraMap) {
+		return mapper.getWorkListCount(paraMap);
 	}
 
 
@@ -773,28 +773,75 @@ public class UserServiceImpl implements UserService {
 
 	@Transactional
 	@Override
-	public UserHstr hstrSave(Map<String, Object> paraMap) {
-		String tag = "UserService.hstrSave => ";
+	public void saveWorkInfo(Map<String, Object> paraMap) {
+		String tag = "UserService.saveWorkInfo => ";
 		log.info(tag + " paraMap = " + paraMap.toString());
-		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-		UserHstr userHstr = new UserHstr();
-		UserHstr uhchk = uhr.findByCustNoAndUserIdAndHstrDtAndUsedYn(custNo , Long.parseLong(paraMap.get("userNo").toString())  , paraMap.get("hstrDt").toString() , "Y");
-		if (uhchk == null){
-			userHstr.setHstrNo(0L);
-			userHstr.setCustNo(custNo);
-			userHstr.setUserId(Long.parseLong(paraMap.get("userNo").toString()));
-			userHstr.setHstrDt(paraMap.get("hstrDt").toString());
-		}else{
-			userHstr.setHstrNo(uhchk.getHstrNo());
-			userHstr.setCustNo(uhchk.getCustNo());
-			userHstr.setUserId(uhchk.getUserId());
-			userHstr.setHstrDt(uhchk.getHstrDt());
+		this.saveWork(paraMap);
+	}
+	@Transactional
+	@Override
+	public void saveWorkList(Map<String, Object> paraMap) {
+		String tag = "UserService.saveWorkList => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("workerList");
+		for (Map<String, Object> el : ds) {
+			el.put("custNo", paraMap.get("custNo"));
+			el.put("worker", el.get("userId"));
+			el.put("userId", paraMap.get("userId"));
+			el.put("workDt", paraMap.get("workDt").toString().substring(0,10));
+			el.put("workFrTm", paraMap.get("workFrTm").toString());
+			el.put("workToTm", paraMap.get("workToTm").toString());
+			el.put("ipaddr", paraMap.get("ipaddr").toString());
+			this.saveWork(el);
 		}
-		userHstr.setHstrFrDt(paraMap.get("hstrFrDt").toString());
-		userHstr.setHstrToDt(paraMap.get("hstrToDt").toString());
-		userHstr.setUsedYn("Y");
-		return uhr.save(userHstr);
+	}
 
+	private void saveWork(Map<String, Object> paraMap) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		Long workNo = 0L;
+
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+		Long worker = Long.parseLong(paraMap.get("worker").toString());
+		Long userId = Long.parseLong(paraMap.get("userId").toString());
+		try {
+			Date workDt = sdf.parse(paraMap.get("workDt").toString());
+			UserWork uwvo = new UserWork();
+			uwvo.setModDt(DateUtils.getCurrentBaseDateTime());
+			uwvo.setModIp(paraMap.get("ipaddr").toString());
+			uwvo.setModId(userId);
+
+			uwvo.setWorkFrTm(paraMap.get("workFrTm").toString());
+			uwvo.setWorkToTm(paraMap.get("workToTm").toString());
+
+			uwvo.setUserId(worker);
+			uwvo.setWorkDt(workDt);
+			uwvo.setUsedYn("Y");
+			try {
+				workNo = Long.parseLong(paraMap.get("workNo").toString());
+			}
+			catch (NullPointerException ne) {
+				workNo = 0L;
+			}
+
+			UserWork uwchk = uhr.findByCustNoAndWorkNoAndUsedYn(custNo , workNo  , "Y");
+			if (uwchk != null){
+				uwvo.setWorkNo(uwchk.getWorkNo());
+				uwvo.setRegDt(uwchk.getRegDt());
+				uwvo.setRegId(uwchk.getRegId());
+				uwvo.setRegIp(uwchk.getRegIp());
+			}
+			else{
+				uwvo.setWorkNo(workNo);
+				uwvo.setModDt(DateUtils.getCurrentBaseDateTime());
+				uwvo.setModId(userId);
+				uwvo.setModIp(paraMap.get("ipaddr").toString());
+			}
+			uwvo.setUsedYn("Y");
+			uwvo.setCustNo(custNo);
+			uhr.save(uwvo);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override

@@ -1,7 +1,6 @@
 package daedan.mes.user.controller;
 
 import daedan.mes.cmmn.service.CmmnService;
-import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
@@ -13,10 +12,8 @@ import daedan.mes.sys.service.SysService;
 import daedan.mes.user.domain.*;
 import daedan.mes.user.repository.CustInfoRepository;
 import daedan.mes.user.service.UserService;
-import net.sf.json.JSON;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.tools.ant.taskdefs.condition.Http;
 import org.json.simple.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,10 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -583,15 +576,17 @@ public class UserController {
     }
 
 
-    @PostMapping(value="/getWorkHstr")
-    public Result getWorkHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
+    @PostMapping(value="/getWorkList")
+    public Result getWorkList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.getWorkHstr(paraMap));
-        result.setTotalCount(userService.getWorkHstrCount(paraMap));
+        paraMap.put("ocpnKind",Long.parseLong(env.getProperty("ocpn_kind_blue")));
+
+        result.setData(userService.getWorkList(paraMap));
+        result.setTotalCount(userService.getWorkListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
@@ -602,21 +597,44 @@ public class UserController {
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
-
-    @PostMapping(value = "/hstrSave")
-    public Result hstrSave(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
-        String tag = "UserController.hstrSave => ";
+    /**
+     * 개별근무정보저장
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return void
+     */
+    @PostMapping(value = "/saveWorkInfo")
+    public Result saveWorkInfo(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
+        String tag = "UserController.saveWorkInfo => ";
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("sessId", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        UserHstr uhvo = userService.hstrSave(paraMap);
-        session.setAttribute("uhvo", uhvo);
+        userService.saveWorkInfo(paraMap);
         return result;
     }
-
+    /**
+     * 일괄근무정보저장
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return void
+     */
+    @PostMapping(value = "/saveWorkList")
+    public Result saveWorkList(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("sessId", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        userService.saveWorkList(paraMap);
+        return result;
+    }
     /**
      * 사용자별 접속 상세이력
      *

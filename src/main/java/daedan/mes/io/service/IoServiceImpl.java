@@ -2729,7 +2729,7 @@ public class IoServiceImpl implements IoService {
     //구매 과정없이 자재 입고처리하는 경우 : 간단 MES용
     @Override
     public List<Map<String, Object>> getMatrForIwhList(Map<String, Object> paraMap) {
-        String tag = "vsvc.ioService.getMatrIwhList => ";
+        String tag = "ioService.getMatrIwhList => ";
         log.info(tag + " paraMap = > " + paraMap.toString());
         return mapper.getMatrForIwhList(paraMap);
     }

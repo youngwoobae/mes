@@ -94,7 +94,7 @@
                     and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
                 </when>
             </choose>
-            order by cmpy_nm
+            order by cmpy_nm collate "ko_KR.utf8"
             limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getCmpyListCount" parameterType="map"  resultType="int">

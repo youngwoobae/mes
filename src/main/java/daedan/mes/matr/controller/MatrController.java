@@ -7,12 +7,11 @@ import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.matr.service.MatrService;
 import daedan.mes.user.domain.AccHstr;
 import daedan.mes.user.domain.EvntType;
-import daedan.mes.user.domain.UserHstr;
+import daedan.mes.user.domain.UserWork;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.*;
@@ -518,7 +517,7 @@ public class MatrController {
 
         matrService.saveMatr(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        UserHstr uhvo = (UserHstr)session.getAttribute("uhvo");
+        UserWork uhvo = (UserWork)session.getAttribute("uhvo");
         //SOL AddOn By KMJ AT 21.11.16
         try {
             AccHstr acvo = (AccHstr) session.getAttribute("acchstr");

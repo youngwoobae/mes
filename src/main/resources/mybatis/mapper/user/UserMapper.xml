@@ -504,7 +504,7 @@
                            and level = 2
                            and sys_menu_no in (
                              select a.sys_menu_no
-                             from sys_menu a join auth_sys_menu b on a.sys_menu_no = b.sys_menu_no
+                             from sys_menu a join auth_sys_menu b on a.sys_menu_no   = b.sys_menu_no
                                              join auth_user c on b.auth_cd  = c.auth_cd and c.auth_cd  = #{authCd} and c.user_id = #{authUserId}
                          )
                          order by path,prt_seq
@@ -567,40 +567,39 @@
 
 
 
-    <select id="getWorkHstr" parameterType="map" resultType="camelMap">
-        /*근태현황 (userMapper.getHumanHstrList)*/
+    <select id="getWorkList" parameterType="map" resultType="camelMap">
+        /*근태현황 (userMapper.getWorkList)*/
         select a.user_id --id
-            , a.hstr_dt --성명
-            , a.hstr_fr_dt --성명
-            , a.hstr_to_dt --성명
-            , b.user_nm --성명
-        from user_hstr a join user_info b on a.user_id = b.user_id
+            , to_char(a.work_dt,'YYYY-MM-DD') as work_dt --근무일자
+            , a.work_fr_tm --출근시간
+            , a.work_to_tm --퇴근시간
+            , b.user_nm --근무자명
+            , fn_get_time_str(fn_get_min_term(a.work_fr_tm, a.work_to_tm)) as work_tm --근무시간
+        from user_work a join user_info b on a.user_id = b.user_id
                                          and b.cust_no = #{custNo}
-                                         and b.ocpn_kind = 222 --생산직만
-        where a.cust_no = #{custNo} and a.used_yn = 'Y'
-        and a.user_id = #{userNo}
-
-        order by a.hstr_dt
+                                         and b.ocpn_kind = #{ocpnKind} --생산직만(222)
+        where a.cust_no = #{custNo}
+        and a.used_yn = 'Y'
+        order by a.work_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
 
-    <select id="getWorkHstrCount" parameterType="map" resultType="int">
+    <select id="getWorkListCount" parameterType="map" resultType="int">
         select count(a.user_id)
         from (
             select a.user_id --id
-                , a.hstr_dt --성명
-                , a.hstr_fr_dt --성명
-                , a.hstr_to_dt --성명
-                , b.user_nm --성명
-            from user_hstr a join user_info b on a.user_id = b.user_id
+                , to_char(a.work_dt,'YYYY-MM-DD') as work_dt --근무일자ㅑ
+                , a.work_fr_tm --출근시간
+                , a.work_to_tm --퇴근시간
+                , b.user_nm --근무자명
+            from user_work a join user_info b on a.user_id = b.user_id
                                              and b.cust_no = #{custNo}
-                                             and b.ocpn_kind = 222 --생산직만
-            where a.cust_no = #{custNo} and a.used_yn = 'Y'
-
-            and a.user_id = #{userNo}
-            order by a.hstr_dt
+                                             and b.ocpn_kind = #{ocpnKind} --생산직만(222)
+            where a.cust_no = #{custNo}
+            and a.used_yn = 'Y'
         ) a
     </select>
+
     <select id="getUserAccLogList" parameterType="map" resultType="camelMap">
         /*사용자별 접속상세이력 (userMapper.getUserAccLogList) */
         select a.sys_menu_no --메뉴명

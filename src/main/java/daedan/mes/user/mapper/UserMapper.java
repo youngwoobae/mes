@@ -48,9 +48,9 @@ public interface UserMapper {
 
     int getWorkerListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getWorkHstr(Map<String, Object> paraMap);
+    List<Map<String, Object>> getWorkList(Map<String, Object> paraMap);
 
-    int getWorkHstrCount(Map<String, Object> paraMap);
+    int getWorkListCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);
 

@@ -76,14 +76,18 @@ public interface UserService {
     UserInfo getUserInfoById(Long userId);
     CustInfo getCustInfoByCustNo(HashMap<String, Object> paraMap);
 
-    List<Map<String, Object>> getWorkHstr(Map<String, Object> paraMap);
-    int getWorkHstrCount(Map<String, Object> paraMap);
+    List<Map<String, Object>> getWorkList(Map<String, Object> paraMap);
+    int getWorkListCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);
 
     int getUserAccLogListCount(Map<String, Object> paraMap);
 
-    UserHstr hstrSave(Map<String, Object> paraMap);
+    @Transactional
+    void saveWorkInfo(Map<String, Object> paraMap);
+
+    @Transactional
+    void saveWorkList(Map<String, Object> paraMap);
 
     @Transactional  AccHstr saveAccHstr(Map<String, Object> paraMap);
     @Transactional    void saveAccLogEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt);
