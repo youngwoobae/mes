@@ -43,7 +43,7 @@
         <if test="spots != null and spots != '' and spots.size != 0 ">
             and b.spot_no in <foreach collection="spots" item="spots" index="index" open="(" close=")" separator=",">   #{spots}   </foreach>
         </if>
-        order by spot_nm
+        order by spot_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getMoniterHstrCount" parameterType="map"  resultType="int">

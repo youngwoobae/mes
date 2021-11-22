@@ -193,7 +193,7 @@
                     , c.fr_unix_hms
                     , c.to_unix_hms
         ) a join oper_mast b on a.oper_no = b.oper_no
-        order by spot_no, date_to desc, spot_no, prod_nm
+        order by spot_no, date_to desc, spot_no, prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -336,7 +336,7 @@
                     , coalesce (c.oper_hm, 0 )
                     , c.fr_unix_hms
                     , c.to_unix_hms) a
-                    order by spot_no, date_to desc, spot_no, prod_nm
+                    order by spot_no, date_to desc, spot_no, prod_nm collate "ko_KR.utf8"
              limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -358,7 +358,7 @@
         <if test="findSz != null and findSz != ''">
             and upper(replace(a.org_file_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by org_file_nm
+        order by org_file_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getProdIoFileListCount" parameterType="map" resultType="int">
@@ -386,7 +386,7 @@
                         join cmpy_info d on a.cmpy_no = d.cmpy_no and d.used_yn  = 'Y' and d.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.file_no = #{fileNo}
-        order by ord_nm, prod_nm
+        order by ord_nm collate "ko_KR.utf8", prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -418,7 +418,7 @@
                         join prod_info f on b.prod_no = f.prod_no and f.used_yn = 'Y' and f.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.file_no = #{fileNo}
-        order by f.prod_nm
+        order by f.prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -450,7 +450,7 @@
                         join prod_info f on b.prod_no = f.prod_no and f.used_yn = 'Y' and f.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.file_no = #{fileNo}
-        order by f.prod_nm
+        order by f.prod_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -526,7 +526,7 @@
                         join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.file_no = #{fileNo}
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -544,7 +544,7 @@
                                 join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
                 where a.used_yn = 'Y' and a.cust_no = #{custNo}
                   and a.file_no = #{fileNo}
-                order by matr_nm
+                order by matr_nm collate "ko_KR.utf8"
              ) a
     </select>
 
@@ -561,7 +561,7 @@
                         join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.file_no = #{fileNo}
-        order by matr_nm
+        order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -579,7 +579,7 @@
                                 join matr_stk g on c.matr_no = g.matr_no and g.used_yn = 'Y' and g.cust_no = #{custNo}
                 where a.used_yn = 'Y' and a.cust_no = #{custNo}
                   and a.file_no = #{fileNo}
-                order by matr_nm
+                order by matr_nm collate "ko_KR.utf8"
              ) a
     </select>
 
