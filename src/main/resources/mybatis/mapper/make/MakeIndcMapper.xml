@@ -1029,7 +1029,7 @@
         <if test="deptList != null and deptList !='' and deptList.size != 0 ">
             and a.dept_no::varchar in <foreach collection="deptList" item="deptList" index="index" open="(" close=")" separator=",">   #{deptList}   </foreach>
         </if>
-        order by b.dept_no, a.user_nm
+        order by b.dept_no, a.user_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMpUsedList" parameterType="map"  resultType="camelMap">
@@ -1579,7 +1579,7 @@
         <if test="findSz != null and findSz != ''">
             and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by b.code_nm
+        order by b.code_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1593,7 +1593,7 @@
                 <if test="findSz != null and findSz != ''">
                     and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 </if>
-                order by b.code_nm
+                order by b.code_nm collate "ko_KR.utf8"
              ) a
     </select>
 
@@ -1627,7 +1627,7 @@
         </if>
         <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
         <if test="mpUsedDt != null and mpUsedDt != ''">  AND to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(#{mpUsedDt}::date,'YYYY-MM-DD')  </if>
-        order by proc_nm,user_nm
+        order by proc_nm collate "ko_KR.utf8",user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1805,7 +1805,7 @@
                          left join make_indc_rslt mir on j.par_indc_no = mir.indc_no and j.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.indc_no = #{indcNo}
-        order by b.consist_rt desc, d.matr_nm
+        order by b.consist_rt desc, d.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMakeIndcBfPrintList" parameterType="map" resultType="camelMap">
@@ -1819,7 +1819,7 @@
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.bom_lvl = #{bomLvl}
           and b.prod_nm = #{prodNm}
-        order by a.consist_rt desc, c.matr_nm
+        order by a.consist_rt desc, c.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getProcCtntList" parameterType="map" resultType="camelMap">

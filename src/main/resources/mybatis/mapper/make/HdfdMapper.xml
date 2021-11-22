@@ -27,7 +27,7 @@
           and (    to_char(a.make_fr_dt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
                 or to_char(a.make_to_dt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
               )
-        order by prod_nm
+        order by prod_nm collate "ko_KR.utf8"
     </select>
 
     <select id="planList" parameterType="map" resultType="camelMap">
