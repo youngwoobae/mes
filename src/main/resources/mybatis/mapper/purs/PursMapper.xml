@@ -357,7 +357,7 @@
           and b.matr_no = #{matrNo}
         </if>
         group by prt_seq,a.cmpy_no,a.cmpy_nm
-        order by prt_seq, text
+        order by prt_seq, text collate "ko_KR.utf8"
     </select>
 
     <select id="getComboMatrCmpy" parameterType="map"  resultType="camelMap">
@@ -369,7 +369,7 @@
            and a.cust_no = #{custNo}
         and b.matr_no = #{matrNo}
         group by a.cmpy_no, a.cmpy_nm, b.default_yn
-        order by default_yn, text
+        order by default_yn, text collate "ko_KR.utf8"
     </select>
 
 
@@ -588,7 +588,7 @@
         <if test="dateFr != null and dateFr != ''">
             AND to_char(d.purs_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring( #{dateTo},1,10)
         </if>
-        order by purs_dt desc, dlv_req_dt, purs_no , matr_nm
+        order by purs_dt desc, dlv_req_dt, purs_no , matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -836,7 +836,7 @@
                 AND upper(replace(h.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by purs_dt,prod_nm,matr_nm
+        order by purs_dt,prod_nm collate "ko_KR.utf8", matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
 
     </select>
