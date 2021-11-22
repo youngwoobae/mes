@@ -112,7 +112,7 @@
         <if test="pursMatrNo != null and pursMatrNo != ''">
             and b.purs_matr_no = #{pursMatrNo}
         </if>
-        order by b.purs_matr_no, d.matr_nm
+        order by b.purs_matr_no, d.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMatrIwhList" parameterType="map" resultType="camelMap">
@@ -139,7 +139,7 @@
         <if test="iwhNo != null and iwhNo != ''">
             and a.iwh_no = #{iwhNo}
         </if>
-        order by a.iwh_no, b.matr_nm
+        order by a.iwh_no, b.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMatrOwhList" parameterType="map" resultType="camelMap">
@@ -167,7 +167,7 @@
         <if test="owhNo != null and owhNo != ''">
             and d.owh_no = #{owhNo}
         </if>
-        order by a.owh_no, b.matr_nm
+        order by a.owh_no, b.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getIndcRsltList" parameterType="map" resultType="camelMap">
@@ -196,7 +196,7 @@
         <if test="pursNo != null and pursNo != ''">
             and e.purs_no = #{pursNo}
         </if>
-        order by a.indc_rslt_no, c.code_nm
+        order by a.indc_rslt_no, c.code_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getProdIwhList" parameterType="map" resultType="camelMap">
@@ -235,7 +235,7 @@
         <if test="pursNo != null and pursNo != ''">
             and f.purs_no = #{pursNo}
         </if>
-        order by to_char(a.reg_dt, 'YYYY-MM-DD') , e.prod_nm
+        order by to_char(a.reg_dt, 'YYYY-MM-DD') , e.prod_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getProdOwhList" resultType="camelMap" parameterType="map">
