@@ -33,7 +33,7 @@
               , e.brnch_no --제조공정번
               , e.mess --단위중량 (규격)
               , d.proc_cd --제조공정코드
-              , y.code_nm as proc_nm --제조공정명
+              , fn_get_code_name('nm',d.proc_cd) as proc_nm --제조공정명
               , to_char(a.matr_req_dt,'YYYY-MM-DD') as matr_req_dt --자재출고요청일
               , a.make_unit --생산단위
               , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업시작일
@@ -51,7 +51,7 @@
               , h.make_dt --최종생산일자
               , h.ctl_fill_yield --조정충진수율 합계
               , d.proc_unit --공정처리단위
-              , w.code_nm as proc_unit_nm --공정처리단위명
+              , fn_get_code_name('nm',d.proc_unit)   as proc_unit_nm --공정처리단위명
               , ( coalesce (a.fill_yield,0) / 100.0)  * a.indc_wgt as weighing --충진을위한 칭량중량
               , a.real_yield --운영수율
               , a.oper_rt --가동율
@@ -60,22 +60,17 @@
               , coalesce (c.used_tm,0)  as  used_tm     --투입시간
               , a.indc_sts --지시상태
               , e.mngr_unit -- 단위중량 단위
-              , ci.code_nm as mngr_unit_nm --단위중량 단위명
+              , fn_get_code_name('nm',e.mngr_unit) as mngr_unit_nm --단위중량 단위명
               , coalesce (e.qty_per_pkg ,0) as qty_per_pkg --포장당 수량
-              , z.code_nm as indc_sts_nm --지시상태명
-              , ab.code_nm as brnch_nm -- 공정
+              , fn_get_code_name('nm',a.indc_sts)  as indc_sts_nm --지시상태명
+              , fn_get_code_name('nm',e.brnch_no) as brnch_nm -- 공정
         from make_indc a join prod_info e on a.prod_no = e.prod_no
                                    and e.used_yn = 'Y' and e.cust_no =#{custNo}
                          join proc_info d on a.proc_cd = d.proc_cd
                                       and d.used_yn = 'Y' and d.cust_no =#{custNo}
-                         join code_info y on d.proc_cd = y.code_no
                          join proc_brnch x on x.brnch_no = e.brnch_no
                                          and x.proc_cd = a.proc_cd
                                          and x.used_yn = 'Y' and x.cust_no =#{custNo}
-                         join code_info w on d.proc_unit = w.code_no
-                         join code_info z on a.indc_sts = z.code_no
-                         join code_info ab on e.brnch_no = ab.code_no
-                    left join code_info ci on e.mngr_unit = ci.code_no
                     left join (select count(mo.matr_no) as mo_matr_cnt
                                       ,mo.indc_no
                                 from matr_owh mo
@@ -146,7 +141,7 @@
         <if test="findSz != null and findSz != ''">
             and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by  a.indc_dt desc, y.code_seq, a.reg_dt desc, prod_no
+        order by  a.indc_dt desc, a.reg_dt desc, prod_no
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -161,7 +156,6 @@
                      , e.brnch_no --제조공정번
                      , e.mess --단위중량 (규격)
                      , d.proc_cd --제조공정코드
-                     , y.code_nm as proc_nm --제조공정명
                      , to_char(a.matr_req_dt,'YYYY-MM-DD') as matr_req_dt --자재출고요청일
                      , a.make_unit --생산단위
                      , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업시작일
@@ -179,7 +173,6 @@
                      , h.make_dt --최종생산일자
                      , h.ctl_fill_yield --조정충진수율 합계
                      , d.proc_unit --공정처리단위
-                     , w.code_nm as proc_unit_nm --공정처리단위명
                      , ( coalesce (a.fill_yield,0) / 100.0)  * a.indc_wgt as weighing --충진을위한 칭량중량
                      , a.real_yield --운영수율
                      , a.oper_rt --가동율
@@ -188,21 +181,14 @@
                      , coalesce (c.used_tm,0)  as  used_tm     --투입시간
                      , a.indc_sts --지시상태
                      , e.mngr_unit -- 단위중량 단위
-                     , ci.code_nm as mngr_unit_nm --단위중량 단위명
                      , coalesce (e.qty_per_pkg ,0) as qty_per_pkg --포장당 수량
-                     , z.code_nm as indc_sts_nm --지시상태명
         from make_indc a join prod_info e on a.prod_no = e.prod_no
                                          and e.used_yn = 'Y' and e.cust_no =#{custNo}
                          join proc_info d on a.proc_cd = d.proc_cd
                                          and d.used_yn = 'Y' and d.cust_no =#{custNo}
-                         join code_info y on d.proc_cd = y.code_no
                          join proc_brnch x on x.brnch_no = e.brnch_no
                                          and x.proc_cd = a.proc_cd
                                          and x.used_yn = 'Y' and x.cust_no =#{custNo}
-                         join code_info w on d.proc_unit = w.code_no
-                         join code_info z on a.indc_sts = z.code_no
-                         join code_info ab on e.brnch_no = ab.code_no
-                    left join code_info ci on e.mngr_unit = ci.code_no
                     left join (select count(mo.matr_no) as mo_matr_cnt
                                      ,mo.indc_no
                                  from matr_owh mo

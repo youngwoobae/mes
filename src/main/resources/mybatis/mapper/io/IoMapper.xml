@@ -2725,22 +2725,47 @@
         /* 구매과정없음 : 테블릿 원료출고 (ioMapper.getMatrForOwhList) */
         select distinct a.matr_no
              , b.matr_nm
-             , a.stk_qty
-             , case when c.indc_no is not null then 'Y' else 'N' end as indc_yn
-             , e.wh_nm
-             , a.wh_no
-             , b.purs_unit
+             , b.purs_unit --구매단위
+             , a.stk_qty --재고수량
+             , fn_get_wh_name(a.wh_no) as wh_nm --창고명
+             , a.wh_no --창고번호
+             , case when c.indc_no is not null then 'Y' else 'N' end as indc_yn --작업지시여부
+             , coalesce(c.need_qty,0) as need_qty --필요수량
+             , coalesce(c.take_yn,'N') as take_yn -- 출고여부
+             , coalesce (c.indc_no,0) as indc_no --작업지시번호
+            -- , d.purs_no --구매번호
+             , to_char(e.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업시작일
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
-                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
-                        join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
-                                      and e.used_yn ='Y' and e.cust_no =#{custNo}
+                                        and b.used_yn ='Y'
+                                        and b.cust_no = a.cust_no
+                        join matr_iwh d on a.wh_no = d.wh_no
+                                       and a.matr_no = d.matr_no
+                                       and a.cust_no = d.cust_no
+                                       and d.used_yn  = 'Y'
+                                      -- and d.purs_no in (select purs_no from purs_info where used_yn  = 'Y' and purs_sts = 165)
                    left join make_indc_matr c on a.matr_no = c.matr_no
-                                             and c.used_yn ='Y' and c.cust_no =#{custNo}
-        where a.used_yn = 'Y' and a.cust_no =#{custNo}
+                                             and c.used_yn ='Y'
+                                             and c.cust_no = a.cust_no
+                   left join make_indc e on c.indc_no = e.indc_no and e.used_yn = 'Y'
+        where a.used_yn = 'Y'
+        and a.cust_no =#{custNo}
         and a.stk_qty <![CDATA[ > ]]> 0
         <if test="indcNo != null and indcNo != ''">
             and c.indc_no = #{indcNo}
+            and coalesce (c.take_yn,'N')  = 'N'
+            and c.indc_no in (select indc_no from make_indc where cust_no = c.cust_no and used_yn = 'Y' and  indc_sts = 2402)
+
+            and d.matr_no not in( select matr_no
+                                  from matr_owh
+                                  where wh_no = a.wh_no
+                                  and matr_no = a.matr_no
+                                  and used_yn = 'Y'
+                                  and cust_no = c.cust_no
+                                  and indc_no = c.indc_no
+                                 )
         </if>
+
+
         <if test="findStr != null and findStr != ''">
             AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
         </if>
@@ -2763,18 +2788,38 @@
     <select id="getMatrForOwhListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from ( select a.matr_no
-                 from matr_stk a join matr_info b on a.matr_no = b.matr_no
-                                                 and b.used_yn ='Y' and b.cust_no =#{custNo}
-                                 join wh_info e on a.wh_no = e.wh_no and e.used_yn = 'Y'
-                                               and e.used_yn ='Y' and e.cust_no =#{custNo}
-                            left join make_indc_matr c on a.matr_no = c.matr_no
-                                                      and c.used_yn ='Y' and c.cust_no =#{custNo}
-                where a.used_yn ='Y' and a.cust_no =#{custNo}
+                from matr_stk a join matr_info b on a.matr_no = b.matr_no
+                                                and b.used_yn ='Y'
+                                                and b.cust_no = a.cust_no
+                                join matr_iwh d on a.wh_no = d.wh_no
+                                               and a.matr_no = d.matr_no
+                                               and a.cust_no = d.cust_no
+                                               and d.used_yn  = 'Y'
+                                              -- and d.purs_no in (select purs_no from purs_info where used_yn  = 'Y' and purs_sts = 165)
+                           left join make_indc_matr c on a.matr_no = c.matr_no
+                                                     and c.used_yn ='Y'
+                                                     and c.cust_no = a.cust_no
+                           left join make_indc e on c.indc_no = e.indc_no and e.used_yn = 'Y'
+                where a.used_yn = 'Y'
+                and a.cust_no =#{custNo}
                 and a.stk_qty <![CDATA[ > ]]> 0
+                <if test="indcNo != null and indcNo != '' ">
+                    and c.indc_no = #{indcNo}
+                    and coalesce (c.take_yn,'N')  = 'N'
+                    and c.indc_no in (select indc_no from make_indc where cust_no = c.cust_no and used_yn = 'Y' and  indc_sts = 2402)
+                    and d.matr_no not in( select matr_no
+                                          from matr_owh
+                                          where wh_no = a.wh_no
+                                          and matr_no = a.matr_no
+                                          and used_yn = 'Y'
+                                          and cust_no = c.cust_no
+                                          and indc_no = c.indc_no
+                                        )
+                </if>
+
                 <if test="findStr != null and findStr != ''">
                     AND upper(replace(b.matr_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
                 </if>
-
                 <choose>
                     <when test="findTp != null and findTp == 'en'">
                         and upper(b.matr_nm) like '%' || upper(#{findSz}) || '%'

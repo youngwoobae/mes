@@ -4,56 +4,52 @@
 <mapper namespace="daedan.mes.dash.mapper.Dash03Mapper">
    <select id="getTmpr03GraphData" parameterType="map"  resultType="camelMap">
        /* 하담푸드 설비기준 그래프 처리용 온도모니터링 리스트 (dash03Mapper.getTmpr03List) */
-       select *
-       from (
-                select a.rcv_tm
-                     , a.spot_nm as spot1_nm
-                     , a.rcv_val as rcv1_val
-                     , b.spot_nm as spot2_nm
-                     , b.rcv_val as rcv2_val
-                     , c.spot_nm as spot3_nm
-                     , c.rcv_val as rcv3_val
-                from (
-                         select to_char(to_timestamp(a.unix_hms), 'HH24:MI') as rcv_tm
-                              , a.spot_no
-                              , fn_get_spot_name(spot_no)                    as spot_nm --작업장명
-                              , max(a.rcv_tmpr)                              as rcv_val
-                         from tmpr_log a
-                         where a.spot_no = 30786 --1층냉장실
-                         and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 30 in (0 ,1 )
-                         and a.cust_no = #{custNo}
-                         and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
-                         group by spot_no, to_char(to_timestamp(a.unix_hms), 'HH24:MI')
-                         order by rcv_tm desc
-                     ) a
-                         join (
-                    select to_char(to_timestamp(a.unix_hms), 'HH24:MI') as rcv_tm
-                         , a.spot_no
-                         , fn_get_spot_name(spot_no)                    as spot_nm --작업장명
-                         , max(a.rcv_tmpr)                              as rcv_val
-                    from tmpr_log a
-                    where a.spot_no = 30791 --1층 냉동실2
-                    and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 30 in (0 ,1 )
-                    and a.cust_no = #{custNo}
-                    and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
-                    group by spot_no, to_char(to_timestamp(a.unix_hms), 'HH24:MI')
-                ) b on a.rcv_tm = b.rcv_tm
-                         join (
-                    select to_char(to_timestamp(a.unix_hms), 'HH24:MI') as rcv_tm
-                         , a.spot_no
-                         , fn_get_spot_name(spot_no)                    as spot_nm --작업장명
-                         , max(a.rcv_tmpr)                              as rcv_val
-                    from tmpr_log a
-                    where a.spot_no = 30788 --1층 냉동실1
-                    and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 30 in (0 ,1 )
-                    and a.cust_no = #{custNo}
-                    and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
-                    group by spot_no, to_char(to_timestamp(a.unix_hms), 'HH24:MI')
-                ) c on a.rcv_tm = c.rcv_tm
-                order by rcv_tm desc
-            ) a
-            order by rcv_tm asc
-            limit 24
+        select a.rcv_tm
+             , a.spot_nm as spot1_nm
+             , a.rcv_val as rcv1_val
+             , b.spot_nm as spot2_nm
+             , b.rcv_val as rcv2_val
+             , c.spot_nm as spot3_nm
+             , c.rcv_val as rcv3_val
+        from (
+                 select to_char(to_timestamp(a.unix_hms), 'HH24:MI') as rcv_tm
+                      , a.spot_no
+                      , fn_get_spot_name(spot_no)                    as spot_nm --작업장명
+                      , max(a.rcv_tmpr)                              as rcv_val
+                 from tmpr_log a
+                 where a.spot_no = 30786 --1층냉장실
+                 and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 30 in (0 ,1 )
+                 and a.cust_no = #{custNo}
+                 and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+                 group by spot_no, to_char(to_timestamp(a.unix_hms), 'HH24:MI')
+                 order by rcv_tm desc
+             ) a
+                 join (
+            select to_char(to_timestamp(a.unix_hms), 'HH24:MI') as rcv_tm
+                 , a.spot_no
+                 , fn_get_spot_name(spot_no)                    as spot_nm --작업장명
+                 , max(a.rcv_tmpr)                              as rcv_val
+            from tmpr_log a
+            where a.spot_no = 30791 --1층 냉동실2
+            and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 30 in (0 ,1 )
+            and a.cust_no = #{custNo}
+            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+            group by spot_no, to_char(to_timestamp(a.unix_hms), 'HH24:MI')
+        ) b on a.rcv_tm = b.rcv_tm
+                 join (
+            select to_char(to_timestamp(a.unix_hms), 'HH24:MI') as rcv_tm
+                 , a.spot_no
+                 , fn_get_spot_name(spot_no)                    as spot_nm --작업장명
+                 , max(a.rcv_tmpr)                              as rcv_val
+            from tmpr_log a
+            where a.spot_no = 30788 --1층 냉동실1
+            and TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 30 in (0 ,1 )
+            and a.cust_no = #{custNo}
+            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+            group by spot_no, to_char(to_timestamp(a.unix_hms), 'HH24:MI')
+        ) c on a.rcv_tm = c.rcv_tm
+        order by rcv_tm
+
    </select>
 
     <select id="getEvtMsgList" parameterType="map"  resultType="camelMap">

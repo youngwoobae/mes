@@ -1374,7 +1374,7 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
             mivo.setRegIp(mivo.getModIp());
         }
         mivo.setProcCd(Long.parseLong(paraMap.get("procCd").toString())); //공정코드
-        mivo.setIndcSts(Long.parseLong(env.getProperty("code.indcSts.confirmOrder")));
+        mivo.setIndcSts(Long.parseLong(env.getProperty("code.indcSts.reqMatrOwh")));
 
         if (mivo.getParIndcNo() == 0L) {
             MakeIndc chkvo = makeIndcRepo.findByCustNoAndParIndcNoAndIndcNoAndProcCdAndUsedYn(custNo,mivo.getParIndcNo(), mivo.getIndcNo(), mivo.getProcCd(), "Y");

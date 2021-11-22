@@ -65,6 +65,12 @@ public class IoServiceImpl implements IoService {
     private ProdRepository prodRepo;
 
     @Autowired
+    private PursMatrRepository pursMatrRepo;
+
+    @Autowired
+    private MakeIndcRepository makeIndcRepo;
+
+    @Autowired
     private IoMapper mapper;
 
     @Autowired
@@ -73,8 +79,6 @@ public class IoServiceImpl implements IoService {
     @Autowired
     private ProdStkRepository prodStkRepo;
 
-    @Autowired
-    private MakeIndcRepository indcRepo;
 
     @Autowired
     private PursInfoRepository pursRepo;
@@ -84,6 +88,9 @@ public class IoServiceImpl implements IoService {
 
     @Autowired
     private MakeIndcRepository makePepo;
+
+    @Autowired
+    private MakeIndcMatrRepository makeIndcMatrPepo;
 
     @Autowired
     private MakeIndcRsltRepository makeIndcRsltRepo;
@@ -2692,7 +2699,7 @@ public class IoServiceImpl implements IoService {
         log.info("indc_no 는"+ paraMap.get("indcNo"));
         mivo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
         mivo.setUsedYn("Y");
-        MakeIndc chkvo = indcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,mivo.getIndcNo(), mivo.getUsedYn());
+        MakeIndc chkvo = makePepo.findByCustNoAndIndcNoAndUsedYn(custNo,mivo.getIndcNo(), mivo.getUsedYn());
         if(chkvo != null){
             mivo.setParIndcNo(chkvo.getParIndcNo());
             mivo.setIndcDt(chkvo.getIndcDt());
@@ -2724,7 +2731,7 @@ public class IoServiceImpl implements IoService {
             mivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makePossible").toString()));
         }
         mivo.setCustNo(custNo);
-        indcRepo.save(mivo);
+        makePepo.save(mivo);
     }
     //구매 과정없이 자재 입고처리하는 경우 : 간단 MES용
     @Override
@@ -2919,16 +2926,18 @@ public class IoServiceImpl implements IoService {
     }
 
 
-    @SneakyThrows
+
+    @Transactional
     @Override
     public void saveMatrOwhList(Map<String, Object> paraMap) {
-        String tag = "vsvc.IoService.saveMatrIwhList => ";
+        String tag = "vsvc.IoService.saveMatrOwhList => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("owhList");
         Long matrNo = 0L;
         Float stkQty = 0F;
         Long whNo = 0L;
+        Long indcNo = 0L;
         Float owhQty = 0F;
         Float owhReqQty = 0F;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -2936,22 +2945,24 @@ public class IoServiceImpl implements IoService {
             MatrOwh movo = new MatrOwh();
             matrNo= Long.parseLong(el.get("matrNo").toString());
             whNo = Long.parseLong(el.get("whNo").toString());
+            indcNo = Long.parseLong(el.get("indcNo").toString());
             owhQty = Float.parseFloat(el.get("owhQty").toString());
             movo.setMatrNo(matrNo);
+            movo.setIndcNo(indcNo);
             movo.setWhNo(whNo);
             movo.setOwhQty(owhQty);
             try {
                 movo.setOwhDt(sdf.parse(paraMap.get("owhDt").toString()));
                 log.info(tag + "자재출고일자 = " + movo.getOwhDt());//kill
             }
-            catch (NullPointerException ne) {
+            catch (NullPointerException | ParseException ne) {
                 movo.setOwhDt(DateUtils.getCurrentDate());
                 log.info(tag + "자재출고일자를 기본값(현재일자)로 설정 = " + movo.getOwhDt());//kill
             }
             try {
                 movo.setOwhReqDt(sdf.parse(paraMap.get("owhReqDt").toString()));
             }
-            catch (NullPointerException ne) {
+            catch (NullPointerException | ParseException ne) {
                 movo.setOwhReqDt(movo.getOwhDt());
             }
             try {
@@ -2993,7 +3004,6 @@ public class IoServiceImpl implements IoService {
                 movo.setPaltCd(0L);
             }
 
-
             try{
                 movo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
             }catch (NullPointerException en) {
@@ -3002,6 +3012,7 @@ public class IoServiceImpl implements IoService {
             movo.setCustNo(custNo);
             matrOwhRepo.save(movo);
 
+            //자재재고수량 조정----
             MatrStk msvo = new MatrStk();
             msvo.setUsedYn("Y");
 
@@ -3036,6 +3047,33 @@ public class IoServiceImpl implements IoService {
             }
             msvo.setCustNo(custNo);
             matrStkRepo.save(msvo);
+
+            //지시원료(make_indc_matr)에 출고여부(take_yn) 설정 --AddOn By KMJ At 21.11.22 22
+            MakeIndcMatr mimvo = makeIndcMatrPepo.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo,movo.getIndcNo(),msvo.getMatrNo(),"Y");
+            if (mimvo != null) {
+                mimvo.setTakeYn("Y");
+                mimvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                mimvo.setModIp(paraMap.get("ipaddr").toString());
+                mimvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                makeIndcMatrPepo.save(mimvo);
+            }
+            try { //AddOn By KMJ At 21.12.23 - 작업지시를 연동하는 경우 출고완료 여부를 설정하기 위해 사용
+                List<MakeIndcMatr> mimdc = makeIndcMatrPepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+                List<MatrOwh>  owhvo = matrOwhRepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+                if (mimdc.size() == owhvo.size()) { //출고원료갯수와 작업지시에 필요한 소요원료 갯수가 동일한 경우 (출고완료처리해야 함)
+                    MakeIndc mivo = makePepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo,"Y");
+                    if (mivo != null && mivo.getIndcSts() == Long.parseLong(env.getProperty("code.indcSts.reqMatrOwh"))) { //원료출고필요일경우
+                        mivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makePossible"))); //지시가능
+                        mivo.setModDt(DateUtils.getCurrentBaseDateTime());
+                        mivo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                        mivo.setModIp(paraMap.get("ipaddr").toString());
+                        makePepo.save(mivo);
+                    }
+                }
+            }
+            catch (NullPointerException ne) {
+
+            }
         }
     }
 

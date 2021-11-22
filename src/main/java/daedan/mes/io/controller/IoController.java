@@ -1206,7 +1206,7 @@ public class IoController {
     /*테블릿자재출고확정*/
     @PostMapping(value = "/saveMatrOwhList")
     public Result saveMatrOwhList(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
-        String tag = "ioController.saveMatrIwhList => ";
+        String tag = "ioController.saveMatrOwhList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
