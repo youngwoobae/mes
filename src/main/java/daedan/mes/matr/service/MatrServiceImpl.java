@@ -312,6 +312,14 @@ public class MatrServiceImpl implements MatrService {
 
 
         try {
+            matrInfo.setWhNo(Long.parseLong(mapMatr.get("whNo").toString()));//보관창고
+        }
+        catch (NullPointerException ne) {
+            matrInfo.setWhNo(0L);//보관창고
+        }
+
+
+        try {
             mapMatr.put("file_no", Long.parseLong(mapMatr.get("fileNo").toString()));
         } catch (NullPointerException ne) {
             mapMatr.put("file_no", 0L);
