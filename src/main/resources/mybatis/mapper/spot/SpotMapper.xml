@@ -27,7 +27,7 @@
                AND upper(replace(a.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
            </if>
        </if>
-       order by svc_tp,spot_nm
+       order by svc_tp,spot_nm collate "ko_KR.utf8"
    </select>
 
     <select id="getSpotList" parameterType="map" resultType="camelMap">
@@ -54,7 +54,7 @@
                 AND upper(replace(a.spot_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by svc_tp,spot_nm
+        order by svc_tp,spot_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
     <select id="getSpotListCount" parameterType="map"  resultType="int">
