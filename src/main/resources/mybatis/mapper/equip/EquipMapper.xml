@@ -363,7 +363,7 @@
         from  equip_info a
         where a.used_yn = 'Y'
         and a.cust_no = #{custNo}
-        order by equip_nm
+        order by equip_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getCheckItemList" parameterType="map"  resultType="camelMap">
@@ -442,7 +442,7 @@
         <if test="startHm != null and startHm != '' and endHm != null and endHm != ''">
             and a.meas_dt between #{startHm} and #{endHm}
         </if>
-        order by a.meas_dt desc, b.prod_nm
+        order by a.meas_dt desc, b.prod_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getEquipReportListCount" parameterType="map" resultType="int">
