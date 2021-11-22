@@ -2599,9 +2599,11 @@
           and a.matr_no in (select matr_no from prod_bom where prod_no = #{prodNo} and cust_no = a.cust_no and used_yn = 'Y')
           and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
         <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
+        <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
         </if>
+
         <choose>
             <when test="findTp != null and findTp == 'en'">
                 and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
