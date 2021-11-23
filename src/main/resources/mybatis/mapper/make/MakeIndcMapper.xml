@@ -262,6 +262,7 @@
 
 
     <select id="getMakeIndcInfo" parameterType="map"  resultType="camelMap">
+        /* 작업지시별 처리작업 리스트 (makeIndcMapper.getMakeIndcInfo) */
         select a.par_indc_no --부모관리번호
              , a.indc_no --관리번호
              , to_char(a.indc_dt,'YYYY-MM-DD' ) as indc_dt --지시일자

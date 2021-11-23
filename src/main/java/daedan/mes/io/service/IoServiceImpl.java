@@ -90,7 +90,7 @@ public class IoServiceImpl implements IoService {
     private MakeIndcRepository makePepo;
 
     @Autowired
-    private MakeIndcMatrRepository makeIndcMatrPepo;
+    private MakeIndcMatrRepository makeIndcMatrRepo;
 
     @Autowired
     private MakeIndcRsltRepository makeIndcRsltRepo;
@@ -2945,10 +2945,14 @@ public class IoServiceImpl implements IoService {
             MatrOwh movo = new MatrOwh();
             matrNo= Long.parseLong(el.get("matrNo").toString());
             whNo = Long.parseLong(el.get("whNo").toString());
-            indcNo = Long.parseLong(el.get("indcNo").toString());
+            try {
+                indcNo = Long.parseLong(el.get("indcNo").toString());
+                movo.setIndcNo(indcNo);
+            }catch (NullPointerException en) {
+                movo.setIndcNo(0L);
+            }
             owhQty = Float.parseFloat(el.get("owhQty").toString());
             movo.setMatrNo(matrNo);
-            movo.setIndcNo(indcNo);
             movo.setWhNo(whNo);
             movo.setOwhQty(owhQty);
             try {
@@ -3004,11 +3008,6 @@ public class IoServiceImpl implements IoService {
                 movo.setPaltCd(0L);
             }
 
-            try{
-                movo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
-            }catch (NullPointerException en) {
-                movo.setIndcNo(0L);
-            }
             movo.setCustNo(custNo);
             matrOwhRepo.save(movo);
 
@@ -3049,18 +3048,20 @@ public class IoServiceImpl implements IoService {
             matrStkRepo.save(msvo);
 
             //지시원료(make_indc_matr)에 출고여부(take_yn) 설정 --AddOn By KMJ At 21.11.22 22
-            MakeIndcMatr mimvo = makeIndcMatrPepo.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo,movo.getIndcNo(),msvo.getMatrNo(),"Y");
+            MakeIndcMatr mimvo = makeIndcMatrRepo.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo,movo.getIndcNo(),msvo.getMatrNo(),"Y");
             if (mimvo != null) {
                 mimvo.setTakeYn("Y");
                 mimvo.setModDt(DateUtils.getCurrentBaseDateTime());
                 mimvo.setModIp(paraMap.get("ipaddr").toString());
                 mimvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                makeIndcMatrPepo.save(mimvo);
+                makeIndcMatrRepo.save(mimvo);
             }
             try { //AddOn By KMJ At 21.12.23 - 작업지시를 연동하는 경우 출고완료 여부를 설정하기 위해 사용
-                List<MakeIndcMatr> mimdc = makeIndcMatrPepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
-                List<MatrOwh>  owhvo = matrOwhRepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
-                if (mimdc.size() == owhvo.size()) { //출고원료갯수와 작업지시에 필요한 소요원료 갯수가 동일한 경우 (출고완료처리해야 함)
+                List<MakeIndcMatr> mimdc = makeIndcMatrRepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+                List<MatrOwh>  owhdc = matrOwhRepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+                log.info(tag + "mimdc.size = " + mimdc.size());
+                log.info(tag + "owhdc.size = " + owhdc.size());
+                if (mimdc.size() == owhdc.size()) { //출고원료갯수와 작업지시에 필요한 소요원료 갯수가 동일한 경우 (출고완료처리해야 함)
                     MakeIndc mivo = makePepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo,"Y");
                     if (mivo != null && mivo.getIndcSts() == Long.parseLong(env.getProperty("code.indcSts.reqMatrOwh"))) { //원료출고필요일경우
                         mivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makePossible"))); //지시가능
