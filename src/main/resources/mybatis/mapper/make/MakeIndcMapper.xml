@@ -585,7 +585,7 @@
         select a.ord_no
              , a.prod_no
              , a.sale_unit as make_unit
-             , round((a.ord_qty * b.mess )/1000) as indc_wgt
+        , round((a.ord_qty * b.mess )<if test="custNo == 3">  / 1000 </if>) as indc_wgt
         from ord_prod a join prod_info b on a.prod_no = b.prod_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.ord_no = #{ordNo}
@@ -669,7 +669,8 @@
              , b.prod_nm --품명
              , coalesce(a.purs_no,0) as purs_no --구매번호
              --, a.ord_qty Remarked By KMJ AT 2021.08.29 10:52
-             , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty --AddOn By KMJ AT 2021.08.29 10:52
+             , a.ord_qty
+--              , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty --AddOn By KMJ AT 2021.08.29 10:52
              , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
              , case when b.prod_tp = 36 then coalesce(e.cmpy_nm,'계획생산') else j.cmpy_nm end as cmpy_nm --거래처명
              , c.ord_dt
@@ -1788,10 +1789,10 @@
                          left join code_info i on c.prod_shape = i.code_no
                          left join code_info h on c.sale_unit = h.code_no
                          left join (select par_indc_no from make_indc where used_yn = 'Y' and cust_no = #{custNo} and proc_cd = 999) j on a.indc_no = j.par_indc_no
-                         left join make_indc_rslt mir on j.par_indc_no = mir.indc_no and j.cust_no = #{custNo}
+                         left join make_indc_rslt mir on j.par_indc_no = mir.indc_no and mir.cust_no = #{custNo}
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.indc_no = #{indcNo}
-        order by b.consist_rt desc, d.matr_nm collate "ko_KR.utf8"
+        order by b.consist_rt, d.matr_nm desc
     </select>
 
     <select id="getMakeIndcBfPrintList" parameterType="map" resultType="camelMap">
