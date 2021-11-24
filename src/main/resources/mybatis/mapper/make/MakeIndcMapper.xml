@@ -1020,7 +1020,7 @@
         and a.user_id not in (
             select a.user_id --id
             from user_info a join auth_user b on a.user_id = b.user_id
-            where b.auth_cd  = 2501 and a.used_yn = 'Y'
+            where b.auth_cd  = #{authCd} and a.used_yn = 'Y'
         )
         order by b.dept_no, a.user_nm collate "ko_KR.utf8"
     </select>
