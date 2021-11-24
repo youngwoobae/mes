@@ -35,7 +35,7 @@ import java.util.Date;
     /*제품 bom 레벨*/
     @Column(name="bomLvl", columnDefinition = "numeric default 1" )
     private Long bomLvl;
-
+    /*구매필요여부*/
     @Column(name="pursYn", columnDefinition = "char default 'Y'")
     private String pursYn;
 

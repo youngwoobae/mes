@@ -874,7 +874,19 @@ public class UserServiceImpl implements UserService {
 		aheRepo.save(vo);
 	}
 
+	@Override
+	public List<Map<String, Object>> getHstrList(HashMap<String, Object> paraMap) {
+		String tag = "UserService.getHstrList => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		return mapper.getHstrList(paraMap);
+	}
 
+	@Override
+	public int getHstrListCount(HashMap<String, Object> paraMap) {
+		String tag = "UserService.getHstrListCount => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		return mapper.getHstrListCount(paraMap);
+	}
 }
 
 

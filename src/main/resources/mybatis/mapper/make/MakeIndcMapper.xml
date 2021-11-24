@@ -28,6 +28,7 @@
               , a.ord_no
               , a.indc_no  --지시번호
               , to_char(a.indc_dt,'YYYY-MM-DD') as indc_dt --지시일자
+              , to_char(k.make_dt,'YYYY-MM-DD') as make_dt --작업일자
               , a.prod_no --품번
               , e.prod_nm --품명
               , e.brnch_no --제조공정번
@@ -41,14 +42,23 @@
               , to_char(g.make_to_dt,'YYYY-MM-DD') as tostk_dt --생산완료일(상품창고 입고처리 대상으로 변경된 생산완료일을 의미함.)
               , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
               , a.indc_wgt --지시중량
-              , trunc(coalesce(a.indc_qty / e.qty_per_pkg ,0))  as indc_qty --지시량
+
+                <choose>
+                    <when test="custNo != null and custNo != ''and custNo == 6 ">
+                    , a.indc_qty
+                    </when>
+                    <otherwise>
+                        , trunc(coalesce(a.indc_qty / e.qty_per_pkg ,0))  as indc_qty --지시량
+                    </otherwise>
+                </choose>
               , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
-              , case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
-                     when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
-                     when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_qty,0)
-                     when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_qty,0)
-                 end as wgt_or_qty -- 공정단위와 조정생산량에 따라 다르게 표시하기 위해 사용.
-              , h.make_dt --최종생산일자
+              --, case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
+              --       when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
+              --       when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_qty,0)
+              --       when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_qty,0)
+              --   end as wgt_or_qty -- 공정단위와 조정생산량에 따라 다르게 표시하기 위해 사용.
+              , h.make_qty --생상량
+              , h.make_dt --생산일자
               , h.ctl_fill_yield --조정충진수율 합계
               , d.proc_unit --공정처리단위
               , fn_get_code_name('nm',d.proc_unit)   as proc_unit_nm --공정처리단위명
@@ -77,6 +87,14 @@
                                 where mo.used_yn = 'Y' and mo.cust_no =#{custNo}
                                 group by mo.indc_no
                               ) mo on mo.indc_no = a.indc_no
+
+                    left join (select indc_no
+                                    , cust_no
+                                    , max(make_dt) as make_dt
+                                    from make_indc_rslt
+                                where used_yn ='Y'
+                                group by cust_no, indc_no
+                              ) k on a.indc_no = k.indc_no and a.cust_no = k.cust_no
         <choose>
             <when test="parIndcNo == 0">
                          join (select count(mi.matr_no) as mi_matr_cnt
@@ -141,7 +159,7 @@
         <if test="findSz != null and findSz != ''">
             and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by  a.indc_dt desc, a.reg_dt desc, prod_no
+        order by  proc_cd, indc_dt desc, prod_no
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -273,8 +291,7 @@
              , a.indc_qty --지시수량
              , a.make_unit --생산단위
              , a.proc_cd --공정코드
---              , c.matr_req_able_yn --bom기반 자재요청 가능여부 (최초공정인경우에 설정됨)
-             , d.code_nm as proc_nm --공정명
+             , fn_get_code_name('nm', c.proc_cd)  as proc_nm --공정명
              , a.max_make_qty --공정별최대생산수량
              , to_char(a.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --생산시작일
              , to_char(a.make_to_dt,'YYYY-MM-DD') as make_to_dt --생산종료일
@@ -289,7 +306,6 @@
              , a.indc_sts --지시상태
         from make_indc a join proc_info c on a.proc_cd = c.proc_cd
                                          and c.used_yn = 'Y' and c.cust_no =#{custNo}
-                         left join code_info d on c.proc_cd = d.code_no
                          left join prod_info b on a.prod_no = b.prod_no
                                               and b.used_yn = 'Y' and b.cust_no =#{custNo}
                          left join ( select count(proc_cd) as mpCount
@@ -611,13 +627,11 @@
                     left join cmpy_info b on a.cmpy_no  = b.cmpy_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.used_yn = 'Y'
-          and a.used_yn = 'Y' and a.cust_no =#{custNo}
-        <if test="indcTp != null and indcTp != 0">
-            and a.ord_no in ( select ord_no from make_indc
-                             where 1 = 1
-                               and used_yn = 'Y' and cust_no =#{custNo}
-                              and coalesce (indc_tp,2802) =  #{indcTp}
-                            )
+        and a.cust_no =#{custNo}
+        and a.ord_sts = #{ordSts}
+        and  to_char(a.dlv_req_dt,'YYYY-MM') = #{procYm}
+        <if test="ordTp != null and ordTp != '' and (ordTp != '0'.toString())">
+            and a.ord_tp = #{ordTp}
         </if>
         <choose>
             <when test="findTp != null and findTp == 'indc'">
@@ -667,10 +681,16 @@
              , a.ord_no --주문번호
              , a.prod_no --품번
              , b.prod_nm --품명
+             , case when coalesce(b.cmpy_no,0) = 0 then 'odm' else 'oem' end as ord_tp
              , coalesce(a.purs_no,0) as purs_no --구매번호
              --, a.ord_qty Remarked By KMJ AT 2021.08.29 10:52
+            <if test="custNo != null and custNo != 6">
              , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty --AddOn By KMJ AT 2021.08.29 10:52
-             , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
+            </if>
+            <if test="custNo != null and custNo == 6">
+                , a.ord_qty  --AddOn By KMJ AT 2021.08.29 10:52
+            </if>
+        , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
              , case when b.prod_tp = 36 then coalesce(e.cmpy_nm,'계획생산') else j.cmpy_nm end as cmpy_nm --거래처명
              , c.ord_dt
              , a.make_able_yn -- 생산가능여부
@@ -977,19 +997,20 @@
              ) a
     </select>
     <select id="getWorkerList" parameterType="map" resultType="camelMap">
+        /* 사용자목록-팝업용(makeIndcMapper.getWorkerList) */
         select a.user_id
-        , a.user_nm
-        , a.cell_no
-        , a.cell_id
-        , a.user_tp
-        , a.ocpn_kind
-        , a.empl_kind
-        , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
-        , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
-        , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
-        , b.dept_nm --소속 / 부서명
-        , b.par_dept_no
-        , b.prt_seq
+             , a.user_nm
+             , a.cell_no
+             , a.cell_id
+             , a.user_tp
+             , a.ocpn_kind
+             , a.empl_kind
+             , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
+             , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
+             , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
+             , b.dept_nm --소속 / 부서명
+             , b.par_dept_no
+             , b.prt_seq
         from user_info a join code_info z on a.ocpn_kind = z.code_no
         left join code_info y on a.empl_kind = y.code_no
         left join dept_info b on a.dept_no = b.dept_no
@@ -1744,10 +1765,10 @@
 
 
     <select id="getMakeIndcPrintList" parameterType="map" resultType="camelMap">
-        select distinct a.indc_wgt --지시중량
+        /*작업지시출력 (makeIndcMapper.getMakeIndcPrintList) */
+        select  a.indc_wgt --지시중량
                       , c.prod_nm --품명
                       , c.prod_no --품번
---                       , case when c.mngr_base = 1701 then c.vol else c.mess end as base_unit  --단위중량
                       , c.mess as base_unit
                       , h.code_nm as unit_nm
                       , c.qty_per_pkg --포장당수량
@@ -1788,10 +1809,10 @@
                          left join code_info i on c.prod_shape = i.code_no
                          left join code_info h on c.sale_unit = h.code_no
                          left join (select par_indc_no from make_indc where used_yn = 'Y' and cust_no = #{custNo} and proc_cd = 999) j on a.indc_no = j.par_indc_no
-                         left join make_indc_rslt mir on j.par_indc_no = mir.indc_no and j.cust_no = #{custNo}
+                         left join make_indc_rslt mir on j.par_indc_no = mir.indc_no
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.indc_no = #{indcNo}
-        order by b.consist_rt desc, d.matr_nm collate "ko_KR.utf8"
+        order by consist_rt desc, matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMakeIndcBfPrintList" parameterType="map" resultType="camelMap">
@@ -1805,7 +1826,7 @@
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
           and a.bom_lvl = #{bomLvl}
           and b.prod_nm = #{prodNm}
-        order by a.consist_rt desc, c.matr_nm collate "ko_KR.utf8"
+        order by consist_rt desc, matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getProcCtntList" parameterType="map" resultType="camelMap">
@@ -1868,7 +1889,7 @@
         </if>
         <if test="ioCheck == 'owh'">
             and ((select coalesce (count(matr_no),0) from make_indc_matr where indc_no = #{indcNo} and cust_no = #{custNo} and used_yn = 'Y' and matr_sts = 'Y')
-            = (select coalesce (count(matr_no),0) from make_indc_matr where indc_no = #{indcNo} and cust_no = #{custNo} and used_yn = 'Y')
+               = (select coalesce (count(matr_no),0) from make_indc_matr where indc_no = #{indcNo} and cust_no = #{custNo} and used_yn = 'Y')
             )
         </if>
     </update>
@@ -1901,7 +1922,7 @@
                         , d.item_cd --자재코드
                         , d.sz      --자재규격
                         , d.purs_unit --자재구매단가
-                        , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
+                        , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현재는 임시로 'Y' 로 설정하고 있음.
                         , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
                         , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)) * #{ctlFillYield} ) as need_qty --소요량(Kg)
                         , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)

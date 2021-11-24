@@ -232,7 +232,6 @@ public class OrdController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(ordService.getOrdProdList(paraMap));

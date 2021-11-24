@@ -357,7 +357,7 @@
           and b.matr_no = #{matrNo}
         </if>
         group by prt_seq,a.cmpy_no,a.cmpy_nm
-        order by prt_seq, text collate "ko_KR.utf8"
+        order by prt_seq, text
     </select>
 
     <select id="getComboMatrCmpy" parameterType="map"  resultType="camelMap">
@@ -369,7 +369,7 @@
            and a.cust_no = #{custNo}
         and b.matr_no = #{matrNo}
         group by a.cmpy_no, a.cmpy_nm, b.default_yn
-        order by default_yn, text collate "ko_KR.utf8"
+        order by default_yn, text
     </select>
 
 

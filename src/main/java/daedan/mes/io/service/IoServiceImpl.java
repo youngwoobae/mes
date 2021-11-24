@@ -1658,7 +1658,7 @@ public class IoServiceImpl implements IoService {
 
 
     @Override
-   // @Transactional
+    @Transactional
     public void saveMatrStk(Map<String, Object> paraMap) {
         Long iwhNo = 0L;
                 //paraMap : {

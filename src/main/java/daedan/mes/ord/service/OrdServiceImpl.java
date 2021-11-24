@@ -190,7 +190,7 @@ public class OrdServiceImpl implements  OrdService {
 
     @Override
     public List<Map<String, Object>> getOrdProdList(Map<String, Object> paraMap) {
-        String tag = "vscv.ordService.getOrdProdList => ";
+        String tag = "ordService.getOrdProdList => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getOrdProdList(paraMap);
     }
@@ -426,12 +426,21 @@ public class OrdServiceImpl implements  OrdService {
         if (prodMap != null) {
             vo.setOrdModlNm((String) prodMap.get("modlNm"));
         }
-
-        try {
-            Float ordQty =  Float.parseFloat(paraMap.get("ordQty").toString());
-            vo.setOrdQty(ordQty * qtyParPkg);
-        } catch (NullPointerException ne) {
-            vo.setOrdQty(0F);
+        if (custNo == 6) { //AddOn By KMJ AT 21.11.23-대동고려삼인경우 주문수량 자체가 SET 으로 설정됨
+            try {
+                vo.setOrdQty(Float.parseFloat(paraMap.get("ordQty").toString()));
+            }
+            catch (NullPointerException ne) {
+                vo.setOrdQty(0F);
+            }
+        }
+        else {
+            try {
+                Float ordQty = Float.parseFloat(paraMap.get("ordQty").toString());
+                vo.setOrdQty(ordQty * qtyParPkg);
+            } catch (NullPointerException ne) {
+                vo.setOrdQty(0F);
+            }
         }
 
         vo.setModDt(DateUtils.getCurrentDate());

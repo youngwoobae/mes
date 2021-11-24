@@ -24,10 +24,7 @@ import daedan.mes.ord.repository.OrdProdRepository;
 import daedan.mes.ord.repository.OrdRepository;
 import daedan.mes.proc.domain.ProcBrnch;
 import daedan.mes.proc.repository.ProcBrnchRepository;
-import daedan.mes.proc.repository.ProcInfoRepository;
-import daedan.mes.proc.service.ProcService;
 import daedan.mes.prod.domain.ProdInfo;
-import daedan.mes.prod.mapper.ProdMapper;
 import daedan.mes.prod.repository.ProdRepository;
 import daedan.mes.prod.service.ProdService;
 import daedan.mes.purs.domain.PursInfo;
@@ -84,6 +81,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     private MakeMpRepository makeMpRepo;
 
     @Autowired
+    private OrdRepository ordRepo;
+
+    @Autowired
+    private OrdProdRepository ordProdRepo;
+
+
+
+    @Autowired
     private MakeWorkPlanRepository makeWorkPlanRepo;
 
     @Autowired
@@ -94,12 +99,6 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Autowired
     private MakeIndcRsltRepository mir;
-
-    @Autowired
-    private OrdRepository ordRepository;
-
-    @Autowired
-    private OrdProdRepository ordProdRepository;
 
     @Autowired
     private MatrStkRepository matrStkRepo;
@@ -276,12 +275,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         String tag = "makeIndcService.saveMakeIndcFullByPlan == > " ;
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        Map<String, Object> prodMap = new HashMap<>();
-        prodMap.put("ordNo",paraMap.get("ordNo"));
-        prodMap.put("prodNo",paraMap.get("prodNo"));
-        prodMap.put("custNo",paraMap.get("custNo"));
-        List<Map<String,Object>> passMap = mapper.getOrdProdInfo(prodMap);
+        Long ordNo = Long.parseLong(paraMap.get("ordNo").toString());
+        Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
 
+        Map<String, Object> prodMap = new HashMap<>();
+        prodMap.put("ordNo",ordNo);
+        prodMap.put("prodNo",prodNo);
+        prodMap.put("custNo",custNo);
+        List<Map<String,Object>> passMap = mapper.getOrdProdInfo(prodMap);
         for(Map<String, Object> el : passMap){
             //el.put("ord_no",paraMap.get("ordNo"));
             el.put("indc_dt", paraMap.get("indcDt"));
@@ -293,13 +294,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             el.put("type",paraMap.get("type"));
             el.put("user_id", paraMap.get("userId"));
             el.put("ipaddr", paraMap.get("ipaddr"));
+            el.put("indc_tp",paraMap.get("indcTp"));
             this.saveMakeIndcFull(el);
         }
 
-        OrdInfo chkoivo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,Long.parseLong(paraMap.get("ordNo").toString()), "Y");
+        OrdInfo chkoivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,Long.parseLong(paraMap.get("ordNo").toString()), "Y");
         if(chkoivo != null){
             chkoivo.setOrdSts(Long.parseLong(env.getProperty("ord_status_makeIndc")));
-            ordRepository.save(chkoivo);
+            ordRepo.save(chkoivo);
         }
 
     }
@@ -310,9 +312,16 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         String tag = "makeIndcService.saveMakeIndcFull ==> ";
         log.info(tag + "paraMap = " + paraMap.toString());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+
+        Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long oem = Long.parseLong(env.getProperty("code.indcTp.oem"));
+        Long odm = Long.parseLong(env.getProperty("code.indcTp.odm"));
+
         Map<String, Object> procMap = new HashMap<String,Object>();
-        procMap.put("prodNo",Long.parseLong(paraMap.get("prodNo").toString()));
-        procMap.put("custNo",paraMap.get("custNo"));
+        procMap.put("prodNo",prodNo);
+        procMap.put("custNo",custNo);
+
 
         Long parIndcNo = 0L;
         Long svParIndcNo = 0L;
@@ -324,6 +333,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         if(paraMap.get("type") == null){
             paraMap.put("type","newMake");
         }
+        OrdInfo oivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,prodNo,"Y");
+
+
         if(paraMap.get("type").toString().equals("newMake")){
             ordNo = this.makeOrderByIndc(paraMap);
             log.info("신규생성된 주문번호 : "+ ordNo);
@@ -438,10 +450,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 Map<String,Object> tmpMap = new HashMap<String,Object>();
                 tmpMap.put("custNo",custNo);
                 tmpMap.put("ordNo",ordNo);
-                OrdInfo ordvo = new OrdInfo();
-                tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
-                ordvo = (OrdInfo) StringUtil.mapToVo(tmpMap,ordvo);
-                //OrdInfo ordvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo,"Y");  //사입기능 구현으로 인하여 추가됨
+
+                //OrdInfo ordvo = new OrdInfo();
+                //tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
+                //ordvo = (OrdInfo) StringUtil.mapToVo(tmpMap,ordvo);
+                OrdInfo ordvo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo,"Y");  //사입기능 구현으로 인하여 추가됨
                 if (ordvo != null) {
                     cmpyNo = ordvo.getCmpyNo();
                 }
@@ -535,7 +548,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             ordNo = 0L;
         }
 
-        OrdInfo chkvo = ordRepository.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
+        OrdInfo chkvo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
         Map<String,Object> tmpMap = new HashMap<String,Object>();
         tmpMap.put("custNo",custNo);
         tmpMap.put("ordNo",ordNo);
@@ -578,10 +591,10 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         oivo.setRegIp(paraMap.get("ipaddr").toString());
         oivo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         oivo.setCustNo(custNo);
-        oivo = ordRepository.save(oivo);
+        oivo = ordRepo.save(oivo);
 
         OrdProd opvo = new OrdProd();
-        OrdProd chkopvo = ordProdRepository.findByCustNoAndOrdNoAndProdNoAndUsedYn(custNo,oivo.getOrdNo(), Long.parseLong(paraMap.get("prodNo").toString()), "Y");
+        OrdProd chkopvo = ordProdRepo.findByCustNoAndOrdNoAndProdNoAndUsedYn(custNo,oivo.getOrdNo(), Long.parseLong(paraMap.get("prodNo").toString()), "Y");
         if(chkopvo != null){
             opvo.setOrdNo(chkopvo.getOrdNo());
             opvo.setOrdProdNo(chkopvo.getOrdProdNo());
@@ -645,7 +658,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         opvo.setRegIp(paraMap.get("ipaddr").toString());
         opvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         opvo.setCustNo(custNo);
-        ordProdRepository.save(opvo);
+        ordProdRepo.save(opvo);
         return oivo.getOrdNo();
     }
 
@@ -1673,6 +1686,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap) {
         return mapper.getWorkerList(paraMap);
     }
+
     @Transactional //AddOn By KMJ AT 21.08.05 19:50
     @Override
     public void saveIndcRslt(Map<String, Object> passMap) {
@@ -1799,8 +1813,13 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     MakeIndc chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,parIndcNo, "Y");
                     if (chkmivo != null) {
                         //SOL AddOn By KMJ At 21.08.05 23:00
-                        if (paraMap.get("clos_yn").toString().equals("Y")) { //생산완료
-                            chkmivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makeEnd")));
+                        try {
+                            if (paraMap.get("closYn").toString().equals("Y")) { //생산완료
+                                chkmivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makeEnd")));
+                            }
+                        }
+                        catch(NullPointerException ne) {
+
                         }
                         //EOL AddOn By KMJ At 21.08.05 23:00
                     }

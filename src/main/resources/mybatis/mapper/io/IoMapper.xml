@@ -2596,7 +2596,9 @@
         from purs_matr a join matr_info b on a.matr_no = b.matr_no and a.cust_no = b.cust_no and b.used_yn ='Y'
                          join purs_info c on a.purs_no = c.purs_no and c.used_yn ='Y'
         where a.cust_no = #{custNo}
-          and a.matr_no in (select matr_no from prod_bom where prod_no = #{prodNo} and cust_no = a.cust_no and used_yn = 'Y')
+            <if test="prodNo != null and prodNo != ''">
+                and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
+            </if>
           and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
         <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
         <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
@@ -2627,8 +2629,29 @@
             from purs_matr a join matr_info b on a.matr_no = b.matr_no and a.cust_no = b.cust_no and b.used_yn ='Y'
                              join purs_info c on a.purs_no = c.purs_no and c.used_yn ='Y'
             where a.cust_no = #{custNo}
-              and a.matr_no in (select matr_no from prod_bom where prod_no = #{prodNo} and cust_no = a.cust_no and used_yn = 'Y')
+                <if test="prodNo != null and prodNo != ''">
+                and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
+                </if>
               and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
+            <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
+            <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
+            <if test="findStr != null and findStr != ''">
+                AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
+            </if>
+
+            <choose>
+                <when test="findTp != null and findTp == 'en'">
+                    and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
+                </when>
+                <when test="findTp != null and findTp == 'no'">
+                    and a.matr_nm like '%' || #{findSz} || '%'
+                </when>
+                <when test="findTp != null and findTp == 'ko'">
+                    AND fn_get_consonant(a.matr_nm) = #{findSz}
+                </when>
+                <otherwise> </otherwise>
+            </choose>
+
         ) a
     </select>
 
@@ -2735,16 +2758,10 @@
              , coalesce(c.need_qty,0) as need_qty --필요수량
              , coalesce(c.take_yn,'N') as take_yn -- 출고여부
              , coalesce (c.indc_no,0) as indc_no --작업지시번호
-            -- , d.purs_no --구매번호
              , to_char(e.make_fr_dt,'YYYY-MM-DD') as make_fr_dt --작업시작일
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
                                         and b.used_yn ='Y'
                                         and b.cust_no = a.cust_no
-                        join matr_iwh d on a.wh_no = d.wh_no
-                                       and a.matr_no = d.matr_no
-                                       and a.cust_no = d.cust_no
-                                       and d.used_yn  = 'Y'
-                                      -- and d.purs_no in (select purs_no from purs_info where used_yn  = 'Y' and purs_sts = 165)
                    left join make_indc_matr c on a.matr_no = c.matr_no
                                              and c.used_yn ='Y'
                                              and c.cust_no = a.cust_no
@@ -2756,8 +2773,7 @@
             and c.indc_no = #{indcNo}
             and coalesce (c.take_yn,'N')  = 'N'
             and c.indc_no in (select indc_no from make_indc where cust_no = c.cust_no and used_yn = 'Y' and  indc_sts = 2402)
-
-            and d.matr_no not in( select matr_no
+            and c.matr_no not in( select matr_no
                                   from matr_owh
                                   where wh_no = a.wh_no
                                   and matr_no = a.matr_no
@@ -2793,11 +2809,6 @@
                 from matr_stk a join matr_info b on a.matr_no = b.matr_no
                                                 and b.used_yn ='Y'
                                                 and b.cust_no = a.cust_no
-                                join matr_iwh d on a.wh_no = d.wh_no
-                                               and a.matr_no = d.matr_no
-                                               and a.cust_no = d.cust_no
-                                               and d.used_yn  = 'Y'
-                                              -- and d.purs_no in (select purs_no from purs_info where used_yn  = 'Y' and purs_sts = 165)
                            left join make_indc_matr c on a.matr_no = c.matr_no
                                                      and c.used_yn ='Y'
                                                      and c.cust_no = a.cust_no
@@ -2809,7 +2820,7 @@
                     and c.indc_no = #{indcNo}
                     and coalesce (c.take_yn,'N')  = 'N'
                     and c.indc_no in (select indc_no from make_indc where cust_no = c.cust_no and used_yn = 'Y' and  indc_sts = 2402)
-                    and d.matr_no not in( select matr_no
+                    and c.matr_no not in( select matr_no
                                           from matr_owh
                                           where wh_no = a.wh_no
                                           and matr_no = a.matr_no
