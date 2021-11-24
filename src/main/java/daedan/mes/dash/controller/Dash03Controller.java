@@ -85,4 +85,38 @@ public class Dash03Controller {
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
+
+    @PostMapping(value="/getMakeRsltDash")
+    public Result getMakeRsltDash(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        result.setData(dash03.getMakeRsltDash(paraMap));
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
+        }
+        catch(NullPointerException ne) {
+
+        }
+        return result;
+    }
+
+    @PostMapping(value="/getUserGroupDash")
+    public Result getUserGroupDash(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        result.setData(dash03.getUserGroupDash(paraMap));
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
+        }
+        catch(NullPointerException ne) {
+
+        }
+        return result;
+    }
 }

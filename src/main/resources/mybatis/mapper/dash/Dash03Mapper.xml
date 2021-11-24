@@ -60,4 +60,27 @@
         order by send_dt desc
             limit 3
     </select>
+
+    <select id="getMakeRsltDash" parameterType="map"  resultType="camelMap">
+        select
+            sum(make_qty) as make_qty ,
+            to_char(make_dt , 'YYYY-MM-DD') as make_dt
+        from make_indc_rslt mir
+        where cust_no = #{custNo} and used_yn = 'Y'
+        and to_char(make_dt , 'YYYY-MM-DD') between to_char(now() + '-2 week' , 'YYYY-MM-DD')  and to_char(now() , 'YYYY-MM-DD')
+        group by to_char(make_dt , 'YYYY-MM-DD')
+        order by make_dt
+    </select>
+
+    <select id="getUserGroupDash" parameterType="map"  resultType="camelMap">
+        select
+            to_char(work_dt , 'MM-DD') as work_dt ,
+            count(user_id) as user_count
+        from user_work a
+        where to_char(work_dt , 'YYYY-MM-DD') between to_char(now() + '-2 week' , 'YYYY-MM-DD')  and to_char(now() , 'YYYY-MM-DD')
+        and cust_no = #{custNo} and used_yn = 'Y'
+        group by work_dt
+        order by to_char(work_dt , 'YYYY-MM-DD')
+    </select>
+
 </mapper>

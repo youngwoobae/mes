@@ -11,4 +11,8 @@ import java.util.Map;
 public interface Dash03Mapper {
     List<Map<String, Object>> getTmpr03GraphData(Map<String, Object> paraMap);
     List<Map<String, Object>> getEvtMsgList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getMakeRsltDash(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getUserGroupDash(Map<String, Object> paraMap);
 }

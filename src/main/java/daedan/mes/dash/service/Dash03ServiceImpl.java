@@ -70,4 +70,16 @@ public class Dash03ServiceImpl implements  Dash03Service {
         return mapper.getEvtMsgList(paraMap);
     }
 
+    public List<Map<String, Object>> getMakeRsltDash(Map<String, Object> paraMap) {
+        String tag = "dash30Service.getMakeRsltDash => ";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getMakeRsltDash(paraMap);
+    }
+
+    public List<Map<String, Object>> getUserGroupDash(Map<String, Object> paraMap) {
+        String tag = "dash30Service.getUserGroupDash => ";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getUserGroupDash(paraMap);
+    }
+
 }
