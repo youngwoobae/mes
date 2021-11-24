@@ -539,7 +539,7 @@
                 and upper(replace(a.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by empl_kind_nm collate "ko_KR.utf8", user_nm collate "ko_KR.utf8"
+        order by a.empl_kind , user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
