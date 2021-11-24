@@ -585,7 +585,7 @@
         select a.ord_no
              , a.prod_no
              , a.sale_unit as make_unit
-        , round((a.ord_qty * b.mess )<if test="custNo == 3">  / 1000 </if>) as indc_wgt
+        , round(( (b.qty_per_pkg * b.mess) * a.ord_qty ) / 1000 ) as indc_wgt
         from ord_prod a join prod_info b on a.prod_no = b.prod_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.ord_no = #{ordNo}
@@ -1908,16 +1908,14 @@
                         , d.sz      --자재규격
                         , d.purs_unit --자재구매단가
                         , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현제는 임시로 'Y' 로 설정하고 있음.
-                        , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
-                        , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)) * #{ctlFillYield} ) as need_qty --소요량(Kg)
-                        , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)
-                        - coalesce (q.purs_qty,0) --주문제품의 BOM에 의거한 구매량 (ord_prod.purs_no > 0 인 자료)
-                        - coalesce ( e.stk_qty,0 )  <![CDATA[ >= ]]>   0
-                        then coalesce (q.purs_qty,0) - coalesce (mi.iwh_qty ,0)
+                        , ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) as purs_qty --구매필요량(Kg)
+                        , ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) as need_qty --소요량(Kg)
+                        , case when  ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) - coalesce (q.purs_qty,0) - coalesce ( mi.iwh_qty  , 0 )  <![CDATA[ >= ]]> 0 and q.purs_qty  <![CDATA[ > ]]> 0
+                        then coalesce (q.purs_qty,0) - coalesce (e.stk_qty ,0)
                         else coalesce (q.purs_qty,0) - coalesce(q.purs_qty,0)
                         end as wait_iwh_qty --입고대기량(Kg)
                         , coalesce (e.stk_qty,0) as stk_qty --재고량(Kg)
-                        , get_matr_stk_sts(  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) * c.spga )::numeric
+                        , get_matr_stk_sts(  ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000)::numeric
                         , coalesce ( e.stk_qty,0)::numeric
                         , coalesce (q.purs_qty,0)::numeric
                         ) as purs_need

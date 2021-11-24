@@ -1,5 +1,6 @@
 package daedan.mes.purs.mapper;
 
+import daedan.mes.io.domain.MatrIwh;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
@@ -83,4 +84,6 @@ public interface PursMapper {
     List<Map<String, Object>> getPursMatrIwhList(Map<String, Object> paraMap);
 
     int getPursMatrIwhListCount(Map<String, Object> paraMap);
+
+    Map<String, Object> getPursChk(MatrIwh mivo);
 }

@@ -2843,16 +2843,7 @@ public class IoServiceImpl implements IoService {
             Long pursIng = Long.parseLong(env.getProperty("purs.sts.ing"));
             Long pursEnd = Long.parseLong(env.getProperty("purs.sts.end"));
             if (mivo.getPursNo() > 0L) {
-                PursInfo pursvo = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo, mivo.getPursNo(), "Y");
-                if (pursvo != null) {
-                    log.info(tag + "2.구매마스터 상태 설정");
-                    pursvo.setCmpyNo(mivo.getCmpyNo());
-                    pursvo.setPursSts(paraMap.get("finishYn").toString().equals("Y") ? pursEnd : pursIng);
-                    pursvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                    pursvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                    pursvo.setModIp(paraMap.get("ipaddr").toString());
-                    pursRepo.save(pursvo);
-                }
+
                 PursMatr pmvo = pmr.findByCustNoAndPursMatrNoAndUsedYn(custNo, mivo.getPursMatrNo(),"Y" );
                 if (pmvo != null) {
                     log.info(tag + "3.구매제품 상태 설정");
@@ -2860,13 +2851,39 @@ public class IoServiceImpl implements IoService {
                     pmvo.setWhNo(mivo.getWhNo());
                     log.info(tag + "3.1.1 구매수량 = " + pmvo.getPursQty());
                     log.info(tag + "3.1.2 입고수량 = " + mivo.getIwhQty());
+                    if (paraMap.get("finishYn").toString().equals("Y")){
+                        pmvo.setPursSts(pursEnd);
+                    }else{
+                        if (pmvo.getPursQty() == mivo.getIwhQty()){
+                            pmvo.setPursSts(pursEnd);
+                        }else{
+                            pmvo.setPursSts(pursIng);
+                        }
 
+                    }
 
-                    pmvo.setPursSts(mivo.getIwhQty() == pmvo.getPursQty() ? pursEnd : pursIng);
                     pmvo.setModDt(DateUtils.getCurrentBaseDateTime());
                     pmvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
                     pmvo.setModIp(paraMap.get("ipaddr").toString());
                     pmr.save(pmvo);
+                }
+
+                PursInfo pursvo = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo, mivo.getPursNo(), "Y");
+
+                Map<String, Object> chkItem = pursMapper.getPursChk(mivo);
+
+                if (pursvo != null) {
+                    log.info(tag + "2.구매마스터 상태 설정" + chkItem);
+                    pursvo.setCmpyNo(mivo.getCmpyNo());
+                    if (chkItem.get("pursType").toString().equals("Y")){
+                        pursvo.setPursSts(pursEnd);
+                    }else{
+                        pursvo.setPursSts(pursIng);
+                    }
+                    pursvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    pursvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                    pursvo.setModIp(paraMap.get("ipaddr").toString());
+                    pursRepo.save(pursvo);
                 }
             }
 

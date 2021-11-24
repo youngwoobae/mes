@@ -880,5 +880,14 @@
     <select id="getWhList" parameterType="map"  resultType="camelMap">
         select wh_nm from wh_info and used_yn ='Y' and cust_no = #{custNo}
     </select>
+
+    <select id="getPursChk" parameterType="map"  resultType="camelMap">
+        select
+	    case when
+	    (select count(a.purs_no) from purs_matr a join purs_info b on a.purs_no = b.purs_no and b.cust_no = #{custNo} where a.purs_no = #{pursNo} and a.cust_no = #{custNo}) =
+	    (select count(a.purs_no) from purs_matr a join purs_info b on a.purs_no = b.purs_no and b.cust_no = #{custNo} where a.purs_no = #{pursNo} and a.purs_sts = 165 and a.cust_no = #{custNo})
+	    then 'Y' else 'N' end as purs_type
+    </select>
+
 </mapper>
 
