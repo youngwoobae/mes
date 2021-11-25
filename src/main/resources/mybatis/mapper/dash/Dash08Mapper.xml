@@ -3,6 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="daedan.mes.dash.mapper.Dash08Mapper">
 	<select id="getYyjgProdIoList" parameterType="map"  resultType="camelMap">
+		/*초기화면 재품입출고목록(dash08Mapper.getYyjgProdIoList) */
 		select g.prod_stk_clos_no --마감번호
 			 , to_char(g.clos_dt,'YYYY-MM-DD') as clos_dt --마감일자
 			 , coalesce(a.wh_no,0) as wh_no --창고번
@@ -14,29 +15,46 @@
 			 , coalesce (g.owh_qty,0) as owh_qty --재품출고
 			 , coalesce (a.stk_qty,0) as stk_qty --재품최종재고
 			 , coalesce (d.stk_qty,0) as jb_qty --전일재고
-			 , case when coalesce(d.stk_qty ,0) + coalesce(g.iwh_qty ,0) - coalesce(g.owh_qty ,0) <![CDATA[ != ]]> coalesce(a.stk_qty ,0)
-					then 'Y'
+			 , case when coalesce(d.stk_qty ,0) + coalesce(k.iwh_qty ,0) - coalesce(p.owh_qty ,0)   !=   coalesce(a.stk_qty ,0)
+				    then 'Y'
 					else 'N'
-				end as stk_chk --재고 체크
-			from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
-                                              and a.used_yn = 'Y' and a.cust_no = #{custNo}
+			end as stk_chk --재고 체크
+		 from prod_info c left join prod_stk  a on c.prod_no = a.prod_no
+                                               and a.used_yn = 'Y'
+											   and a.cust_no = #{custNo}
 						 left join wh_info f on a.wh_no = f.wh_no
-						                    and f.used_yn   = 'Y' and f.cust_no = #{custNo}
-						 left join prod_stk_clos g on a.wh_no = g.wh_no and a.prod_no = g.prod_no
-                                                  and g.used_yn = 'Y' and g.cust_no = #{custNo}
+						                    and f.used_yn   = 'Y'
+						                    and f.cust_no = #{custNo}
+						 left join prod_stk_clos g on a.wh_no = g.wh_no
+						 						  and a.prod_no = g.prod_no
+                                                  and g.used_yn = 'Y'
+                                                  and g.cust_no = #{custNo}
 												  and to_char(g.clos_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
 						 left join ( select a.wh_no
 										  , a.prod_no
 										  , to_char(a.clos_dt,'YYYY-MM-DD') as clos_dt
 										  , coalesce (sum(stk_qty),0) as  stk_qty
 									 from prod_stk_clos a
-									where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
-                                      and a.used_yn = 'Y' and a.cust_no = #{custNo}
+									 where to_char(clos_dt,'YYYY-MM-DD') = to_char(now() +  '-1 day'::interval,'YYYY-MM-DD')
+                                     and a.used_yn = 'Y' and a.cust_no = #{custNo}
 									 group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
 		                          ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
-		where  1 = 1
-		  and c.used_yn = 'Y' and c.cust_no = #{custNo}
-		order by prod_nm collate "ko_KR.utf8"
+						left join ( select cust_no, prod_no, sum(iwh_qty)  as iwh_qty
+									from prod_iwh
+									where to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+									and used_yn = 'Y'
+									group by cust_no, prod_no
+								  )	k on c.prod_no = k.prod_no
+								  	 and c.cust_no = k.cust_no
+						left join ( select cust_no, prod_no, sum(owh_qty)  as owh_qty
+									from prod_owh
+									where to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+									and used_yn = 'Y'
+									group by cust_no, prod_no
+								  )	p on c.prod_no = p.prod_no and c.cust_no = p.cust_no
+						where  1 = 1
+						  and c.used_yn = 'Y' and c.cust_no = #{custNo}
+						order by prod_nm collate "ko_KR.utf8"
 	</select>
 
 	<select id="getYyjgProdIoListCount" parameterType="map"  resultType="int">
@@ -59,7 +77,19 @@
 												and a.used_yn = 'Y' and a.cust_no = #{custNo}
 											  group by wh_no,prod_no,to_char(clos_dt,'YYYY-MM-DD')
 				 						    ) d on a.wh_no = d.wh_no and a.prod_no = d.prod_no
-
+								  left join ( select cust_no, prod_no, sum(iwh_qty)  as iwh_qty
+											  from prod_iwh
+											  where to_char(iwh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+												and used_yn = 'Y'
+											  group by cust_no, prod_no
+											 )	k on c.prod_no = k.prod_no
+					 							 and c.cust_no = k.cust_no
+								  left join ( select cust_no, prod_no, sum(owh_qty)  as owh_qty
+											  from prod_owh
+											  where to_char(owh_dt,'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+												and used_yn = 'Y'
+											  group by cust_no, prod_no
+				 							)	p on c.prod_no = p.prod_no and c.cust_no = p.cust_no
 				 where  1 = 1
 			   and c.used_yn = 'Y' and c.cust_no = #{custNo}
 			 ) a
