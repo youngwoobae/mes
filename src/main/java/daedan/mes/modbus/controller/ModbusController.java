@@ -5,7 +5,10 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.modbus.service.ModbusService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,10 +35,14 @@ public class ModbusController {
     @Autowired
     private CodeService codeService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping(value="/condition103Tablet")
     public Result comboWorkDay(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         Map<String, Object> rmap = new HashMap<String,Object>();
@@ -51,6 +58,18 @@ public class ModbusController {
         rmap.put("comboMenu", modbusService.getComboTabletMenuList(paraMap));
         //log.info("protocols = " + rmap.get("protocols").toString());
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -58,11 +77,24 @@ public class ModbusController {
     public Result tabletList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(modbusService.getTabletList(paraMap));
         result.setTotalCount(modbusService.getTabletListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -70,8 +102,22 @@ public class ModbusController {
     public Result tabletInfo(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         modbusService.getTabletInfo(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -79,10 +125,24 @@ public class ModbusController {
     public Result saveTabletInfo(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         modbusService.saveTabletInfo(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -90,11 +150,24 @@ public class ModbusController {
     public Result tmprtList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(modbusService.getTmprHstrList(paraMap));
         result.setTotalCount(modbusService.getTmprHstrListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -105,17 +178,32 @@ public class ModbusController {
                 , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("sysMenuNo", Long.parseLong(szPath));
         paraMap.put("custNo",Long.parseLong(env.getProperty("cust_no")));
         result.setData(modbusService.getTabletInfoBySysMenu(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
     @PostMapping(value="/startOper") //테블릿 시작버튼 클릭
     public Result startOper(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         /*
@@ -125,16 +213,40 @@ public class ModbusController {
         */
 
         result.setData(modbusService.startOper(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
     @PostMapping(value="/stopOper") //테블릿 종료버튼 클
     public Result stoptOper(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         modbusService.stopOper(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -142,10 +254,24 @@ public class ModbusController {
     public Result startMoniter(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         result.setData(modbusService.startMoniter(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -153,20 +279,48 @@ public class ModbusController {
     public Result saveModbusData(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         modbusService.saveModbusData(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
     @PostMapping(value="/saveModbusWrinkle") //테블릿 꼬치접이 모니터링 시작
     public Result saveModbusWrinkle(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         modbusService.saveModbusWrinkle(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -175,10 +329,24 @@ public class ModbusController {
     public Result saveModbusFail(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         modbusService.saveModbusFail(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -186,10 +354,24 @@ public class ModbusController {
     public Result initialProdList(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("serviceUrl",env.getProperty("serviceUrl"));
 
         result.setData(modbusService.getInitialProdList(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -198,12 +380,26 @@ public class ModbusController {
     public Result getTrkList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(modbusService.getTrkList(paraMap));
         result.setTotalCount(modbusService.getTrkListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -213,10 +409,24 @@ public class ModbusController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         modbusService.dropTabletInfo(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
     /*하담푸드 포장기 카운터 이력*/
@@ -224,11 +434,24 @@ public class ModbusController {
     public Result soptEquipValHist(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(modbusService.getSoptEquipValHist(paraMap));
         result.setTotalCount(modbusService.getSoptEquipValHistCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 
@@ -237,11 +460,22 @@ public class ModbusController {
     public Result saveOperData(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         modbusService.saveOperData(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -251,9 +485,21 @@ public class ModbusController {
     public Result matchEquipMngrHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         modbusService.matchEquipMngrHstr(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -263,9 +509,21 @@ public class ModbusController {
     public Result stopEquipMngrHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
 
         modbusService.stopEquipMngrHstr(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -279,10 +537,21 @@ public class ModbusController {
     public Result setOperMastQty(@RequestBody Map<String, Object> paraMap, HttpServletRequest request  , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("autoUserInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         modbusService.setOperMastQty(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
