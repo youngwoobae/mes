@@ -163,8 +163,6 @@ public class UserController {
         String tag = "UserController.signin => ";
         String token = "";
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
 
         log.info("encpswd=" + BCrypt.hashpw(paraMap.get("secrtNo").toString(), BCrypt.gensalt()));
         String orgLcnsCd = paraMap.get("lcnsCd").toString();
@@ -174,8 +172,8 @@ public class UserController {
         UserInfo uservo = userService.signin(paraMap.get("mailAddr").toString(), paraMap.get("secrtNo").toString());
         if (uservo != null) {
             if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
-//                String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
-//                Long custNo = Long.parseLong(strCustNo);
+                String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
+                Long custNo = Long.parseLong(strCustNo);
 
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
                 log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
@@ -211,15 +209,6 @@ public class UserController {
         rmap.put("prodUnitWgtNm",(String) session.getAttribute("prodUnitWgtNm"));
         result.setData(rmap);
 
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }

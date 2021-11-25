@@ -578,6 +578,7 @@
             , a.work_fr_tm --출근시간
             , a.work_to_tm --퇴근시간
             , b.user_nm --근무자명
+            , a.work_no --r근무관리번호
             , fn_get_time_str(fn_get_min_term(a.work_fr_tm, a.work_to_tm)) as work_tm --근무시간
         from user_work a join user_info b on a.user_id = b.user_id
                                          and b.cust_no = #{custNo}
