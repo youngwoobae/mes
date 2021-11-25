@@ -72,7 +72,7 @@ public class UserController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        result.setData(Integer.parseInt(env.getProperty("cust_no")));
+        result.setData(uvo.getCustInfo().getCustNo());
         return result;
     }
     @PostMapping(value="/chkEncStr")

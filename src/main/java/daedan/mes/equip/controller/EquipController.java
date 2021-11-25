@@ -718,7 +718,6 @@ public class EquipController {
             }
         }
         //EOL AddON By KMJ AT 21.11.26
-
         return result;
     }
 }

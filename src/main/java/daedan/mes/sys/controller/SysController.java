@@ -194,6 +194,14 @@ public class SysController {
         result.setData(sysService.getPalets(paraMap));
         return result;
     }
+    /*invokeChatServer*/
+    @PostMapping(value="/invokeChatServer")
+    public Result invokeChatServer(@RequestBody Map<String, Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        sysService.invokeChatServer();
+        return result;
+    }
 
 
 
