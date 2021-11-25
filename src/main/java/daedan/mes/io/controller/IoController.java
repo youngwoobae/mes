@@ -7,7 +7,10 @@ import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.io.service.IoService;
 import daedan.mes.qc.service.QcService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.jdbc.Null;
@@ -41,18 +44,35 @@ public class IoController {
     @Autowired
     private CodeService codeService;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping(value = "/matrWhList")
     public Result matrWhList(@RequestBody Map<String, Object> paraMap , HttpSession session) {
         String tag = "ioController.whList => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
 
         paraMap.put("whTp", Long.parseLong(env.getProperty("code.whgb.matr")));//자재창고
         result.setData(ioService.getWhList(paraMap));
         result.setTotalCount(ioService.getWhListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -675,7 +695,7 @@ public class IoController {
 
     /*출하계획 상품목록*/
     @PostMapping(value = "/exportProdList")
-    public Result exportProdInfo(@RequestBody Map<String, Object> paraMap , HttpSession session) {
+    public Result exportProdList(@RequestBody Map<String, Object> paraMap , HttpSession session) {
         String tag = "ioController.exportProdInfo => ";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
