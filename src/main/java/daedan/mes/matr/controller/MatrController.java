@@ -191,16 +191,8 @@ public class MatrController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         List <Map<String,Object>> rmap = matrService.getMatrCurrStkList(paraMap);
-        List <Map<String,Object>> dmap = new ArrayList<>();
-
-            for(int i = 0; i < rmap.size(); i++){
-                if(! rmap.get(i).get("cqty").toString().equals("0")){
-                    dmap.add(i , rmap.get(i));
-                }else{
-
-                }
-        }
-        result.setData(dmap);
+ 
+        result.setData(rmap);
         result.setTotalCount(matrService.getMatrCurrStkListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
