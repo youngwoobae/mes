@@ -50,4 +50,7 @@ public class AuthUser {
     @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
+
+    @Column(name="used_yn", length = 1, columnDefinition = "char default 'Y'")
+    private String usedYn;
 }
