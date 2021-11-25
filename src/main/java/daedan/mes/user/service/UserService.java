@@ -94,4 +94,6 @@ public interface UserService {
 
     List<Map<String, Object>>  getHstrList(HashMap<String, Object> paraMap);
     int getHstrListCount(HashMap<String, Object> paraMap);
+
+    void dropWorkInfo(Map<String, Object> paraMap);
 }

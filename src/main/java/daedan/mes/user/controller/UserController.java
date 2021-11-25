@@ -681,4 +681,23 @@ public class UserController {
         result.setTotalCount(userService.getUserAccLogListCount(paraMap));
         return result;
     }
+
+    @PostMapping(value = "/dropWorkInfo") /*사용자별 세부 메뉴 권한 처리*/
+    public Result dropWorkInfo(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        userService.dropWorkInfo(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        try {
+            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        }
+        catch(NullPointerException ne) {
+        }
+        //EOL AddON By KMJ AT 21.11.26
+        return result;
+    }
 }

@@ -37,7 +37,7 @@ import java.util.*;
  * Created by vivie on 2017-06-08.
  */
 @Service("userService")
-public class UserServiceImpl implements UserService {
+public  class UserServiceImpl implements UserService {
 	private Log log = LogFactory.getLog(this.getClass());
 
 	private static final String DEFAULT_NICKNAME = "번째러버";
@@ -328,7 +328,7 @@ public class UserServiceImpl implements UserService {
 		String fileName = this.getRandomImageName();
 		String fileDir ="profile/" + memberId + "/";
 		awsService.uploadFile(encodeImg, fileDir, fileName);
-		
+
 		UserMast member = userRepository.findByIdAndUsedYn(memberId,"Y").get();
 		member.setProfileImg("/"+fileDir +fileName);
 		userRepository.save(member);
@@ -887,8 +887,21 @@ public class UserServiceImpl implements UserService {
 		log.info(tag + " paraMap = " + paraMap.toString());
 		return mapper.getHstrListCount(paraMap);
 	}
+
+	@Transactional
+	@Override
+	public void dropWorkInfo(Map<String, Object> paraMap) {
+		String tag = "UserService.getHstrListCount => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		Long custNo  = Long.parseLong(paraMap.get("custNo").toString());
+		Long workNo  = Long.parseLong(paraMap.get("workNo").toString());
+		UserWork uwvo  = uhr.findByCustNoAndWorkNoAndUsedYn(custNo,workNo,"Y");
+		if  (uwvo != null) {
+			uwvo.setUsedYn("N");
+			uwvo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
+			uwvo.setModDt(DateUtils.getCurrentDateTime());
+			uwvo.setModIp(paraMap.get("ipaddr").toString());
+			uhr.save(uwvo);
+		}
+	}
 }
-
-
-
-
