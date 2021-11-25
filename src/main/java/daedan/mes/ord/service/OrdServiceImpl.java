@@ -437,7 +437,7 @@ public class OrdServiceImpl implements  OrdService {
         else {
             try {
                 Float ordQty = Float.parseFloat(paraMap.get("ordQty").toString());
-                vo.setOrdQty(ordQty * qtyParPkg);
+                vo.setOrdQty(ordQty);
             } catch (NullPointerException ne) {
                 vo.setOrdQty(0F);
             }

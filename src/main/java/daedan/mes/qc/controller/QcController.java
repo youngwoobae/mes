@@ -53,6 +53,17 @@ public class QcController {
         rmap.put("chkMths", codeService.getComboCodeList(paraMap));
 
         Result result = Result.successInstance();
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result.setData(rmap);
     }
     @PostMapping(value="/matrIwhChkList")
@@ -65,14 +76,17 @@ public class QcController {
         paraMap.put("custNo", custNo);
         result.setData(qcService.getMatrIwhChkList(paraMap));
         result.setTotalCount(qcService.getMatrIwhChkListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/matrIwhChkDocList")
@@ -83,14 +97,17 @@ public class QcController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         result.setData(qcService.getMatrIwhChkDocList(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/matrIwhChkInfo")
@@ -100,14 +117,17 @@ public class QcController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         result.setData(qcService.matrIwhChkInfo(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/saveMatrIwhChk")
@@ -118,14 +138,17 @@ public class QcController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         qcService.saveMatrIwhChk(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/dropMatrIwhChk")
@@ -136,14 +159,17 @@ public class QcController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         qcService.dropMatrIwhChk(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -170,6 +196,17 @@ public class QcController {
         rmap.put("chkMths", codeService.getComboCodeList(paraMap));
 
         Result result = Result.successInstance();
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result.setData(rmap);
     }
     /**
@@ -186,14 +223,17 @@ public class QcController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         result.setData(qcService.prodOwhChkInfo(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -212,14 +252,17 @@ public class QcController {
         paraMap.put("custNo", custNo);
         result.setData(qcService.getProdOwhChkList(paraMap));
         result.setTotalCount(qcService.getProdOwhChkListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -238,14 +281,17 @@ public class QcController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         qcService.saveProdOwhChk(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -264,14 +310,17 @@ public class QcController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         qcService.dropProdOwhChk(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 

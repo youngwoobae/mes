@@ -59,6 +59,17 @@ public class MesReportController {
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -81,6 +92,17 @@ public class MesReportController {
         rmap.put("comboEmplKind", codeService.getComboCodeList(paraMap));
 
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     /**
@@ -99,14 +121,17 @@ public class MesReportController {
         paraMap.put("custNo", custNo);
         result.setData(mesReportService.getProdIwhHstr(paraMap));
         result.setTotalCount(mesReportService.getProdIwhHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -127,6 +152,17 @@ public class MesReportController {
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -147,6 +183,17 @@ public class MesReportController {
 
         rmap.put("comboWh",cmmnService.getComboWh(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -167,12 +214,14 @@ public class MesReportController {
         paraMap.put("custNo", custNo);
         result.setData(mesReportService.getProdOwhHstr(paraMap));
         result.setTotalCount(mesReportService.getProdOwhHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -195,12 +244,14 @@ public class MesReportController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(mesReportService.getMetalDetectHstr(paraMap));
         result.setTotalCount(mesReportService.getMetalDetectHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 

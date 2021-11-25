@@ -53,14 +53,15 @@ public class SysMenuController {
         result.setData(codeService.getComboCodeList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
-
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -77,14 +78,15 @@ public class SysMenuController {
         result.setData(list);
 
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
-
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/subMenuList")
@@ -99,14 +101,15 @@ public class SysMenuController {
         result.setTotalCount(sysMenuService.getSysMenuListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
-
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -118,15 +121,17 @@ public class SysMenuController {
         paraMap.put("custNo", custNo);
 
         result.setData(sysMenuService.getSysMenuTree(paraMap));
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -143,14 +148,15 @@ public class SysMenuController {
         result.setTotalCount(sysMenuService.getCircleMenuListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
-
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -161,15 +167,17 @@ public class SysMenuController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         sysMenuService.initAuthMenu(paraMap);
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -180,15 +188,17 @@ public class SysMenuController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         sysMenuService.renewalAuthMenu(paraMap);
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -200,27 +210,41 @@ public class SysMenuController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         result.setData(sysMenuService.saveHotMenu(paraMap));
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
     @PostMapping(value="/saveSysMenuInfo")
     public Result saveSysMenuInfo(@RequestBody Map<String,Object> passMap, HttpServletRequest request , HttpSession session){
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         passMap.put("custNo", uvo.getCustInfo().getCustNo());
         passMap.put("pageNo", StringUtil.convertPageNo(passMap));
         passMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         Result result = Result.successInstance();
         sysMenuService.saveSysMenuInfo(passMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -234,15 +258,17 @@ public class SysMenuController {
 
         result.setTotalCount(sysMenuService.getMenuListCount(paraMap));
         result.setData(sysMenuService.getMenuList(paraMap));
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/getParSysMenus")
@@ -253,15 +279,17 @@ public class SysMenuController {
         paraMap.put("custNo", custNo);
 
         result.setData(sysMenuService.getParSysMenus(paraMap));
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -275,15 +303,17 @@ public class SysMenuController {
         paraMap.put("parCodeNo", Long.parseLong(env.getProperty("code.base.auth")));
 
         result.setData(sysMenuService.getAuthMenuList(paraMap));
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -295,15 +325,17 @@ public class SysMenuController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         result.setData(sysMenuService.getMenuPosList(paraMap));
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -316,15 +348,17 @@ public class SysMenuController {
 
         List<Map<String,Object>> list = sysMenuService.routerList(paraMap);
         result.setData(list);
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -338,15 +372,17 @@ public class SysMenuController {
         paraMap.put("userId",uvo.getUserId());
         AccHstr vo = sysMenuService.makeAccHstr(paraMap);
         session.setAttribute("acchstr", vo);
-        //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo,acvo.getAccNo(), EvntType.READ,1);
-        }
-        catch(NullPointerException ne) {
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 }

@@ -125,7 +125,7 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
     @Transactional
     @Override
     public void saveMakeProc(Map<String, Object> paraMap) throws Exception { //상품정보에 설정된 제조공정 전체를 생성
-        String tag = "makeIndcService.saveMakeIndcFull ==> ";
+        String tag = "makeIndcService.saveMakeProc ==> ";
         log.info(tag + "paraMap =" + paraMap.toString());
 
         Map<String, Object> procMap = new HashMap<String, Object>();
