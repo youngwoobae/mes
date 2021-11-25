@@ -449,7 +449,7 @@ public class UserController {
         List<Map<String, Object>> list = (List<Map<String, Object>>) paraMap.get("chkList2");
 //        result.setData(userService.getAuthUserList(paraMap));
 //        result.setTotalCount(userService.getAuthUserListCount(paraMap));
-
+//        List<Map<String, Object>> deleteList  =  userService.deleteAuthUser(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
@@ -459,8 +459,6 @@ public class UserController {
             }
         }
         //EOL AddON By KMJ AT 21.11.26
-
-        System.out.println(tag + list);
         return result;
     }
 

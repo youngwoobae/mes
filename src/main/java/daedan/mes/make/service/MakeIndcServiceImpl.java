@@ -1802,7 +1802,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 float faultQty = 0f;
                 if (mivo != null && pivo != null) {
                     faultQty = (float) (mirvo.getMetalQty() + mirvo.getPackQty() + mirvo.getSznQty() + mirvo.getWgtQty());
-                    float indcQty = (mivo.getIndcQty() / pivo.getMess());
+                    float indcQty = mivo.getIndcQty();
                     mivo.setFaultRt((faultQty / indcQty) * 100);
                     log.info(tag + "불량률 계산종료.불량율 = " + mivo.getFaultRt());
                 }

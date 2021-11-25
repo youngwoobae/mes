@@ -889,14 +889,13 @@ public  class UserServiceImpl implements UserService {
 			Long authCd = Long.parseLong(el.get("authCd").toString());
 			try {
 				AuthUser auvo = authUserRepo.findByCustNoAndUserIdAndAuthCd(custNo, userId, authCd);
-//				log.info("###"+ auvo.toString());
+				log.info("###"+ auvo.toString());
 				auvo.setUsedYn("N");
-				System.out.println("111");
+				log.info("@@@"+ auvo.toString());
 				auvo.setModDt(DateUtils.getCurrentBaseDateTime());
-				System.out.println("222");
 //				auvo.setModIp(el.get("modIp").toString());
 				authUserRepo.save(auvo);
-				System.out.println("444");
+
 			}
 			catch(NullPointerException ne) {
 				continue;

@@ -1,6 +1,7 @@
 package daedan.mes.sys.service;
 
 import daedan.mes.cmmn.io.datamgr.rawdata.RawDataController;
+import daedan.mes.cmmn.io.socket.server.SockServer;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.sys.mapper.SysMapper;
 import org.apache.commons.logging.Log;
@@ -145,23 +146,24 @@ public class SysServiceImpl implements daedan.mes.sys.service.SysService {
     @Override
     public void invokeChatServer() {
         // 프로그램이 serverSocket일 경우
-        /*kmjkmj
+        /*kmjkmj*/
         Runnable rServerSocket = new SockServer();
         Thread tServerSocket = new Thread(rServerSocket);
         tServerSocket.setDaemon(true);
-
-        if (tServerSocket.getName() == null) {
-            tServerSocket.setName("serverSocket");
+        log.info("tServerSocket.name()  == " + tServerSocket.getName() );
+        //if (tServerSocket.getName() == null) {
+            tServerSocket.setName("MesChatSocket");
             tServerSocket.start();
-        }
-        */
+            log.info("MesChatSocket is being started.....");
+        //}
 
         // 서버 소켓으로 수신된 데이터가 담긴 큐를 poll하는 쓰레드
         Runnable rRawData = new RawDataController();
         Thread tRawData = new Thread(rRawData);
         tRawData.setDaemon(true);
-        tRawData.setName("threadDemon");
+        tRawData.setName("MesChatSocket");
         tRawData.start();
+        log.info("MesChatSocket Thread is being started.....");
 
         /* 품온, 금속검출을 제외한 데이터 수집 설비 목록 조회
         List<Map<String, Object>> mondataSensorList = new ArrayList<Map<String, Object>>();
