@@ -51,14 +51,17 @@ public class StockController {
         paraMap.put("userId", pursMap.get("userId"));
         Result result = Result.successInstance();
         stockService.saveWhInfo(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -71,14 +74,17 @@ public class StockController {
         paraMap.put("custNo", custNo);
 
         stockService.dropWhInfo(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -90,6 +96,17 @@ public class StockController {
         paraMap.put("custNo", custNo);
 
         result.setData(stockService.getComboWh(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -102,6 +119,17 @@ public class StockController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(stockService.getWhList(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     //창고레이아웃 팝업 화면 조건
@@ -114,6 +142,17 @@ public class StockController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(stockService.getWhInfo(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     //자재실사 화면조건
@@ -131,6 +170,17 @@ public class StockController {
         rmap.put("comboChngResn",codeService.getComboCodeList(paraMap));
         rmap.put("comboWhNo",stockService.getComboWh(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -147,6 +197,17 @@ public class StockController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.save_tmpr_cd")));
         rmap.put("comboSaveTmpr",codeService.getComboCodeList(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     //창고목록
@@ -159,14 +220,17 @@ public class StockController {
         Result result = Result.successInstance();
         result.setData(stockService.getWhList(paraMap));
         result.setTotalCount(stockService.getWhListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -178,12 +242,14 @@ public class StockController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         result.setData(stockService.getWhInfo(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -200,12 +266,14 @@ public class StockController {
 
         result.setData(stockService.getMatrPosList(paraMap));
         result.setTotalCount(stockService.getMatrPosListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -221,12 +289,14 @@ public class StockController {
 
         result.setData(stockService.getMatrStkList(paraMap));
         result.setTotalCount(stockService.getMatrStkListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -240,12 +310,14 @@ public class StockController {
         paraMap.put("custNo", custNo);
 
         result.setData(stockService.getMatrPosInfo(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -261,12 +333,14 @@ public class StockController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         stockService.saveMatrPos(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -283,12 +357,14 @@ public class StockController {
 
         result.setData(stockService.getMatrRealStockList(paraMap));
         result.setTotalCount(stockService.getMatrRealStockListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -305,12 +381,14 @@ public class StockController {
 
         result.setData(stockService.getMatrRealStockHstr(paraMap));
         result.setTotalCount(stockService.getMatrRealStockHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -327,12 +405,14 @@ public class StockController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
 
         stockService.realStockSave(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -347,12 +427,14 @@ public class StockController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         stockService.saveProdStock(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -371,12 +453,14 @@ public class StockController {
 
         result.setData(stockService.getStkClosList(paraMap));
         result.setTotalCount(stockService.getStkClosListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -393,12 +477,14 @@ public class StockController {
 
         result.setData(stockService.getProdStkClosList(paraMap));
         result.setTotalCount(stockService.getProdStkClosListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -415,12 +501,14 @@ public class StockController {
 
         result.setData(stockService.getMatrStkClosList(paraMap));
         result.setTotalCount(stockService.getMatrStkClosListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -438,12 +526,14 @@ public class StockController {
 
         result.setData(stockService.getStkClosMatrIwhDetlHstr(paraMap));
         result.setTotalCount(stockService.getStkClosMatrIwhDetlHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -460,12 +550,14 @@ public class StockController {
 
         result.setData(stockService.getStkClosMatrOwhDetlHstr(paraMap));
         result.setTotalCount(stockService.getStkClosMatrOwhDetlHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -482,12 +574,14 @@ public class StockController {
 
         result.setData(stockService.getStkClosProdIwhDetlHstr(paraMap));
         result.setTotalCount(stockService.getStkClosProdIwhDetlHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -504,12 +598,14 @@ public class StockController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(stockService.getStkClosProdOwhDetlHstr(paraMap));
         result.setTotalCount(stockService.getStkClosProdOwhDetlHstrCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -530,12 +626,14 @@ public class StockController {
 
         result.setData(stockService.getMatrIoList(paraMap));
         result.setTotalCount(stockService.getMatrIoListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -553,12 +651,14 @@ public class StockController {
 
         result.setData(stockService.getProdIoList(paraMap));
         result.setTotalCount(stockService.getProdIoListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -578,15 +678,16 @@ public class StockController {
         paraMap.put("serverIp",env.getProperty("server.ip"));
         paraMap.put("portNo",env.getProperty("server.port"));
         result.setData(stockService.getMatrStockPosList(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
-
 
         return result;
     }
@@ -604,12 +705,14 @@ public class StockController {
         paraMap.put("serverIp",env.getProperty("server.ip"));
         paraMap.put("portNo",env.getProperty("server.port"));
         stockService.addOnStock(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -629,15 +732,16 @@ public class StockController {
         paraMap.put("serverIp",env.getProperty("server.ip"));
         paraMap.put("portNo",env.getProperty("server.port"));
         result.setData(stockService.getMatrStockListAndLayout(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
-
 
         return result;
     }
@@ -650,12 +754,14 @@ public class StockController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         result.setData(stockService.getCheckMatrIwhListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -673,12 +779,14 @@ public class StockController {
 
         result.setData(stockService.getMatrForRealStkList(paraMap));
         result.setTotalCount(stockService.getMatrForRealStkListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -692,13 +800,15 @@ public class StockController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+
         stockService.saveMatrRealStkList(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -717,12 +827,14 @@ public class StockController {
 
         result.setData(stockService.getProdForRealStkList(paraMap));
         result.setTotalCount(stockService.getProdForRealStkListCount(paraMap));
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -737,15 +849,16 @@ public class StockController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         stockService.saveProdRealStkList(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
-
 
         return result;
     }
@@ -757,12 +870,14 @@ public class StockController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         stockService.dropMatrRelStk(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -778,12 +893,14 @@ public class StockController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         stockService.remakeDailyCloseData(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
