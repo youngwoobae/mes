@@ -2298,24 +2298,20 @@
           and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>
 
-    <!--출고상품목록-->
     <select id="getExportProdList" parameterType="map" resultType="camelMap">
+        /*출고상품목록(ioMapper.getExportProdList) */
         select b.ord_no  --주문번호
              , b.prod_no --품번
              , b.ord_qty --최소단위 환산 주문량
              , b.ord_qty --주문량
              , c.wh_no   --재고창고번호
-             , c.stk_qty --최소단위 환산 생산량
-             , d.wh_nm   --재고창고명
-             , pi.prod_nm
+             , c.stk_qty --재고량
+             , fn_get_wh_name(d.wh_nm   --재고창고명
+             , fn_get_prod_name(b.prod_no) as prpd_nm --제품명
         from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join prod_stk c on b.prod_no = c.prod_no
                                        and c.used_yn = 'Y' and c.cust_no = #{custNo}
-                        join wh_info d on c.wh_no = d.wh_no
-                                       and d.used_yn = 'Y' and d.cust_no = #{custNo}
-                        join prod_info pi on pi.prod_no = b.prod_no
-                                        and pi.used_yn = 'Y' and pi.cust_no = #{custNo}
         where  a.ord_no = #{ordNo} and c.stk_qty <![CDATA[ > ]]> 0
           and a.used_yn = 'Y' and a.cust_no = #{custNo}
     </select>

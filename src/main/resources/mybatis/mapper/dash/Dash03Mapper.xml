@@ -73,9 +73,9 @@
     </select>
 
     <select id="getUserGroupDash" parameterType="map"  resultType="camelMap">
-        select
-            to_char(work_dt , 'MM-DD') as work_dt ,
-            count(user_id) as user_count
+        /*하담푸드 대시보드 최근 14일 근태현황 (Dash03Mapper.getUserGroupDash) */
+        select to_char(work_dt , 'MM-DD') as work_dt ,
+               count(user_id) as user_count
         from user_work a
         where to_char(work_dt , 'YYYY-MM-DD') between to_char(now() + '-2 week' , 'YYYY-MM-DD')  and to_char(now() , 'YYYY-MM-DD')
         and cust_no = #{custNo} and used_yn = 'Y'

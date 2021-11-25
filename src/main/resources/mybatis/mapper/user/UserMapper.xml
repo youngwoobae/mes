@@ -571,6 +571,7 @@
         /*근태현황 (userMapper.getWorkList)*/
         select a.user_id --id
             , to_char(a.work_dt,'YYYY-MM-DD') as work_dt --근무일자
+            , fn_get_code_name('nm',b.empl_kind) as empl_kind_nm --내국인,외국인 구분명
             , a.work_fr_tm --출근시간
             , a.work_to_tm --퇴근시간
             , b.user_nm --근무자명
@@ -580,6 +581,9 @@
                                          and b.ocpn_kind = #{ocpnKind} --생산직만(222)
         where a.cust_no = #{custNo}
         and a.used_yn = 'Y'
+        <if test="dateFr != null and dateFr != ''">
+            and TO_CHAR(a.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        </if>
         order by a.work_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -597,6 +601,9 @@
                                              and b.ocpn_kind = #{ocpnKind} --생산직만(222)
             where a.cust_no = #{custNo}
             and a.used_yn = 'Y'
+            <if test="dateFr != null and dateFr != ''">
+                and TO_CHAR(a.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10)  and substring(#{dateTo},1,10)
+            </if>
         ) a
     </select>
 

@@ -70,11 +70,12 @@ public class EquipController {
         result.setData(eqService.getEquipList(paraMap));
         result.setTotalCount(eqService.getEquipListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
         return result;
@@ -92,11 +93,12 @@ public class EquipController {
         result.setData(eqService.getEquipDeviceList(paraMap));
         result.setTotalCount(eqService.getEquipDeviceListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-        }
-        catch(NullPointerException ne) {
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
         //EOL AddON By KMJ AT 21.11.26
 
@@ -115,13 +117,14 @@ public class EquipController {
         result.setData(eqService.getEquipRunStatList(paraMap));
         result.setTotalCount(eqService.getEquipRunStatListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
-
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     /*설비운전이력*/
@@ -137,12 +140,14 @@ public class EquipController {
         result.setData(eqService.getEquipRunHstrList(paraMap));
         result.setTotalCount(eqService.getEquipRunHstrListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -158,12 +163,14 @@ public class EquipController {
         Long matrNo = Long.parseLong(paraMap.get("equipNo").toString());
         result.setData(eqService.getEquip(matrNo));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -183,12 +190,14 @@ public class EquipController {
         resultMap = eqService.equipInfo(map);
         result.setData(resultMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -206,6 +215,16 @@ public class EquipController {
         rmap.put("madeins",codeService.getComboCodeList(paraMap));
         result.setData(rmap);
 
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
     @PostMapping(value="/comboEmbEquip")
@@ -219,6 +238,16 @@ public class EquipController {
         paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.madein")));
         rmap.put("madeins",codeService.getComboCodeList(paraMap));
         result.setData(rmap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -235,12 +264,14 @@ public class EquipController {
         paraMap.put("userId", paraMap.get("userId"));
         eqService.saveEquip(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -254,13 +285,14 @@ public class EquipController {
 
         result.setData(eqService.getEquipMastInfo(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
-
+        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
     @PostMapping(value="/saveEquipMast")
@@ -276,12 +308,14 @@ public class EquipController {
         log.info(tag  + "eqMap = " + paraMap);
         eqService.saveEquipMast(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -304,12 +338,14 @@ public class EquipController {
         log.info(tag  + "eqMap = " + paraMap);
         eqService.equipMngrItemSave(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -326,12 +362,14 @@ public class EquipController {
         paraMap.put("userId", paraMap.get("userId"));
         eqService.dropEquipMast(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -351,12 +389,14 @@ public class EquipController {
         emMap.put("userId", paraMap.get("userId"));
         eqService.dropEquip(emMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -378,12 +418,14 @@ public class EquipController {
         result.setData(eqService.getOnlyEquipList(paraMap));
         result.setTotalCount(eqService.getOnlyEquipListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -398,6 +440,17 @@ public class EquipController {
 
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(eqService.getCheckItemList(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -411,12 +464,14 @@ public class EquipController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(eqService.getErrorItemList(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -432,12 +487,14 @@ public class EquipController {
 
         eqService.saveCcpMetalReport(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -451,12 +508,14 @@ public class EquipController {
 
         eqService.reportSave(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -470,12 +529,14 @@ public class EquipController {
 
         result.setData(eqService.getEquipMngrItem(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -489,12 +550,14 @@ public class EquipController {
 
         result.setData(eqService.getEquipMngrHstr(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -507,12 +570,14 @@ public class EquipController {
 
         result.setData(eqService.getEquipMngrHstrDouble(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -526,12 +591,14 @@ public class EquipController {
 
         result.setData(eqService.getEquipMngrHstrHdfdVer(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -547,12 +614,14 @@ public class EquipController {
 
         eqService.saveModbusTmpr(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -565,12 +634,14 @@ public class EquipController {
 
         eqService.saveModbusHumy(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -586,12 +657,14 @@ public class EquipController {
         result.setData(eqService.getEquipReportList(paraMap));
         result.setTotalCount(eqService.getEquipReportListCount(paraMap));
         //SOL AddOn By KMJ AT 21.11.16
-        try {
-            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
         }
-        catch(NullPointerException ne) {
-        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -601,6 +674,9 @@ public class EquipController {
     public Result chatOn(@RequestBody Map<String, Object> paraMap, HttpSession session){
         log.info("======= Netty Client Test =======");
         Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         //설비ID(CHXX:가열,CDXX:금속검출, CCXX: 냉각)
         String host = paraMap.get("hostIp").toString();
         int  port = Integer.parseInt(paraMap.get("portNo").toString());
@@ -632,6 +708,16 @@ public class EquipController {
         sendMsg[0] = buf.toString();
         log.info("전송데이터 = " + sendMsg[0]);
         new NettyClient(host, port, sendMsg).run();
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }

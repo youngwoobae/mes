@@ -4,7 +4,10 @@ import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.make.service.ExcelMakeService;
 import daedan.mes.prod.service.ProdService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +35,9 @@ public class ExcelMakeController {
     @Autowired
     private ExcelMakeService excelservice;
 
+    @Autowired
+    private UserService userService;
+
 
 
     @PostMapping(value="/makeBomByExcel") //하담식품 상품 / 원자재 등록
@@ -56,6 +62,8 @@ public class ExcelMakeController {
     public Result makeMakeIndcMpByExcel(@RequestBody HashMap<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("matrTp", Integer.parseInt(env.getProperty("code.matrtp.matr")));
@@ -66,6 +74,18 @@ public class ExcelMakeController {
             e.printStackTrace();
         }
         result.setData("OK");
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+
         return result;
     }
 }
