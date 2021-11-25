@@ -2306,8 +2306,8 @@
              , b.ord_qty --주문량
              , c.wh_no   --재고창고번호
              , c.stk_qty --재고량
-             , fn_get_wh_name(d.wh_nm   --재고창고명
-             , fn_get_prod_name(b.prod_no) as prpd_nm --제품명
+             , fn_get_wh_name(c.wh_no) as wh_nm --재고창고명
+             , fn_get_prod_name(b.prod_no) as prod_nm --제품명
         from ord_info a join ord_prod b on a.ord_no = b.ord_no and b.used_yn = 'Y'
                                        and b.used_yn = 'Y' and b.cust_no = #{custNo}
                         join prod_stk c on b.prod_no = c.prod_no
@@ -2596,8 +2596,10 @@
                 and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
             </if>
           and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
+          and a.purs_sts in (162,164)
         <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
         <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
+        <if test="ordNo != null and ordNo != ''">  and c.ord_no = #{ordNo}   </if>
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
         </if>
