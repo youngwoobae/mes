@@ -705,7 +705,7 @@
                                     group by matr_no
                                     ) e on a.matr_no = e.matr_no
                         left join matr_safe_stk f on a.matr_no = f.matr_no and  f.cust_no = #{custNo}
-        where 1 = 1
+        where 1 = 1 and a.matr_tp = 44
         and a.used_yn = 'Y'
         and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != ''">
