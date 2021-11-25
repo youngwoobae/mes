@@ -6,8 +6,11 @@ import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.file.domain.FileInfo;
 import daedan.mes.file.repository.FileRepository;
 import daedan.mes.file.service.FileService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.CustInfoRepository;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,9 @@ public class FileController {
 
     @Autowired
     private CustInfoRepository custRepo;
+
+    @Autowired
+    private UserService userService;
 
     @PostMapping(value="/upload")
     public Result file(@RequestPart("file") MultipartFile multipartFile , HttpServletRequest request , HttpSession session) throws IOException {
@@ -101,6 +107,17 @@ public class FileController {
             FileUtils.deleteQuietly(targetFile);
             e.printStackTrace();
         }
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
 
     }
@@ -109,10 +126,23 @@ public class FileController {
         String tag = "FileController.getImage=>";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         String imageUrl = fileService.getApndFileUrl(paraMap);
         log.info(tag + "imageUrl = " + imageUrl);
         result.setData(imageUrl);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -170,6 +200,17 @@ public class FileController {
                 e.printStackTrace();
             }
         }
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
     }
 
     @PostMapping("/downloadImage")
@@ -188,6 +229,17 @@ public class FileController {
         Result result = Result.successInstance();
         byte[] readBytes = cmmnService.getFileToBin(buf.toString());
         result.setData(readBytes);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 

@@ -61,6 +61,13 @@ public class CustInfo {
     @Column(name = "ccp_heat_yn", nullable = false, columnDefinition = "char(1) default 'N'")
     private String ccpHeatYn;
 
+    /*작업지시서출력*/
+    @Column(name="workIndcPrintYn", nullable = false, columnDefinition = "char(1) default 'N'")
+    private String workIndcPrintYn;
+
+    /*저장,수정,삭제등 Action Event Log 사용여부 Y */
+    @Column(name = "actEvtLogYn", nullable = false, columnDefinition = "char(1) default 'N'")
+    private String actEvtLogYn;
 
     /*공정사용여부 (대동, 하담, 서울) Y */
     @Column(name = "proc_yn", nullable = false, columnDefinition = "char(1) default 'N'")

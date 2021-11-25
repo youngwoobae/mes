@@ -42,15 +42,7 @@
               , to_char(g.make_to_dt,'YYYY-MM-DD') as tostk_dt --생산완료일(상품창고 입고처리 대상으로 변경된 생산완료일을 의미함.)
               , ((g.make_to_dt::date - a.make_fr_dt::date) + 1 )::numeric as term_dt --작업소요기간
               , a.indc_wgt --지시중량
-
-                <choose>
-                    <when test="custNo != null and custNo != ''and custNo == 6 ">
-                    , a.indc_qty
-                    </when>
-                    <otherwise>
-                        , trunc(coalesce(a.indc_qty / e.qty_per_pkg ,0))  as indc_qty --지시량
-                    </otherwise>
-                </choose>
+              , a.indc_qty
               , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
               --, case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
               --       when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
@@ -601,7 +593,7 @@
         select a.ord_no
              , a.prod_no
              , a.sale_unit as make_unit
-             , round((a.ord_qty * b.mess )/1000) as indc_wgt
+             , round(((b.qty_per_pkg * b.mess) * a.ord_qty ) / 1000) as indc_wgt
         from ord_prod a join prod_info b on a.prod_no = b.prod_no
                                         and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where a.ord_no = #{ordNo}
@@ -684,12 +676,13 @@
              , case when coalesce(b.cmpy_no,0) = 0 then 'odm' else 'oem' end as ord_tp
              , coalesce(a.purs_no,0) as purs_no --구매번호
              --, a.ord_qty Remarked By KMJ AT 2021.08.29 10:52
-            <if test="custNo != null and custNo != 6">
-             , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty --AddOn By KMJ AT 2021.08.29 10:52
-            </if>
-            <if test="custNo != null and custNo == 6">
-                , a.ord_qty  --AddOn By KMJ AT 2021.08.29 10:52
-            </if>
+<!--            <if test="custNo != null and custNo != 6">-->
+<!--             , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty &#45;&#45;AddOn By KMJ AT 2021.08.29 10:52-->
+<!--            </if>-->
+<!--            <if test="custNo != null and custNo == 6">-->
+<!--                , a.ord_qty  &#45;&#45;AddOn By KMJ AT 2021.08.29 10:52-->
+<!--            </if>-->
+        , a.ord_qty
         , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
              , case when b.prod_tp = 36 then coalesce(e.cmpy_nm,'계획생산') else j.cmpy_nm end as cmpy_nm --거래처명
              , c.ord_dt
@@ -1923,16 +1916,14 @@
                         , d.sz      --자재규격
                         , d.purs_unit --자재구매단가
                         , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현재는 임시로 'Y' 로 설정하고 있음.
-                        , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) ) * #{ctlFillYield} ) as purs_qty --구매필요량(Kg)
-                        , ceil( ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)) * #{ctlFillYield} ) as need_qty --소요량(Kg)
-                        , case when  ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>)
-                        - coalesce (q.purs_qty,0) --주문제품의 BOM에 의거한 구매량 (ord_prod.purs_no > 0 인 자료)
-                        - coalesce ( e.stk_qty,0 )  <![CDATA[ >= ]]>   0
-                        then coalesce (q.purs_qty,0) - coalesce (mi.iwh_qty ,0)
-                        else coalesce (q.purs_qty,0) - coalesce(q.purs_qty,0)
-                        end as wait_iwh_qty --입고대기량(Kg)
+                        , ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) as purs_qty --구매필요량(Kg)
+                        , ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) as need_qty --소요량(Kg)
+                        , case when  ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) - coalesce (q.purs_qty,0) - coalesce ( e.stk_qty  , 0 )  <![CDATA[ >= ]]> 0 and q.purs_qty  <![CDATA[ > ]]> 0
+                            then coalesce (q.purs_qty,0) - coalesce (e.stk_qty ,0)
+                            else coalesce (q.purs_qty,0) - coalesce(q.purs_qty,0)
+                            end as wait_iwh_qty --입고대기량(Kg)
                         , coalesce (e.stk_qty,0) as stk_qty --재고량(Kg)
-                        , get_matr_stk_sts(  ( ( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * ( c.vol <if test="cystNo == 3"> * 0.001 </if>) * c.spga )::numeric
+                        , get_matr_stk_sts(  ceil(((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000)::numeric
                         , coalesce ( e.stk_qty,0)::numeric
                         , coalesce (q.purs_qty,0)::numeric
                         ) as purs_need

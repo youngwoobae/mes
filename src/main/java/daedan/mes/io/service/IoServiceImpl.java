@@ -2851,10 +2851,12 @@ public class IoServiceImpl implements IoService {
                     pmvo.setWhNo(mivo.getWhNo());
                     log.info(tag + "3.1.1 구매수량 = " + pmvo.getPursQty());
                     log.info(tag + "3.1.2 입고수량 = " + mivo.getIwhQty());
+                    Float pursQtyChk = pmvo.getPursQty();
+                    Float IwhQtyChk = mivo.getIwhQty();
                     if (paraMap.get("finishYn").toString().equals("Y")){
                         pmvo.setPursSts(pursEnd);
                     }else{
-                        if (pmvo.getPursQty() == mivo.getIwhQty()){
+                        if (pursQtyChk.equals(IwhQtyChk)){
                             pmvo.setPursSts(pursEnd);
                         }else{
                             pmvo.setPursSts(pursIng);

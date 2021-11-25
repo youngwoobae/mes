@@ -261,7 +261,7 @@ public class PursServiceImpl implements  PursService {
             */
         }
         /*잠시대기중 이라고 씌어 있어서 2021.10.25 주석 삭제함.*/
-        OrdProd opvo = ordProdRepo.findByCustNoAndOrdNoAndUsedYn(custNo,pivo.getOrdNo(), "Y");
+        OrdProd opvo = ordProdRepo.findByCustNoAndOrdNoAndProdNoAndUsedYn(custNo,pivo.getOrdNo(),Long.parseLong(paraMap.get("prodNo").toString()) ,"Y");
         if(opvo != null){
             opvo.setPursNo(pivo.getPursNo());
             opvo.setCustNo(custNo);

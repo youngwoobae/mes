@@ -315,8 +315,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        Long oem = Long.parseLong(env.getProperty("code.indcTp.oem"));
-        Long odm = Long.parseLong(env.getProperty("code.indcTp.odm"));
+//        Long oem = Long.parseLong(env.getProperty("code.indcTp.oem"));
+//        Long odm = Long.parseLong(env.getProperty("code.indcTp.odm"));
 
         Map<String, Object> procMap = new HashMap<String,Object>();
         procMap.put("prodNo",prodNo);

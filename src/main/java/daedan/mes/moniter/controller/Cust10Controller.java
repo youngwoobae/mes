@@ -3,7 +3,10 @@ package daedan.mes.moniter.controller;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.moniter.service.Cust10Service;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,15 +32,31 @@ public class Cust10Controller {
     @Autowired
     private Cust10Service cust10;
 
+    @Autowired
+    private UserService userService;
+
     @PostMapping(value="/metalDetectHstr") //
     public Result moniterHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         result.setData(cust10.getMetalLogHstr(paraMap));
         result.setTotalCount(cust10.getMetalLogHstrCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 
@@ -53,6 +72,8 @@ public class Cust10Controller {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         Map<String, Object> rmap = new HashMap<String,Object>();
         Map<String, Object> dmap = new HashMap<String,Object>();
@@ -73,6 +94,17 @@ public class Cust10Controller {
         rmap.put("errList",errList);
         result.setData(rmap);
         result.setTotalCount(cust10.getMetalLogHstrCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 }
