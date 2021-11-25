@@ -286,15 +286,17 @@
     </select>
 
     <select id="getAuthUserList" parameterType="map" resultType="camelMap">
+        /*시스템관리-권한관리*/
         select a.user_id --id
-             , a.user_nm --성명
-             , a.dept_no --소속
-             , a.user_posn --직위코드
-             , c.dept_nm --소속명
-             , d.code_nm as posn_nm --직위명
-        from user_info a join auth_user b on a.user_id = b.user_id
-                    left join dept_info c on a.dept_no = c.dept_no
-                    left join code_info d on a.user_posn = d.code_no
+        , a.user_nm --성명
+        , a.dept_no --소속
+        , a.user_posn --직위코드
+        , c.dept_nm --소속명
+        , d.code_nm as posn_nm --직위명
+        , b.auth_cd
+        from user_info a join auth_user b on a.user_id = b.user_id and b.used_yn = 'Y'
+        left join dept_info c on a.dept_no = c.dept_no
+        left join code_info d on a.user_posn = d.code_no
         where b.auth_cd  = #{authCd}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
@@ -304,6 +306,7 @@
         order by c.dept_nm collate "ko_KR.utf8",a.user_posn, a.user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
+
 
     <select id="getAuthUserListCount" parameterType="map" resultType="int">
     select count(a.user_id)

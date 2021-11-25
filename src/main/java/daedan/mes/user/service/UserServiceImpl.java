@@ -874,6 +874,33 @@ public  class UserServiceImpl implements UserService {
 		aheRepo.save(vo);
 	}
 
+
+	@Override
+	public void deleteAuthUser(Map<String, Object> paraMap) {
+		String tag = "UserService.deleteAuthUser => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+//		Map<String,Object> dmap = (Map<String, Object>) paraMap.get("userList");
+		List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("userList");
+		//userList=[{userNm=한  환, authCd=2501, userPosn=250, posnNm=과장, deptNm=E-biz팀, userId=284115, deptNo=1160, vgt_id=0, originalIndex=0, vgtSelected=true}, {userNm=김재현, authCd=2501, userPosn=251, posnNm=대리, deptNm=E-biz팀, userId=284116, deptNo=1160, vgt_id=0, originalIndex=1, vgtSelected=true}, {userNm=이상경, authCd=2501, userPosn=248, posnNm=차장, deptNm=GMP동(2F), userId=284068, deptNo=550, vgt_id=0, originalIndex=2, vgtSelected=true}], custNo=6, pageNo=0}
+
+		for(Map<String, Object> el : ds) {
+			Long userId = Long.parseLong(el.get("userId").toString());
+			Long authCd = Long.parseLong(el.get("authCd").toString());
+			try {
+				AuthUser auvo = authUserRepo.findByCustNoAndUserIdAndAuthCd(custNo, userId, authCd);
+				auvo.setUsedYn("N");
+				auvo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
+				auvo.setModDt(DateUtils.getCurrentBaseDateTime());
+				auvo.setModIp(paraMap.get("ipaddr").toString());
+				authUserRepo.save(auvo);
+			}
+			catch(NullPointerException ne) {
+				continue;
+			}
+		}
+	}
+
 	@Override
 	public List<Map<String, Object>> getHstrList(HashMap<String, Object> paraMap) {
 		String tag = "UserService.getHstrList => ";

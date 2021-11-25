@@ -338,6 +338,29 @@ public class UserController {
 
         return result;
     }
+
+    @PostMapping(value = "/deleteAuthUser")
+    public Result deleteAuthUser(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+        /*체크리스트 삭제*/
+        String tag = "UserController.deletechkList => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        userService.deleteAuthUser(paraMap);
+        //        //SOL AddOn By KMJ AT 21.11.16
+//        try {
+//            AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+//            userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+//        }
+//        catch(NullPointerException ne) {
+//        }
+        //EOL AddON By KMJ AT 21.11.26
+//        result.setData();
+        return result;
+    }
+
     @PostMapping(value = "/conditionsEmpUser")
     public Result conditionsEmpUser(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         Result result = Result.successInstance();
