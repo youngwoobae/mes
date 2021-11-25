@@ -573,7 +573,6 @@ public class OrdController {
             }
         }
         //EOL AddON By KMJ AT 21.11.26
-
         return result;
     }
 

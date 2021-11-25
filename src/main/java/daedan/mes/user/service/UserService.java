@@ -92,8 +92,9 @@ public interface UserService {
     @Transactional  AccHstr saveAccHstr(Map<String, Object> paraMap);
     @Transactional    void saveAccLogEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt);
 
-    List<Map<String, Object>>  getHstrList(HashMap<String, Object> paraMap);
-    int getHstrListCount(HashMap<String, Object> paraMap);
+    List<Map<String, Object>>  getHstrList(Map<String, Object> paraMap);
+
+    int getHstrListCount(Map<String, Object> paraMap);
 
     void dropWorkInfo(Map<String, Object> paraMap);
 }

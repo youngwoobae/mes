@@ -24,7 +24,7 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 
 @RestController
-@RequestMapping("/api/daedan/mes/ord/")
+@RequestMapping("/api/daedan/mes/ord/18")
 public class Ord18Controller {
     private Log log = LogFactory.getLog(this.getClass());
 
@@ -77,13 +77,12 @@ public class Ord18Controller {
             }
         }
         //EOL AddON By KMJ AT 21.11.26
-
         return result;
     }
 
-    @PostMapping(value = "/ord18List") //주문자생산
+    @PostMapping(value = "/ord18PrintList") //주문자생산
     public Result ord18List(@RequestBody Map<String, Object> paraMap, HttpSession session) {
-        String tag = "Ord18Controller.ord18List =>";
+        String tag = "Ord18Controller.getOrd18List =>";
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
@@ -91,10 +90,10 @@ public class Ord18Controller {
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
-        HashMap<String ,Object> rmap = new HashMap<String,Object>();
+        Map<String ,Object> rmap = new HashMap<String,Object>();
 
         List<Map<String, Object>> ds = ord18Service.getOrd18List(paraMap);
-        ArrayList<Map<String, Object>> result22 = new ArrayList<>();
+        ArrayList<Map<String, Object>> printArList = new ArrayList<>();
 //        StringBuffer sbuffer = new StringBuffer();
 
         int i;
@@ -122,7 +121,7 @@ public class Ord18Controller {
                     dmap.put("prodNoL" , rmap.get("prodNo"));
                     isFillRight = false;
                     if(count%3 == 0){
-                        result22.add(dmap);
+                        printArList.add(dmap);
                     }
                     log.info(tag + "dmap = " + dmap.toString());
                     break;
@@ -143,7 +142,7 @@ public class Ord18Controller {
                     dmap.put("noteRmkR", rmap.get("noteRmk"));
                     dmap.put("prodNoR", rmap.get("prodNo"));
                     log.info(tag + "dmap = " + dmap.toString());
-                    result22.add(dmap);
+                    printArList.add(dmap);
                     dmap = new HashMap<String,Object>();
                     isFillRight = true;
                     break;
@@ -164,7 +163,32 @@ public class Ord18Controller {
                 dmap.put("prodNoR", " ");
             }
         }
-        result.setData(result22);
+        result.setData(printArList);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
+
+    @PostMapping(value = "/getOrd18List")
+    public Result getOrd18List(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+
+        result.setData(ord18Service.getOrd18List(paraMap));
+        result.setTotalCount(ord18Service.getOrd18ListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {

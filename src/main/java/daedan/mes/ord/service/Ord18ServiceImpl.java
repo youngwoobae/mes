@@ -67,6 +67,7 @@ public class Ord18ServiceImpl implements Ord18Service {
         String dlvDt = null;
         try {
             dlvDt = paraMap.get("dlvDt").toString().substring(0, 10); //납품일자
+
         }
         catch (NullPointerException ne) {
 
@@ -113,14 +114,13 @@ public class Ord18ServiceImpl implements Ord18Service {
             ordvo.setOrdTp(Long.parseLong(paraMap.get("ordTp").toString())); //주문유형(OEM,ODM)
         }
         catch (NullPointerException ne) {
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_prjt_cd"))); //주문유형(OEM,ODM,PRJT)
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ordPrjtCd"))); //주문유형(OEM,ODM,PRJT)
         }
         ordvo.setOrdSts(Long.parseLong(paraMap.get("ordSts").toString())); //주문상태
         try {
             ordvo.setOrdPath(Long.parseLong(paraMap.get("ordPath").toString())); //주문경로
         } catch (NullPointerException ne) {
             ordvo.setOrdPath(0L);
-            ordvo.setDlvDt(null);
         }
         try {
             Long ordNo = Long.parseLong(paraMap.get("ordNo").toString());

@@ -23,28 +23,29 @@
              , b.ord_sts --상태
              , to_char(b.ord_dt,'YYYY-MM-DD') as ord_dt --주문일자
              , to_char(b.dlv_req_dt,'YYYY-MM-DD') as dlv_req_dt --발송예정일자
-             , to_char(b.dlv_dt,'YYYY-MM-DD') as dlv_req_dt --발송일자
+             , to_char(b.dlv_dt,'YYYY-MM-DD') as dlv_dt --발송일자
              , fn_get_code_name('nm',a.pkg_tp) as pkg_tp_nm --포장방법명
              , fn_get_code_name('nm',a.rcv_tp) as rcv_tp_nm --수령방법명
-             , c.prod_no --품번
-             , fn_get_prod_name(c.prod_no) as prod_nm --품명
         from ord_info18 a join ord_info b on a.ord_no = b.ord_no
                                          and a.cust_no = b.cust_no
                                          and b.used_yn = 'Y'
                                          <if test="ordSts != null and ordSts != ''">
                                             and b.ord_sts = #{ordSts}
                                          </if>
-                        join ord_prod c on b.ord_no = c.ord_no and a.cust_no = c.cust_no and c.used_yn = 'Y'
         where a.used_yn = 'Y'
         and a.cust_no = #{custNo}
+        <if test="ordNos != null and ordNos != '' and ordNos.size != 0 ">
+            and a.ord_no in <foreach collection="ordNos" item="ordNos" index="index" open="(" close=")" separator=",">   #{ordNos}   </foreach>
+        </if>
+
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'custNm'">
                 AND upper(replace(a.cust_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-<!--        <if test="dateFr != null and dateFr != ''">-->
-<!--            and to_char(b.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)-->
-<!--        </if>-->
+        <if test="dateFr != null and dateFr != ''">
+            and to_char(b.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+        </if>
         ORDER BY b.ord_dt desc, b.ord_nm collate "ko_KR.utf8"
         LIMIT #{pageSz} OFFSET #{pageNo}
     </select>
@@ -61,6 +62,10 @@
                                                 </if>
                 where a.used_yn = 'Y'
                 and a.cust_no = #{custNo}
+                <if test="ordNos != null and ordNos != '' and ordNos.size != 0 ">
+                    and a.ord_no in <foreach collection="ordNos" item="ordNos" index="index" open="(" close=")" separator=",">   #{ordNos}   </foreach>
+                </if>
+
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'custNm'">
                         AND upper(replace(a.cust_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'

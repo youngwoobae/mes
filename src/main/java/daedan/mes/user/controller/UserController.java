@@ -661,7 +661,29 @@ public class UserController {
 
         return result;
     }
+    @PostMapping(value = "/getHstrList")
+    public Result getHstrList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
 
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(userService.getHstrList(paraMap));
+        result.setTotalCount(userService.getHstrListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
     @PostMapping(value = "/authUserMenuList")
     public Result authUserMenuList(@RequestBody Map<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();

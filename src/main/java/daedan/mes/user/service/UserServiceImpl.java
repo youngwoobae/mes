@@ -875,14 +875,14 @@ public  class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<Map<String, Object>> getHstrList(HashMap<String, Object> paraMap) {
+	public List<Map<String, Object>> getHstrList(Map<String, Object> paraMap) {
 		String tag = "UserService.getHstrList => ";
 		log.info(tag + " paraMap = " + paraMap.toString());
 		return mapper.getHstrList(paraMap);
 	}
 
 	@Override
-	public int getHstrListCount(HashMap<String, Object> paraMap) {
+	public int getHstrListCount(Map<String, Object> paraMap) {
 		String tag = "UserService.getHstrListCount => ";
 		log.info(tag + " paraMap = " + paraMap.toString());
 		return mapper.getHstrListCount(paraMap);

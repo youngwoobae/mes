@@ -63,7 +63,7 @@ public class OrdInfo18  {
     @Column(name="pkgTp", nullable = false, columnDefinition = "numeric default 0")
     private Long pkgTp;
 
-    /*시트_코드(흑임자)*/
+    /*시트(흑임자)*/
     @Column(name="sheetRmk", nullable = false, length = 100)
     private String sheetRmk;
 
