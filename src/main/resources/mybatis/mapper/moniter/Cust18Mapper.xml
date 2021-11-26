@@ -5,17 +5,13 @@
 <mapper namespace="daedan.mes.moniter.mapper.Cust18Mapper">
     <select id="getHeatLogHstr" parameterType="map" resultType="camelMap">
         /*찜기모니터링내역((Cust18Mapper.getHeatLogHstr) */
-        select a.spot_no
-             ,a.spot_nm  -- 작업장명
-             ,a.spot_rmk --작업장비고
-             ,a.svc_tp   --설비연동서비스타입
-             ,a.scada_api_inv --scada api(시작)
-             ,a.scada_api_ing --scada api(진행)
-             ,a.scada_api_end --scada api(종료)
-             ,fn_get_code_name('nm',a.ccp_tp) as ccp_tp_nm --CCP구분명
-             ,fn_get_code_name('nm',a.sens_tp) as sens_tp_nm --측정요소명
-        FROM spot_info a
-        WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
-        order by svc_tp,spot_nm collate "ko_KR.utf8"
-        limit 10 offset 0
+        select  to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm --수신일자
+             , fn_get_spot_name(spot_no) as spot_nm --작업장명
+             , case when oper_yn = 'Y' then 1 else 0 end as oper_yn
+        from heat_stat_log a
+        where TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 10 in (0,1,2,3,4,5)
+            and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring('2021-11-26T15:00:00.000Z',1,10)
+        and a.cust_no = #{custNo}
+        order by rcv_tm
     </select>
+</mapper>
