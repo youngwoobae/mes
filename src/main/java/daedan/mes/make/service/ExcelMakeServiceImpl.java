@@ -314,7 +314,7 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
             ordvo.setDlvReqDt((Date) paraMap.get("date"));
             ordvo.setUsedYn("Y");
             ordvo.setOrdSts(Long.parseLong(env.getProperty("ord_status.wait.owh")));
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd")));
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem")));
             ordvo.setPlcNo(0L);
 
             try{
@@ -956,7 +956,7 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
         ordvo.setUsedYn("Y");
         ordvo.setCmpyNo(1L);
         ordvo.setOrdSts(Long.parseLong(env.getProperty("ord_status.wait.owh")));
-        ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd")));
+        ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem")));
         ordvo.setPlcNo(0L);
         ordvo.setCustNo(custNo);
         ordRepo.save(ordvo);
@@ -1556,7 +1556,7 @@ public class ExcelMakeServiceImpl implements ExcelMakeService {
             ordvo.setDlvReqDt((Date) paraMap.get("date"));
             ordvo.setUsedYn("Y");
             ordvo.setOrdSts(Long.parseLong(env.getProperty("ord_status.complete")));
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd")));
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem")));
             ordvo.setPlcNo(0L);
 
             cmpy = paraMap.get("cmpy").toString();

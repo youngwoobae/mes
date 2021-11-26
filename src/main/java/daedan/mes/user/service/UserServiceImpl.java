@@ -874,7 +874,7 @@ public  class UserServiceImpl implements UserService {
 		aheRepo.save(vo);
 	}
 
-
+	@Transactional
 	@Override
 	public void deleteAuthUser(Map<String, Object> paraMap) {
 		String tag = "UserService.deleteAuthUser => ";
@@ -902,6 +902,7 @@ public  class UserServiceImpl implements UserService {
 			}
 		}
 	}
+
 
 	@Override
 	public List<Map<String, Object>> getHstrList(Map<String, Object> paraMap) {

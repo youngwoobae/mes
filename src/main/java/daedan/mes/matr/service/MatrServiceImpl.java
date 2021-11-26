@@ -1296,7 +1296,7 @@ public class MatrServiceImpl implements MatrService {
             ordvo.setOrdDt(owdate);
             ordvo.setDlvDt(owdate);
             ordvo.setDlvReqDt(owdate);
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd")));
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem")));
             ordvo.setPlcNo(0L);
             ordvo.setModDt(DateUtils.getCurrentDateTime());
             ordvo.setModId(0L);

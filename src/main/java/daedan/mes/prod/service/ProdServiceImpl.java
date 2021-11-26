@@ -327,7 +327,7 @@ public class ProdServiceImpl implements  ProdService {
             prodInfo.setProdTp(Long.parseLong(paraMap.get("prodTp").toString())); //AddOn By KMJ At 21.10.19 --판매구분(OEM,ODM,B2B)
         }
         catch (NullPointerException ne) {
-            prodInfo.setProdTp(Long.parseLong(env.getProperty("ord_prjt_cd")));
+            prodInfo.setProdTp(Long.parseLong(env.getProperty("ord.prjt")));
         }
         prodInfo.setCmpyNo(cmpyNo); //AddOn By KMJ At 21.10.19 --OEM업체번호
         prodInfo.setCustNo(Long.parseLong(paraMap.get("custNo").toString())); //AddOn By KMJ At 21.10.21
@@ -1778,7 +1778,7 @@ public class ProdServiceImpl implements  ProdService {
             ordvo.setOrdDt(owdate);
             ordvo.setDlvDt(owdate);
             ordvo.setDlvReqDt(owdate);
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd")));
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem")));
             ordvo.setPlcNo(0L);
             ordvo.setModDt(DateUtils.getCurrentDateTime());
             ordvo.setModId(0L);

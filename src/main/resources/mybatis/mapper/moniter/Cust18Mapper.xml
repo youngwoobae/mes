@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.moniter.mapper.Cust18Mapper">
+    <select id="getHeatLogHstr" parameterType="map" resultType="camelMap">
+        /*찜기모니터링내역((Cust18Mapper.getHeatLogHstr) */
+        select a.spot_no
+             ,a.spot_nm  -- 작업장명
+             ,a.spot_rmk --작업장비고
+             ,a.svc_tp   --설비연동서비스타입
+             ,a.scada_api_inv --scada api(시작)
+             ,a.scada_api_ing --scada api(진행)
+             ,a.scada_api_end --scada api(종료)
+             ,fn_get_code_name('nm',a.ccp_tp) as ccp_tp_nm --CCP구분명
+             ,fn_get_code_name('nm',a.sens_tp) as sens_tp_nm --측정요소명
+        FROM spot_info a
+        WHERE a.used_yn  = 'Y' and a.cust_no = #{custNo}
+        order by svc_tp,spot_nm collate "ko_KR.utf8"
+        limit 10 offset 0
+    </select>

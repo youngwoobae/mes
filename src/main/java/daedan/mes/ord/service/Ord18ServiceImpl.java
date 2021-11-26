@@ -114,7 +114,7 @@ public class Ord18ServiceImpl implements Ord18Service {
             ordvo.setOrdTp(Long.parseLong(paraMap.get("ordTp").toString())); //주문유형(OEM,ODM)
         }
         catch (NullPointerException ne) {
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ordPrjtCd"))); //주문유형(OEM,ODM,PRJT)
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.prjt"))); //주문유형(OEM,ODM,PRJT)
         }
         ordvo.setOrdSts(Long.parseLong(paraMap.get("ordSts").toString())); //주문상태
         try {

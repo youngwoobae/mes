@@ -35,7 +35,7 @@ public class Cust10Controller {
     @Autowired
     private UserService userService;
 
-    @PostMapping(value="/metalDetectHstr") //
+    @PostMapping(value="/metalDetectHstr")
     public Result moniterHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");

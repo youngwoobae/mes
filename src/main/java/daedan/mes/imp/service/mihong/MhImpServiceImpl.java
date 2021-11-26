@@ -126,7 +126,7 @@ public class MhImpServiceImpl implements MhImpService {
             cmpyvo = cmpyRepo.save(cmpyvo);
 
             ordvo.setCmpyNo(cmpyvo.getCmpyNo());
-                ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd")));
+                ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem")));
                 ordvo.setPlcNo(0L);
                 ordDt = row.getCell(2).getStringCellValue();
                 ordvo.setOrdDt(sdf.parse(ordDt));

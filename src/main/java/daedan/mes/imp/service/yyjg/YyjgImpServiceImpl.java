@@ -517,7 +517,7 @@ public class YyjgImpServiceImpl implements YyjgImpService {
             ordvo.setCmpyNo(chkCmpyVo.getCmpyNo());
             ordvo.setOrdPath(0L);
             ordvo.setOrdSts(Long.parseLong(env.getProperty("ord_status.complete"))); //고객인도
-            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord_oem_cd"))); //OEM
+            ordvo.setOrdTp(Long.parseLong(env.getProperty("ord.oem"))); //OEM
             ordvo.setPlcNo(0L);
             ordvo.setOrdDt(DateUtils.getCurrentBaseDateTime());
             ordvo.setDlvReqDt(DateUtils.getCurrentBaseDateTime());
