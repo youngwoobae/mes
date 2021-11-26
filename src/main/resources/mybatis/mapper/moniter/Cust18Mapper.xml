@@ -12,6 +12,5 @@
         where TO_CHAR(to_timestamp(a.unix_hms), 'mi')::float / 10 in (0,1,2,3,4,5)
             and to_char(to_timestamp(a.unix_hms),'YYYY-MM-DD') = substring('2021-11-26T15:00:00.000Z',1,10)
         and a.cust_no = #{custNo}
-        order by rcv_tm
     </select>
 </mapper>
