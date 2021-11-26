@@ -11,4 +11,5 @@ import java.util.Map;
 @Component
 public interface Cust18Mapper {
     List<Map<String, Object>> getHeatLogHstr(Map<String, Object> paraMap);
+    List<Map<String, Object>> getHeatOn(Map<String, Object> paraMap);
 }

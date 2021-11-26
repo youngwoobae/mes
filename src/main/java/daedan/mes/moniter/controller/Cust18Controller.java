@@ -49,20 +49,20 @@ public class Cust18Controller {
         Map<String, Object> dmap = new HashMap<String,Object>();
         Map<String, Object> rmap = new HashMap<String,Object>();
         int idx = -1;
-        ArrayList<String> operYn = new ArrayList<>();
-        ArrayList<String> HeatList = new ArrayList<>();
+//        ArrayList<String> dispOperYn = new ArrayList<>();
+        ArrayList<String> OperYn = new ArrayList<>();
+//        Map<String, Object> HeatList = new HashMap<String, Object>();
         ArrayList<String> rcvTm = new ArrayList<String>();
         while(++idx < ds.size()) {
             dmap = ds.get(idx);
-            operYn.add(dmap.get("operYn").toString());
+//            dispOperYn.add(dmap.get("dispOperYn").toString());
+            OperYn.add(dmap.get("operYn").toString());
             rcvTm.add(dmap.get("rcvTm").toString());
-            HeatList.add(dmap.get("rcvTm").toString());
-            HeatList.add(dmap.get("spotNm").toString());
-            HeatList.add(dmap.get("operYn").toString());
         }
 //        rmap.put("griDs",ds);
-            rmap.put("operYn",operYn);
-            rmap.put("HeatList",HeatList);
+            rmap.put("operYn",OperYn);
+//            rmap.put("disoperYn",dispOperYn);
+//            rmap.put("HeatList", HeatList);
             rmap.put("rcvTm", rcvTm);
             rmap.put("griDs",ds);
             result.setData(rmap);
@@ -106,6 +106,7 @@ public class Cust18Controller {
 
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         cust18.heaterOff(paraMap);
+
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
