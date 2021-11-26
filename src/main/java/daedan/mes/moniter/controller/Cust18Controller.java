@@ -4,7 +4,9 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.moniter.service.MonCust18Service;
 import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,8 @@ public class Cust18Controller {
     @Autowired
     private MonCust18Service cust18;
 
+    @Autowired
+    private UserService userService;
 
     @PostMapping(value="/getHeatLogHstr") //찜기모니터링
     public Result getHeatLogHstr(@RequestBody Map<String, Object> paraMap, HttpSession session){
@@ -71,6 +75,47 @@ public class Cust18Controller {
 //            }
 //        }
         //EOL AddON By KMJ AT 21.11.26
+        return result;
+    }
+
+    @PostMapping(value="/heaterOn")
+    public Result heaterOn(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        cust18.heaterOn(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
+    @PostMapping(value="/heaterOff")
+    public Result heaterOff(@RequestBody Map<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        cust18.heaterOff(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
         return result;
     }
 

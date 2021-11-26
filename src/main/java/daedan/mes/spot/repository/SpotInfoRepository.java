@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface SpotInfoRepository extends JpaRepository<SpotInfo, Long> {
     SpotInfo findByCustNoAndSpotNoAndUsedYn(Long custNo, Long spotNo, String y);
-    SpotInfo findAllByCustNoAndSpotNoAndUsedYn(Long custNo, Long spotNo, String y);
+    SpotInfo findByCustNoAndCcpTpAndSensTpAndUsedYn(Long custNo, Long ccpNone, Long sensTp, String y);
 }
