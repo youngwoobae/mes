@@ -217,48 +217,53 @@ public class UserController {
         String tag = "UserController.tabletSignIn => ";
         String token = "";
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
+        UserInfo uvo = null;
+        Long custNo = 0L;
+        //try {
+        //    uvo = (UserInfo) session.getAttribute("userInfo"); //AddOn By KMJ At 21.10.21
+        //    custNo = uvo.getCustInfo().getCustNo();
+        //}
+        //catch (NullPointerException ne) {
+            String secrtNo = "adm";
+            log.info(tag + "encpswd=" + BCrypt.hashpw(secrtNo, BCrypt.gensalt()));
 
-        String secrtNo = "adm";
-        log.info(tag + "encpswd=" + BCrypt.hashpw(secrtNo, BCrypt.gensalt()));
+            String orgLcnsCd = paraMap.get("lcnsCd").toString();
+            log.info("orgLcnsCd=" + orgLcnsCd);
 
-        String orgLcnsCd = paraMap.get("lcnsCd").toString();
-        log.info("orgLcnsCd=" + orgLcnsCd);
-
-        String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt()); //단방향 암호화
-        String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
-        paraMap.put("custNo",Long.parseLong(strCustNo));
-        CustInfo custInfo = userService.getCustInfoByCustNo(paraMap);
-        if (custInfo != null) {
-            String mailAddr = custInfo.getAutoSignId();
-            String autoPswd = "adm";
-            UserInfo uservo = userService.signin(mailAddr, autoPswd);
-
-            if (uservo != null) {
-                if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
-                    uservo.setCustInfo(custInfo);
-                    log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
+            String encLcnsCd = BCrypt.hashpw(orgLcnsCd, BCrypt.gensalt()); //단방향 암호화
+            String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
+            paraMap.put("custNo",Long.parseLong(strCustNo));
+            CustInfo custInfo = userService.getCustInfoByCustNo(paraMap);
+            custNo = custInfo.getCustNo();
+            if (custInfo != null) {
+                String mailAddr = custInfo.getAutoSignId();
+                String autoPswd = "adm";
+                uvo = userService.signin(mailAddr, autoPswd);
+                if (uvo != null) {
+                    if (BCrypt.checkpw(orgLcnsCd, encLcnsCd)) {
+                        uvo.setCustInfo(custInfo);
+                        log.info(tag + " 테블릿.AutoSignIn.UserInfo => " + StringUtil.voToMap(uvo));
+                    }
                 }
             }
-            uservo.setToken(null);
-            token = jwtService.create("member", uservo, "user");
+            uvo.setToken(null);
+            token = jwtService.create("member", uvo, "user");
             //log.info("created user token = " + token);
             response.setHeader("authorization", token);
-
             // 세션 생성
-            session.setAttribute("userInfo", uservo); //AddOn By KMJ At 21.10.21
-            log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));
+            session.setAttribute("userInfo", uvo); //AddOn By KMJ At 21.10.21
+            log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uvo.getCustInfo()));
+
             //sysService.invokeChatServer();
-            result.setData(StringUtil.voToMap(uservo));
-        }
+            result.setData(StringUtil.voToMap(uvo));
+        //}
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
                 userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
+            } catch (NullPointerException ne1) {
             }
         }
         //EOL AddON By KMJ AT 21.11.26

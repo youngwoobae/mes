@@ -43,37 +43,35 @@ public class Cust18Controller {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         Result result = Result.successInstance();
-        result.setData(cust18.getHeatLogHstr(paraMap));
-
+        //result.setData(cust18.getHeatLogHstr(paraMap));
+        paraMap.put("orderBy", "graph"); //그래프는 시간순으로
         List<Map<String,Object>> ds = cust18.getHeatLogHstr(paraMap);
         Map<String, Object> dmap = new HashMap<String,Object>();
         Map<String, Object> rmap = new HashMap<String,Object>();
         int idx = -1;
-//        ArrayList<String> dispOperYn = new ArrayList<>();
-        ArrayList<String> OperYn = new ArrayList<>();
-//        Map<String, Object> HeatList = new HashMap<String, Object>();
+
+        ArrayList<String> operYnHstr = new ArrayList<>();
         ArrayList<String> rcvTm = new ArrayList<String>();
         while(++idx < ds.size()) {
             dmap = ds.get(idx);
-//            dispOperYn.add(dmap.get("dispOperYn").toString());
-            OperYn.add(dmap.get("operYn").toString());
+            operYnHstr.add(dmap.get("operYn").toString());
             rcvTm.add(dmap.get("rcvTm").toString());
         }
-//        rmap.put("griDs",ds);
-            rmap.put("operYn",OperYn);
-//            rmap.put("disoperYn",dispOperYn);
-//            rmap.put("HeatList", HeatList);
-            rmap.put("rcvTm", rcvTm);
-            rmap.put("griDs",ds);
-            result.setData(rmap);
+        rmap.put("grapHstr",operYnHstr); //그래프 작동축(Y)
+        rmap.put("rcvTm", rcvTm); //그래프 시간축(X)
+
+        paraMap.put("orderBy", "grid"); //그리드는 최신순으로
+        rmap.put("gridHstr",cust18.getHeatLogHstr(paraMap)); //그리드
+
+        result.setData(rmap);
         //SOL AddOn By KMJ AT 21.11.16
-//        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-//            try {
-//                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-//                cust18.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-//            } catch (NullPointerException ne) {
-//            }
-//        }
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
