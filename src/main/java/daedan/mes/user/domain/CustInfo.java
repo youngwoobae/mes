@@ -149,6 +149,10 @@ public class CustInfo {
     @Column(name = "outUnit", nullable = false, columnDefinition = "numeric default 81")
     private Long outUnit;
 
+    /*파렛트 */
+    @Column(name = "outPlt", nullable = false, columnDefinition = "numeric default 'N'")
+    private String outPlt;
+
 
     @Column(name = "usedYn", nullable = false, columnDefinition = "char(1) default 'Y'")
     private String usedYn;

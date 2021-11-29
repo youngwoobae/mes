@@ -805,15 +805,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }
 
         }else{
-            String type = paraMap.get("type").toString();
-            if(type.equals("rowClick")){
-                mivo.setIndcQty(indcQty);
-                mivo.setIndcWgt(indcWgt);//생산지시중량
-            }else{
-                mivo.setIndcQty(indcWgt / val);
-                mivo.setIndcWgt(indcWgt);//생산지시중량
-            }
-
+            mivo.setIndcQty(indcQty);
+            mivo.setIndcWgt(indcWgt);//생산지시중량
         }
 
         try {
@@ -1723,11 +1716,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }
             try {
                 makeQty = Float.parseFloat(paraMap.get("makeQty").toString());
-                if(custNo==6){
-                    mirvo.setMakeQty(makeQty * pivo.getQtyPerPkg());
-                }else{
-                    mirvo.setMakeQty(makeQty);
-                }
+                mirvo.setMakeQty(makeQty);
             } catch (NullPointerException ne) {
             }
             try {
