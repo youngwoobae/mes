@@ -329,7 +329,7 @@ public class ProcServiceImpl implements ProcService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         ProcMp vo = null;
         Long worker = 0L;
-        Long procGrpCd = Long.parseLong(paraMap.get("proc_grp_cd").toString());
+        Long procGrpCd = Long.parseLong(paraMap.get("procGrpCd").toString());
         // 저장시에 proc_mp => used_yn 을 모드 N 으로 변경 그리고 체크된 리스트만 다시 Y변경 해당하는 id 없으면 생성
         mapper.getUpdateUsedyn(procGrpCd);
 
@@ -337,7 +337,7 @@ public class ProcServiceImpl implements ProcService {
         for (Map<String,Object> el : ds) {
             vo = new ProcMp();
 
-            worker = Long.parseLong(el.get("user_id").toString());
+            worker = Long.parseLong(el.get("userId").toString());
             ProcMp chkvo = procMpRepo.findByProcGrpCdAndUserId(procGrpCd, worker);
             if (chkvo != null) {
                 chkvo.setUsedYn("Y");
