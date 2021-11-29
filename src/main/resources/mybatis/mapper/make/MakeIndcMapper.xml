@@ -362,7 +362,7 @@
                 and  to_char(a.make_fr_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
             </otherwise>
         </choose>
-        order by make_dt is not null desc, indc_dt desc
+        order by indc_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
 
