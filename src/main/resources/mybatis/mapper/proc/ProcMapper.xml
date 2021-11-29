@@ -61,7 +61,7 @@
         where a.par_code_no  = #{parCodeNo} --공정모코드(720)
           and a.used_yn  = 'Y'
         <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'proc_nm'">
+            <if test="findTp != null and findTp == 'procNm'">
                 and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
