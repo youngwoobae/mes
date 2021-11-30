@@ -83,4 +83,12 @@
         order by to_char(work_dt , 'YYYY-MM-DD')
     </select>
 
+    <select id="getMakeRsltGroupDash" parameterType="map"  resultType="camelMap">
+        select to_char(make_dt,'MM-DD') as make_dt
+             , round(sum(a.make_qty)) / 1000
+        from make_indc_rslt a join make_indc b on a.cust_no = b.cust_no and b.used_yn ='Y' and b.proc_cd  = 999
+        where to_char(make_dt,'YYYY-MM') = to_char(now(),'YYYY-MM')
+        group by  to_char(make_dt,'MM-DD')
+        order by make_dt
+    </select>
 </mapper>
