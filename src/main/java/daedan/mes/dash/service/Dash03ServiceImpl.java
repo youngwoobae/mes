@@ -88,4 +88,15 @@ public class Dash03ServiceImpl implements  Dash03Service {
         return mapper.getMakeRsltGroupDash(paraMap);
     }
 
+    public List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap) {
+        String tag = "dash30Service.getWorkerList => ";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        return mapper.getWorkerList(paraMap);
+    }
+
+
+    @Override
+    public int getWorkerListCount(Map<String, Object> paraMap){
+        return mapper.getWorkerListCount(paraMap);
+    }
 }

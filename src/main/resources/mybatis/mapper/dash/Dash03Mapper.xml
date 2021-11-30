@@ -83,6 +83,25 @@
         order by to_char(work_dt , 'YYYY-MM-DD')
     </select>
 
+
+    <select id="getWorkerList" parameterType="map"  resultType="camelMap">
+        /*하담푸드 대시보드 좌측 상단 근무자 현황 (Dash03Mapper.getWorkerList) */
+        select
+            b.user_id,
+        	b.empl_kind
+        from user_work a join user_info b on a.user_id = b.user_id
+        where to_char(work_dt , 'YYYY-MM-DD') = to_char(now(), 'YYYY-MM-DD')
+        and a.cust_no = #{custNo} and a.used_yn = 'Y'
+    </select>
+
+    <select id="getWorkerListCount" parameterType="map"  resultType="int">
+        /*하담푸드 대시보드 좌측 상단 근무자 현황 (Dash03Mapper.getWorkerList) */
+        select
+        	count(user_id)
+        from user_info a
+        where a.cust_no = #{custNo} and a.used_yn = 'Y'
+    </select>
+
     <select id="getMakeRsltGroupDash" parameterType="map"  resultType="camelMap">
         select to_char(make_dt,'MM-DD') as make_dt
              , round(sum(a.make_qty)) / 1000 as make_qty
