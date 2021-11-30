@@ -390,14 +390,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         if(Integer.parseInt(paraMap.get("custNo").toString()) == 8) { //영양제과
             Map<String, Object> indcRslt = new HashMap<>();
-            indcRslt.put("ord_no", ordNo);
-            indcRslt.put("prod_no", paraMap.get("prodNo"));
-            indcRslt.put("indc_no", parIndcNo);
-            indcRslt.put("make_dt", paraMap.get("makeDt"));
-            indcRslt.put("proc_cd", 0);
-            indcRslt.put("make_wgt", paraMap.get("indcQty"));
-            indcRslt.put("proc_unit_nm", "EA");
-            paraMap.put("indc_rslt", indcRslt);
+            indcRslt.put("ordNo", ordNo);
+            indcRslt.put("prodNo", paraMap.get("prodNo"));
+            indcRslt.put("indcNo", parIndcNo);
+            indcRslt.put("makeDt", paraMap.get("makeDt"));
+            indcRslt.put("procCd", 0);
+            indcRslt.put("makeWgt", paraMap.get("indcQty"));
+            indcRslt.put("procUnitNm", "EA");
+            paraMap.put("indcRslt", indcRslt);
             log.info("paraMap = > "+ paraMap );
             this.saveIndcRslt(paraMap);
         }
