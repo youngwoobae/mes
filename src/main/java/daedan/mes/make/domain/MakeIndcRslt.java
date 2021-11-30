@@ -35,7 +35,7 @@ public class MakeIndcRslt {
     private Float realYield;
 
     /*생산수량*/
-    @Column(name="make_qty",nullable = false, precision=10, scale=2 , columnDefinition = "numeric default 0")
+    @Column(name="make_qty", precision=10, scale=2 , columnDefinition = "numeric default 0")
     private Float makeQty;
 
     /*조정생산량*/
@@ -43,7 +43,7 @@ public class MakeIndcRslt {
     private Float adjMakeQty;
 
     /*생산중량*/
-    @Column(name="make_wgt",nullable = false, precision=10, scale=2 , columnDefinition = "numeric default 0")
+    @Column(name="make_wgt", precision=10, scale=2 , columnDefinition = "numeric default 0")
     private Float makeWgt;
 
     /*조정중량*/
@@ -63,19 +63,19 @@ public class MakeIndcRslt {
     private Long usedFlux;
 
     /*금속검출수량*/
-    @Column(name="metal_qty",nullable = false, columnDefinition = "numeric default 0")
+    @Column(name="metal_qty", columnDefinition = "numeric default 0")
     private Long metalQty;
 
     /*중량미달*/
-    @Column(name="wgt_qty",nullable = false, columnDefinition = "int default 0")
+    @Column(name="wgt_qty", columnDefinition = "int default 0")
     private Long wgtQty;
 
     /*포장불량*/
-    @Column(name="pack_qty",nullable = false, columnDefinition = "int default 0")
+    @Column(name="pack_qty", columnDefinition = "int default 0")
     private Long packQty;
 
     /*배합불량*/
-    @Column(name="szn_qty",nullable = false, columnDefinition = "int default 0")
+    @Column(name="szn_qty", columnDefinition = "int default 0")
     private Long sznQty;
 
     /*살균온도*/
