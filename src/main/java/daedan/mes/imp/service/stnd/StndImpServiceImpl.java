@@ -204,7 +204,7 @@ public class StndImpServiceImpl implements StndImpService {
     @Transactional
     public void makeCmpyByExcel(Map<String, Object> paraMap) {
         String tag = "ImptoolService.makeCmpyByExcel => ";
-
+        log.info(tag + "paaMap = " + paraMap.toString());
         String fileRoot = paraMap.get("fileRoot").toString();
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         String filePath = fileService.getFileInfo(fileRoot,fileNo);

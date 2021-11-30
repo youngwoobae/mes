@@ -638,6 +638,7 @@ public class ProdController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr",NetworkUtil.getClientIp(request));
 
+        prodService.apndProdBom(paraMap);
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
@@ -647,8 +648,6 @@ public class ProdController {
             }
         }
         //EOL AddON By KMJ AT 21.11.26
-
-        prodService.apndProdBom(paraMap);
         return result;
     }
 

@@ -140,7 +140,7 @@ public class QcServiceImpl implements  QcService {
 
     @Override
     public List<Map<String, Object>> getProdOwhChkList(Map<String, Object> paraMap) {
-        String tag = "QcService.getProdIwhChkList =>";
+        String tag = "QcService.getProdOwhChkList =>";
         log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getProdOwhChkList(paraMap);
     }
@@ -168,6 +168,9 @@ public class QcServiceImpl implements  QcService {
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long chkNo = 0L;
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+
         ProdOwhChk vo = new ProdOwhChk();
         vo.setChkTp(Long.parseLong(paraMap.get("chkTp").toString()));
         vo.setChkMth(Long.parseLong(paraMap.get("chkMth").toString()));
@@ -178,8 +181,8 @@ public class QcServiceImpl implements  QcService {
         }
         vo.setUsedYn("Y");
         vo.setModDt(DateUtils.getCurrentDate());
-        vo.setModIp(paraMap.get("ipaddr").toString());
-        vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+        vo.setModIp(ipaddr);
+        vo.setModId(userId);
         try {
             chkNo = Long.parseLong(paraMap.get("chkNo").toString());
         }
@@ -195,23 +198,32 @@ public class QcServiceImpl implements  QcService {
         } else {
             vo.setChkNo(0L);
             vo.setRegDt(DateUtils.getCurrentDate());
-            vo.setRegIp(paraMap.get("ipaddr").toString());
-            vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+            vo.setRegIp(ipaddr);
+            vo.setRegId(userId);
         }
         vo.setCustNo(custNo);
         prodOwhChkRepo.save(vo);
 
-        mapper.initProdOwhDoc(); //Doc사용여부 초기화
-
+        List<ProdOwhDoc> dsOwhDoc = prodOwhDocRepo.findAllByCustNoAndUsedYn(custNo,"Y");
+       // update prod_owh_doc set chk_yn = 'N' where used_yn = 'Y' and cust_no = #{custNo}
+       // mapper.initProdOwhDoc(); //Doc사용여부 초기화
+        for (ProdOwhDoc el : dsOwhDoc) {
+            el.setUsedYn("Y");
+            el.setChkYn("N");
+            el.setModDt(DateUtils.getCurrentBaseDateTime());
+            el.setModId(userId);
+            el.setModIp(ipaddr);
+            prodOwhDocRepo.save(el);
+        }
         List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("docList");
         MatrIwhDoc docvo = null;
         for (Map<String, Object> el : ds) {
             docvo = new MatrIwhDoc();
             docvo.setDocNo(Long.parseLong(el.get("docNo").toString()));
-            ProdOwhDoc docChkvo = prodOwhDocRepo.findByCustNoAndDocNoAndUsedYn(custNo,docvo.getDocNo(), "Y");
-            if (docChkvo != null) {
-                docChkvo.setChkYn("Y");
-                prodOwhDocRepo.save(docChkvo);
+            ProdOwhDoc docChkVo = prodOwhDocRepo.findByCustNoAndDocNoAndUsedYn(custNo,docvo.getDocNo(), "Y");
+            if (docChkVo != null) {
+                docChkVo.setChkYn("Y");
+                prodOwhDocRepo.save(docChkVo);
             }
         }
     }
