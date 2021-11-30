@@ -94,7 +94,7 @@ public class ProdInfo {
     private Long saleUnitWgt;
 
     /*창고번호 : 제품적재창고 : 나중에 사용할 예정임.*/
-    @Column(name="wh_no", columnDefinition = "numeric default 0")
+    @Column(name="whNo", columnDefinition = "numeric default 0")
     private Long whNo;
 
     /*관리단위 : 중량 or 질랑*/

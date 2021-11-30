@@ -898,6 +898,7 @@
              , c.prod_no --품번
              , c.prod_nm --품명
              , c.mess --단위중
+             , c.wh_no --보관창고
              , f.code_nm as proc_unit_nm
              , g.ccp_tp --CCP관리공정
              , coalesce(h.make_qty,0) as make_qty -- 생산수량 합계

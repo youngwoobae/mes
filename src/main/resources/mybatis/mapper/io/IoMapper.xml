@@ -2928,7 +2928,7 @@
              , c.wh_no
              , e.indc_no
              , e.indc_rslt_no
-             , e.make_dt
+             , to_char(e.make_dt,'YYYY-MM-DD') as make_dt --생산일자
              , e.make_qty
         from prod_info a  join make_indc b on a.prod_no = b.prod_no
                                           and b.used_yn ='Y'
