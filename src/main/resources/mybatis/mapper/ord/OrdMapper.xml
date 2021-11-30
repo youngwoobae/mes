@@ -61,11 +61,11 @@
         </if>
 
         <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'OrdSts'">
-                AND a.ord_sts = #{findSz}
+            <if test="findTp != null and findTp == 'ord_sts_nm'">
+                AND upper(replace(ord_sts_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
-            <if test="findTp != null and findTp == 'ordNm'">
-                AND upper(replace(a.ord_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            <if test="findTp != null and findTp == 'plan_nm'">
+                AND upper(replace(f.plan_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
         <if test="dateFr != null and dateFr != ''">
@@ -102,13 +102,12 @@
                 <if test="ordSts != null and ordSts != ''">
                     AND a.ord_sts = #{ordSts}
                 </if>
-
                 <if test="findSz != null and findSz != ''">
-                    <if test="findTp != null and findTp == 'OrdSts'">
-                        AND a.ord_sts = #{findSz}
+                    <if test="findTp != null and findTp == 'ord_sts_nm'">
+                        AND upper(replace(ord_sts_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                     </if>
-                    <if test="findTp != null and findTp == 'ordNm'">
-                        AND upper(replace(a.ord_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    <if test="findTp != null and findTp == 'plan_nm'">
+                        AND upper(replace(f.plan_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                     </if>
                 </if>
                 <if test="dateFr != null and dateFr != ''">
