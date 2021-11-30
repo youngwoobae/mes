@@ -94,4 +94,9 @@ public class Dash03ServiceImpl implements  Dash03Service {
         return mapper.getWorkerList(paraMap);
     }
 
+
+    @Override
+    public int getWorkerListCount(Map<String, Object> paraMap){
+        return mapper.getWorkerListCount(paraMap);
+    }
 }

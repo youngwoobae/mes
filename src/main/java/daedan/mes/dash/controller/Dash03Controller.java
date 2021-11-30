@@ -139,6 +139,7 @@ public class Dash03Controller {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         result.setData(dash03.getWorkerList(paraMap));
+        result.setTotalCount(dash03.getWorkerListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
