@@ -801,7 +801,13 @@ public  class UserServiceImpl implements UserService {
 		Long workNo = 0L;
 
 		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-		Long worker = Long.parseLong(paraMap.get("worker").toString());
+		Long worker = 0L;
+		try {
+			worker = Long.parseLong(paraMap.get("worker").toString());
+		}
+		catch (NullPointerException ne) {
+
+		}
 		Long userId = Long.parseLong(paraMap.get("userId").toString());
 		try {
 			Date workDt = sdf.parse(paraMap.get("workDt").toString());
@@ -822,6 +828,9 @@ public  class UserServiceImpl implements UserService {
 			catch (NullPointerException ne) {
 				workNo = 0L;
 			}
+			uwvo.setModDt(DateUtils.getCurrentBaseDateTime());
+			uwvo.setModId(userId);
+			uwvo.setModIp(paraMap.get("ipaddr").toString());
 
 			UserWork uwchk = uhr.findByCustNoAndWorkNoAndUsedYn(custNo , workNo  , "Y");
 			if (uwchk != null){
@@ -831,10 +840,10 @@ public  class UserServiceImpl implements UserService {
 				uwvo.setRegIp(uwchk.getRegIp());
 			}
 			else{
-				uwvo.setWorkNo(workNo);
-				uwvo.setModDt(DateUtils.getCurrentBaseDateTime());
-				uwvo.setModId(userId);
-				uwvo.setModIp(paraMap.get("ipaddr").toString());
+				uwvo.setWorkNo(0L);
+				uwvo.setRegDt(uwchk.getRegDt());
+				uwvo.setRegId(uwchk.getRegId());
+				uwvo.setRegIp(uwchk.getRegIp());
 			}
 			uwvo.setUsedYn("Y");
 			uwvo.setCustNo(custNo);

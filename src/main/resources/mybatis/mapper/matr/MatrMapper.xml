@@ -80,33 +80,28 @@
                  )
     </insert>
     <select id="getMatrWithCmpyList" parameterType="map"  resultType="camelMap">
+        /*구매처별 원자재목록(matrMapper.getMatrWithCmpyList) */
         select a.matr_no --자재번호
-                , a.matr_tp --자재구분 (원육,시스닝,부자재)
-                , a.brnch_no --자재분류
-                , h.brnch_nm --자재분류명
-                , a.purs_unit --구매단위
-                , g.cmpy_no
-                , k.cmpy_nm
-                , a.matr_nm --자재명
-                , a.madein  --원산지코드
-                , a.item_cd --품목코드
-                , coalesce (a.base_volt,'N/A') as base_volt    --정격전압
-                , coalesce (a.madeby,0) as madeby --소재
-                , a.save_tmpr --보관온도코드
-                , a.valid_term --유효기간
-                , a.sz --규격
-                , a.file_no --사진번호
-                , b.code_nm as matr_tp_nm --자재구분명
-                , d.code_nm as purs_unit_nm --구매단위명
-                , f.code_nm as save_tmpr_nm --보관온도
-                , #{baseUrl} || c.acc_url as save_file_nm-- 원자재사진 경로
-        from matr_info a join code_info b on a.matr_tp = b.code_no
-                         join matr_cmpy g on a.matr_no  = g.matr_no and  g.cust_no = #{custNo} and g.used_yn = 'Y'
-                         join cmpy_info k on g.cmpy_no  = k.cmpy_no and  k.cust_no = #{custNo} and k.used_yn ='Y'
+             , a.matr_tp --자재구분 (원육,시스닝,부자재)
+             , a.brnch_no --자재분류
+             , h.brnch_nm --자재분류명
+             , a.purs_unit --구매단위
+             , g.cmpy_no
+             , a.matr_nm --자재명
+             , a.madein  --원산지코드
+             , a.item_cd --품목코드
+             , coalesce (a.base_volt,'N/A') as base_volt    --정격전압
+             , coalesce (a.madeby,0) as madeby --소재
+             , a.save_tmpr --보관온도코드
+             , a.valid_term --유효기간
+             , a.sz --규격
+             , a.file_no --사진번호
+             , fn_get_cmpy_name(g.cmpy_no) as cmpy_nm
+             , fn_get_code_name('nm',a.matr_tp)  as matr_tp_nm --자재구분명
+             , fn_get_code_name('nm',a.purs_unit) as purs_unit_nm --구매단위명
+             , fn_get_code_name('nm',a.save_tmpr) as save_tmpr_nm --보관온도
+        from matr_info a join matr_cmpy g on a.matr_no  = g.matr_no and  g.cust_no = #{custNo} and g.used_yn = 'Y'
                     left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn ='Y'
-                    left join code_info d on a.purs_unit = d.code_no
-                    left join code_info f on a.save_tmpr = f.code_no
-                    left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
         where a.used_yn ='Y'
         and  a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != ''"> and a.matr_tp = #{matrTp} </if>
@@ -127,14 +122,8 @@
     <select id="getMatrWithCmpyListCount" parameterType="map"  resultType="int">
         select count(a.matr_no)
         from (  select a.matr_no --자재번호
-                  from matr_info a join code_info b on a.matr_tp = b.code_no
-                                   join matr_cmpy g on a.matr_no  = g.matr_no and g.cust_no = #{custNo} and g.used_yn = 'Y'
-                                   join cmpy_info k on g.cmpy_no  = k.cmpy_no and k.cust_no = #{custNo} and k.used_yn = 'Y'
+                  from matr_info a join matr_cmpy g on a.matr_no  = g.matr_no and g.cust_no = #{custNo} and g.used_yn = 'Y'
                               left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                              left join code_info d on a.purs_unit = d.code_no
-                              left join code_info f on a.save_tmpr = f.code_no
-                              left join file_info c on a.file_no = c.file_no and c.cust_no = #{custNo} and c.used_yn = 'Y'
-
         where a.used_yn ='Y'
         and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != ''"> and a.matr_tp = #{matrTp} </if>

@@ -495,6 +495,9 @@ public class StockServiceImpl implements  StockService{
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long orgWhNo = 0L;
         Long trkWhNo = 0L;
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+
         MatrStkHstr mshvo = new MatrStkHstr();
         try{
             mshvo.setChngNo(Long.parseLong(paraMap.get("chngNo").toString())); //실자재고관리번호
@@ -517,24 +520,24 @@ public class StockServiceImpl implements  StockService{
         }
         mshvo.setWhNo(trkWhNo); //적재창고번호
 
-        mshvo.setStkQty(Float.valueOf(paraMap.get("realStk").toString())); //실사재고량
+        mshvo.setStkQty(Float.valueOf(paraMap.get("stkQty").toString())); //실사재고량
 
         Long chngResn = Long.valueOf(paraMap.get("chngResn").toString()); //재고ADJUST사유코드
 
         try {
-            mshvo.setChngResn(Long.parseLong(paraMap.get("chngResn").toString())); //재고ADJUST사유
+            mshvo.setChngResn(chngResn); //재고ADJUST사유
         }
         catch(NullPointerException ne) {
         }
         mshvo.setChngNo(0L);
         mshvo.setModDt(DateUtils.getCurrentBaseDateTime());
-        mshvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        mshvo.setModIp(paraMap.get("ipaddr").toString());
+        mshvo.setModId(userId);
+        mshvo.setModIp(ipaddr);
         mshvo.setUsedYn("Y");
         mshvo.setChngResn(chngResn);
         mshvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-        mshvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-        mshvo.setRegIp(paraMap.get("ipaddr").toString());
+        mshvo.setRegId(userId);
+        mshvo.setRegIp(ipaddr);
         mshvo.setCustNo(custNo);
         if (orgWhNo != trkWhNo) { //창고이동이 있는 경우
             //기존재고정보를 이동창고재고로 이동
@@ -558,50 +561,57 @@ public class StockServiceImpl implements  StockService{
                 mscvo.setStatTrfDt(DateUtils.getCurrentDateTime());
                 mscvo.setStatCd(Long.parseLong(env.getProperty("stk_stat_real"))); //살사재고조정
                 mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                mscvo.setRegIp(paraMap.get("ipaddr").toString());
+                mscvo.setModId(userId);
+                mscvo.setRegIp(ipaddr);
                 mscvo.setCustNo(custNo);
                 matrStkRepo.save(mscvo);
             }
-            //이동창고 재고조정
-            mscvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,trkWhNo,mshvo.getMatrNo(), "Y");
-            if (mscvo != null) {
-                mscvo.setStatTrfDt(DateUtils.getCurrentDateTime());
-                mscvo.setStatCd(Long.parseLong(env.getProperty("stk_stat_real"))); //살사재고조정
-                mscvo.setStkQty(mshvo.getStkQty());
-                mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                mscvo.setRegIp(paraMap.get("ipaddr").toString());
-                mscvo.setCustNo(custNo);
-                matrStkRepo.save(mscvo);
+            //기존창고 입고이력 신규창고 입고이력으로 이동
+            List<MatrIwh> mids = matrIwhRepo.findAllByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,orgWhNo,mshvo.getMatrNo(), "Y");
+            for (MatrIwh el : mids) {
+                el.setModId(userId);
+                el.setModIp(ipaddr);
+                el.setModDt(DateUtils.getCurrentBaseDateTime());
+                el.setRegId(userId);
+                el.setRegIp(ipaddr);
+                el.setRegDt(DateUtils.getCurrentBaseDateTime());
+                el.setWhNo(trkWhNo);
+                el.setUsedYn("Y");
+                el.setCustNo(custNo);
+                MatrIwh mivo = matrIwhRepo.findByCustNoAndWhNoAndMatrNoAndIwhDtAndUsedYn(custNo,el.getWhNo(),el.getMatrNo(),el.getIwhDt(),"Y");
+                if (mivo != null) {
+                    matrIwhRepo.save(el);
+                }
+            }
+            //기존창고 입고이력 삭제
+            mids = matrIwhRepo.findAllByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,orgWhNo,mshvo.getMatrNo(), "Y");
+            for (MatrIwh el : mids) {
+                el.setModId(userId);
+                el.setModIp(ipaddr);
+                el.setModDt(DateUtils.getCurrentBaseDateTime());
+                el.setUsedYn("N");
+                el.setCustNo(custNo);
+                matrIwhRepo.save(el);
             }
         }
         //재고조정
         MatrStk mscvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,trkWhNo,mshvo.getMatrNo(), "Y");
-        if (mscvo != null) { //재고정보가 있는경우
-            mscvo.setStatTrfDt(DateUtils.getCurrentDateTime());
-            mscvo.setStatCd(Long.parseLong(env.getProperty("stk_stat_real"))); //살사재고조정
-            mscvo.setModIp(paraMap.get("ipaddr").toString());
-            mscvo.setStkQty(mshvo.getStkQty());
-            mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
-            mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        }
-        else { //재고정보가 없는 경우
+        if (mscvo == null) { //재고정보가 없는경우
             mscvo = new MatrStk();
             mscvo.setMatrStkNo(0L);
-            mscvo.setWhNo(trkWhNo);
-            mscvo.setMatrNo(mshvo.getMatrNo());
-            mscvo.setStkQty(mshvo.getStkQty());
-            mscvo.setStatTrfDt(DateUtils.getCurrentDateTime());
-            mscvo.setStatCd(Long.parseLong(env.getProperty("stk_stat_real"))); //살사재고조정
-            mscvo.setUsedYn("Y");
             mscvo.setRegIp(paraMap.get("ipaddr").toString());
             mscvo.setRegDt(DateUtils.getCurrentBaseDateTime());
             mscvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-            mscvo.setModIp(paraMap.get("ipaddr").toString());
-            mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
-            mscvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
         }
+        mscvo.setModIp(ipaddr);
+        mscvo.setModDt(DateUtils.getCurrentBaseDateTime());
+        mscvo.setModId(userId);
+        mscvo.setWhNo(trkWhNo);
+        mscvo.setMatrNo(mshvo.getMatrNo());
+        mscvo.setStatCd(Long.parseLong(env.getProperty("stk_stat_real"))); //살사재고조정
+        mscvo.setUsedYn("Y");
+        mscvo.setStkQty(mshvo.getStkQty());
+        mscvo.setStatTrfDt(DateUtils.getCurrentDateTime());
         mscvo.setCustNo(custNo);
         matrStkRepo.save(mscvo);
 
@@ -614,11 +624,11 @@ public class StockServiceImpl implements  StockService{
         iwhvo.setIwhDt(DateUtils.getCurrentBaseDateTime());
         iwhvo.setIwhQty(mshvo.getStkQty());
         iwhvo.setMatrNo(mshvo.getMatrNo());
-        iwhvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-        iwhvo.setRegIp(paraMap.get("ipaddr").toString());
+        iwhvo.setRegId(userId);
+        iwhvo.setRegIp(ipaddr);
         iwhvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-        iwhvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        iwhvo.setModIp(paraMap.get("ipaddr").toString());
+        iwhvo.setModId(userId);
+        iwhvo.setModIp(ipaddr);
         iwhvo.setModDt(DateUtils.getCurrentBaseDateTime());
         iwhvo.setUsedYn("Y");
         iwhvo.setCustNo(custNo);

@@ -2180,12 +2180,18 @@ public class IoController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
-
+        String procYn =  uvo.getCustInfo().getProcYn(); //공정사용여부
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(ioService.getProdForIwhList(paraMap));
-        result.setTotalCount(ioService.getProdForIwhListCount(paraMap));
 
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        if (procYn.equals("N")) {
+            result.setData(ioService.getProdForIwhList(paraMap));
+            result.setTotalCount(ioService.getProdForIwhListCount(paraMap));
+        }
+        else {
+            result.setData(ioService.getMadeProdForIwhList(paraMap));
+            result.setTotalCount(ioService.getMadeProdForIwhListCount(paraMap));
+        }
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
@@ -2330,6 +2336,38 @@ public class IoController {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
                 userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
+
+    /**
+     * 출고대상제품 일괄 삭제
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/dropProdIwhList")
+    public Result dropProdIwhList(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("procYn", uvo.getCustInfo().getProcYn());
+        ioService.dropProdIwhList(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
             } catch (NullPointerException ne) {
             }
         }

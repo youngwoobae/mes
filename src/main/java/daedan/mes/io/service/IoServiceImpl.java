@@ -3723,11 +3723,52 @@ public class IoServiceImpl implements IoService {
         }
     }
 
+    @Transactional
     @Override
     public void dropTotalStkData(Map<String, Object> paraMap) {
 
     }
 
+    @Transactional
+    @Override
+    public void dropProdIwhList(Map<String, Object> paraMap) {
+        String tag = "ioService.dropProdIwhList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        // prodList = [{"indcYn":"Y","prodNo":697763,"whNo":730433,"whNm":"냉동완제품창고","stkQty":22989,"prodNm":"갈릭 훈제 닭가슴살(아더리시)","vgt_id":0,"originalIndex":0,"vgtSelected":true}]
+        List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("prodList");
+        for (Map<String, Object> el : ds) {
+            ProdStk psvo = new ProdStk();
+            Float stkQty = Float.parseFloat(el.get("stkQty").toString());
+            psvo.setCustNo(custNo);
+            psvo.setProdNo(Long.parseLong(el.get("prodNo").toString()));
+            psvo.setWhNo(Long.parseLong(el.get("whNo").toString()));
+            //재고조정
+            psvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(psvo.getCustNo(), psvo.getWhNo(), psvo.getProdNo(), "Y");
+            if (psvo != null) {
+                psvo.setStatTrfDt(DateUtils.getCurrentDate());
+                psvo.setStkQty(psvo.getStkQty() - stkQty);
+                psvo.setModDt(DateUtils.getCurrentDate());
+                psvo.setModIp(ipaddr);
+                psvo.setModId(userId);
+                prodStkRepo.save(psvo);
+            }
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getMadeProdForIwhList(Map<String, Object> paraMap) {
+        String tag = "ioService.getMadeProdForIwhList =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getMadeProdForIwhList(paraMap);
+    }
+
+    @Override
+    public int getMadeProdForIwhListCount(Map<String, Object> paraMap) {
+        return mapper.getMadeProdForIwhListCount(paraMap);
+    }
 }
 
 

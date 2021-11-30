@@ -679,10 +679,12 @@ public class ProdServiceImpl implements  ProdService {
     @Override
     @Transactional
     public void apndProdBom(Map<String, Object> paraMap) {
+        String tag = "prodService.apndProdBom => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
         Map<String, Object> mapProd = (Map<String, Object>) paraMap.get("prodInfo");
         List<Map<String, Object>> matrList = (List<Map<String, Object>>) paraMap.get("matrList");
         ProdBom prodBom = null;
-        Long custNo = Long.parseLong(mapProd.get("custNo").toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Map<String, Object> matrMap = new LinkedHashMap<String, Object>();
         Long prodNo = Long.parseLong(mapProd.get("prodNo").toString());
         for (int idx = 0; idx < matrList.size(); idx++) {
@@ -691,6 +693,24 @@ public class ProdServiceImpl implements  ProdService {
             prodBom.setProdNo(prodNo);
             prodBom.setMatrNo(Long.parseLong(matrMap.get("matrNo").toString()));
             prodBom.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+            try {
+                prodBom.setBomLvl(Long.parseLong(paraMap.get("bomLvl").toString()));
+            }
+            catch(NullPointerException ne) {
+                prodBom.setBomLvl(1L);
+            }
+            try {
+                prodBom.setConsistRt(Float.parseFloat(paraMap.get("consistRt").toString()));
+            }
+            catch (NullPointerException ne) {
+                prodBom.setConsistRt(0f);
+            }
+            try {
+                prodBom.setPursYn(paraMap.get("pursYn").toString());
+            }
+            catch (NullPointerException ne) {
+                prodBom.setPursYn("Y");
+            }
             prodBom.setRegIp((String) paraMap.get("ipaddr"));
             prodBom.setModId(Long.parseLong(paraMap.get("userId").toString()));
             prodBom.setModIp((String) paraMap.get("ipaddr"));
@@ -710,8 +730,13 @@ public class ProdServiceImpl implements  ProdService {
     @Override
     @Transactional
     public void copyProdBom(Map<String, Object> paraMap) {
-        //복사해야하는 제품번호는 prod_no , 복사할 제품번호는 prodNo(copyProdNo)
-        List<Map<String, Object>> prodBomList = mapper.getProdBom(paraMap);
+        Map<String,Object> bomMap = new HashMap<String,Object>();
+        bomMap.put("custNo",paraMap.get("custNo"));
+        bomMap.put("prodNo",paraMap.get("frProdNo"));
+        bomMap.put("pageNo",1);
+        bomMap.put("pageSz",1000);
+        List<Map<String, Object>> prodBomList = mapper.getProdBom(bomMap);
+
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         ProdBom prodBom = null;
 
@@ -720,15 +745,15 @@ public class ProdServiceImpl implements  ProdService {
         for (int idx = 0; idx < prodBomList.size(); idx++) {
             prodBom = new ProdBom();
             matrMap = prodBomList.get(idx);
-            prodBom.setProdNo(Long.parseLong(paraMap.get("prod_no").toString()));
+            prodBom.setProdNo(Long.parseLong(paraMap.get("toProdNo").toString()));
             prodBom.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             prodBom.setRegIp((String) paraMap.get("ipaddr"));
             prodBom.setRegDt(DateUtils.getCurrentDate());
 
-            prodBom.setMatrNo(Long.parseLong(matrMap.get("matr_no").toString()));
-            prodBom.setPursYn(matrMap.get("purs_yn").toString());
-            prodBom.setConsistRt(Float.parseFloat(matrMap.get("consist_rt").toString()));
-            prodBom.setBomLvl(Long.parseLong(matrMap.get("bom_lvl").toString()));
+            prodBom.setMatrNo(Long.parseLong(matrMap.get("matrNo").toString()));
+            prodBom.setPursYn(matrMap.get("pursYn").toString());
+            prodBom.setConsistRt(Float.parseFloat(matrMap.get("consistRt").toString()));
+            prodBom.setBomLvl(Long.parseLong(matrMap.get("bomLvl").toString()));
             prodBom.setCustNo(Long.parseLong(paraMap.get("custNo").toString())); //AddOn By KMJ At 21.10.21
             prodBom.setUsedYn("Y");
             ProdBom chkvo = bomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(custNo, prodBom.getProdNo(), prodBom.getMatrNo(), "Y");

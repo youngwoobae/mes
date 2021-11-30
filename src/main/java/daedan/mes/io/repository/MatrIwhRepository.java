@@ -5,6 +5,7 @@ import daedan.mes.stock.domain.MatrStk;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Date;
+import java.util.List;
 
 public interface MatrIwhRepository extends JpaRepository<MatrIwh, Long> {
     MatrIwh findByCustNoAndPursNoAndMatrNoAndUsedYn(Long custNo, Long pursNo, Long matrNo, String yn);
@@ -22,4 +23,8 @@ public interface MatrIwhRepository extends JpaRepository<MatrIwh, Long> {
 
     MatrIwh findByCustNoAndIwhDtAndMatrNoAndUsedYn(Long custNo,Date iwhDt, Long matrNo, String y);
     MatrStk deleteByIwhNo(Long iwhNo);
+
+    List<MatrIwh> findAllByCustNoAndWhNoAndMatrNoAndUsedYn(Long custNo, Long orgWhNo, Long matrNo, String y);
+
+    MatrIwh findByCustNoAndWhNoAndMatrNoAndIwhDtAndUsedYn(Long custNo, Long whNo, Long matrNo, Date iwhDt, String y);
 }

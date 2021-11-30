@@ -283,7 +283,7 @@ public interface IoService {
 
     void getOwhHstr(Map<String, Object> paraMap);
 
-    void dropProdIwh(Map<String, Object> paraMap);
+    @Transactional void dropProdIwh(Map<String, Object> paraMap);
 
     Map<String,Object> getPursMatrInfo(Map<String, Object> paraMap);
 
@@ -298,9 +298,15 @@ public interface IoService {
 
     int getOwhMatrListCount(Map<String, Object> paraMap);
 
-    void changeStkData(Map<String, Object> paraMap);
+    @Transactional void changeStkData(Map<String, Object> paraMap);
 
-    void dropStkData(Map<String, Object> paraMap);
+    @Transactional void dropStkData(Map<String, Object> paraMap);
 
-    void dropTotalStkData(Map<String, Object> paraMap);
+    @Transactional void dropTotalStkData(Map<String, Object> paraMap);
+
+    @Transactional
+    void dropProdIwhList(Map<String, Object> paraMap);
+
+    List<Map<String,Object>> getMadeProdForIwhList(Map<String, Object> paraMap);
+    int getMadeProdForIwhListCount(Map<String, Object> paraMap);
 }
