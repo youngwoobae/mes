@@ -327,6 +327,9 @@
                 <if test="saveTmpr != null and saveTmpr != ''">
                     and a.save_tmpr = #{saveTmpr}
                 </if>
+                <if test="whNo != null and whNo != ''">
+                    and g.wh_no = #{whNo}
+                </if>
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'prodNm'">
                         AND ( upper(replace(a.prod_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'

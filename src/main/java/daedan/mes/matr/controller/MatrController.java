@@ -240,7 +240,7 @@ public class MatrController {
         paraMap.put("custNo", custNo);
 
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        paraMap.put("matrTp",Integer.parseInt(env.getProperty("code.matrtp.matr")));
+        paraMap.put("matrTp", env.getProperty("matrTp"));
 
         result.setData(matrService.getMatrExcelList(paraMap));
         //SOL AddOn By KMJ AT 21.11.16

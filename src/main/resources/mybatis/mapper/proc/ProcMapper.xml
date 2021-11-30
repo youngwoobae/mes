@@ -49,7 +49,7 @@
              , d.code_nm as proc_grp_nm --인력투입그룹명
              , b.max_make_qty --일간최대 생산량
              , a.ccp_tp --관리공정
-        from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
+        from code_info a join proc_info b  on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
                     left join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
                          <if test="brnchNo != null and brnchNo != ''">
                             and c.brnch_no = #{brnchNo}
@@ -61,7 +61,7 @@
         where a.par_code_no  = #{parCodeNo} --공정모코드(720)
           and a.used_yn  = 'Y'
         <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'proc_nm'">
+            <if test="findTp != null and findTp == 'procNm'">
                 and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
@@ -83,7 +83,7 @@
                           left join code_info d on c.proc_grp_cd  = d.code_no
                 where a.par_code_no  = #{parCodeNo} --공정모코드(720)
                 <if test="findSz != null and findSz != ''">
-                    <if test="findTp != null and findTp == 'proc_nm'">
+                    <if test="findTp != null and findTp == 'procNm'">
                         and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                     </if>
                 </if>
@@ -118,7 +118,7 @@
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'procNm'">
-                and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
         order by a.proc_cd
@@ -137,7 +137,7 @@
                     where a.used_yn = 'Y' and a.cust_no = #{custNo}
                     <if test="findSz != null and findSz != ''">
                         <if test="findTp != null and findTp == 'procNm'">
-                            and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                            and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                         </if>
                     </if>
         ) a
@@ -227,7 +227,7 @@
         where a.used_yn = 'Y' and a.cust_no = #{custNo}
         and a.ocpn_kind = #{ocpnKind}
         <if test="findSz != null || findSz != ''">
-            <if test="findTp != null and findTp == 'user_nm'">
+            <if test="findTp != null and findTp == 'userNm'">
                 AND upper(replace(a.user_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>

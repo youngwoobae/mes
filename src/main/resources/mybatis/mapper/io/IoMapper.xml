@@ -2602,18 +2602,21 @@
         <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
         <if test="ordNo != null and ordNo != ''">  and c.ord_no = #{ordNo}   </if>
         <if test="findStr != null and findStr != ''">
-            AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
+            AND upper(replace(b.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
         </if>
 
         <choose>
             <when test="findTp != null and findTp == 'en'">
-                and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
+                and upper(fn_get_matr_name(a.matr_no)) as matr_nm like '%' || upper(#{findSz}) || '%'
             </when>
             <when test="findTp != null and findTp == 'no'">
-                and a.matr_nm like '%' || #{findSz} || '%'
+                and fn_get_matr_name(a.matr_no) as matr_nm like '%' || #{findSz} || '%'
             </when>
             <when test="findTp != null and findTp == 'ko'">
-                AND fn_get_consonant(a.matr_nm) = #{findSz}
+                AND fn_get_consonant(a.matr_no) as matr_nm = #{findSz}
+            </when>
+            <when test="findTp != null and findTp == 'ko'">
+                AND fn_get_matr_name(a.matr_no) as matr_nm = #{findTp}
             </when>
             <otherwise> </otherwise>
         </choose>
@@ -2636,18 +2639,18 @@
             <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
             <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
             <if test="findStr != null and findStr != ''">
-                AND upper(replace(a.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
+                AND upper(replace(b.matr_nm,' ','')) LIKE '%' || upper(replace(#{findStr},' ','')) || '%'
             </if>
 
             <choose>
                 <when test="findTp != null and findTp == 'en'">
-                    and upper(a.matr_nm) like '%' || upper(#{findSz}) || '%'
+                    and upper(b.matr_nm) like '%' || upper(#{findSz}) || '%'
                 </when>
                 <when test="findTp != null and findTp == 'no'">
-                    and a.matr_nm like '%' || #{findSz} || '%'
+                    and b.matr_nm like '%' || #{findSz} || '%'
                 </when>
                 <when test="findTp != null and findTp == 'ko'">
-                    AND fn_get_consonant(a.matr_nm) = #{findSz}
+                    AND fn_get_consonant(b.matr_nm) = #{findSz}
                 </when>
                 <otherwise> </otherwise>
             </choose>

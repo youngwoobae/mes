@@ -241,9 +241,9 @@
                 , a.matr_tp as 자재구분
                 , a.brnch_no as 자재분류
                 , h.brnch_nm as 자재분류명
-                , fn_get_code_name('nm',d.purs_unit)  as 구매단위
+                , fn_get_code_name('nm',a.purs_unit)  as 구매단위
                 , a.spga as 비중
-                , concat(vol, fn_get_code_name('nm',purs_unit) , '/' ,fn_get_code_name('nm' , pkg_unit) ) as sz 규격
+                , concat(vol, fn_get_code_name('nm',purs_unit) , '/' ,fn_get_code_name('nm' , pkg_unit) ) as 규격
                 , m.cmpy_no as 거래처관리번호
                 , z.cmpy_nm as 구매거래처
                 , a.matr_nm as 자재명
@@ -258,9 +258,9 @@
                 , fn_get_code_name('nm',a.matr_tp) as 자재구분명
                 , f.code_nm as 보관온도
         from matr_info a  left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                          left join code_info d on a.purs_unit = d.code_no
-                          left join code_info f on a.save_tmpr = f.code_no
-                          left join file_info c on a.file_no = c.file_no
+                          left join code_info d on  a.purs_unit = d.code_no
+                          left join code_info f on  a.matr_no = f.code_no
+                          left join file_info c on  a.file_no = c.file_no
                                          and c.cust_no = #{custNo} and c.used_yn = 'Y' and c.file_no <![CDATA[ > ]]> 0
                     left join matr_cmpy m on a.matr_no = m.matr_no and m.cust_no = #{custNo} and m.used_yn = 'Y'
                     left join cmpy_info z on m.cmpy_no = z.cmpy_no and z.used_yn = 'Y' and z.cust_no = #{custNo} and z.used_yn = 'Y'
@@ -286,7 +286,7 @@
                 )
             </if>
         </if>
-        order by a.matr_nm collate "ko_KR.utf8"
+        order by a.matr_nm
         limit #{pageSz} offset #{pageNo}
     </select>
 
