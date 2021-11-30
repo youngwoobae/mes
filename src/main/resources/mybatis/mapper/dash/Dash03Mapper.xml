@@ -95,7 +95,7 @@
     </select>
 
     <select id="getWorkerListCount" parameterType="map"  resultType="int">
-        /*하담푸드 대시보드 좌측 상단 근무자 현황 (Dash03Mapper.getWorkerList) */
+        /*하담푸드 대시보드 좌측 상단 근무자 현황 카운트 (Dash03Mapper.getWorkerListCount) */
         select
         	count(user_id)
         from user_info a
@@ -109,5 +109,19 @@
         where to_char(make_dt,'YYYY-MM') = to_char(now(),'YYYY-MM')
         group by  to_char(make_dt,'MM-DD')
         order by make_dt
+    </select>
+
+
+    <select id="getDashTotalMakeIndcRslt" parameterType="map"  resultType="camelMap">
+        /*하담푸드 대시보드 좌측 전일 생산계획 (Dash03Mapper.getDashTotalMakeIndcRslt) */
+        select
+		    coalesce(sum(a.make_qty) , 0 ) as make_qty ,
+		    coalesce(sum(a.make_wgt) , 0 ) as make_wgt ,
+		    coalesce(sum(b.indc_qty) , 0 ) as indc_qty ,
+		    coalesce(sum(b.indc_wgt) , 0 ) as indc_wgt
+        from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no
+     	where a.cust_no = #{custNo} and a.used_yn = 'Y'
+        and to_char(make_dt , 'YYYY-MM-DD') = to_char(now() + '-1 day' , 'YYYY-MM-DD')
+        group by to_char(make_dt , 'YYYY-MM-DD')
     </select>
 </mapper>

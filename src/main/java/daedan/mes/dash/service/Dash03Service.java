@@ -17,4 +17,6 @@ public interface Dash03Service {
     List<Map<String, Object>>  getWorkerList(Map<String, Object> paraMap);
 
     int getWorkerListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>>  getDashTotalMakeIndcRslt(Map<String, Object> paraMap);
 }
