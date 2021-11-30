@@ -16,4 +16,6 @@ public interface Dash03Mapper {
 
     List<Map<String, Object>> getUserGroupDash(Map<String, Object> paraMap);
     List<Map<String, Object>> getMakeRsltGroupDash(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap);
 }
