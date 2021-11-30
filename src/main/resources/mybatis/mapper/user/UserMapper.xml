@@ -588,6 +588,11 @@
         <if test="dateFr != null and dateFr != ''">
             and TO_CHAR(a.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
         </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'userNm'">
+                and upper(replace(b.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
         order by a.work_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
@@ -607,6 +612,11 @@
             and a.used_yn = 'Y'
             <if test="dateFr != null and dateFr != ''">
                 and TO_CHAR(a.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10)  and substring(#{dateTo},1,10)
+            </if>
+            <if test="findSz != null and findSz != ''">
+                <if test="findTp != null and findTp == 'userNm'">
+                    and upper(replace(b.user_nm,' ',''))  LIKE '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                </if>
             </if>
         ) a
     </select>
