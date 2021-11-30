@@ -3855,7 +3855,7 @@
             and a.wh_tp = #{whTp}
         </if>
         <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'whNm'">
+            <if test="findTp != null and findTp == 'matrNm'">
                 and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
@@ -3876,7 +3876,7 @@
                 </if>
 
                 <if test="findSz != null and findSz != ''">
-                    <if test="findTp != null and findTp == 'whNm'">
+                    <if test="findTp != null and findTp == 'matrNm'">
                         and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                     </if>
                 </if>
@@ -3928,6 +3928,11 @@
         and a.cust_no =#{custNo}
         and a.wh_no = #{whNo}
         --and  a.stk_qty <![CDATA[ > ]]>  0
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'matrNm'">
+                and upper(replace(b.matr_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        </if>
         order by matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
 
@@ -3941,6 +3946,11 @@
                 where a.used_yn = 'Y'
                 and a.used_yn = 'Y' and a.cust_no =#{custNo}
                 and a.wh_no = #{whNo}
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'matrNm'">
+                        and upper(replace(b.matr_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                    </if>
+                </if>
                 --and  a.stk_qty <![CDATA[ > ]]>  0
              ) a
     </select>

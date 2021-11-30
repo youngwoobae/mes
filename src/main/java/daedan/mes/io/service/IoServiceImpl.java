@@ -3474,7 +3474,7 @@ public class IoServiceImpl implements IoService {
 
     @Override
     public List<Map<String, Object>> getIwhMatrList(HashMap<String, Object> paraMap) {
-        return mapper.getIwhMatrList(paraMap);
+        return mapper.getMatrWhStkList(paraMap);
     }
 
     @Override
@@ -3737,15 +3737,20 @@ public class IoServiceImpl implements IoService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long userId = Long.parseLong(paraMap.get("userId").toString());
         String ipaddr = paraMap.get("ipaddr").toString();
-        // prodList = [{"indcYn":"Y","prodNo":697763,"whNo":730433,"whNm":"냉동완제품창고","stkQty":22989,"prodNm":"갈릭 훈제 닭가슴살(아더리시)","vgt_id":0,"originalIndex":0,"vgtSelected":true}]
+        //{prodList=[{indcYn=Y, prodNo=378589, indcRsltNo=413858, whNo=1, whNm=[상온-1]완제품창고, makeDt=2021-10-19T15:00:00.000+00:00, makeQty=300, indcNo=394042, stkQty=20, prodNm=6고려홍삼진액골드(30포), vgt_id=0, originalIndex=0, vgtSelected=true}, {indcYn=Y, prodNo=355361, indcRsltNo=413854, whNo=2, whNm=[상온-2]완제품창고, makeDt=2021-11-23T15:00:00.000+00:00, makeQty=29700, indcNo=404665, stkQty=0, prodNm=6년근고려홍삼정365스틱/네이처가든, vgt_id=0, originalIndex=1, vgtSelected=true}], userId=2, custNo=6, ipaddr=127.0.0.1, procYn=Y}
+
         List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("prodList");
         for (Map<String, Object> el : ds) {
-            ProdStk psvo = new ProdStk();
-            Float stkQty = Float.parseFloat(el.get("stkQty").toString());
-            psvo.setCustNo(custNo);
-            psvo.setProdNo(Long.parseLong(el.get("prodNo").toString()));
-            psvo.setWhNo(Long.parseLong(el.get("whNo").toString()));
-            //재고조정
+            MakeIndcRslt mirvo = new MakeIndcRslt();
+            mirvo.setCustNo(custNo);
+            mirvo.setIndcNo(Long.parseLong(el.get("indcNo").toString()));
+            mirvo.setIndcRsltNo(Long.parseLong(el.get("indcRsltNo").toString()));
+            mirvo.setUsedYn("N");
+            mirvo.setModId(userId);
+            mirvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            mirvo.setModIp(ipaddr);
+            makeIndcRsltRepo.save(mirvo);
+            /*재고조정
             psvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(psvo.getCustNo(), psvo.getWhNo(), psvo.getProdNo(), "Y");
             if (psvo != null) {
                 psvo.setStatTrfDt(DateUtils.getCurrentDate());
@@ -3755,6 +3760,8 @@ public class IoServiceImpl implements IoService {
                 psvo.setModId(userId);
                 prodStkRepo.save(psvo);
             }
+            */
+
         }
     }
 
