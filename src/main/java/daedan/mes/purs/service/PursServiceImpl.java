@@ -803,16 +803,18 @@ public class PursServiceImpl implements  PursService {
                 chkpmvo.setModIp(ipaddr);
                 pmr.save(chkpmvo);
             }
-        }
-        List<PursMatr> dsPursMatr = pmr.findAllByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
-        if (dsPursMatr.size() == 0) {
-            PursInfo pivo = pir.findByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
-            if (pivo != null) {
-                pivo.setUsedYn("N");
-                pivo.setModId(userId);
-                pivo.setModDt(DateUtils.getCurrentBaseDateTime());
-                pivo.setModIp(ipaddr);
-                pir.save(pivo);
+            pursNo = chkpmvo.getPursNo();
+
+            List<PursMatr> dsPursMatr = pmr.findAllByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
+            if (dsPursMatr.size() == 0) {
+                PursInfo pivo = pir.findByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
+                if (pivo != null) {
+                    pivo.setUsedYn("N");
+                    pivo.setModId(userId);
+                    pivo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    pivo.setModIp(ipaddr);
+                    pir.save(pivo);
+                }
             }
         }
     }
