@@ -390,14 +390,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         if(Integer.parseInt(paraMap.get("custNo").toString()) == 8) { //영양제과
             Map<String, Object> indcRslt = new HashMap<>();
-            indcRslt.put("ord_no", ordNo);
-            indcRslt.put("prod_no", paraMap.get("prodNo"));
-            indcRslt.put("indc_no", parIndcNo);
-            indcRslt.put("make_dt", paraMap.get("makeDt"));
-            indcRslt.put("proc_cd", 0);
-            indcRslt.put("make_wgt", paraMap.get("indcQty"));
-            indcRslt.put("proc_unit_nm", "EA");
-            paraMap.put("indc_rslt", indcRslt);
+            indcRslt.put("ordNo", ordNo);
+            indcRslt.put("prodNo", paraMap.get("prodNo"));
+            indcRslt.put("indcNo", parIndcNo);
+            indcRslt.put("makeDt", paraMap.get("makeDt"));
+            indcRslt.put("procCd", 0);
+            indcRslt.put("makeWgt", paraMap.get("indcQty"));
+            indcRslt.put("procUnitNm", "EA");
+            paraMap.put("indcRslt", indcRslt);
             log.info("paraMap = > "+ paraMap );
             this.saveIndcRslt(paraMap);
         }
@@ -1684,12 +1684,15 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Override
     public void saveIndcRslt(Map<String, Object> passMap) {
         String tag = "MakeIndcService.saveIndcRslt => ";
+        log.info(tag + " passMap =>" + passMap.toString());
         Long custNo = Long.parseLong(passMap.get("custNo").toString());
+        Long userId = Long.parseLong(passMap.get("userId").toString());
+        String ipaddr = passMap.get("ipaddr").toString();
         MakeIndcRslt mirvo = new MakeIndcRslt();
-        Map<String, Object> paraMap = (Map<String, Object>) passMap.get("indcRslt");
+        Map<String, Object> paraMap = (Map<String, Object>) passMap.get("indcRslt"); //객체로 넘어옴
         try {
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            String date = paraMap.get("make_dt").toString().substring(0, 10);
+            String date = paraMap.get("makeDt").toString().substring(0, 10);
             mirvo.setMakeDt(sdf.parse(date));
         } catch (ParseException e) {
             e.printStackTrace();
@@ -1751,12 +1754,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
             }
 
-
             mirvo.setModDt(DateUtils.getCurrentBaseDateTime());
             mirvo.setModId(Long.parseLong(passMap.get("userId").toString()));
             mirvo.setModIp(passMap.get("ipaddr").toString());
             mirvo.setUsedYn("Y");
-            MakeIndcRslt chkvo = mir.findByCustNoAndIndcNoAndMakeDtAndUsedYn(custNo,mirvo.getIndcNo(), mirvo.getMakeDt(), "Y");
+            MakeIndcRslt chkvo = mir.findByCustNoAndIndcRsltNoAndUsedYn(custNo,mirvo.getIndcRsltNo(), "Y");
             if (chkvo != null) {
                 mirvo.setIndcRsltNo(chkvo.getIndcRsltNo());
                 mirvo.setRegId(chkvo.getRegId());
@@ -1765,8 +1767,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             } else {
                 mirvo.setIndcRsltNo(0L);
                 mirvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-                mirvo.setRegId(Long.parseLong(passMap.get("userId").toString()));
-                mirvo.setRegIp(passMap.get("ipaddr").toString());
+                mirvo.setRegId(userId);
+                mirvo.setRegIp(ipaddr);
             }
             log.info(tag + "1.1 작업결과 저정직전...");
             mirvo.setCustNo(custNo);
@@ -1802,34 +1804,63 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     MakeIndc chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,parIndcNo, "Y");
                     if (chkmivo != null) {
                         //SOL AddOn By KMJ At 21.08.05 23:00
+                        chkmivo.setModDt(DateUtils.getCurrentBaseDateTime());
+                        chkmivo.setModId(userId);
+                        chkmivo.setModIp(ipaddr);
                         try {
                             if (paraMap.get("closYn").toString().equals("Y")) { //생산완료
                                 chkmivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makeEnd")));
+                                chkmivo.setClosYn("Y");
                             }
+                            else {
+                                chkmivo.setClosYn("N");
+                            }
+                            makeIndcRepo.save(chkmivo);
                         }
                         catch(NullPointerException ne) {
 
                         }
                         //EOL AddOn By KMJ At 21.08.05 23:00
+
                     }
-                    makeIndcRepo.save(chkmivo);
+                    //SOL AddOn By KMJ At 21.12.01 07:57 --완제품입고 작업지시도 closYn -'Y' 인 경우 상태값을 생산올료처리
+                    chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,mivo.getIndcNo(), "Y");
+                    if (chkmivo != null) {
+                        try {
+                            chkmivo.setModDt(DateUtils.getCurrentBaseDateTime());
+                            chkmivo.setModId(userId);
+                            chkmivo.setModIp(ipaddr);
+                            if (paraMap.get("closYn").toString().equals("Y")) { //생산완료
+                                chkmivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makeEnd")));
+                                chkmivo.setClosYn("Y");
+                            }
+                            else {
+                                chkmivo.setClosYn("N");
+                            }
+                            makeIndcRepo.save(chkmivo);
+                        }
+                        catch(NullPointerException ne) {
+
+                        }
+                    }
+                    //EOL AddOn By KMJ At 21.12.01 07:57
+
                 } else { //AddOn by KMJ At 21.08.05 19:50 --완제품입고가 아닌 경우만 처리하기 위함.
                     mivo.setCustNo(custNo);
                     makeIndcRepo.save(mivo);
                 }
             }
 
+
+            /*Remarked By KMJ AT 21.12.01 - T제품입고에처 처리하므로 이하 프로세스는 처리하지 말 것 시작.
             int procCd = Integer.parseInt(passMap.get("procCd").toString());
             if (procCd != 999) return;
 
-
             Long whNo = Long.parseLong(paraMap.get("whNo").toString());
-            if (whNo == 0) return; //KMJ At 21.08.05 19:50 - 생산지시에서 결과 입력시 창고번호가 무조건 0 이므로 이하 프로세스는 절대 처리되지 않을 것으로 보임.
+            if (whNo == 0) return; //제품기본정보에 보관창고가 설정되어 있어야 함 (설정되지 않은경우 이하 skip)
 
             log.info(tag + "2.1 제품 입고이력 생성...");
             passMap.put("indcRsltNo", mirvo.getIndcRsltNo());
-            //ioService.saveProdIwhFromIndc(passMap); JPA Transction 문제로 함수사용자 않고 직접 처리
-
             ProdIwh iwhvo = new ProdIwh();
             Map<String, Object> rmap = new HashMap<String, Object>();
 
@@ -1852,8 +1883,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             } else {
                 iwhvo.setIwhNo(0L);
                 iwhvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-                iwhvo.setRegId(Long.parseLong(passMap.get("userId").toString()));
-                iwhvo.setRegIp(passMap.get("ipaddr").toString());
+                iwhvo.setRegId(userId);
+                iwhvo.setRegIp(ipaddr);
             }
             iwhvo.setCustNo(custNo);
             prodIwhRepo.save(iwhvo);
@@ -1885,8 +1916,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 stkvo.setRegIp(iwhvo.getModIp());
                 stkvo.setRegDt(iwhvo.getModDt());
             }
+            stkvo.setUsedYn("Y");
             stkvo.setCustNo(custNo);
             prodStkRepo.save(stkvo);
+
+            Remarked By KMJ AT 21.12.01 - T제품입고에처 처리하므로 이하 프로세스는 처리하지 말 것.끝*/
         }
     }
 
@@ -2493,7 +2527,6 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Transactional //AddOn By KMJ AT 21.08.05 19:50
     @Override
     public void saveIndcPrintText(Map<String, Object> paraMap) {
-        String tag = "MakeIndcService.saveIndcRslt => ";
         Long indcNo = Long.parseLong(paraMap.get("indcNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         MakeIndc michkvo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo, "Y");
