@@ -150,7 +150,7 @@ public class CustInfo {
     private Long outUnit;
 
     /*파렛트 */
-    @Column(name = "outPlt", nullable = false, columnDefinition = "numeric default 'N'")
+    @Column(name = "outPlt", nullable = false, columnDefinition = "char(1) default 'N'")
     private String outPlt;
 
 

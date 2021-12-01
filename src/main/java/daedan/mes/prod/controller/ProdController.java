@@ -121,15 +121,15 @@ public class ProdController {
            1. code.base.used_tp(2900) 이 파렛트유형과 혼용되고 있음. :
            2. 상품정보에서도 동일한 코드가 존재함.
         paraMap.put("selectStr","제품구분선택");
-        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.used_tp"))); //원료구분
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.used_tp")));
         rmap.put("comboUsedTp",codeService.getComboCodeList(paraMap));
         */
-        paraMap.put("selectStr","속성구분선택");
-        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_attr_tp"))); //원료구분
+        paraMap.put("selectStr","제품구분선택");
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.prod_attr_tp")));
         rmap.put("comboAttrTp",codeService.getComboCodeList(paraMap));
 
         paraMap.put("selectStr","연근선택");
-        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.how_old_tp"))); //원료구분
+        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base.how_old_tp")));
         rmap.put("comboHowOld",codeService.getComboCodeList(paraMap));
 
         paraMap.put("selectStr","판매구분선택"); //AddOn By KMJ At 21.10.09 OEM,ODM --주문구분과 같은코드 사용중
