@@ -835,11 +835,13 @@ public class PursController {
      * @return void
      */
     @PostMapping(value="/dropPursMatrList")
-    public Result dropPursMatrList(@RequestBody Map<String, Object> paraMap,HttpSession session){
+    public Result dropPursMatrList(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         pursService.dropPursMatrList(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
