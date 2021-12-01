@@ -1585,7 +1585,7 @@
         <if test="findSz != null and findSz != ''">
             and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by b.code_nm collate "ko_KR.utf8"
+        order by b.code_nm
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1599,7 +1599,7 @@
                 <if test="findSz != null and findSz != ''">
                     and upper(replace(b.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                 </if>
-                order by b.code_nm collate "ko_KR.utf8"
+                order by b.code_nm
              ) a
     </select>
 
@@ -1612,7 +1612,7 @@
              , to_char(to_timestamp(a.to_hm, 'YYYY'),'YYYY') as to_hm --종료시간
              , to_char(to_timestamp(a.over_fr_hm, 'YYYY'),'YYYY') as over_fr_hm --초과시작시간
              , to_char(to_timestamp(a.over_to_hm, 'YYYY'),'YYYY') as over_to_hm--초과종료시간
-             , c.code_nm as proc_nm --공정명
+             , c.code_nm as code_nm --공정명
              , get_time_str(a.over_work_hm)  as over_work_hm --초과근무시
              , get_time_str(a.tot_work_hm)  as tot_work_hm --토합근무시간
         from make_indc_mp a join make_indc d on a.indc_no = d.indc_no and d.cust_no = #{custNo}
@@ -1620,20 +1620,20 @@
                             join code_info c on b.proc_cd = c.code_no
                             join user_info e on a.user_id = e.user_id and e.cust_no = #{custNo}
                             join proc_brnch f on b.proc_cd = f.proc_cd and f.cust_no = #{custNo}
-        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+        where a.used_yn = 'Y' and e.cust_no = #{custNo}
         and d.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = d.par_indc_no)
         and f.brnch_no = #{brnchNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
                 and upper(replace(e.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
-            <if test="findTp != null and findTp == 'procNm'">
+            <if test="findTp != null and findTp == 'codeNm'">
                 and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
         <if test="indcNo != null and indcNo != ''">  AND a.indc_no = #{indcNo} </if>
         <if test="mpUsedDt != null and mpUsedDt != ''">  AND to_char(a.mp_used_dt,'YYYY-MM-DD') = to_char(#{mpUsedDt}::date,'YYYY-MM-DD')  </if>
-        order by proc_nm collate "ko_KR.utf8",user_nm collate "ko_KR.utf8"
+--         order by proc_nm collate "ko_KR.utf8",user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -1648,7 +1648,7 @@
                         , to_char(to_timestamp(a.to_hm, 'YYYY'),'YYYY') as to_hm --종료시간
                         , to_char(to_timestamp(a.over_fr_hm, 'YYYY'),'YYYY') as over_fr_hm --초과시작시간
                         , to_char(to_timestamp(a.over_to_hm, 'YYYY'),'YYYY') as over_to_hm--초과종료시간
-                        , c.code_nm as proc_nm --공정명
+                        , c.code_nm as code_nm --공정명
                         , get_time_str(a.over_work_hm)  as over_work_hm --초과근무시
                         , get_time_str(a.tot_work_hm)  as tot_work_hm --토합근무시간
         from make_indc_mp a join make_indc d on a.indc_no = d.indc_no and d.cust_no = #{custNo}
@@ -1656,14 +1656,14 @@
                             join code_info c on b.proc_cd = c.code_no
                             join user_info e on a.user_id = e.user_id and e.cust_no = #{custNo}
                             join proc_brnch f on b.proc_cd = f.proc_cd and f.cust_no = #{custNo}
-        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+        where a.used_yn = 'Y' and e.cust_no = #{custNo}
         and d.par_indc_no IN (SELECT indc_no FROM make_indc WHERE used_yn = 'Y' AND indc_no = d.par_indc_no)
         and f.brnch_no = #{brnchNo}
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'userNm'">
                 and upper(replace(e.user_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
-            <if test="findTp != null and findTp == 'procNm'">
+            <if test="findTp != null and findTp == 'codeNm'">
                 and upper(replace(c.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
