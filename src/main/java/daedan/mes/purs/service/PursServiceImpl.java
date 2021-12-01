@@ -4,6 +4,7 @@ import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.equip.domain.EquipBomCart;
+import daedan.mes.make.domain.MakeIndcRslt;
 import daedan.mes.matr.service.MatrService;
 import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.domain.OrdProd;
@@ -775,6 +776,44 @@ public class PursServiceImpl implements  PursService {
     @Override
     public int getPursMatrIwhListCount(Map<String, Object> paraMap) {
         return mapper.getPursMatrIwhListCount(paraMap);
+    }
+
+    @Override
+    public void dropPursMatrList(Map<String, Object> paraMap) {
+        String tag = "pursService.dropPursMatrList=>";
+        log.info(tag + " paraPam = " + paraMap.toString());
+
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long pursNo = Long.parseLong(paraMap.get("pursNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        //{prodList=[{indcYn=Y, prodNo=378589, indcRsltNo=413858, whNo=1, whNm=[상온-1]완제품창고, makeDt=2021-10-19T15:00:00.000+00:00, makeQty=300, indcNo=394042, stkQty=20, prodNm=6고려홍삼진액골드(30포), vgt_id=0, originalIndex=0, vgtSelected=true}, {indcYn=Y, prodNo=355361, indcRsltNo=413854, whNo=2, whNm=[상온-2]완제품창고, makeDt=2021-11-23T15:00:00.000+00:00, makeQty=29700, indcNo=404665, stkQty=0, prodNm=6년근고려홍삼정365스틱/네이처가든, vgt_id=0, originalIndex=1, vgtSelected=true}], userId=2, custNo=6, ipaddr=127.0.0.1, procYn=Y}
+
+        List<Map<String, Object>> dsMap = (List<Map<String, Object>>) paraMap.get("pursMatrList");
+        for (Map<String, Object> el : dsMap) {
+            PursMatr pmvo = new PursMatr();
+            pmvo.setCustNo(custNo);
+            pmvo.setPursMatrNo(Long.parseLong(el.get("pursMatrNo").toString()));
+            pmvo.setUsedYn("N");
+            pmvo.setModId(userId);
+            pmvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            pmvo.setModIp(ipaddr);
+            PursMatr chkvo = pmr.findByCustNoAndPursMatrNoAndUsedYn(custNo,pmvo.getPursMatrNo(), "Y");
+            if (chkvo != null) {
+                pmr.save(pmvo);
+            }
+        }
+        List<PursMatr> dsPursMatr = pmr.findAllByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
+        if (dsPursMatr.size() == 0) {
+            PursInfo pivo = pir.findByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
+            if (pivo != null) {
+                pivo.setUsedYn("N");
+                pivo.setModId(userId);
+                pivo.setModDt(DateUtils.getCurrentBaseDateTime());
+                pivo.setModIp(ipaddr);
+                pir.save(pivo);
+            }
+        }
     }
 
     @Override

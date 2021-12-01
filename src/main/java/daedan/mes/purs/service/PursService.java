@@ -88,4 +88,6 @@ public interface PursService {
 
     List<Map<String,Object>> getPursMatrIwhList(Map<String, Object> paraMap);
     int getPursMatrIwhListCount(Map<String, Object> paraMap);
+
+    void dropPursMatrList(Map<String, Object> paraMap);
 }
