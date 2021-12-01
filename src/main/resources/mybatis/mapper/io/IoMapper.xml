@@ -2597,7 +2597,6 @@
                 and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
             </if>
           and a.purs_no in (select purs_no from purs_info where used_yn = 'Y' and purs_sts in (162, 164)  and cust_no = #{custNo} and used_yn = 'Y')
-          and a.purs_sts in (162,164)
         <if test="whNo != null and whNo != ''">  and a.wh_no = #{whNo}   </if>
         <if test="indcNo != null and indcNo != ''">  and c.indc_no = #{indcNo}   </if>
         <if test="ordNo != null and ordNo != ''">  and c.ord_no = #{ordNo}   </if>
