@@ -67,6 +67,9 @@
             <if test="findTp != null and findTp == 'plan_nm'">
                 AND upper(replace(f.plan_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
+            <if test="findTp != null and findTp == 'ordNm'">
+                AND upper(replace(a.ord_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
         </if>
         <if test="dateFr != null and dateFr != ''">
             and to_char(a.ord_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
