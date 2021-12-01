@@ -12,7 +12,7 @@ public interface PursService {
     void initTempPursMatr(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getPursList(Map<String, Object> paraMap);
-    
+
     int getPursListCount(Map<String, Object> paraMap);
     Map<String, Object> getPursInfo(Map<String, Object> paraMap);
 
@@ -90,4 +90,6 @@ public interface PursService {
     int getPursMatrIwhListCount(Map<String, Object> paraMap);
 
     void dropPursMatrList(Map<String, Object> paraMap);
+
+    void dropPursMatrOwhList(Map<String, Object> paraMap);
 }
