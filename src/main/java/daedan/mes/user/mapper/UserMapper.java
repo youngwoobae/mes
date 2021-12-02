@@ -29,6 +29,9 @@ public interface UserMapper {
     List<Map<String, Object>> getTabletWorkerList(Map<String, Object> paraMap);
     int getTabletWorkerListCount(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getHstrEvtLogList(Map<String, Object> paraMap);
+    int getHstrEvtLogListCount(Map<String, Object> paraMap);
+
     List<Map<String, Object>> getHstrList(Map<String, Object> paraMap);
     int getHstrListCount(Map<String, Object> paraMap);
 

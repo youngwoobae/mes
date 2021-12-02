@@ -299,7 +299,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
 
         OrdInfo chkoivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,Long.parseLong(paraMap.get("ordNo").toString()), "Y");
-        if(chkoivo != null){
+        if(chkoivo != null){ //주분접수-> 생산의뢰로 변경됨 (141-> 142)
             chkoivo.setOrdSts(Long.parseLong(env.getProperty("ord_status_makeIndc")));
             ordRepo.save(chkoivo);
         }
@@ -336,7 +336,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         OrdInfo oivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,prodNo,"Y");
 
 
-        if(paraMap.get("type").toString().equals("newMake")){
+        if(paraMap.get("type").toString().equals("newMake")) {
             ordNo = this.makeOrderByIndc(paraMap);
             log.info("신규생성된 주문번호 : "+ ordNo);
         } else {
@@ -507,6 +507,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 Map<String,Object> datas = new HashMap<String,Object>();
                 datas.put("custNo",custNo);
                 datas.put("indcNo",parIndcNo);
+                /*kmjkmj.21.12.03 -- 시연을 위해 잠시 막아둠
                 List<Map<String, Object>> dl = mapper.chkStkByIndc(datas); // 재고 파악
                 for (Map<String, Object> es : dl) {
                     if (Float.parseFloat(es.get("reqPursQty").toString()) < 0) { //구매수량 < 필요수량인 경우
@@ -515,6 +516,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     }
                 }
                 inchk.setIndcSts( (!chk) ?  2401L : 2402L );
+                시연을 위해 잠시 막아둠*/
+                inchk.setIndcSts( 2403L ); //kmjkmj - 시연을 위해 잠시 추가됨.
                 inchk.setCustNo(custNo);
                 makeIndcRepo.save(inchk);
             }
@@ -1083,6 +1086,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 //        log.info(tag + "소요량 계산.자재번호 = " + matrvo.getMatrNo() + ": 자재명 = " + el.get("matr_nm").toString() );
 //        log.info(tag + "소요량 계산.구성비율 = " + consistRt + " : 생사지시중량 = " + indcWgt );
 //        matrvo.setNeedQty ((float) ( ((consistRt * 0.01) * indcWgt )) );
+
+
 
         matrvo.setNeedQty(Float.parseFloat(el.get("needQty").toString()));
         matrvo.setUsedYn("Y");
