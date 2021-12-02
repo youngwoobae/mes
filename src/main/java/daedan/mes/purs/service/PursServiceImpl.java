@@ -854,6 +854,16 @@ public class PursServiceImpl implements  PursService {
     }
 
     @Override
+    public void dropPursReqMatrList(HashMap<String, Object> paraMap) {
+        String tag = "pursService.dropPursReqMatrList => ";
+        log.info(tag + " paraMap = " + paraMap.toString());
+        mapper.dropPursReqMatrList(paraMap);
+        if (mapper.isDeadPurs(paraMap).equals("Y")) {
+            mapper.dropPursInfo(paraMap);
+        }
+    }
+
+    @Override
     public List<Map<String, Object>> pursInfoList(HashMap<String, Object> paraMap) {
         return mapper.getpursInfoList(paraMap);
     }
