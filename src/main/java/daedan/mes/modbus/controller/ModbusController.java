@@ -536,7 +536,8 @@ public class ModbusController {
     @PostMapping(value = "/setOperMastQty")
     public Result setOperMastQty(@RequestBody Map<String, Object> paraMap, HttpServletRequest request  , HttpSession session){
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("autoUserInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("autoUserInfo");
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
 
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
