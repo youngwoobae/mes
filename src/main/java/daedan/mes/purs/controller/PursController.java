@@ -23,7 +23,6 @@ import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 @RestController
 @RequestMapping("/api/daedan/mes/purs")
@@ -856,5 +855,32 @@ public class PursController {
 
         return result;
     }
+    /**
+     * T원료출고 일괄삭제기능
+     *
+     * @param paraMap
+     * @return void
+     */
+    @PostMapping(value="/dropPursMatrOwhList")
+    public Result dropPursMatrOwhList(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
 
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        pursService.dropPursMatrOwhList(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
 }
