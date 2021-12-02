@@ -31,9 +31,6 @@ public interface DashService {
     List<Map<String, Object>>  getYyjgProdIoList(Map<String, Object> paraMap);
     int  getYyjgProdIoListCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap);
-    int getWorkerListCount(Map<String, Object> paraMap);
-
     List<Map<String, Object>> getYyjgMatrIoList(Map<String, Object> paraMap);
     int getYyjgMatrIoListCount(Map<String, Object> paraMap);
 

@@ -5,6 +5,7 @@ import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.jwt.JwtService;
+import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.service.DeptService;
@@ -26,9 +27,8 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/daedan/mes/user")
@@ -41,10 +41,6 @@ public class UserController {
     private CodeService codeService;
     @Autowired
     private DeptService deptService;
-
-    @Autowired
-    private SysService sysService;
-
 
     @Autowired
     private CmmnService cmmnService;
@@ -817,38 +813,25 @@ public class UserController {
         return result;
     }
 
-
-    @PostMapping(value="/getWorkerList")
-    public Result getWorkerList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(userService.getWorkerList(paraMap));
-        result.setTotalCount(userService.getWorkerListCount(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-
-        return result;
-    }
-
-
     @PostMapping(value="/getWorkList")
     public Result getWorkList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
+
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            paraMap.get("dateFr").toString().substring(0, 10);
+        }
+        catch (NullPointerException ne) {
+            paraMap.put("dateFr", sdf.format(DateUtils.getCurrentDateString().substring(0, 10)));
+            paraMap.put("dateTo", sdf.format(DateUtils.getCurrentDateString().substring(0, 10)));
+        }
+        ArrayList<Map<String, Object>> kpiList = new ArrayList<>();
+
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+
         paraMap.put("ocpnKind",Long.parseLong(env.getProperty("ocpn_kind_blue")));
 
         result.setData(userService.getWorkList(paraMap));
@@ -866,6 +849,44 @@ public class UserController {
 
         return result;
     }
+    /**
+     * 생산직 근태목록
+     *
+     * @param paraMap
+     * @return Result
+     */
+    @PostMapping(value="/getWorkerList")
+    public Result getWorkerList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+        Result result = Result.successInstance();
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            paraMap.get("dateFr").toString();
+        }
+        catch (NullPointerException ne) {
+            paraMap.put("dateFr",sdf.format(DateUtils.getCurrentDate()));
+            paraMap.put("dateTo",sdf.format(DateUtils.getCurrentDate()));
+        }
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+
+        result.setData(userService.getWorkerList(paraMap));
+        result.setTotalCount(userService.getWorkerListCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
+
     /**
      * 개별근무정보저장
      *

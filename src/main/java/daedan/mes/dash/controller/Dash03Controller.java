@@ -132,29 +132,6 @@ public class Dash03Controller {
         return result;
     }
 
-    @PostMapping(value="/getWorkerList")
-    public Result getWorkerList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        result.setData(dash03.getWorkerList(paraMap));
-        result.setTotalCount(dash03.getWorkerListCount(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-
-        return result;
-    }
-
     @PostMapping(value="/getDashTotalMakeIndcRslt")
     public Result getDashTotalMakeIndcRslt(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();

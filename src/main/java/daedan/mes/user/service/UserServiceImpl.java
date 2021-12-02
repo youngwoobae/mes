@@ -3,6 +3,7 @@ package daedan.mes.user.service;
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
+import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.domain.DeptInfo;
@@ -21,7 +22,10 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
+import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
@@ -759,7 +763,6 @@ public  class UserServiceImpl implements UserService {
 		return mapper.getWorkListCount(paraMap);
 	}
 
-
 	@Override
 	public List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap) {
 		String tag = "vsvc.userService.getUserAccLogList => ";
@@ -803,6 +806,9 @@ public  class UserServiceImpl implements UserService {
 		Long workNo = 0L;
 
 		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+		Long userId = Long.parseLong(paraMap.get("userId").toString());
+		String ipaddr = paraMap.get("ipaddr").toString();
+
 		Long worker = 0L;
 		try {
 			worker = Long.parseLong(paraMap.get("worker").toString());
@@ -810,7 +816,6 @@ public  class UserServiceImpl implements UserService {
 		catch (NullPointerException ne) {
 
 		}
-		Long userId = Long.parseLong(paraMap.get("userId").toString());
 		try {
 			Date workDt = sdf.parse(paraMap.get("workDt").toString());
 			UserWork uwvo = new UserWork();
@@ -832,7 +837,7 @@ public  class UserServiceImpl implements UserService {
 			}
 			uwvo.setModDt(DateUtils.getCurrentBaseDateTime());
 			uwvo.setModId(userId);
-			uwvo.setModIp(paraMap.get("ipaddr").toString());
+			uwvo.setModIp(ipaddr);
 
 			UserWork uwchk = uhr.findByCustNoAndWorkNoAndUsedYn(custNo , workNo  , "Y");
 			if (uwchk != null){
@@ -843,9 +848,9 @@ public  class UserServiceImpl implements UserService {
 			}
 			else{
 				uwvo.setWorkNo(0L);
-				uwvo.setRegDt(uwchk.getRegDt());
-				uwvo.setRegId(uwchk.getRegId());
-				uwvo.setRegIp(uwchk.getRegIp());
+				uwvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+				uwvo.setRegId(userId);
+				uwvo.setRegIp(ipaddr);
 			}
 			uwvo.setUsedYn("Y");
 			uwvo.setCustNo(custNo);
