@@ -303,25 +303,27 @@ public class DashController {
         Result result = Result.successInstance();
 
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        try {
+            Long custNo = uvo.getCustInfo().getCustNo();
+            paraMap.put("custNo", custNo);
+            paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
+            result.setData(dashService.getYyjgProdIoList(paraMap));
+            result.setTotalCount(dashService.getYyjgProdIoListCount(paraMap));
 
-        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-
-        result.setData(dashService.getYyjgProdIoList(paraMap));
-        result.setTotalCount(dashService.getYyjgProdIoListCount(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
+            //SOL AddOn By KMJ AT 21.11.16
+            if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+                try {
+                    AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                    userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+                } catch (NullPointerException ne) {
+                }
             }
+            //EOL AddON By KMJ AT 21.11.26
         }
-        //EOL AddON By KMJ AT 21.11.26
-
+        catch (NullPointerException ne) {
+            log.info(tag + "custNo 검색 불가.....");
+        }
         return result;
     }
 

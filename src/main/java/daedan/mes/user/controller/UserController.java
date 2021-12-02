@@ -62,7 +62,14 @@ public class UserController {
     @PostMapping(value="/entryin")
     public Result entryin(HttpSession session) {
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = null;
+        try {
+            uvo = (UserInfo) session.getAttribute("userInfo");
+        }
+        catch (NullPointerException ne) {
+
+        }
+
         Long custNo = uvo.getCustInfo().getCustNo();
         result.setData(userService.getEntryInfo());
 
@@ -395,18 +402,28 @@ public class UserController {
 
         return result;
     }
-    @PostMapping(value = "/userList")
-    public Result userList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+    /**
+     * 사용이력관리용 사용자목록
+     *
+     * @param paraMap
+     * @return Result
+     */
+
+    @PostMapping(value = "/getUserList")
+    public Result getUserList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
+        String accEvtLogYn = uvo.getCustInfo().getActEvtLogYn();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        paraMap.put("accEvtLogYn", accEvtLogYn);
+
         Result result = Result.successInstance();
         result.setData(userService.getUserList(paraMap));
         result.setTotalCount(userService.getUserListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+        if (accEvtLogYn.equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
                 userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
@@ -692,14 +709,15 @@ public class UserController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
+        String actEvtLogYn = uvo.getCustInfo().getActEvtLogYn();
         paraMap.put("custNo", custNo);
-
+        paraMap.put("actEvtLogYn", actEvtLogYn);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(userService.getHstrList(paraMap));
         result.setTotalCount(userService.getHstrListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+        if (actEvtLogYn.equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
                 userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);

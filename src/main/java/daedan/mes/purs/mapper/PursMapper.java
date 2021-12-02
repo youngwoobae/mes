@@ -86,4 +86,6 @@ public interface PursMapper {
     int getPursMatrIwhListCount(Map<String, Object> paraMap);
 
     Map<String, Object> getPursChk(MatrIwh mivo);
+
+    void dropPursReqMatrList(HashMap<String, Object> paraMap);
 }

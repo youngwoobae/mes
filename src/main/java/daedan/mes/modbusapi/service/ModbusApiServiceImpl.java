@@ -43,7 +43,7 @@ public class ModbusApiServiceImpl implements ModbusApiService {
 
     @Override
     public Map<String, Object> getModbusApiData(Map<String, Object> paraMap) {
-        String tag = "vsvc.modubsApiService.saveModbusApiData => ";
+        String tag = "vsvc. => ";
         log.info(tag + "paraMap = " + paraMap.toString());
 
 //        Long eqNo = Long.parseLong(paraMap.get("spot_equip_no").toString());
@@ -85,6 +85,7 @@ public class ModbusApiServiceImpl implements ModbusApiService {
                             rmap.put("oper", jsonObj.get("oper").toString()); //구도상태여부(Y/N)
                             rmap.put("ea", Integer.parseInt(jsonObj.get("ea").toString())); //생산수량
                             rmap.put("alarm", jsonObj.get("alarm").toString()); //알람발생여부(Y/N)
+                            log.info(tag + "대동모드버스수신데이터 = " + rmap.toString());
                             catchData = true;
                             break;
 

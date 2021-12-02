@@ -91,6 +91,8 @@ public  class UserServiceImpl implements UserService {
 
 	@Override
 	public List<Map<String, Object>> getUserList(Map<String, Object> paraMap) {
+		String tag = "userService.getUserList => ";
+		log.info(tag + "paraMap = " + paraMap.toString());
 		return mapper.getUserList(paraMap);
 	}
 
@@ -917,14 +919,14 @@ public  class UserServiceImpl implements UserService {
 	public List<Map<String, Object>> getHstrList(Map<String, Object> paraMap) {
 		String tag = "UserService.getHstrList => ";
 		log.info(tag + " paraMap = " + paraMap.toString());
-		return mapper.getHstrList(paraMap);
+		String actEvtLogYn = paraMap.get("actEvtLogYn").toString();
+		return  (actEvtLogYn.equals("Y")) ?  mapper.getHstrEvtLogList(paraMap) : mapper.getHstrList(paraMap);
 	}
 
 	@Override
 	public int getHstrListCount(Map<String, Object> paraMap) {
-		String tag = "UserService.getHstrListCount => ";
-		log.info(tag + " paraMap = " + paraMap.toString());
-		return mapper.getHstrListCount(paraMap);
+		String actEvtLogYn = paraMap.get("actEvtLogYn").toString();
+		return  (actEvtLogYn.equals("Y")) ?  mapper.getHstrEvtLogListCount(paraMap) : mapper.getHstrListCount(paraMap);
 	}
 
 	@Transactional

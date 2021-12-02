@@ -1921,6 +1921,8 @@
                         , d.item_cd --자재코드
                         , d.sz      --자재규격
                         , d.purs_unit --자재구매단가
+                        , ci.cmpy_no --oem자재구매처
+                        , ci.cmpy_nm
                         , 'Y' as purs_yn --원칙은 자체 조달인데 필요데 따라 구매기 되기도 하는 자제여부를 처리하기 위해 사용됨 현재는 임시로 'Y' 로 설정하고 있음.
                         , ceil((((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) * #{ctlFillYield}) as purs_qty --구매필요량(Kg)
                         , ceil((((c.mess * c.qty_per_pkg) * b.consist_rt / 100) * a.ord_qty / 1000) * #{ctlFillYield}) as need_qty --소요량(Kg)
@@ -1937,6 +1939,9 @@
                         join prod_bom  b on a.prod_no = b.prod_no and b.purs_yn = 'Y' and b.prod_no = #{prodNo} and b.cust_no = #{custNo}
                         join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y' and c.cust_no = #{custNo}
                         join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y' and d.cust_no = #{custNo}
+                        join matr_cmpy g on d.matr_no = g.matr_no and d.cust_no  = g.cust_no  and g.used_yn = 'Y'
+                   left join cmpy_info ci on g.cmpy_no= ci.cmpy_no and g.cust_no = ci.cust_no and ci.used_yn = 'Y'
+                                                                   and ci.mngr_gbn_cd  =20
                    left join ( select a.ord_no
                                     , b.matr_no
                                     , coalesce ( sum(b.purs_qty),0) as purs_qty
