@@ -228,8 +228,8 @@
              ) a
     </select>
 
-    <select id="getHstrList" parameterType="map" resultType="camelMap">
-        /*접속일자별 메뉴 접속 이력  (userMapper.getHstrList) */
+    <select id="getHstrEvtLogList" parameterType="map" resultType="camelMap">
+        /*접속일자별 메뉴별 처리행위 이력 (userMapper.getHstrEvtLogList) */
         select a.acc_no
              , c.acc_dt --접속시분
              , c.acc_cnt --접속카운터
@@ -258,7 +258,8 @@
         order by a.acc_dt desc, a.acc_no asc
         limit #{pageSz} offset #{pageNo}
     </select>
-    <select id="getHstrListCount" parameterType="map" resultType="int">
+
+    <select id="getHstrEvtLogListCount" parameterType="map" resultType="int">
         select count(a.acc_no)
         from (
                  select a.acc_no
@@ -284,6 +285,48 @@
                 </if>
         ) a
     </select>
+
+    <select id="getHstrList" parameterType="map" resultType="camelMap">
+        /*접속일자별  접속메뉴 이력  (userMapper.getHstrList) */
+        select distinct TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD') as acc_dt  --접속시분
+                      , d.acc_cnt --접속카운터
+                      , a.user_id --접속자id
+                      , fn_get_dept_name_by_user(a.user_id) as dept_nm --소속명
+                      , fn_get_user_name(a.user_id) as user_nm --접속자명
+                      , fn_get_sys_menu_name(a.cust_no, a.sys_menu_no) as sys_menu_nm
+        from acc_hstr a  left join (select TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD') as acc_unix_dt
+                                         , count(sys_menu_no) as acc_cnt
+                                         , sys_menu_no
+                                         , cust_no
+                                    from acc_hstr
+                                    where TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD') not in ('70-01-01')
+                                    group by cust_no, sys_menu_no, TO_CHAR(to_timestamp(acc_unix_time),'YY-MM-DD')
+                                    ) d on a.sys_menu_no  = d.sys_menu_no and a.cust_no =d.cust_no
+        where a.cust_no  = #{custNo}
+        and TO_CHAR(to_timestamp(a.acc_unix_time),'YYYY-MM-DD')  =  substr(#{accDt},1,10)
+        order by acc_dt desc
+    </select>
+
+    <select id="getHstrListCount" parameterType="map" resultType="int">
+        select count(a.acc_dt)
+        from (
+                 select distinct TO_CHAR(to_timestamp(a.acc_unix_time), 'YYYY-MM-DD') as acc_dt  --접속시분
+                               , d.acc_cnt                                                       --접속카운터
+                               , a.user_id                                                       --접속자id
+                 from acc_hstr a left join (select TO_CHAR(to_timestamp(acc_unix_time), 'YY-MM-DD') as acc_unix_dt
+                                                  , count(sys_menu_no)                               as acc_cnt
+                                                  , sys_menu_no
+                                                  , cust_no
+                                             from acc_hstr
+                                             where TO_CHAR(to_timestamp(acc_unix_time), 'YY-MM-DD') not in ('70-01-01')
+                                             group by cust_no, sys_menu_no, TO_CHAR(to_timestamp(acc_unix_time), 'YY-MM-DD')
+                                            ) d on a.sys_menu_no = d.sys_menu_no and a.cust_no = d.cust_no
+                 where a.cust_no = #{custNo}
+                   and TO_CHAR(to_timestamp(a.acc_unix_time), 'YYYY-MM-DD') = substr(#{accDt}, 1, 10)
+             ) a
+
+    </select>
+
 
     <select id="getAuthUserList" parameterType="map" resultType="camelMap">
         /*시스템관리-권한관리*/

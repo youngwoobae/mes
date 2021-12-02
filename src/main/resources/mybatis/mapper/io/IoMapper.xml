@@ -2595,7 +2595,8 @@
                     left join matr_stk  d on b.wh_no = d.wh_no and b.matr_no = d.matr_no  and  d.used_yn ='Y' and b.cust_no = d.cust_no
         where a.cust_no = #{custNo}
         and a.used_yn = 'Y'
-        and a.cmpy_no in (select cmpy_no from cmpy_info where used_yn = 'Y')
+        and a.purs_matr_no not in (select purs_matr_no from matr_iwh where cust_no = a.cust_no and used_yn = 'Y')
+        --and a.cmpy_no in (select cmpy_no from cmpy_info where used_yn = 'Y')
         <if test="prodNo != null and prodNo != ''">
             and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
         </if>
@@ -2609,16 +2610,16 @@
 
         <choose>
             <when test="findTp != null and findTp == 'en'">
-                and upper(fn_get_matr_name(a.matr_no)) as matr_nm like '%' || upper(#{findSz}) || '%'
+                and upper(fn_get_matr_name(a.matr_no)) like '%' || upper(#{findSz}) || '%'
             </when>
             <when test="findTp != null and findTp == 'no'">
-                and fn_get_matr_name(a.matr_no) as matr_nm like '%' || #{findSz} || '%'
+                and fn_get_matr_name(b.matr_no) like '%' || #{findSz} || '%'
             </when>
             <when test="findTp != null and findTp == 'ko'">
-                AND fn_get_consonant(a.matr_no) as matr_nm = #{findSz}
+                AND fn_get_consonant(b.matr_nm)  = #{findSz}
             </when>
             <when test="findTp != null and findTp == 'ko'">
-                AND fn_get_matr_name(a.matr_no) as matr_nm = #{findTp}
+                AND fn_get_matr_name(a.matr_no) = #{findTp}
             </when>
             <otherwise> </otherwise>
         </choose>
@@ -2634,7 +2635,8 @@
                              join purs_info c on a.purs_no = c.purs_no and c.used_yn ='Y'
                         left join matr_stk  d on b.wh_no = d.wh_no and b.matr_no = d.matr_no  and  d.used_yn ='Y' and b.cust_no = d.cust_no
             where a.cust_no = #{custNo}
-             and a.cmpy_no in (select cmpy_no from cmpy_info where used_yn = 'Y')
+            and a.purs_matr_no not in (select purs_matr_no from matr_iwh where cust_no = a.cust_no and used_yn = 'Y')
+             --and a.cmpy_no in (select cmpy_no from cmpy_info where used_yn = 'Y')
                 <if test="prodNo != null and prodNo != ''">
                 and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
                 </if>
@@ -2768,9 +2770,10 @@
         from matr_stk a join matr_info b on a.matr_no = b.matr_no
                                         and b.used_yn ='Y'
                                         and b.cust_no = a.cust_no
-                   left join make_indc_matr c on a.matr_no = c.matr_no
+                        join make_indc_matr c on a.matr_no = c.matr_no
                                              and c.used_yn ='Y'
                                              and c.cust_no = a.cust_no
+                                             and coalesce(c.take_yn,'N') = 'N'
                    left join make_indc e on c.indc_no = e.indc_no and e.used_yn = 'Y'
         where a.used_yn = 'Y'
         and a.cust_no =#{custNo}

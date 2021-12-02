@@ -123,7 +123,7 @@ public class CmpyServiceImpl implements  CmpyService {
          try {
              cmpyNo = Long.parseLong(paraMap.get("cmpyNo").toString());
              CmpyInfo chkvo = cmpyRepository.findByCustNoAndCmpyNoAndUsedYn(custNo,cmpyNo,"Y");
-             if (cmpyvo != null) {
+             if (chkvo != null) {
                  cmpyvo.setCmpyNo(chkvo.getCmpyNo());
                  cmpyvo.setRegDt(chkvo.getRegDt());
                  cmpyvo.setRegId(chkvo.getRegId());

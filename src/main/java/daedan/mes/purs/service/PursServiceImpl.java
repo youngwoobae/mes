@@ -12,6 +12,7 @@ import daedan.mes.purs.mapper.PursMapper;
 import daedan.mes.purs.repository.PursInfoRepository;
 import daedan.mes.purs.repository.PursMatrRepository;
 import daedan.mes.stock.service.StockService;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -787,7 +788,12 @@ public class PursServiceImpl implements  PursService {
         for (Map<String, Object> el : dsMap) {
             PursMatr pmvo = new PursMatr();
             pmvo.setCustNo(custNo);
-            pmvo.setPursMatrNo(Long.parseLong(el.get("pursMatrNo").toString()));
+            try {
+                pmvo.setPursMatrNo(Long.parseLong(el.get("pursMatrNo").toString()));
+            }
+            catch (NullPointerException ne) {
+                continue;
+            }
             PursMatr chkpmvo = pmr.findByCustNoAndPursMatrNoAndUsedYn(custNo,pmvo.getPursMatrNo(),"Y");
             if (chkpmvo != null) {
                 chkpmvo.setUsedYn("N");
