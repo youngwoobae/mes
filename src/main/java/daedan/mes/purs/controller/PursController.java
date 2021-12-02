@@ -483,6 +483,29 @@ public class PursController {
         return result;
     }
 
+    //구매자재리스트정보 삭제
+    @PostMapping(value="/dropPursReqMatrList")
+    public Result dropPursReqMatrList(@RequestBody HashMap<String, Object> paraMap, HttpServletRequest request,HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+
+        pursService.dropPursReqMatrList(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
     @PostMapping(value="/needPursList")
     public Result needPursList(@RequestBody Map<String, Object> paraMap,HttpSession session){
         Result result = Result.successInstance();
