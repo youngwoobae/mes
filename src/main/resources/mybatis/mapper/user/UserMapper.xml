@@ -572,12 +572,9 @@
              , a.user_nm --성명
              , a.empl_kind --내국인,외국인,용역 구분
              , fn_get_code_name('nm',a.empl_kind) as empl_kind_nm
-        from user_info a join user_work b on a.user_id = b.user_id and a.cust_no = b.cust_no and b.used_yn = 'Y'
+        from user_info a
         where a.cust_no = #{custNo}
         and a.used_yn = 'Y'
-        <if test="dateFr != null and dateFr != ''">
-            and TO_CHAR(b.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
-        </if>
         <if test="ocpnKind != null and ocpnKind != ''">
             and a.ocpn_kind = #{ocpnKind}
         </if>
@@ -599,12 +596,9 @@
         from (
             select a.user_id --id
                  , a.user_nm --성명
-            from user_info a join user_work b on a.user_id = b.user_id and a.cust_no = b.cust_no and b.used_yn = 'Y'
+            from user_info a
             where a.cust_no = #{custNo}
             and a.used_yn = 'Y'
-            <if test="dateFr != null and dateFr != ''">
-                and TO_CHAR(b.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
-            </if>
             <if test="ocpnKind != null and ocpnKind != '' ">
                 and a.ocpn_kind = #{ocpnKind}
             </if>

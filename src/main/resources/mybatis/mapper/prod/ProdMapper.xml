@@ -805,6 +805,7 @@
     </select>
 
     <select id="getProdBomListByIndc" parameterType="map"  resultType="camelMap">
+        /* 생산지시번호기준bom리스트(prodMapper.getProdBomListByIndc) */
         select a.matr_no
              , round(a.consist_rt::numeric,2) as consist_rt
              , ceil( ( #{indcQty} * (c.vol/1000)  * c.qty_per_pkg * c.spga  ) * (a.consist_rt / 100)) as need_qty --소요량(Kg)

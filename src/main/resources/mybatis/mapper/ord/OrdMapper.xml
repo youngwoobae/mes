@@ -753,7 +753,7 @@
     </select>
 
     <select id="getExOrdProdList" parameterType="map" resultType="camelMap">
-        /*주문상품을 설저하기위한 제품목록(ordMapper.getExOrdProdList) */
+        /*주문상품을 설정하기위한 제품목록(ordMapper.getExOrdProdList) */
         select a.prod_no --품번
              , a.prod_code --코드
              , a.prod_nm  --품명
@@ -773,12 +773,12 @@
           AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
 
         <choose>
-            <when test='cmpyNo != null and cmpyNo != ""'>
+            <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo != '0'.toString())">
                 AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
             </when>
-            <otherwise>
+            <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo == '0'.toString())">
                 and coalesce (a.cmpy_no , 0) = 0
-            </otherwise>
+            </when>
         </choose>
 
         <if test="ordNo != null and ordNo != ''">
@@ -804,12 +804,12 @@
                 where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
                  AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <choose>
-                    <when test='cmpyNo != null and cmpyNo != ""'>
+                    <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo != '0'.toString())">
                         AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
                     </when>
-                    <otherwise>
+                    <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo == '0'.toString())">
                         and coalesce (a.cmpy_no , 0) = 0
-                    </otherwise>
+                    </when>
                 </choose>
                 <if test="ordNo != null and ordNo != ''">
                     and a.prod_no not in (select prod_no from ord_prod where used_yn = 'Y' and ord_no=#{ordNo})
