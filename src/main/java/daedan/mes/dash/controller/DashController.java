@@ -354,40 +354,7 @@ public class DashController {
 
         return result;
     }
-    /**
-     * 작업자현황
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/getWorkerList")
-    public Result getWorkerList(@RequestBody Map<String, Object> paraMap  , HttpSession session){
-        Result result = Result.successInstance();
 
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-
-        String tag = "DashController=>";
-        log.info(tag + "parCodeNo = " + paraMap.get("parCodeNo"));
-        List<Map<String,Object>> list = dashService.getWorkerList(paraMap);
-        result.setData(list);
-        result.setTotalCount(dashService.getWorkerListCount(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-
-        return result;
-    }
     @PostMapping(value="/getYyjgPhothCounter")
     public Result getYyjgPhothCounter(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();

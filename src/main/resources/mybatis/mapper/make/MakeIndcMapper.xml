@@ -1006,9 +1006,9 @@
              , b.par_dept_no
              , b.prt_seq
         from user_info a join code_info z on a.ocpn_kind = z.code_no
-        left join code_info y on a.empl_kind = y.code_no
-        left join dept_info b on a.dept_no = b.dept_no
-                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+                    left join code_info y on a.empl_kind = y.code_no
+                    left join dept_info b on a.dept_no = b.dept_no
+                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
         where 1 = 1
         and a.used_yn = 'Y' and a.cust_no =#{custNo}
         <if test="ocpnKind != null and ocpnKind != ''">

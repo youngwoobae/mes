@@ -37,8 +37,6 @@ public interface DashMapper {
 
     int getPhoneDashRsltInfoCount(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap);
-    int getWorkerListCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMetalLog(Map<String, Object> paraMap);
 

@@ -127,20 +127,6 @@ public class DashServiceImpl implements  DashService {
         return yyjgMapper.getYyjgMatrIoListCount(paraMap);
     }
 
-
-    @Override
-    public List<Map<String, Object>> getWorkerList(Map<String, Object> paraMap){
-        String tag = "dashService.getWorkerList => ";
-        log.info(tag + "paraMap = " + paraMap.toString());
-        return mapper.getWorkerList(paraMap);
-    }
-
-    @Override
-    public int getWorkerListCount(Map<String, Object> paraMap){
-        return mapper.getWorkerListCount(paraMap);
-    }
-
-
     @Override
     public List<Map<String, Object>> getMetalLog(Map<String, Object> paraMap){
         String tag = "dashService.getMetalLog => ";
