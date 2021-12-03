@@ -115,7 +115,7 @@
                     )) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by k.cmpy_nm collate "ko_KR.utf8", a.matr_nm collate "ko_KR.utf8"
+        order by fn_get_cmpy_name(g.cmpy_no) collate "ko_KR.utf8", a.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
