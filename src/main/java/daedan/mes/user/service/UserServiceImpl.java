@@ -8,6 +8,8 @@ import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.domain.DeptInfo;
 import daedan.mes.dept.repository.DeptRepository;
+import daedan.mes.purs.domain.PursInfo;
+import daedan.mes.purs.domain.PursMatr;
 import daedan.mes.sysmenu.domain.SysMenu;
 import daedan.mes.sysmenu.service.SysMenuService;
 import daedan.mes.user.domain.*;
@@ -92,6 +94,9 @@ public  class UserServiceImpl implements UserService {
 
 	@Autowired
 	private AuthUserMenuRepository authUserMenuRepo;
+
+	@Autowired
+	private UserWorkRepository userWorkRepo;
 
 	@Override
 	public List<Map<String, Object>> getUserList(Map<String, Object> paraMap) {
@@ -915,6 +920,32 @@ public  class UserServiceImpl implements UserService {
 			}
 			catch(NullPointerException ne) {
 				continue;
+			}
+		}
+	}
+
+	@Override
+	public void dropWorkerList(Map<String, Object> paraMap) {
+		String tag = "UserService.dropWorkerList =>";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+//		Long pursNo = 0L;
+		Long userId = Long.parseLong(paraMap.get("userId").toString());
+		String ipaddr = paraMap.get("ipaddr").toString();
+
+		List<Map<String, Object>> dsMap = (List<Map<String, Object>>) paraMap.get("WorkerList");
+		System.out.println("%%%%" + dsMap);
+		for (Map<String, Object> el : dsMap) {
+			UserWork uwvo = new UserWork();
+			uwvo.setCustNo(custNo);
+			uwvo.setWorkNo(Long.parseLong(el.get("workNo").toString()));
+			UserWork chkpmvo = userWorkRepo.findByCustNoAndWorkNoAndUsedYn(custNo, uwvo.getWorkNo(), "Y");
+			if (chkpmvo != null) {
+				chkpmvo.setUsedYn("N");
+				chkpmvo.setModDt(DateUtils.getCurrentBaseDateTime());
+				chkpmvo.setModId(userId);
+				chkpmvo.setModIp(ipaddr);
+				userWorkRepo.save(chkpmvo);
 			}
 		}
 	}

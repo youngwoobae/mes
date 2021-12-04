@@ -93,6 +93,9 @@ public interface UserService {
     @Transactional    void saveAccLogEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt);
 
     @Transactional void deleteAuthUser(Map<String, Object> paraMap);
+    
+    //근태관리 일괄삭제
+    @Transactional void dropWorkerList(Map<String,Object> paraMap);
 
     List<Map<String, Object>>  getHstrList(Map<String, Object> paraMap);
 
