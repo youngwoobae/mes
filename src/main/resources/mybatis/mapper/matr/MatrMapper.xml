@@ -1095,6 +1095,7 @@
     </select>
 
     <select id="getmatrPursUnit" parameterType="map" resultType="camelMap">
+        <!-- 기준정보 > 원료관리 > 부자재 : 부자재 관리 popup 창 -->
         select a.code_nm
               ,a.code_no
         from code_info a

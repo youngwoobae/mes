@@ -9,9 +9,15 @@ import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.file.service.FileService;
 import daedan.mes.io.domain.ProdOwh;
 import daedan.mes.io.repository.ProdOwhRepository;
-import daedan.mes.matr.domain.*;
+import daedan.mes.matr.domain.MatrAttr;
+import daedan.mes.matr.domain.MatrCmpy;
+import daedan.mes.matr.domain.MatrCmpyCart;
+import daedan.mes.matr.domain.MatrInfo;
 import daedan.mes.matr.mapper.MatrMapper;
-import daedan.mes.matr.repository.*;
+import daedan.mes.matr.repository.MatrAttrRepository;
+import daedan.mes.matr.repository.MatrCmpyCartRepository;
+import daedan.mes.matr.repository.MatrCmpyRepository;
+import daedan.mes.matr.repository.MatrRepository;
 import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.domain.OrdProd;
 import daedan.mes.ord.repository.OrdProdRepository;
@@ -29,7 +35,6 @@ import daedan.mes.stock.repository.WhInfoRepository;
 import daedan.mes.stock.service.StockService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ibatis.jdbc.Null;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -41,14 +46,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.core.env.Environment;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
 import java.io.*;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -1016,9 +1019,9 @@ public class MatrServiceImpl implements MatrService {
         cell.setCellStyle(Style);
         Style.setFont(Font);
         sheet.addMergedRegion(new CellRangeAddress(1,1,1,5));
-        
+
         rowCount++; //제목과 컬럼사이 개행
-        
+
         // 첫번째 Row - 컬럼명
         row = sheet.createRow(rowCount++);
         cellCount = 0;
@@ -1090,9 +1093,10 @@ public class MatrServiceImpl implements MatrService {
             bomvo.setModDt(DateUtils.getCurrentDate());
             bomvo.setModIp(paraMap.get("ipaddr").toString());
             bomvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-            ProdBom chkvo = prodBomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(custNo,bomvo.getProdNo(), bomvo.getMatrNo(),"Y");
+            ProdBom chkvo =  prodBomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(custNo,bomvo.getProdNo(), bomvo.getMatrNo(),"Y");
 
             if (chkvo != null) {
+                bomvo.setBomLvl(chkvo.getBomLvl());
                 bomvo.setBomNo(chkvo.getBomNo());
                 bomvo.setRegDt(chkvo.getRegDt());
                 bomvo.setRegId(chkvo.getRegId());
@@ -1100,6 +1104,7 @@ public class MatrServiceImpl implements MatrService {
             }
             else {
                 bomvo.setBomNo(0L);
+                bomvo.setBomLvl(0L);
                 bomvo.setRegDt(DateUtils.getCurrentDate());
                 bomvo.setRegIp(paraMap.get("ipaddr").toString());
                 bomvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
