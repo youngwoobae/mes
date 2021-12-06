@@ -53,6 +53,8 @@ public interface UserMapper {
 
     List<Map<String, Object>> getWorkList(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getUserGroup(Map<String, Object> paraMap);
+
     int getWorkListCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getUserAccLogList(Map<String, Object> paraMap);

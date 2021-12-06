@@ -981,4 +981,10 @@ public  class UserServiceImpl implements UserService {
 			uhr.save(uwvo);
 		}
 	}
+
+	public List<Map<String, Object>> getUserGroup(Map<String, Object> paraMap) {
+		String tag = "UserService.getUserGroup => ";
+		log.info(tag + " paraMap = " + paraMap.toString());
+		return mapper.getUserGroup(paraMap);
+	}
 }
