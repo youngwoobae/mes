@@ -102,4 +102,6 @@ public interface UserService {
     int getHstrListCount(Map<String, Object> paraMap);
 
     @Transactional void dropWorkInfo(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getUserGroup(Map<String, Object> paraMap);
 }
