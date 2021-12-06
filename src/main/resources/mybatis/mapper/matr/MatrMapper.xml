@@ -1102,7 +1102,7 @@
         where par_code_no = #{parCodeNo}
         and a.used_yn = 'Y'
         <if test="findSz != null and findSz != ''">
-            <if test="findTp != null and findTp == 'code_nm'">
+            <if test="findTp != null and findTp == 'codeNm'">
                 and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>

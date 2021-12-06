@@ -191,7 +191,7 @@ public class MatrController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         List <Map<String,Object>> rmap = matrService.getMatrCurrStkList(paraMap);
- 
+
         result.setData(rmap);
         result.setTotalCount(matrService.getMatrCurrStkListCount(paraMap));
 
@@ -1056,7 +1056,7 @@ public class MatrController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("parCodeNo" ,Long.parseLong(env.getProperty("code.base.unit").toString()));
         result.setData(matrService.getmatrPursUnit(paraMap));
         result.setTotalCount(matrService.getmatrPursUnitCount(paraMap));
