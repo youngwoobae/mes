@@ -325,10 +325,10 @@
              , to_char(b.make_dt,'YYYY-MM-DD') as make_dt --생산일자
              , a.indc_wgt --지시중량
              , b.make_wgt
-             , a.fill_yield --
-             , a.ctl_fill_yield --관리지조정수율
-             , a.real_yield --운영수율
-             , a.fault_rt
+             , case when a.fill_yield = 'NaN' then 0 else a.fill_yield end as fill_yield --충진수율
+             , case when a.real_yield = 'NaN' then 0 else a.real_yield end as real_yield --운영수율
+             , case when a.ctl_fill_yield = 'NaN' then 0 else a.ctl_fill_yield end as ctl_fill_yield --관리지조정수율
+             , case when a.fault_rt = 'NaN' then 0 else a.fault_rt end as fault_rt --불량율
         from make_indc a join prod_info c on a.prod_no = c.prod_no
                                     and c.used_yn = 'Y' and c.cust_no =#{custNo}
                          join proc_brnch x on x.brnch_no = c.brnch_no
