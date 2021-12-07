@@ -44,20 +44,15 @@
               , a.indc_wgt --지시중량
               , a.indc_qty
               , case when d.proc_unit = 81 then coalesce(h.adj_make_qty,0) else coalesce(h.adj_make_wgt,0) end as adj_wgt_or_qty -- 조정생산량합계
-              --, case when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_wgt,0)
-              --       when d.proc_unit = 84 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_wgt,0)
-              --       when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) = 0 then coalesce(h.make_qty,0)
-              --       when d.proc_unit = 81 and coalesce(h.adj_make_qty,0) != 0 then coalesce(h.adj_make_qty,0)
-              --   end as wgt_or_qty -- 공정단위와 조정생산량에 따라 다르게 표시하기 위해 사용.
               , h.make_qty --생상량
               , h.make_dt --생산일자
               , h.ctl_fill_yield --조정충진수율 합계
               , d.proc_unit --공정처리단위
               , fn_get_code_name('nm',d.proc_unit)   as proc_unit_nm --공정처리단위명
               , ( coalesce (a.fill_yield,0) / 100.0)  * a.indc_wgt as weighing --충진을위한 칭량중량
-              , a.real_yield --운영수율
-              , a.oper_rt --가동율
-              , a.fault_rt --불량율
+              , case when a.real_yield = 'NaN' then 0 else a.real_yield end as real_yield --운영수율
+              , case when a.oper_rt = 'NaN' then 0 else a.oper_rt end as oper_rt--가동율
+              , case when a.fault_rt = 'NaN' then 0 else a.fault_rt end as fault_rt --불량율
               , coalesce (c.used_mp,0)  as  used_mp     --투입인원수
               , coalesce (c.used_tm,0)  as  used_tm     --투입시간
               , a.indc_sts --지시상태
