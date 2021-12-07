@@ -44,6 +44,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.sql.Clob;
@@ -67,7 +69,22 @@ public class StringUtil {
         PADDING[32] = "                                                                ";
     }
 
-	
+
+    public static ByteBuffer str_to_bb(String msg, Charset charset){
+        return ByteBuffer.wrap(msg.getBytes(charset));
+    }
+
+    public static String bb_to_str(ByteBuffer buffer, Charset charset){
+        byte[] bytes;
+        if(buffer.hasArray()) {
+            bytes = buffer.array();
+        } else {
+            bytes = new byte[buffer.remaining()];
+            buffer.get(bytes);
+        }
+        return new String(bytes, charset);
+    }
+
     /**
      * 빈 문자열 <code>""</code>.
      */

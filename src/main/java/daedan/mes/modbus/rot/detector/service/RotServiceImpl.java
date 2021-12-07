@@ -250,7 +250,7 @@ public class RotServiceImpl implements RotService {
         log.info(tag + " 데이터 수신 중....");
         Map<String,Object> rmap = new HashMap<String,Object>();
         int naRslt[] =  socketService.sendByteMsgType2(rotServer,rotServerPort, rbytes);
-        if (naRslt[1] == 3) {
+        if (naRslt[1] == 3) { //Function Code CHECK
             float tmpr = (float) ((naRslt[3] * 255 + naRslt[4]) * 0.1);
             float humy = (float) ((naRslt[5] * 255 + naRslt[6]) * 0.1);
             rmap.put("tmpr", tmpr);

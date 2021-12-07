@@ -79,17 +79,4 @@ public class BordInfo {
     private String usedYn;
 
 
-    public Date getRegDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
-
-    /*수정일자*/
-    public Date getModDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
-
 }

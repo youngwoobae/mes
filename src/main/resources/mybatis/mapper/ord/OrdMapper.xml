@@ -757,6 +757,7 @@
         select a.prod_no --품번
              , a.prod_code --코드
              , a.prod_nm  --품명
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --oem업체명
              , a.erp_prod_nm --erp제품명
              , a.mess -- 단위중량
              , a.vol -- 단위부피

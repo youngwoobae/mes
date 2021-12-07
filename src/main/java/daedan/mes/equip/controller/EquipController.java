@@ -31,6 +31,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -686,11 +687,16 @@ public class EquipController {
 
         //Function Code
         buf.append(paraMap.get("funCode"));
-
-        String strDataVal = paraMap.get("dataVal").toString();
-        int dataLen = strDataVal.length();
-        log.info("데이터길이 = " + dataLen );
-
+        String strDataVal = "";
+        int dataLen = 0;
+        try {
+            strDataVal = paraMap.get("dataVal").toString();
+            dataLen = strDataVal.length();
+            log.info("데이터길이 = " + dataLen);
+        }
+        catch (NullPointerException ne) {
+            log.info("전송데이터 없음" );
+        }
         buf.append(dataLen);
         log.info("장비 + 순번 + 펑션코코드 + 데이터길이 = " + buf.toString() );
 
@@ -706,8 +712,13 @@ public class EquipController {
 
         String sendMsg[] = new String[1];
         sendMsg[0] = buf.toString();
-        log.info("전송데이터 = " + sendMsg[0]);
-        new NettyClient(host, port, sendMsg).run();
+        log.info("스트링전송데이터 = " + sendMsg[0]);
+        new NettyClient(host, port, sendMsg).run(); //스트링으로 보내는 경우
+
+        //Charset charset = Charset.forName("utf-8");
+        //ByteBuffer bb = StringUtil.str_to_bb(sendMsg[0],charset);
+        //log.info("바이트버퍼데이터 = " + bb.toString());
+       //new NettyClient(host, port, bb).run(); //ByteBuff로 보내는 경우
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {

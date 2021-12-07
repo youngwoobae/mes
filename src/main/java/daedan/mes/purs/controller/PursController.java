@@ -87,6 +87,7 @@ public class PursController {
         return result.setData(rmap);
     }
 
+    /*Remarked By KMJ AT 21.112.06 - 사용처가 없는 것으로 보임 :
     @PostMapping(value="/pursCmpyConditions") //구매처별원자재구매목록
     public Result pursCmpyConditions(@RequestBody HashMap<String, Object> paraMap,HttpSession session){
         Result result = Result.successInstance();
@@ -112,6 +113,7 @@ public class PursController {
 
         return result;
     }
+    */
 
     @PostMapping(value="/pursList") //구매처별원자재구매목록
     public Result pursList(@RequestBody HashMap<String, Object> paraMap,HttpSession session){

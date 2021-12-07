@@ -49,9 +49,9 @@ public class TcpServiceImpl implements  TcpService{
         int startAddr  = Integer.parseInt(paraMap.get("startAddr").toString());//0
         int dataLength = Integer.parseInt(paraMap.get("dataLength").toString());//2
 
-        log.info(tag + "startAddr = " + startAddr);
-        log.info(tag + "dataLength = " + dataLength);
-
+        //log.info(tag + "startAddr = " + startAddr);
+        //log.info(tag + "dataLength = " + dataLength);
+        //startAddr = 40000;
         //int modbusReply[] = new int[dataLength + 1]; //포장기에서 보내는 데이터배열ƒ√
         Map<String,Object> rmap = this.setModbusConnection(paraMap);
         if (rmap.get("status").toString().equals("FAIL")) {
@@ -61,7 +61,7 @@ public class TcpServiceImpl implements  TcpService{
             ModbusClient modbusClient = (ModbusClient) rmap.get("tcpClient");
             if ( modbusClient != null) {
                 try {
-                    int modbusReply[] = modbusClient.ReadHoldingRegisters(startAddr, dataLength); //ModbusTcp Data Read
+                    int modbusReply[] = modbusClient.ReadHoldingRegisters(1, 2); //ModbusTcp Data Read
                     for (int idx = 0; idx < modbusReply.length; idx++) {
                         log.info(tag + "modbusTcpReply[{" + idx + " ]  = " + modbusReply[idx]);
                     }
@@ -92,6 +92,7 @@ public class TcpServiceImpl implements  TcpService{
                     if (modbusClient.isConnected()) {
                         try {
                             modbusClient.Disconnect();
+                            log.info("modbus disconnmected.....");
                         } catch (IOException e) {
                             //log.error(tag + "modbusClient.Disconnect Exception" + e.getLocalizedMessage());
                         }
