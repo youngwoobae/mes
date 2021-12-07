@@ -134,5 +134,7 @@ public interface ProdService {
 
     List<Map<String, Object>> getProdInspUser(Map<String, Object> paraMap);
 
+    void dropBomList(Map<String, Object> paraMap);
+
 //    void updateBomPursYn(Map<String, Object> paraMap);
 }
