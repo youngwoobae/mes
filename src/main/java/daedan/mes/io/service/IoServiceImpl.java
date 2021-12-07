@@ -2,7 +2,6 @@ package daedan.mes.io.service;
 
 
 import daedan.mes.common.service.util.DateUtils;
-import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.io.domain.MatrIwh;
 import daedan.mes.io.domain.MatrOwh;
 import daedan.mes.io.domain.ProdIwh;
@@ -22,7 +21,6 @@ import daedan.mes.make.repository.MakeIndcRsltRepository;
 import daedan.mes.make.service.MakeIndcService;
 import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.repository.OrdRepository;
-import daedan.mes.ord.service.OrdService;
 import daedan.mes.prod.domain.ProdInfo;
 import daedan.mes.prod.repository.ProdRepository;
 import daedan.mes.purs.domain.PursInfo;
@@ -353,7 +351,7 @@ public class IoServiceImpl implements IoService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("extrProdList");
 //        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        
+
         Float stkQty = 0F;
         for (Map<String,Object> el : ds) {
             ProdStk psvo = new ProdStk();
@@ -2218,7 +2216,7 @@ public class IoServiceImpl implements IoService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("matrOwhPostList");
         Float qty = 0F;
-        
+
         for (Map<String, Object> el : ds) {
             movo = new MatrOwh();
             movo.setWhNo(Long.parseLong(el.get("wh_no").toString()));
@@ -2250,7 +2248,7 @@ public class IoServiceImpl implements IoService {
                      qty += 1;//시연중 긴급처리
                 }
 //                log.info("qty의 더한 값은? : "+qty);
-                
+
                 movo.setOwhNo(chkvo.getOwhNo());
                 movo.setOwhQty(qty);
                 movo.setModId(Long.parseLong(paraMap.get("userId").toString()));
@@ -2447,7 +2445,7 @@ public class IoServiceImpl implements IoService {
     public int getTabletReqMatrIwhListCount(Map<String, Object> paraMap) {
         return mapper.getTabletReqMatrIwhListCount(paraMap);
     }
-    
+
     //tablet 자재입고 시작
     @Override
     public void tabletMatrIwh(Map<String, Object> paraMap){
@@ -2929,7 +2927,7 @@ public class IoServiceImpl implements IoService {
             this.makeInspHstr(mivo); //검수이력 저장
         }
     }
-    
+
     private void makeInspHstr(MatrIwh mivi) {
 
     }
@@ -3739,17 +3737,21 @@ public class IoServiceImpl implements IoService {
         String ipaddr = paraMap.get("ipaddr").toString();
         //{prodList=[{indcYn=Y, prodNo=378589, indcRsltNo=413858, whNo=1, whNm=[상온-1]완제품창고, makeDt=2021-10-19T15:00:00.000+00:00, makeQty=300, indcNo=394042, stkQty=20, prodNm=6고려홍삼진액골드(30포), vgt_id=0, originalIndex=0, vgtSelected=true}, {indcYn=Y, prodNo=355361, indcRsltNo=413854, whNo=2, whNm=[상온-2]완제품창고, makeDt=2021-11-23T15:00:00.000+00:00, makeQty=29700, indcNo=404665, stkQty=0, prodNm=6년근고려홍삼정365스틱/네이처가든, vgt_id=0, originalIndex=1, vgtSelected=true}], userId=2, custNo=6, ipaddr=127.0.0.1, procYn=Y}
 
+
         List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("prodList");
         for (Map<String, Object> el : ds) {
-            MakeIndcRslt mirvo = new MakeIndcRslt();
-            mirvo.setCustNo(custNo);
-            mirvo.setIndcNo(Long.parseLong(el.get("indcNo").toString()));
-            mirvo.setIndcRsltNo(Long.parseLong(el.get("indcRsltNo").toString()));
-            mirvo.setUsedYn("N");
-            mirvo.setModId(userId);
-            mirvo.setModDt(DateUtils.getCurrentBaseDateTime());
-            mirvo.setModIp(ipaddr);
-            makeIndcRsltRepo.save(mirvo);
+
+            MakeIndcRslt chkvo = makeIndcRsltRepo.findByIndcRsltNo(Long.parseLong(el.get("indcRsltNo").toString()));
+            chkvo.setUsedYn("N");
+            makeIndcRsltRepo.save(chkvo);
+//            mirvo.setCustNo(custNo);
+//            mirvo.setIndcNo(Long.parseLong(el.get("indcNo").toString()));
+//            mirvo.setIndcRsltNo(Long.parseLong(el.get("indcRsltNo").toString()));
+//            mirvo.setUsedYn("N");
+//            mirvo.setModId(userId);
+//            mirvo.setModDt(DateUtils.getCurrentBaseDateTime());
+//            mirvo.setModIp(ipaddr);
+
             /*재고조정
             psvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(psvo.getCustNo(), psvo.getWhNo(), psvo.getProdNo(), "Y");
             if (psvo != null) {

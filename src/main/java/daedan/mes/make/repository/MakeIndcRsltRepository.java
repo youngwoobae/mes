@@ -11,4 +11,6 @@ public interface MakeIndcRsltRepository extends JpaRepository<MakeIndcRslt, Long
     MakeIndcRslt findByCustNoAndIndcNoAndMakeDtAndUsedYn(Long custNo, Long indcNo, Date makeDt, String y);
 
     MakeIndcRslt findByCustNoAndIndcRsltNoAndUsedYn(Long custNo, Long indcRsltNo, String y);
+
+    MakeIndcRslt findByIndcRsltNo(Long indcRsltNo);
 }
