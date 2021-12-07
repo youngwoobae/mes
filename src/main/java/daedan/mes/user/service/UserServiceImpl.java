@@ -566,6 +566,7 @@ public  class UserServiceImpl implements UserService {
 			AuthUser authvo = new AuthUser();
 			authvo.setUserId((long) el);
 			authvo.setAuthCd(authCd);
+			authvo.setUsedYn("Y");
 			AuthUser chkvo = authUserRepo.findByCustNoAndUserIdAndAuthCd(custNo,authvo.getUserId(), authvo.getAuthCd());
 			if (chkvo != null) {
 				authvo.setAuthUserNo(chkvo.getAuthUserNo());
