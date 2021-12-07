@@ -6,14 +6,12 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.io.service.IoService;
-import daedan.mes.qc.service.QcService;
 import daedan.mes.user.domain.AccHstr;
 import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import javax.transaction.Transactional;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -2303,7 +2300,7 @@ public class IoController {
         }
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        ioService.saveProdIwhList(paraMap);
+//        ioService.saveProdIwhList(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {

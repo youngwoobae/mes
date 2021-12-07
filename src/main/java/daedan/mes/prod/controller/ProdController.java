@@ -331,7 +331,8 @@ public class ProdController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         Result result = Result.successInstance();
-        if (uvo.getCustInfo().getCustNo() == 3){
+        if (uvo.getCustInfo().getCustNo() == 30){
+            // 하담푸드 CustNO를 30으로 잠깐 수정 3으로 설정 시 오류
             result.setData(prodService.getHdfdProdBomList(paraMap));
             result.setTotalCount(prodService.getHdfdProdBomListCount(paraMap));
         }else{

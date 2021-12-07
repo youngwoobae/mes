@@ -1790,7 +1790,7 @@
                       , a.fault_rt --불량율
                       , coalesce (mir.make_qty,0) as make_qty --생산수량
                       , c.bom_lvl --BOM 레벨
-                      , c.prod_cont
+                      , a.indc_cont
         from make_indc a join prod_bom b on a.prod_no = b.prod_no and b.cust_no = #{custNo}
                          join prod_info c on b.prod_no = c.prod_no and c.cust_no = #{custNo}
                          join matr_info d on b.matr_no = d.matr_no and d.cust_no = #{custNo}
