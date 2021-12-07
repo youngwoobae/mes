@@ -1,5 +1,6 @@
 package daedan.mes.prod.service;
 
+import ch.qos.logback.classic.util.LoggerNameUtil;
 import daedan.mes.ccp.domain.HeatLmtInfo;
 import daedan.mes.ccp.repository.HeatLmtInfoRepository;
 import daedan.mes.cmpy.domain.CmpyInfo;
@@ -17,6 +18,7 @@ import daedan.mes.io.repository.ProdIwhRepository;
 import daedan.mes.io.repository.ProdOwhRepository;
 import daedan.mes.make.domain.MakeIndc;
 import daedan.mes.make.domain.MakeIndcMatr;
+import daedan.mes.make.domain.MakeIndcRslt;
 import daedan.mes.make.mapper.MakeIndcMapper;
 import daedan.mes.make.repository.MakeIndcMatrRepository;
 import daedan.mes.make.repository.MakeIndcRepository;
@@ -89,6 +91,8 @@ public class ProdServiceImpl implements  ProdService {
     @Autowired
     private HeatLmtInfoRepository heatLmtInfoRepo;
 
+    @Autowired
+    ProdBomRepository bomRepo;
 
     @Autowired
     private ProdOwhRepository owhRepo;
@@ -100,9 +104,6 @@ public class ProdServiceImpl implements  ProdService {
     private ProdIwhRepository iwhRepo;
     @Autowired
     private ProdStkRepository stkRepo;
-    @Autowired
-    private ProdBomRepository bomRepo;
-
     @Autowired
     private CmpyRepository cmpyRepo;
     @Autowired
@@ -2733,6 +2734,30 @@ public class ProdServiceImpl implements  ProdService {
         String tag = "vsvc.ProdService.getProdInspUser => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getProdInspUser(paraMap);
+    }
+
+    @Override
+    public void dropBomList(Map<String, Object> paraMap) {
+        String tag = "vsvc.ProdService.dropBomList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        //{prodList=[{indcYn=Y, prodNo=378589, indcRsltNo=413858, whNo=1, whNm=[상온-1]완제품창고, makeDt=2021-10-19T15:00:00.000+00:00, makeQty=300, indcNo=394042, stkQty=20, prodNm=6고려홍삼진액골드(30포), vgt_id=0, originalIndex=0, vgtSelected=true}, {indcYn=Y, prodNo=355361, indcRsltNo=413854, whNo=2, whNm=[상온-2]완제품창고, makeDt=2021-11-23T15:00:00.000+00:00, makeQty=29700, indcNo=404665, stkQty=0, prodNm=6년근고려홍삼정365스틱/네이처가든, vgt_id=0, originalIndex=1, vgtSelected=true}], userId=2, custNo=6, ipaddr=127.0.0.1, procYn=Y}
+
+        List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("dropBomList");
+        for (Map<String, Object> el : ds) {
+            Long bomNo = Long.parseLong(el.get("bomNo").toString());
+            ProdBom chkvo = bomRepo.findByCustNoAndBomNoAndUsedYn(custNo, bomNo, "Y");
+            System.out.println("$$$$$" + chkvo.toString());
+            if (chkvo != null) {
+                chkvo.setUsedYn("N");
+                chkvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                chkvo.setModIp(paraMap.get("ipaddr").toString());
+                chkvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                bomRepo.save(chkvo);
+            }
+        }
     }
 
 }

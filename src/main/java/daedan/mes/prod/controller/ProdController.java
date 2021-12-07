@@ -1145,4 +1145,36 @@ public class ProdController {
 
         return result;
     }
+
+    /**
+     * 출고대상제품 일괄 삭제
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/dropBomList")
+    public Result dropProdIwhList(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("procYn", uvo.getCustInfo().getProcYn());
+        prodService.dropBomList(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
 }
