@@ -271,7 +271,7 @@
 		SELECT * FROM cte
 		WHERE 1 = 1
 		and used_yn = 'Y'
--- 		and sys_code_yn = 'N'
+ 		and sys_code_yn = 'N'
 -- 		--'N'만 리스트로 뽑아낼 경우 트리 부분에서 에러 발생.
 		<if test="level != null and level != ''">
 			and level = #{level}

@@ -68,25 +68,43 @@ public class CodeServiceImpl implements CodeService {
     @Override
     public void codeModify(Map<String, Object> paraMap) {
         CodeInfo codeIn = new CodeInfo();
+        String ipaddr = paraMap.get("ipaddr").toString();
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
         Map<String, Object> passMap = (Map<String, Object>) paraMap.get("codeInfo");
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        System.out.println("%%%%%%%"+ paraMap);
+        codeIn.setCodeNm((String) paraMap.get("codeNm"));
+        codeIn.setCodeAlais((String) paraMap.get("codeAlais"));
+        codeIn.setCodeBrief((String) paraMap.get("codeBrief"));
+        codeIn.setCodeNo(Long.parseLong(paraMap.get("codeNo").toString()));
 
-        codeIn.setCodeNm((String) paraMap.get("code_nm"));
-        codeIn.setCodeAlais((String) paraMap.get("code_alais"));
-        codeIn.setCodeBrief((String) paraMap.get("code_brief"));
-        codeIn.setCodeNo(Long.parseLong(paraMap.get("code_no").toString()));
-
-        codeIn.setCodeSeq((int) Long.parseLong (paraMap.get("code_seq").toString()));
-        codeIn.setParCodeNo(Long.parseLong(paraMap.get("par_code_no").toString()));
-        codeIn.setModableYn((String) paraMap.get("mod_able_yn"));
+        codeIn.setCodeSeq((int) Long.parseLong (paraMap.get("codeSeq").toString()));
+        codeIn.setParCodeNo(Long.parseLong(paraMap.get("parCodeNo").toString()));
+        codeIn.setModableYn((String) paraMap.get("modAbleYn"));
+        codeIn.setSysCodeYn("N");
         codeIn.setUsedYn("Y");
 
 // 수정일자 등록
         codeIn.setModDt(codeIn.getModDt());
-        codeIn.setModIp(paraMap.get("ipaddr").toString());
+        codeIn.setModIp(ipaddr);
         codeIn.setCustNo(custNo);
         codeRepo.save(codeIn);
-        mapper.Modify(paraMap);
+
+        /*redefine code print order */
+        List<CodeInfo> civos = codeRepo.findAllByParCodeNoAndUsedYnOrderByCodeSeq(codeIn.getParCodeNo(),"Y");
+        for (CodeInfo el : civos) {
+            if (el.getCodeSeq() <= codeIn.getCodeSeq()) continue;
+            el.setCodeSeq(el.getCodeSeq() + 1);
+            el.setModDt(DateUtils.getCurrentBaseDateTime());
+            el.setModIp(ipaddr);
+            el.setModId(userId);
+            codeRepo.save(el);
+        }
+
+       // mapper.Modify(paraMap);
+
+
+
     }
 
     @Override
@@ -195,8 +213,12 @@ public class CodeServiceImpl implements CodeService {
         return vo;
     }
 
+    @Transactional
     @Override
     public CodeInfo saveCode(Map<String, Object> paraMap) {
+        String ipaddr = paraMap.get("ipaddr").toString();
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+
         CodeInfo vo = new CodeInfo();
         vo.setUsedYn("Y");
         vo.setParCodeNo(Long.parseLong(paraMap.get("parCodeNo").toString()));
@@ -233,8 +255,8 @@ public class CodeServiceImpl implements CodeService {
         }
         else {
             vo.setCodeNo(0L);
-            vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-            vo.setRegIp(paraMap.get("ipaddr").toString());
+            vo.setRegId(userId);
+            vo.setRegIp(ipaddr);
             vo.setRegDt(DateUtils.getCurrentDate());
 
             try {
@@ -248,7 +270,16 @@ public class CodeServiceImpl implements CodeService {
         }
 
         vo = codeRepo.save(vo);
-
+        /*redefine code print order */
+        List<CodeInfo> civos = codeRepo.findAllByParCodeNoAndUsedYnOrderByCodeSeq(vo.getParCodeNo(),"Y");
+        for (CodeInfo el : civos) {
+            if (el.getCodeSeq() <= vo.getCodeSeq()) continue;
+            el.setCodeSeq(el.getCodeSeq() + 1);
+            el.setModDt(DateUtils.getCurrentBaseDateTime());
+            el.setModIp(ipaddr);
+            el.setModId(userId);
+            codeRepo.save(el);
+        }
         return vo;
     }
 
@@ -499,7 +530,7 @@ public class CodeServiceImpl implements CodeService {
                     int chkParentId = (int) Long.parseLong(chkmap.get("id").toString());
                     int parent = (int) Long.parseLong(mapInfo.get("pid").toString());
                     if (chkParentId == parent) {
-//
+//sa
                         etree.add(menuList2.get(nJdx));
                     }
 
