@@ -2601,6 +2601,7 @@
                                     and used_yn = 'Y'
                                     and purs_matr_no is not null
                                   )
+
         --and a.cmpy_no in (select cmpy_no from cmpy_info where used_yn = 'Y')
         <if test="prodNo != null and prodNo != ''">
             and a.matr_no in (select matr_no from prod_bom where acust_no = a.cust_no and used_yn = 'Y' and prod_no = #{prodNo})
