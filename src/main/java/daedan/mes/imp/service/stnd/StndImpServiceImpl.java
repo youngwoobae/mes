@@ -831,8 +831,13 @@ public class StndImpServiceImpl implements StndImpService {
                         prodvo.setVol((float) pursUnitWgt);  //중량
                         prodvo.setMess((float) pursUnitWgt); //질량
                     }
+                    catch ( StringIndexOutOfBoundsException ne) {
+                        prodvo.setVol(1f);  //중량
+                        prodvo.setMess(1f); //질량
+                    }
                     catch ( NullPointerException ne) {
-
+                        prodvo.setVol(1f);  //중량
+                        prodvo.setMess(1f); //질량
                     }
                     //판매단위
                     strChk = row.getCell(format.IX_SALE_UNIT).getStringCellValue();
