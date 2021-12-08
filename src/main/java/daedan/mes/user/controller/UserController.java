@@ -1057,6 +1057,7 @@ public class UserController {
     @PostMapping(value="/tabletMenu/{path}")
     public Result tableMenu(@PathVariable(name = "path") Integer nPath , HttpServletResponse response , HttpServletRequest request  , HttpSession session) {
         String tag = "TableMenu => ";
+        log.info(tag+"!!!!!@@@@@#####");
         Result result = Result.successInstance();
         CustInfo civo = custInfoRepo.findByCustNo(Long.valueOf(nPath));
         if (civo != null) {
@@ -1068,15 +1069,12 @@ public class UserController {
 
             // 세션 생성 : AddOn By KMJ At 21.10.21
             UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-
-            log.info(tag + "uvo = " + uvo);
-
-            log.info(tag + "uservo = " + uservo);
             if (uvo == null) {
                 uvo = uservo;
+                session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
+                session.setAttribute("userInfo", uservo); //사용자 및 고객사 특성정보
             }
-            session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
-            session.setAttribute("userInfo", uservo); //사용자 및 고객사 특성정보
+
             response.setHeader("authorization", token);
             result.setData(uservo);
 
