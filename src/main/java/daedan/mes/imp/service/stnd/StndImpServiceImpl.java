@@ -381,7 +381,12 @@ public class StndImpServiceImpl implements StndImpService {
                         matrvo.setValidTerm(12);
                     }
                     //보관온도
-                    strChk = row.getCell(format.IX_SAVE_TMPR).getStringCellValue();
+                    try {
+                        strChk = row.getCell(format.IX_SAVE_TMPR).getStringCellValue();
+                    }
+                    catch (NullPointerException ne) {
+                        strChk = "실온";
+                    }
                     cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseSaveTmprCd,strChk.toUpperCase(Locale.ROOT),"Y");
                     if (cdvo != null) {
                         matrvo.setSaveTmpr(cdvo.getCodeNo());
@@ -390,12 +395,7 @@ public class StndImpServiceImpl implements StndImpService {
                     matrvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
 
                     matrvo.setMatrTp(Long.parseLong(paraMap.get("matrTp").toString())); //자재구분
-                    try {
-                        matrvo.setMngrUnit((long) row.getCell(format.IX_MNGR_UNIT).getNumericCellValue()); //관리단위
-                    }
-                    catch (IllegalStateException ie) {
-                        matrvo.setMngrUnit(Long.parseLong(row.getCell(format.IX_MNGR_UNIT).getStringCellValue())); //관리단위
-                    }
+                    matrvo.setVol(Float.parseFloat(String.valueOf(row.getCell(format.IX_VOL).getNumericCellValue())));  //중량
                     try {
                         matrvo.setItemCd(row.getCell(format.IX_MATR_CD).getStringCellValue());
                     }
@@ -467,6 +467,7 @@ public class StndImpServiceImpl implements StndImpService {
 
                     }
                     matrvo.setCustNo(custNo);
+
                     matrvo.setModDt(DateUtils.getCurrentBaseDateTime());
                     matrvo.setModIp("localhost");
                     matrvo.setModId(uvo.getUserId());
@@ -502,8 +503,12 @@ public class StndImpServiceImpl implements StndImpService {
                     //matrvo.setFileNo(0L);
 
                     matrvo = matrRepo.save(matrvo);
-
-                    strChk = row.getCell(format.IX_CMPY_NM).getStringCellValue();
+                    try {
+                        strChk = row.getCell(format.IX_CMPY_NM).getStringCellValue();
+                    }
+                    catch (NullPointerException ne) {
+                        strChk = "구매처미상";
+                    }
                     CmpyInfo cmvo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo,mngrgbnPurs,strChk,"Y");
                     if (cmvo == null) {
                         cmvo = new CmpyInfo();

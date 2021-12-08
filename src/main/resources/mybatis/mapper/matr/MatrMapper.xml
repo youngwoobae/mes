@@ -247,7 +247,7 @@
                 , m.cmpy_no as 거래처관리번호
                 , z.cmpy_nm as 구매거래처
                 , a.matr_nm as 자재명
-                , aa.code_nm  as 원산지
+                , fn_get_code_name('nm', a.madein) as 원산지
                 , a.item_cd as 자재코드
                 , coalesce (a.base_volt,'N/A') as 정격전압
                 , coalesce (a.madeby,0) as 소재
@@ -256,15 +256,12 @@
                 , a.file_no as 사진번호
                 , c.org_file_nm as 원본파일
                 , fn_get_code_name('nm',a.matr_tp) as 자재구분명
-                , f.code_nm as 보관온도
+                , fn_get_code_name('nm', a.save_tmpr) as 보관온도
         from matr_info a  left join brnch_info h on a.brnch_no = h.brnch_no and h.cust_no = #{custNo} and h.used_yn = 'Y'
-                          left join code_info d on  a.purs_unit = d.code_no
-                          left join code_info f on  a.matr_no = f.code_no
                           left join file_info c on  a.file_no = c.file_no
                                          and c.cust_no = #{custNo} and c.used_yn = 'Y' and c.file_no <![CDATA[ > ]]> 0
                     left join matr_cmpy m on a.matr_no = m.matr_no and m.cust_no = #{custNo} and m.used_yn = 'Y'
                     left join cmpy_info z on m.cmpy_no = z.cmpy_no and z.used_yn = 'Y' and z.cust_no = #{custNo} and z.used_yn = 'Y'
-                    left join code_info aa on a.madein = aa.code_no
         where a.used_yn ='Y'
           and a.cust_no = #{custNo}
         <if test="matrTp != null and matrTp != '0'">
