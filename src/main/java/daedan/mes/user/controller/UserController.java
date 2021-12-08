@@ -1068,9 +1068,15 @@ public class UserController {
 
             // 세션 생성 : AddOn By KMJ At 21.10.21
             UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+
+            log.info(tag + "uvo = " + uvo);
+
+            log.info(tag + "uservo = " + uservo);
             if (uvo == null) {
-                session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
+                uvo = uservo;
             }
+            session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
+            session.setAttribute("userInfo", uservo); //사용자 및 고객사 특성정보
             response.setHeader("authorization", token);
             result.setData(uservo);
 
