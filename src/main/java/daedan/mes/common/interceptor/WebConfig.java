@@ -13,19 +13,18 @@ import org.springframework.web.servlet.resource.PathResourceResolver;
 @Configuration
 public class WebConfig implements WebMvcConfigurer{
 
-
 	@Autowired
 	private Environment env;
 
 	private static final String[] EXCLUDE_PATHS = {
-			"/api/daedan/mes/**",
+			"/api/daedan/mes/user/signin",
 			"/fileroot/**",
 		    "/static/**",
 			"/error/**",
-			"/**",
 			};
 	@Autowired
 	private JwtInterceptor jwtInterceptor;
+
 
 	@Override
 	public void addInterceptors(InterceptorRegistry registry) {
