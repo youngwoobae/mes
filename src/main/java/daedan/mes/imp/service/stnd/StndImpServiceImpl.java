@@ -796,7 +796,13 @@ public class StndImpServiceImpl implements StndImpService {
 
                     }
                     //판매구분(oem.b2b등)명
-                    strChk = row.getCell(format.IX_PROD_TYPE).getStringCellValue();
+                    try {
+                        strChk = row.getCell(format.IX_PROD_TYPE).getStringCellValue();
+                    }
+                    catch (NullPointerException ne) {
+                        strChk = "판매처미상";
+                    }
+
                     cdvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseProdTp,strChk.toUpperCase(Locale.ROOT),"Y");
                     if (cdvo != null) {
                         prodvo.setProdTp(cdvo.getCodeNo());
