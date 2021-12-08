@@ -74,23 +74,19 @@
              , a.ocpn_kind --직종구분(사무직,생산직)
              , a.empl_kind --채용구분(내국인,외국인,용역)
              , a.user_stat --상태코드
-             , w.code_nm as user_stat_nm--상태값
-             , coalesce (b.dept_no, 999999) as dept_no
-             , b.dept_nm --소속 / 부서명
+             , fn_get_code_name('nm',a.user_stat ) as user_stat_nm--상태값
+             , fn_get_dept_name(a.dept_no) as  dept_nm --소속 / 부서명
              , a.user_posn --직급
              , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
              , a.erp_user_no
              , a.matr_insp_yn --원료입고 검수자여부
              , a.prod_insp_yn --제품출고 검수자여부
-             , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
-             , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
-             , x.code_nm as user_posn_nm --직급명
-         from user_info a join code_info z on a.ocpn_kind = z.code_no
-                    left join code_info w on a.user_stat = w.code_no
-                    left join code_info x on a.user_posn = x.code_no
-                    left join code_info y on a.empl_kind = y.code_no
-                    left join dept_info b on a.dept_no = b.dept_no and b.cust_no = #{custNo}
-         where a.used_yn = 'Y' and a.cust_info = #{custNo}
+             , fn_get_code_name('nm',a.empl_kind)  as empl_kind_nm --채용구분(내국인 외국인 영역)
+             , fn_get_code_name('nm', a.ocpn_kind)  as ocpn_kind_nm --직종(생산직 사무직)
+             , fn_get_code_name('nm', a.user_posn ) as user_posn_nm --직급명
+        from user_info a left join dept_info b on a.dept_no = b.dept_no and b.cust_no = a.cust_no and b.used_yn = 'Y'
+        where a.used_yn = 'Y'
+          and a.cust_info = #{custNo}
         <if test="deptNo != null and deptNo != '' and deptNo.size != 0">
             and a.dept_no in <foreach collection="deptNo" item="deptNo" index="index" open="(" close=")" separator=",">   #{deptNo}   </foreach>
         </if>
@@ -119,18 +115,14 @@
                 and upper(replace(b.dept_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by user_posn,dept_no, user_nm collate "ko_KR.utf8"
+        order by a.user_posn,a.dept_no, a.user_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getUserListCount" parameterType="map" resultType="int">
         select count(a.user_id)
         from ( select a.user_id
-                    from user_info a join code_info z on a.ocpn_kind = z.code_no
-                                left join code_info w on a.user_stat = w.code_no
-                                left join code_info x on a.user_posn = x.code_no
-                                left join code_info y on a.empl_kind = y.code_no
-                                left join dept_info b on a.dept_no = b.dept_no and b.cust_no = #{custNo}
+               from user_info a left join dept_info b on a.dept_no = b.dept_no and b.cust_no = a.cust_no and b.used_yn = 'Y'
                     where a.used_yn = 'Y' and a.cust_info = #{custNo}
                     <if test="deptNo != null and deptNo != '' and deptNo.size != 0">
                         and a.dept_no in <foreach collection="deptNo" item="deptNo" index="index" open="(" close=")" separator=",">   #{deptNo}   </foreach>
