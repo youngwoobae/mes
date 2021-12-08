@@ -243,12 +243,14 @@
                 , h.brnch_nm as 자재분류명
                 , fn_get_code_name('nm',a.purs_unit)  as 구매단위
                 , a.spga as 비중
+                , a.vol  as 중량
                 , concat(vol, fn_get_code_name('nm',purs_unit) , '/' ,fn_get_code_name('nm' , pkg_unit) ) as 규격
                 , m.cmpy_no as 거래처관리번호
                 , z.cmpy_nm as 구매거래처
                 , a.matr_nm as 자재명
                 , fn_get_code_name('nm', a.madein) as 원산지
                 , a.item_cd as 자재코드
+                , a.vol as vol
                 , coalesce (a.base_volt,'N/A') as 정격전압
                 , coalesce (a.madeby,0) as 소재
                 , a.save_tmpr as 보관온도코드
