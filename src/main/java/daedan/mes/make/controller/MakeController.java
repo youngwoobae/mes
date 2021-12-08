@@ -413,6 +413,37 @@ public class MakeController {
         return result;
     }
 
+    /**
+     * 기능 : 생산(계획) 및 생산제품에 설정된 생산공정별 작업지시 데이터 생성(2021.12.05 신규작업)
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+
+    @PostMapping(value="/saveMakeIndcProc")
+    public Result saveMakeIndcProc(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
+        String tag = "makeController.saveMakeIndcProc => ";
+        Result result = Result.successInstance();;
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        paraMap.put("userId",paraMap.get("userId"));
+        moService.saveMakeIndcProc(paraMap);
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+        return result;
+    }
     /**/
     @PostMapping(value="/getProdIndcNo")
     public Result getProdIndcNo(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){

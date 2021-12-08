@@ -1,15 +1,11 @@
 package daedan.mes.make.service;
 
 
-import daedan.mes.bord.mapper.BordMapper;
 import daedan.mes.common.service.util.DateUtils;
-import daedan.mes.common.service.util.StringUtil;
-import daedan.mes.equip.repository.OperMastRepository;
 import daedan.mes.file.domain.FileInfo;
 import daedan.mes.file.repository.FileRepository;
 import daedan.mes.io.domain.MatrIwh;
 import daedan.mes.io.domain.MatrOwh;
-import daedan.mes.io.domain.ProdIwh;
 import daedan.mes.io.repository.ProdIwhRepository;
 import daedan.mes.io.service.IoService;
 import daedan.mes.io.repository.MatrIwhRepository;
@@ -34,7 +30,6 @@ import daedan.mes.purs.repository.PursMatrRepository;
 import daedan.mes.purs.service.PursService;
 import daedan.mes.stock.domain.MatrPos;
 import daedan.mes.stock.domain.MatrStk;
-import daedan.mes.stock.domain.ProdStk;
 import daedan.mes.stock.repository.MatrPosRepository;
 import daedan.mes.stock.repository.MatrStkRepository;
 import daedan.mes.stock.repository.ProdStkRepository;
@@ -43,7 +38,6 @@ import daedan.mes.user.domain.UserInfo;
 import lombok.SneakyThrows;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ibatis.jdbc.Null;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -51,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import javax.swing.plaf.nimbus.NimbusLookAndFeel;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
@@ -75,9 +68,6 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     private MakeIndcRepository makeIndcRepo;
 
     @Autowired
-    private OrdMapper ordMapper;
-
-    @Autowired
     private MakeMpRepository makeMpRepo;
 
     @Autowired
@@ -86,22 +76,20 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Autowired
     private OrdProdRepository ordProdRepo;
 
-
+    @Autowired
+    private ProcBrnchRepository procBrnchRepo;
 
     @Autowired
     private MakeWorkPlanRepository makeWorkPlanRepo;
-
-    @Autowired
-    private ProdIwhRepository prodIwhRepo;
-
-    @Autowired
-    private ProcBrnchRepository procBrnchRepo;
 
     @Autowired
     private MakeIndcRsltRepository mir;
 
     @Autowired
     private MatrStkRepository matrStkRepo;
+
+    @Autowired
+    private MakeIndcProcRepository makeIndcProcRepo;
 
     @Autowired
     private PursService pursService;
@@ -2576,4 +2564,44 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         makeWorkPlanRepo.save(mwpvo);
     }
+
+    /*새롭게 시작하는 중.....*/
+    @Transactional
+    @Override
+    public void saveMakeIndcProc(Map<String, Object> paraMap) {
+        String tag = "makeIndcService.saveMakeIndcFullByPlan == > ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long procCd = 0L;
+        Long indcNo = Long.parseLong(paraMap.get("indcNo").toString());
+        Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
+        ProdInfo pivo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
+
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+
+        List<ProcBrnch> dspb = procBrnchRepo.findAllByCustNoAndBrnchNoAndUsedYnOrderByProcSeq(custNo,pivo.getBrnchNo(),"Y");
+        for (ProcBrnch el : dspb) {
+            procCd =  el.getProcCd();
+
+            MakeIndcProc mipvo = new MakeIndcProc();
+            mipvo.setIndcNo(indcNo);
+            mipvo.setCustNo(custNo);
+            mipvo.setProcCd(el.getProcCd());
+            mipvo.setMakeQty(el.getMaxMakeQty());
+            mipvo.setProcSeq(el.getProcSeq());
+            mipvo.setModId(userId);
+            mipvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            mipvo.setModIp(ipaddr);
+            mipvo.setUsedYn("Y");
+            MakeIndcProc chkmipvo = makeIndcProcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo,indcNo,procCd,"Y");
+            if (chkmipvo == null) {
+                mipvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                mipvo.setRegId(userId);
+                mipvo.setRegIp(ipaddr);
+                makeIndcProcRepo.save(mipvo);
+            }
+        }
+    }
+
 }

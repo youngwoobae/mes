@@ -169,4 +169,7 @@ public interface MakeIndcService {
     void saveIndcPrintText(Map<String, Object> paraMap);
 
     void planSave(Map<String, Object> paraMap);
+
+    @Transactional
+    void saveMakeIndcProc(Map<String, Object> paraMap);
 }
