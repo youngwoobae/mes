@@ -12,6 +12,7 @@ import daedan.mes.dept.service.DeptService;
 import daedan.mes.sys.service.SysService;
 import daedan.mes.user.domain.*;
 import daedan.mes.user.repository.CustInfoRepository;
+import daedan.mes.user.repository.UserRepository;
 import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -19,10 +20,7 @@ import org.json.simple.JSONObject;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,6 +49,9 @@ public class UserController {
     CustInfoRepository custInfoRepo;
     @Autowired
     CodeRepository codeRepo;
+
+    @Autowired
+    UserRepository userRepo;
 
     @Autowired
     private JwtService jwtService;
@@ -1052,4 +1053,38 @@ public class UserController {
 
         return result;
     }
+
+    @PostMapping(value="/tabletMenu/{path}")
+    public Result tableMenu(@PathVariable(name = "path") Integer nPath , HttpServletResponse response , HttpServletRequest request  , HttpSession session) {
+        String tag = "TableMenu => ";
+        Result result = Result.successInstance();
+        CustInfo civo = custInfoRepo.findByCustNo(Long.valueOf(nPath));
+        if (civo != null) {
+            UserInfo uservo = userRepo.findByMailAddrAndUsedYn(civo.getAutoSignId(),"Y");
+            Long custNo = uservo.getCustInfo().getCustNo();
+            uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+            String token = jwtService.create("member", uservo, "user");
+            log.info(tag + "created user token = " + token);
+
+            // 세션 생성 : AddOn By KMJ At 21.10.21
+            UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+            if (uvo == null) {
+                session.setAttribute("autoUserInfo", uservo); //사용자 및 고객사 특성정보
+            }
+            response.setHeader("authorization", token);
+            result.setData(uservo);
+
+            //SOL AddOn By KMJ AT 21.11.16
+            if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+                try {
+                    AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                    userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+                } catch (NullPointerException ne) {
+                }
+            }
+            //EOL AddON By KMJ AT 21.11.26
+        }
+        return result;
+    }
+
 }
