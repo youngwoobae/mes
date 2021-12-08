@@ -180,22 +180,21 @@ public class UserController {
 
                 uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
                 log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
-                /* KPI API 세션 생성 */
-                Map<String,Object> amap = new HashMap<String,Object>();
-                JSONObject jsonData = new JSONObject();
-                try {
-                    jsonData.put("companyCode", uservo.getCustInfo().getSaupNo());
-                    amap.put("apiURL", env.getProperty("kpi.sessionURL"));
-                    amap.put("jsonStr", jsonData);
-                    jsonData = cmmnService.getRestApiData(amap);
-                    //if (jsonData.get("error") == null) {
-                    session.setAttribute("kpiSessId", jsonData.get("sessionId"));
-                    //}
-                }
-                catch (NullPointerException ne) {
+                if (uservo.getCustInfo().getKpiYn().equals("Y")) { /* KPI API 세션 생성 */
+                    Map<String, Object> amap = new HashMap<String, Object>();
+                    JSONObject jsonData = new JSONObject();
+                    try {
+                        jsonData.put("companyCode", uservo.getCustInfo().getSaupNo());
+                        amap.put("apiURL", env.getProperty("kpi.sessionURL"));
+                        amap.put("jsonStr", jsonData);
+                        jsonData = cmmnService.getRestApiData(amap);
+                        //if (jsonData.get("error") == null) {
+                        session.setAttribute("kpiSessId", jsonData.get("sessionId"));
+                        //}
+                    } catch (NullPointerException ne) {
 
+                    }
                 }
-
                 // MES 세션 생성
                 session.setAttribute("userInfo",uservo);//사용자 및 고객사 특성정보
                 //log.info(tag + "userInfo.custInfo = " + StringUtil.voToMap(uservo.getCustInfo()));

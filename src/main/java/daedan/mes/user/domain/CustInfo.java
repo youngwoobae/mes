@@ -69,6 +69,10 @@ public class CustInfo {
     @Column(name = "actEvtLogYn", nullable = false, columnDefinition = "char(1) default 'N'")
     private String actEvtLogYn;
 
+    /*KPI연동여부*/
+    @Column(name = "kpiYn", columnDefinition = "char(1) default 'N'")
+    private String kpiYn;
+
     /*공정사용여부 (대동, 하담, 서울) Y */
     @Column(name = "proc_yn", nullable = false, columnDefinition = "char(1) default 'N'")
     private String procYn;

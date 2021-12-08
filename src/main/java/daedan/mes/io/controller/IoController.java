@@ -2151,7 +2151,7 @@ public class IoController {
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
-
+        paraMap.put("procYn",uvo.getCustInfo().getProcYn()); //공정관리사용여부 --작업지시와 연동됨.
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         result.setData(ioService.getMatrForOwhList(paraMap));
@@ -2910,5 +2910,36 @@ public class IoController {
     }
 
 
+    /**
+     * 원료출고삭제 (custInfo.procYn에따라 처리 서비스가 달라짐.
+     * custInfo.procYn = Y (공정관리사용) 시 삭제대상은 make_indc_matr  임.
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/dropMatrIwhList")
+    public Result dropMatrIwhList(@RequestBody Map<String, Object> paraMap , HttpServletRequest request, HttpSession session) {
+        String tag = "ioController.dropMatrIwhList => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("procYn",uvo.getCustInfo().getProcYn()); //공정사용여부
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        ioService.dropMatrIwhList(paraMap);
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.DROP, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
 
 }

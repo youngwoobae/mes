@@ -3778,6 +3778,45 @@ public class IoServiceImpl implements IoService {
     public int getMadeProdForIwhListCount(Map<String, Object> paraMap) {
         return mapper.getMadeProdForIwhListCount(paraMap);
     }
+
+    @Override
+    public void dropMatrIwhList(Map<String, Object> paraMap) {
+        String tag = "ioSErvice.dropMatrIwhList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        String procYn = paraMap.get("procYn").toString();
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        //paraPam = {matrList=[{indcYn=Y, needQty=1, whNo=560, whNm=상온창고, takeYn=N, pursUnit=51, makeFrDt=2021-10-12, matrNm=흑후추분태, indcNo=1008820, stkQty=10, matrNo=697847, vgt_id=0, originalIndex=66, vgtSelected=true}]
+        if (procYn.equals("Y")) { //공정관리 시용하는 경우만 해당됨.
+            List<Map<String, Object>> dsMap = (List<Map<String, Object>>) paraMap.get("matrList");
+            for (Map<String, Object> el : dsMap) {
+                MakeIndcMatr mimvo = new MakeIndcMatr();
+                mimvo.setCustNo(custNo);
+                mimvo.setIndcNo(Long.parseLong(el.get("indcNo").toString()));
+                mimvo.setMatrNo(Long.parseLong(el.get("matrNo").toString()));
+                MakeIndcMatr vo = makeIndcMatrRepo.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo, mimvo.getIndcNo(), mimvo.getMatrNo(),"Y");
+                if (vo != null) {
+                    vo.setUsedYn("N");
+                    vo.setModDt(DateUtils.getCurrentBaseDateTime());
+                    vo.setModIp(ipaddr);
+                    vo.setModId(userId);
+                    makeIndcMatrRepo.save(vo);
+                }
+                List<MakeIndcMatr> dsvo = makeIndcMatrRepo.findAllByCustNoAndIndcNoAndUsedYn(custNo, mimvo.getIndcNo(), "Y");
+                if (dsvo.size() == 0) { //생산에 사용되는 원료목록이 모두 삭제된 경우 생산지시 정보도 삭제
+                    MakeIndc mivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,vo.getIndcNo(),"Y");
+                    if (mivo != null) {
+                        mivo.setUsedYn("N");
+                        mivo.setModDt(DateUtils.getCurrentBaseDateTime());
+                        mivo.setModIp(ipaddr);
+                        mivo.setModId(userId);
+                        makeIndcRepo.save(mivo);
+                    }
+                }
+            }
+        }
+    }
 }
 
 

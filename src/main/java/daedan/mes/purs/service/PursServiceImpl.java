@@ -3,6 +3,7 @@ package daedan.mes.purs.service;
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
+import daedan.mes.make.domain.MakeIndcMatr;
 import daedan.mes.ord.domain.OrdProd;
 import daedan.mes.ord.repository.OrdProdRepository;
 import daedan.mes.ord.repository.OrdRepository;
@@ -48,6 +49,7 @@ public class PursServiceImpl implements  PursService {
 
     @Autowired
     private OrdProdRepository ordProdRepo;
+
 
     @Autowired
     private OrdRepository ordRepo;
@@ -781,9 +783,8 @@ public class PursServiceImpl implements  PursService {
         Long pursNo = 0L;
         Long userId = Long.parseLong(paraMap.get("userId").toString());
         String ipaddr = paraMap.get("ipaddr").toString();
-        //matrList = [{"pursNo":395052,"pursDt":"2021-10-22","pursMatrNo":395055,"whNo":6,"cmpyNm":"구매처미상","whNm":"원료보관창고(냉장)","itemNo":"395055-1","matrNm":"자몽종자추출물","pursQty":1,"stkQty":5,"matrNo":327090,"vgt_id":0,"originalIndex":0,"vgtSelected":true}]
-        //225_MatrIwh.vue?3457:991 onMatrRowClick.e = {"pursNo":395052,"pursDt":"2021-10-22","pursMatrNo":395055,"whNo":6,"cmpyNm":"구매처미상","whNm":"원료보관창고(냉장)","itemNo":"395055-1","matrNm":"자몽종자추출물","pursQty":1,"stkQty":5,"matrNo":327090,"vgt_id":0,"originalIndex":0,"vgtSelected":true}
 
+        //{matrList=[{pursNo=1024514, pursDt=2021-11-18, pursMatrNo=1024516, whNo=0, cmpyNm=null, whNm=null, itemNo=1024516-1, matrNm=대두단백, pursQty=1, stkQty=100, matrNo=697889, vgt_id=0, originalIndex=0, vgtSelected=true}], userId=5}
         List<Map<String, Object>> dsMap = (List<Map<String, Object>>) paraMap.get("matrList");
         for (Map<String, Object> el : dsMap) {
             PursMatr pmvo = new PursMatr();
@@ -818,46 +819,7 @@ public class PursServiceImpl implements  PursService {
         }
     }
 
-    @Override
-    public void dropPursMatrOwhList(Map<String, Object> paraMap) {
-        String tag = "pursService.dropPursMatrList=>";
-        log.info(tag + " paraPam = " + paraMap.toString());
 
-        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        Long pursNo = 0L;
-        Long userId = Long.parseLong(paraMap.get("userId").toString());
-        String ipaddr = paraMap.get("ipaddr").toString();
-        //matrList = [{"pursNo":395052,"pursDt":"2021-10-22","pursMatrNo":395055,"whNo":6,"cmpyNm":"구매처미상","whNm":"원료보관창고(냉장)","itemNo":"395055-1","matrNm":"자몽종자추출물","pursQty":1,"stkQty":5,"matrNo":327090,"vgt_id":0,"originalIndex":0,"vgtSelected":true}]
-        //225_MatrIwh.vue?3457:991 onMatrRowClick.e = {"pursNo":395052,"pursDt":"2021-10-22","pursMatrNo":395055,"whNo":6,"cmpyNm":"구매처미상","whNm":"원료보관창고(냉장)","itemNo":"395055-1","matrNm":"자몽종자추출물","pursQty":1,"stkQty":5,"matrNo":327090,"vgt_id":0,"originalIndex":0,"vgtSelected":true}
-
-        List<Map<String, Object>> dsMap = (List<Map<String, Object>>) paraMap.get("matrList");
-        for (Map<String, Object> el : dsMap) {
-            PursMatr pmvo = new PursMatr();
-            pmvo.setCustNo(custNo);
-//            pmvo.setPursMatrNo(Long.parseLong(el.get("pursMatrNo").toString()));
-            PursMatr chkpmvo = pmr.findByCustNoAndPursMatrNoAndUsedYn(custNo,pmvo.getPursMatrNo(),"Y");
-            if (chkpmvo != null) {
-                chkpmvo.setUsedYn("N");
-                chkpmvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                chkpmvo.setModId(userId);
-                chkpmvo.setModIp(ipaddr);
-                pmr.save(chkpmvo);
-            }
-//            pursNo = chkpmvo.getPursNo();
-
-            List<PursMatr> dsPursMatr = pmr.findAllByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
-            if (dsPursMatr.size() == 0) {
-                PursInfo pivo = pir.findByCustNoAndPursNoAndUsedYn(custNo,pursNo,"Y");
-                if (pivo != null) {
-                    pivo.setUsedYn("N");
-                    pivo.setModId(userId);
-                    pivo.setModDt(DateUtils.getCurrentBaseDateTime());
-                    pivo.setModIp(ipaddr);
-                    pir.save(pivo);
-                }
-            }
-        }
-    }
 
     @Override
     public void dropPursReqMatrList(HashMap<String, Object> paraMap) {

@@ -91,7 +91,5 @@ public interface PursService {
 
     void dropPursMatrList(Map<String, Object> paraMap);
 
-    void dropPursMatrOwhList(Map<String, Object> paraMap);
-
     void dropPursReqMatrList(HashMap<String, Object> paraMap);
 }
