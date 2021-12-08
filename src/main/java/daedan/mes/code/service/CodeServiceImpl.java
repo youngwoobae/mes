@@ -339,6 +339,7 @@ public class CodeServiceImpl implements CodeService {
                 if (nReadDepth == 0) {
                     node.put("id", menuNo);
                     node.put("text", menuNm);
+                    node.put("level", nReadDepth);
                     nJdx = -1;
                     etree = new ArrayList<Object>();
                     Map<String, Object> chkmap = null;
@@ -361,6 +362,7 @@ public class CodeServiceImpl implements CodeService {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
+                    node.put("level", nReadDepth);
                     if (menuNm.equals("게시관리")) {
 
                     }
@@ -387,6 +389,7 @@ public class CodeServiceImpl implements CodeService {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
+                    node.put("level", nReadDepth);
                     nJdx = -1;
                     etree = new ArrayList<Object>();
                     Map<String, Object> chkmap = null;
@@ -410,6 +413,7 @@ public class CodeServiceImpl implements CodeService {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
+                    node.put("level", nReadDepth);
                     nJdx = -1;
                     etree = new ArrayList<Object>();
                     Map<String, Object> chkmap = null;
@@ -432,6 +436,7 @@ public class CodeServiceImpl implements CodeService {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
+                    node.put("level", nReadDepth);
                     nJdx = -1;
                     etree = new ArrayList<Object>();
                     Map<String, Object> chkmap = null;
@@ -454,6 +459,7 @@ public class CodeServiceImpl implements CodeService {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
+                    node.put("level", nReadDepth);
                     nJdx = -1;
                     etree = new ArrayList<Object>();
                     Map<String, Object> chkmap = null;
@@ -477,6 +483,7 @@ public class CodeServiceImpl implements CodeService {
                 node.put("pid", pid);
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 menuList6.add(node);
             }
             ++idx;
@@ -495,6 +502,7 @@ public class CodeServiceImpl implements CodeService {
             if (nReadDepth == 0) {
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 nJdx = -1;
                 etree = new ArrayList<Object>();
                 Map<String, Object> chkmap = null;
@@ -517,6 +525,7 @@ public class CodeServiceImpl implements CodeService {
                 node.put("pid", pid);
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 if (menuNm.equals("게시관리")) {
 
                 }
@@ -546,6 +555,7 @@ public class CodeServiceImpl implements CodeService {
                 node.put("pid", pid);
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 nJdx = -1;
                 etree = new ArrayList<Object>();
                 Map<String, Object> chkmap = null;
@@ -568,6 +578,7 @@ public class CodeServiceImpl implements CodeService {
                 node.put("pid", pid);
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 nJdx = -1;
                 etree = new ArrayList<Object>();
                 Map<String, Object> chkmap = null;
@@ -589,6 +600,7 @@ public class CodeServiceImpl implements CodeService {
                 node.put("pid", pid);
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 nJdx = -1;
                 etree = new ArrayList<Object>();
                 Map<String, Object> chkmap = null;
@@ -610,6 +622,7 @@ public class CodeServiceImpl implements CodeService {
                 node.put("pid", pid);
                 node.put("id", menuNo);
                 node.put("text", menuNm);
+                node.put("level", nReadDepth);
                 nJdx = -1;
                 etree = new ArrayList<Object>();
                 Map<String, Object> chkmap = null;
