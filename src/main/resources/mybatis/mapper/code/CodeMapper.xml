@@ -36,8 +36,9 @@
 		 )
 	</insert>
 	<select id="getCodeList" parameterType="map"  resultType="camelMap">
-		WITH recursive cte (
-			  par_code_no
+			WITH recursive cte (
+			par_code_nm
+			, par_code_no
 			, mod_able_yn
 			, code_no
 			, code_nm
@@ -48,7 +49,8 @@
 			, code_seq
 			, path
 			, used_yn
-		) AS ( SELECT a.par_code_no
+		) AS ( SELECT fn_get_code_name('nm', a.par_code_no) as par_code_nm
+		            , a.par_code_no
 					, a.mod_able_yn
 					, a.code_no
 					, a.code_nm
@@ -60,10 +62,11 @@
 					, lpad(a.code_no::text,5,'0')
 					, a.used_yn
 					, a.sys_code_yn
-					FROM  code_info a
+					FROM code_info a
 	 		WHERE a.par_code_no = 0
 		 	UNION ALL
-			SELECT    b.par_code_no
+			SELECT   fn_get_code_name('nm', b.par_code_no) as par_code_nm
+			       	, b.par_code_no
 					, b.mod_able_yn
 					, b.code_no
 					, b.code_nm
@@ -78,8 +81,7 @@
 					FROM code_info b JOIN cte c ON b.par_code_no = c.code_no
 		    )
 		    SELECT * FROM cte
-		    WHERE used_yn = 'Y'
--- 		     and sys_code_yn = 'N'
+		    WHERE used_yn = 'Y'  and sys_code_yn = 'N'
 				<if test="codeNo != null and codeNo != '' and codeNo.size != 0">
 					and code_no in <foreach collection="codeNo" item="codeNo" index="index" open="(" close=")" separator=",">   #{codeNo}   </foreach>
 					and code_no not in ( 0 , 1 )
@@ -122,7 +124,8 @@
 					, code_seq
 					, path
 					, used_yn
-					) AS ( SELECT a.par_code_no
+					) AS ( SELECT
+					         a.par_code_no
 							, a.code_no
 							, a.code_nm
 							, a.code_brief
@@ -131,10 +134,11 @@
 							, a.code_seq
 							, a.code_no::text
 							, a.used_yn
-						FROM  code_info a
+						FROM code_info a
 						WHERE a.par_code_no = 0
 						UNION ALL
-						SELECT  b.par_code_no
+						SELECT
+		          			 b.par_code_no
 							, b.code_no
 							, b.code_nm
 							, b.code_brief
