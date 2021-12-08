@@ -395,7 +395,13 @@ public class StndImpServiceImpl implements StndImpService {
                     matrvo.setSpga((float) row.getCell(format.IX_SPGA).getNumericCellValue()); //비중
 
                     matrvo.setMatrTp(Long.parseLong(paraMap.get("matrTp").toString())); //자재구분
-                    matrvo.setVol(Float.parseFloat(String.valueOf(row.getCell(format.IX_VOL).getNumericCellValue())));  //중량
+                    try {
+                        matrvo.setVol(Float.parseFloat(String.valueOf(row.getCell(format.IX_VOL).getNumericCellValue())));  //중량
+                    }
+                    catch (NullPointerException ne) {
+                        strChk = "1";
+                    }
+
                     try {
                         matrvo.setItemCd(row.getCell(format.IX_MATR_CD).getStringCellValue());
                     }
