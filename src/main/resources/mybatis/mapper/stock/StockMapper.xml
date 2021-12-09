@@ -1089,25 +1089,9 @@
             <when test="findTp != null and findTp == 'no'">
                 and a.matr_nm like '%' || #{findSz} || '%'
             </when>
-            <otherwise>
-                AND case when a.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
-                end = #{findSz}
-            </otherwise>
+            <when test="findTp != null and findTp == 'ko'">
+                AND fn_get_consonant(a.matr_nm)  = #{findSz}
+            </when>
         </choose>
         order by matr_nm collate "ko_KR.utf8"
     </select>
@@ -1124,25 +1108,9 @@
                         <when test="findTp != null and findTp == 'no'">
                             and a.matr_nm like '%' || #{findSz} || '%'
                         </when>
-                        <otherwise>
-                            AND case when a.matr_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
-                            when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                            when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                            when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                            when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                            when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                            when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                            when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                            when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                            when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                            when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                            when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                            when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                            when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                            when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                            else                                'ㅎ'
-                            end = #{findSz}
-                        </otherwise>
+                        <when test="findTp != null and findTp == 'ko'">
+                            AND fn_get_consonant(a.matr_nm)  = #{findSz}
+                        </when>
                     </choose>
                     order by matr_nm collate "ko_KR.utf8"
                 ) a
@@ -1162,25 +1130,9 @@
             <when test="findTp != null and findTp == 'no'">
                 and a.prod_nm like '%' || #{findSz} || '%'
             </when>
-            <otherwise>
-                AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                else                                'ㅎ'
-                end = #{findSz}
-            </otherwise>
+            <when test="findTp != null and findTp == 'ko'">
+                AND fn_get_consonant(a.prod_nm )  = #{findSz}
+            </when>
         </choose>
         order by prod_nm collate "ko_KR.utf8"
     </select>
@@ -1197,25 +1149,9 @@
                     <when test="findTp != null and findTp == 'no'">
                         and a.prod_nm like '%' || #{findSz} || '%'
                     </when>
-                    <otherwise>
-                        AND case when a.prod_nm   <![CDATA[  < ]]>  'ㄱ' then SUBSTRING(a.prod_nm, 1, 1)
-                        when ascii('ㄱ') <![CDATA[ <= ]]> ascii(a.prod_nm) and  ascii(a.prod_nm) <![CDATA[ <= ]]> ascii('ㅎ') then prod_nm
-                        when a.prod_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                        when a.prod_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                        when a.prod_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                        when a.prod_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                        when a.prod_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                        when a.prod_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                        when a.prod_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                        when a.prod_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                        when a.prod_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                        when a.prod_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                        when a.prod_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                        when a.prod_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                        when a.prod_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                        else                                'ㅎ'
-                        end = #{findSz}
-                    </otherwise>
+                    <when test="findTp != null and findTp == 'ko'">
+                        AND fn_get_consonant(a.prod_nm )  = #{findSz}
+                    </when>
                 </choose>
                 order by prod_nm collate "ko_KR.utf8"
         ) a

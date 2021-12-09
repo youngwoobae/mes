@@ -720,25 +720,7 @@
                                 )
             </if>
             <if test="findTp != null and findTp == 'ko'">
-                <if test="findSz != null and findSz != ''">
-                    AND case when a.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
-                    when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                    when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                    when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                    when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                    when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                    when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                    when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                    when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                    when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                    when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                    when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                    when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                    when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                    when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                    else                                     'ㅎ'
-                    end = #{findSz}
-                </if>
+                AND fn_get_consonant(a.matr_nm)  = #{findSz}
             </if>
             <if test="findTp != null and findTp == 'eng'">
                 <if test="findSz != null and findSz != ''">
@@ -842,25 +824,7 @@
                         )
                     </if>
                     <if test="findTp != null and findTp == 'ko'">
-                        <if test="findSz != null and findSz != ''">
-                            AND case when a.matr_nm  <![CDATA[ < ]]> 'ㄱ' then SUBSTRING(a.matr_nm, 1, 1)
-                            when ascii('ㄱ') <![CDATA[ <= ]]> ascii(matr_nm) and  ascii(a.matr_nm) <![CDATA[ <= ]]> ascii('ㅎ') then matr_nm
-                            when a.matr_nm <![CDATA[ < ]]> '나' then 'ㄱ'
-                            when a.matr_nm <![CDATA[ < ]]> '다' then 'ㄴ'
-                            when a.matr_nm <![CDATA[ < ]]> '라' then 'ㄷ'
-                            when a.matr_nm <![CDATA[ < ]]> '마' then 'ㄹ'
-                            when a.matr_nm <![CDATA[ < ]]> '바' then 'ㅁ'
-                            when a.matr_nm <![CDATA[ < ]]> '사' then 'ㅂ'
-                            when a.matr_nm <![CDATA[ < ]]> '아' then 'ㅅ'
-                            when a.matr_nm <![CDATA[ < ]]> '자' then 'ㅇ'
-                            when a.matr_nm <![CDATA[ < ]]> '차' then 'ㅈ'
-                            when a.matr_nm <![CDATA[ < ]]> '카' then 'ㅊ'
-                            when a.matr_nm <![CDATA[ < ]]> '타' then 'ㅋ'
-                            when a.matr_nm <![CDATA[ < ]]> '파' then 'ㅌ'
-                            when a.matr_nm <![CDATA[ < ]]> '하' then 'ㅍ'
-                            else                                     'ㅎ'
-                            end = #{findSz}
-                        </if>
+                        AND fn_get_consonant(a.matr_nm)  = #{findSz}
                     </if>
                     <if test="findTp != null and findTp == 'eng'">
                         <if test="findSz != null and findSz != ''">
