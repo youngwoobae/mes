@@ -63,13 +63,14 @@ public class MetalLog {
     @Column(name="modIp", length = 20)
     private String modIp;
 
-
     @Column(name="regDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
-
     @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
+
+    @Column(name="event_yn",nullable = false, length = 1 , columnDefinition = "char default 'N'")
+    private String eventYn;
 }

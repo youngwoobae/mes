@@ -20,4 +20,17 @@
           and cust_no = #{custNo}
     </select>
 
+    <select id="getMetalData" parameterType="map" resultType="camelMap">
+        select
+            to_char(to_timestamp(unix_hms),'YYYY-MM-DD') as date_time,
+            sum(pass_qty) as pass_qty,
+            sum(err_qty) as err_qty
+        from metal_log ml
+        where to_char(to_timestamp(unix_hms),'YYYY-MM-DD') = to_char(now(),'YYYY-MM-DD')
+        and cust_no = #{custNo}
+        and event_yn = 'Y'
+        and prod_no = #{prodNo}
+        group by date_time , prod_no
+    </select>
+
 </mapper>
