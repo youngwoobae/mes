@@ -132,7 +132,7 @@ public class Metal10ServiceImpl implements Metal10Service {
             mlvo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
             mlvo.setStepNo(Integer.parseInt(paraMap.get("stepNo").toString()));
             mlvo.setRcvMsg((String) jsonStr.get("msg"));
-
+            mlvo.setEventYn("N");
             mlvo.setMetalHstrNo(0L);
             metalLogRepo.save(mlvo);
         } catch (MalformedURLException e) {
@@ -183,7 +183,7 @@ public class Metal10ServiceImpl implements Metal10Service {
             mlvo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
             mlvo.setStepNo(Integer.parseInt(paraMap.get("stepNo").toString()));
             mlvo.setRcvMsg((String) jsonStr.get("msg"));
-
+            mlvo.setEventYn("Y");
             mlvo.setMetalHstrNo(0L);
             metalLogRepo.save(mlvo);
             rmap.put("rsltMsg",jsonStr.get("msg"));
@@ -198,5 +198,12 @@ public class Metal10ServiceImpl implements Metal10Service {
             e.printStackTrace();
         }
         return rmap;
+    }
+
+    @Override
+    public Map<String, Object> getMetalData(Map<String, Object> paraMap) {
+        String tag = "metal10Service.getMetalData =>";
+        log.info(tag = "paraMap = " + paraMap.toString());
+        return  mapper.getMetalData(paraMap);
     }
 }

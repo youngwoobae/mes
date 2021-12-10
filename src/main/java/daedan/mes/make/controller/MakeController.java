@@ -1657,6 +1657,27 @@ public class MakeController {
 
         return result;
     }
+
+    @PostMapping(value = "/getMetalData")
+    public Result getMetalData(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        result.setData(metal10.getMetalData(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
     /**
      * 금속검출기 시작버튼 클릭
      *
