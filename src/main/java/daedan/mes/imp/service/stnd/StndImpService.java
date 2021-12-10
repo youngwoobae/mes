@@ -30,7 +30,7 @@ public interface StndImpService {
     void makeProdByExcel(Map<String, Object> paraMap);
 
     @Transactional
-    void makeProdBomByExcel(Map<String, Object> paraMap);
+    List<Map<String, Object>> makeProdBomByExcel(Map<String, Object> paraMap);
 
     @Transactional
     void makeOrdByExcel(Map<String, Object> paraMap);

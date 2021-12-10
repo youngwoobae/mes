@@ -9,7 +9,6 @@ import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.dept.domain.DeptInfo;
 import daedan.mes.dept.repository.DeptRepository;
-import daedan.mes.file.domain.FileInfo;
 import daedan.mes.file.service.FileService;
 import daedan.mes.imp.domain.stnd.CmpyFormat;
 import daedan.mes.imp.domain.stnd.MatrFormat;
@@ -847,7 +846,19 @@ public class StndImpServiceImpl implements StndImpService {
                             prodvo.setCmpyNo(civo.getCmpyNo());
                         }
                         else {
-                            civo = cmpyRepo.findByCustNoAndMngrGbnCdAndCmpyNmAndUsedYn(custNo, mngrGbnSale, "판매처미상", "Y");
+                            civo = new CmpyInfo();
+                            civo.setCmpyNm(strChk);
+                            civo.setMngrGbnCd(mngrGbnSale);
+                            civo.setCmpyTp(Long.parseLong(env.getProperty("code.cmpytp.cmpy")));
+                            civo.setCustNo(custNo);
+                            civo.setModDt(DateUtils.getCurrentBaseDateTime());
+                            civo.setModId(userId);
+                            civo.setModIp(ipaddr);
+                            civo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                            civo.setRegId(userId);
+                            civo.setRegIp(ipaddr);
+                            civo.setUsedYn("Y");
+                            civo = cmpyRepo.save(civo);
                         }
                         if (civo != null) {
                             prodvo.setCmpyNo(civo.getCmpyNo());
@@ -981,7 +992,7 @@ public class StndImpServiceImpl implements StndImpService {
 
     @Override
     @Transactional
-    public void makeProdBomByExcel(Map<String, Object> paraMap) {
+    public List<Map<String, Object>> makeProdBomByExcel(Map<String, Object> paraMap) {
         String tag = "ImptoolService.makeProdBomByExcel => ";
         String fileRoot = paraMap.get("fileRoot").toString();
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
@@ -990,6 +1001,10 @@ public class StndImpServiceImpl implements StndImpService {
         String ipaddr = paraMap.get("ipaddr").toString();
         String filePath = fileService.getFileInfo(fileRoot,fileNo);
         log.info(tag + "filePath = " + filePath);
+
+
+        ArrayList<Map<String, Object>> errList = new ArrayList<Map<String, Object>>();
+        Map<String, Object> errMap = null;
         StringBuffer buf = new StringBuffer();
         FileInputStream file = null;
         try {
@@ -1009,11 +1024,12 @@ public class StndImpServiceImpl implements StndImpService {
             String matrCd = "";
             String matrTpNm = "";
             Long matrTpCd = 0L;
-            ProdInfo  chkpivo = null;
+            ProdBom bomchkvo = null;
             MatrInfo  chkmivo = null;
+            ProdInfo chkpivo = null;
             Long rowMatr = Long.parseLong(env.getProperty("rawmatr_cd")); //원부자재구분(원료) : 44
             Long subMatr = Long.parseLong(env.getProperty("submatr_cd")); //원부자재구분(자재) : 43
-
+            boolean isExist = false;
             for (rowindex = 0; rowindex < rows; rowindex++) {
                 if (rowindex == 0) continue; //헤더정보 skip
                 //if (rowindex > 100) break; //테스트
@@ -1028,19 +1044,30 @@ public class StndImpServiceImpl implements StndImpService {
                 try {
                     bomvo.setBomNo((long) row.getCell(BomFormat.BOM_NO).getNumericCellValue());
                 }
-                catch(IllegalStateException ne) {
+                catch(NullPointerException ne) {
+                    bomvo.setBomNo(0L);
+                }
 
+                catch(IllegalStateException ne) {
+                    bomvo.setBomNo(0L);
                 }
                 //품번
                 try {
                     bomvo.setProdNo((long) row.getCell(BomFormat.PROD_NO).getNumericCellValue());
                 }
+                catch(NullPointerException ne) {
+                    bomvo.setProdNo(0L);
+                }
                 catch(IllegalStateException ne) {
                     bomvo.setProdNo(0L);
                 }
+
                 //원료번호
                 try {
                     bomvo.setMatrNo((long) row.getCell(BomFormat.MATR_NO).getNumericCellValue());
+                }
+                catch(NullPointerException ne) {
+                    bomvo.setMatrNo(0L);
                 }
                 catch(IllegalStateException ne) {
                     bomvo.setMatrNo(0L);
@@ -1077,6 +1104,9 @@ public class StndImpServiceImpl implements StndImpService {
                 try {
                     bomvo.setBomLvl((long) row.getCell(BomFormat.BOM_LVL).getNumericCellValue());
                 }
+                catch(NullPointerException ne) {
+                    bomvo.setBomLvl(1L);
+                }
                 catch(IllegalStateException ne) {
                     bomvo.setBomLvl(1L);
                 }
@@ -1087,16 +1117,40 @@ public class StndImpServiceImpl implements StndImpService {
                 try {
                     bomvo.setConsistRt((float) row.getCell(BomFormat.CONSIST_RT).getNumericCellValue());
                 }
-                catch(IllegalStateException ne) {
-                    bomvo.setBomLvl(0L);
+                catch(NullPointerException ne) {
+                    bomvo.setConsistRt(0f);
                 }
+                catch(IllegalStateException ne) {
+                    bomvo.setConsistRt(0f);
+                }
+
                 if (bomvo.getProdNo() == 0L) {
                     if (!prodCd.equals("")) {
                         chkpivo = prodRepo.findByCustNoAndProdCodeAndUsedYn(custNo, prodCd, "Y");
                     } else {
                         chkpivo = prodRepo.findByCustNoAndProdNmAndUsedYn(custNo, prodNm, "Y");
                     }
-                    bomvo.setProdNo(chkpivo.getProdNo());
+                    try {
+                        bomvo.setProdNo(chkpivo.getProdNo());
+                    }
+
+                    catch (NullPointerException ne) {
+                        isExist = false;
+                        for (Map<String, Object> el : errList) { //상품에 설정된 제조공정별 처리작업목록 (예:해동,염지,열처리,금속검출,내포장,완제품입고)
+                            if (el.containsKey(rowindex)) {
+                                isExist = true;
+                                break;
+                            }
+                        }
+                        if (!isExist) {
+                            errMap = new HashMap<String, Object>();
+                            errMap.put(Integer.toString(rowindex), rowindex);
+                            errMap.put("error", "제품정보 없음.");
+                            errMap.put("품명", prodNm);
+                            errList.add(errMap);
+                            continue;
+                        }
+                    }
                 }
                 if (bomvo.getMatrNo() == 0L) {
                     if (!matrCd.equals("")) {
@@ -1104,15 +1158,39 @@ public class StndImpServiceImpl implements StndImpService {
                     } else {
                         chkmivo = matrRepo.findByCustNoAndMatrTpAndMatrNmAndUsedYn(custNo, matrTpCd, matrNm, "Y");
                     }
-                    bomvo.setMatrNo(chkmivo.getMatrNo());
+                    try {
+                        bomvo.setMatrNo(chkmivo.getMatrNo());
+                    }
+                    catch (NullPointerException ne) {
+                        isExist = false;
+                        for (Map<String, Object> el : errList) { //상품에 설정된 제조공정별 처리작업목록 (예:해동,염지,열처리,금속검출,내포장,완제품입고)
+                            if (el.containsKey(rowindex)) {
+                                isExist = true;
+                                break;
+                            }
+                        }
+                        if (!isExist) {
+                            errMap = new HashMap<String, Object>();
+                            errMap.put(Integer.toString(rowindex), rowindex);
+                            errMap.put("error", "원자재정보 없음.");
+                            errMap.put("원자재명", matrNm);
+                            errList.add(errMap);
+                            continue;
+                        }
+                    }
                 }
                 bomvo.setModDt(DateUtils.getCurrentBaseDateTime());
                 bomvo.setModId(userId);
                 bomvo.setModIp(ipaddr);
                 bomvo.setUsedYn("Y");
+                bomvo.setPursYn("Y");
                 bomvo.setCustNo(custNo);
-
-                ProdBom bomchkvo = prodBomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(custNo,bomvo.getProdNo(), bomvo.getMatrNo(), "Y");
+                if (bomvo.getBomNo() == 0L) {
+                    bomchkvo = prodBomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(custNo, bomvo.getProdNo(), bomvo.getMatrNo(), "Y");
+                }
+                else {
+                    bomchkvo = prodBomRepo.findByCustNoAndBomNoAndUsedYn(custNo, bomvo.getBomNo(), "Y");
+                }
                 if (bomchkvo != null) {
                     bomvo.setBomNo(bomchkvo.getBomNo());
                     bomvo.setRegDt(bomchkvo.getRegDt());
@@ -1135,6 +1213,7 @@ public class StndImpServiceImpl implements StndImpService {
         catch (IOException e) {
             e.printStackTrace();
         }
+        return errList;
     }
 
     @Override

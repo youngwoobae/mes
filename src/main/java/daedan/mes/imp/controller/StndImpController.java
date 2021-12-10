@@ -428,7 +428,7 @@ public class StndImpController {
         paraMap.put("fileRoot", uvo.getCustInfo().getFileRoot());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("session", session);
-        impService.makeProdBomByExcel(paraMap);
+        result.setData(impService.makeProdBomByExcel(paraMap));
 
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {

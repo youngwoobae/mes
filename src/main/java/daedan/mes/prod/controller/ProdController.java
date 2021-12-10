@@ -332,14 +332,14 @@ public class ProdController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
 
         Result result = Result.successInstance();
-        if (uvo.getCustInfo().getCustNo() == 30){
-            // 하담푸드 CustNO를 30으로 잠깐 수정 3으로 설정 시 오류
-            result.setData(prodService.getHdfdProdBomList(paraMap));
-            result.setTotalCount(prodService.getHdfdProdBomListCount(paraMap));
-        }else{
+        //if (uvo.getCustInfo().getCustNo() == 3){
+        //    // 하담푸드 CustNO를 30으로 잠깐 수정 3으로 설정 시 오류
+        //    result.setData(prodService.getHdfdProdBomList(paraMap));
+        //    result.setTotalCount(prodService.getHdfdProdBomListCount(paraMap));
+        //}else{
             result.setData(prodService.getProdBomList(paraMap));
             result.setTotalCount(prodService.getProdBomListCount(paraMap));
-        }
+        //}
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
