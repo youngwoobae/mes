@@ -71,7 +71,7 @@
              , a.cell_no
              , a.cell_id
              , a.user_tp  --사용자유형(관리자,사용자,게스트)
-             , a.ocpn_kind --직종구분(사무직,생산직)
+             , a.ocpn_kind  --직종구분(사무직,생산직)
              , a.empl_kind --채용구분(내국인,외국인,용역)
              , a.user_stat --상태코드
              , fn_get_code_name('nm',a.user_stat ) as user_stat_nm--상태값
@@ -619,8 +619,10 @@
             , fn_get_code_name('nm',b.empl_kind) as empl_kind_nm --내국인,외국인 구분명
             , a.work_fr_tm --출근시간
             , a.work_to_tm --퇴근시간
+            , b.ocpn_kind as code_nm --직종구분(사무직,생산직)
             , b.user_nm --근무자명
             , a.work_no --근무관리번호
+            , fn_get_code_name('nm', b.ocpn_kind)  as ocpn_kind_nm --직종(생산직 사무직)
             , fn_get_time_str(fn_get_min_term(a.work_fr_tm, a.work_to_tm)) as work_tm --근무시간
         from user_work a join user_info b on a.user_id = b.user_id
                                          and b.cust_info = #{custNo}

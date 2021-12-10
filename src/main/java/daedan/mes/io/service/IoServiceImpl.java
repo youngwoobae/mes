@@ -3474,7 +3474,7 @@ public class IoServiceImpl implements IoService {
 
     @Override
     public List<Map<String, Object>> getIwhMatrList(HashMap<String, Object> paraMap) {
-        return mapper.getMatrWhStkList(paraMap);
+        return mapper.getIwhMatrList(paraMap);
     }
 
     @Override
