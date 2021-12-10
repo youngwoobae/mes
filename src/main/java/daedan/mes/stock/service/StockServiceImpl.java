@@ -647,14 +647,14 @@ public class StockServiceImpl implements  StockService{
 
         ProdStkHstr prsvo = new ProdStkHstr();
 
+        //변경전 창고번호 설정
+        whNo = Long.parseLong(paraMap.get("whNo").toString());
         //변경 후 창고번호 설정
         try{
             chngWhNo = Long.parseLong(paraMap.get("chngWhNo").toString());
         }catch(NullPointerException ne){
-            chngWhNo = 0L;
+            chngWhNo = whNo;
         }
-        //변경전 창고번호 설정
-        whNo = Long.parseLong(paraMap.get("whNo").toString());
 
         try{
             prsvo.setChngNo(Long.parseLong(paraMap.get("chngNo").toString()));
@@ -702,7 +702,7 @@ public class StockServiceImpl implements  StockService{
                 prsvo.setModIp(paraMap.get("ipaddr").toString());
             }
             prsvo.setCustNo(custNo);
-            prodStkHstrRepo.save(prsvo);
+            prsvo = prodStkHstrRepo.save(prsvo);
 
             try{
                 Long chngNo = Long.parseLong(paraMap.get("chngNo").toString());
@@ -722,7 +722,7 @@ public class StockServiceImpl implements  StockService{
         }
         else{
             log.info("2. 창고이동 없는 경우.");
-            ProdStkHstr chkvo = prodStkHstrRepo.findByCustNoAndChngNoAndUsedYn(custNo,prsvo.getChngNo(), prsvo.getUsedYn());
+            ProdStkHstr chkvo = prodStkHstrRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,prsvo.getProdNo(), whNo, prsvo.getUsedYn());
             if(chkvo != null){
                 chkvo.setStkQty(prsvo.getStkQty());
                 chkvo.setChngResn(chngResn);

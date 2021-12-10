@@ -410,9 +410,14 @@ public class StndImpController {
 
 
 
-    /*6. 상품BOM생성
-        {"fileNm":"prodbom.xlsx"}
-    */
+    /**
+     * 6. 상품BOM생성
+     *
+     * @param paraMap
+     * @param session
+     * @param request
+     * @return Result
+     */
     @PostMapping(value="/makeProdBomByExcel")
     public Result makeProdBomByExcel(@RequestBody HashMap<String, Object> paraMap , HttpSession session, HttpServletRequest request) {
         Result result = Result.successInstance();
@@ -425,16 +430,13 @@ public class StndImpController {
         paraMap.put("session", session);
         impService.makeProdBomByExcel(paraMap);
 
-        //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.MAKE, 1);
             } catch (NullPointerException ne) {
             }
         }
-        //EOL AddON By KMJ AT 21.11.26
-
         return result;
     }
 
@@ -565,6 +567,14 @@ public class StndImpController {
         }
         //EOL AddON By KMJ AT 21.11.26
 
+        return result;
+    }
+
+    @PostMapping(value="/getUploadRate")
+    public Result getUploadRate(HttpSession session) {
+        Result result = Result.successInstance();
+        result.setData(session.getAttribute("uploadRate"));
+        log.info("uploadRate =====> " + session.getAttribute("uploadRate"));
         return result;
     }
 }

@@ -197,7 +197,10 @@ public class ProdController {
             } catch (NullPointerException ne) {
             }
         }
-        //EOL AddON By KMJ AT 21.11.26
+        //EOL AddON By KMJ AT 21.11.26select a.prod_no as 제품번호
+        //             , a.prod_nm as 제품명
+        //             , a.erp_prod_nm as 품목제조보고서제품명
+        //             , '' as ERP_제품명
 
         return result;
     }
@@ -263,7 +266,6 @@ public class ProdController {
         Result result = Result.successInstance();
         result.setData(prodService.getProdExcelList(paraMap));
 
-        //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
@@ -271,7 +273,6 @@ public class ProdController {
             } catch (NullPointerException ne) {
             }
         }
-        //EOL AddON By KMJ AT 21.11.26
 
         return result;
     }
@@ -852,7 +853,7 @@ public class ProdController {
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.MAKE, 1);
             } catch (NullPointerException ne) {
             }
         }

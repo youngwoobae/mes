@@ -995,17 +995,13 @@
              , a.ocpn_kind
              , a.empl_kind
              , to_char(a.entr_dt, 'YYYY-MM-DD') as entr_dt
-             , y.code_nm as empl_kind_nm --채용구분(내국인 외국인 영역)
-             , z.code_nm as ocpn_kind_nm --직종(생산직 사무직)
-             , b.dept_nm --소속 / 부서명
-             , b.par_dept_no
-             , b.prt_seq
-        from user_info a join code_info z on a.ocpn_kind = z.code_no
-                    left join code_info y on a.empl_kind = y.code_no
-                    left join dept_info b on a.dept_no = b.dept_no
-                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
+             , fn_get_code_name('nm',a.empl_kind)  as empl_kind_nm --채용구분(내국인 외국인 영역)
+             , fn_get_code_name('nm',a.empl_kind)  as ocpn_kind_nm --직종(생산직 사무직)
+             , fn_get_dept_name(a.dept_no) as dept_nm --소속 / 부서명
+        from user_info a
         where 1 = 1
-        and a.used_yn = 'Y' and a.cust_no =#{custNo}
+        and a.used_yn = 'Y'
+        and a.cust_info =#{custNo}
         <if test="ocpnKind != null and ocpnKind != ''">
             and a.ocpn_kind = #{ocpnKind}
         </if>
@@ -1026,12 +1022,18 @@
         <if test="deptList != null and deptList !='' and deptList.size != 0 ">
             and a.dept_no::varchar in <foreach collection="deptList" item="deptList" index="index" open="(" close=")" separator=",">   #{deptList}   </foreach>
         </if>
-                and a.user_id not in (
-                        select a.user_id --id
-                        from user_info a join auth_user b on a.user_id = b.user_id
-                        where b.auth_cd  = #{authCd} and a.used_yn = 'Y'
-                 )
-        order by b.dept_no, a.user_nm collate "ko_KR.utf8"
+        <if test="wokerList != null and workerList !='' and workerList.size != 0 ">
+            and a.user_id in <foreach collection="woprkerList" item="woprkerList" index="index" open="(" close=")" separator=",">   #{woprkerList}   </foreach>
+        </if>
+
+        <if test="authCd != null and authCd != ''">
+            and a.user_id not in (
+                    select a.user_id --id
+                    from user_info a join auth_user b on a.user_id = b.user_id
+                    where b.auth_cd  = #{authCd} and a.used_yn = 'Y'
+             )
+        </if>
+        order by dept_no, user_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getMpUsedList" parameterType="map"  resultType="camelMap">

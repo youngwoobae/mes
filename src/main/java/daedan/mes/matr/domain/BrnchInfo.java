@@ -18,50 +18,37 @@ public class BrnchInfo {
     private Long brnchNo;
 
     /*모분류번호*/
-    @Column(name="par_brnch_no",nullable = false)
+    @Column(name="parBrnchNo",nullable = false)
     private Long parBrnchNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
     /*분류명*/
-    @Column(name="brnch_nm",nullable = false, length=80)
+    @Column(name="brnchNm",nullable = false, length=80)
     private String brnchNm;
 
-    @Column(name="reg_id",nullable = false)
+    @Column(name="regId")
     private Long regId;
 
-    @Column(name="mod_id",nullable = false)
+    @Column(name="modId")
     private Long modId;
 
-    @Column(name="reg_ip",nullable = false, length = 20)
+    @Column(name="regIp")
     private String regIp;
 
-    @Column(name="mod_ip",nullable = false, length = 20)
+    @Column(name="modIp")
     private String modIp;
 
-    @Column(name="reg_dt",nullable = false)
+    @Column(name="regDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date regDt;
 
-    @Column(name="mod_dt",nullable = false)
+    @Column(name="modDt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
 
-    @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
+    @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
-
-    public Date getRegDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
-
-    public Date getModDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
-
 }
 

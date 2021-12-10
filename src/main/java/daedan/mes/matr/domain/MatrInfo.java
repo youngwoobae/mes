@@ -15,30 +15,30 @@ public class MatrInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="matr_no")
+    @Column(name="matrNo")
     private Long matrNo;
 
     /*분류번호*/
-    @Column(name="brnch_no",nullable = false )
+    @Column(name="brnchNo",nullable = false )
     private Long brnchNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
     /*자재유형*/
-    @Column(name="matr_tp")
+    @Column(name="matrTp")
     private Long matrTp;
 
     /*자재명*/
-    @Column(name="matr_nm",nullable = false, length = 200)
+    @Column(name="matrNm",nullable = false, length = 200)
     private String matrNm;
 
     //품목코드
-    @Column(name="item_cd", length = 20)
+    @Column(name="itemCd", length = 20)
     private String itemCd;
 
     //보관온도코드
-    @Column(name="save_tmpr" )
+    @Column(name="saveTmpr" )
     private Long saveTmpr;
 
     //
@@ -47,7 +47,7 @@ public class MatrInfo {
 
 
     //정격전압
-    @Column(name="base_volt" , length = 20)
+    @Column(name="baseVolt" , length = 20)
     private String baseVolt;
 
     //소재코드
@@ -72,11 +72,11 @@ public class MatrInfo {
     private String made;
 
     /*창고번호 : 원료적재창고 : 나중에 사용할 예정임.*/
-    @Column(name="wh_no", columnDefinition = "numeric default 0")
+    @Column(name="whNo", columnDefinition = "numeric default 0")
     private Long whNo;
 
     /*관리단위 : 용량(ml)=1702, 질량(gram)=1701 기본값은 */
-    @Column(name="mngr_base", columnDefinition = "numeric default 1701"  )
+    @Column(name="mngrBase", columnDefinition = "numeric default 1701"  )
     private Long mngrBase;
 
     //비중

@@ -797,7 +797,7 @@ public  class UserServiceImpl implements UserService {
 		List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("workerList");
 		for (Map<String, Object> el : ds) {
 			el.put("custNo", paraMap.get("custNo"));
-			el.put("worker", el.get("userId"));
+			el.put("worker", el.get("value"));
 			el.put("userId", paraMap.get("userId"));
 			el.put("workDt", paraMap.get("workDt").toString().substring(0,10));
 			el.put("workFrTm", paraMap.get("workFrTm").toString());

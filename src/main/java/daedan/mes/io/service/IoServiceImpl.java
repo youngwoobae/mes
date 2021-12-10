@@ -3109,6 +3109,7 @@ public class IoServiceImpl implements IoService {
     }
 
     @SneakyThrows
+    @Transactional
     @Override
     public void saveProdIwhList(Map<String, Object> paraMap) {
         String tag = "vsvc.IoService.saveProdIwhList => ";
@@ -3117,11 +3118,12 @@ public class IoServiceImpl implements IoService {
         List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("iwhList");
         Long prodNo = 0L;
         Float stkQty = 0F;
-        Long whNo = Long.parseLong(paraMap.get("whNo").toString());
+        Long whNo = 0L;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         for (Map<String,Object> el : ds) {
-            ProdIwh pivo = new ProdIwh();
+            whNo = Long.parseLong(el.get("whNo").toString());
             prodNo= Long.parseLong(el.get("prodNo").toString());
+            ProdIwh pivo = new ProdIwh();
             pivo.setProdNo(prodNo);
             pivo.setWhNo(whNo);
             pivo.setIwhQty(Float.parseFloat(el.get("iwhQty").toString()));

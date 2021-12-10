@@ -17,4 +17,6 @@ public class ProdFormat {
     public static final int SPGA = 14;  //비율
     public static final int PROD_SHAPE = 15;  //제품형태
     public static final int BOM_LVL = 16;  //제품형태
+    public static final int CMPY_NO = 10; //OEM업체관리번호
+    public static final int CMPY_NM = 11; //OEM업체명
 }

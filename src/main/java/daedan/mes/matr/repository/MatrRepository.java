@@ -11,8 +11,6 @@ public interface MatrRepository extends JpaRepository<MatrInfo, Long>  {
     MatrInfo findByCustNoAndItemCdAndMatrNmAndSzAndUsedYn(Long custNo, String itemCd, String matrNm, String sz, String yn);
     MatrInfo findByCustNoAndMatrNmAndUsedYn(Long custNo, String matrNm, String yn);
     MatrInfo findByCustNoAndMatrNoAndMatrNmAndUsedYn(Long custNo, Long matrNo, String matrNm, String y);
-    MatrInfo findByCustNoAndFileNoAndUsedYn(Long custNo, Long fileNo, String y);
-
-    MatrInfo findByCustNoAndFileNoAndMatrNoAndUsedYn(Long custNo, Long fileNo, Long matrNo, String y);
-
+    MatrInfo findByCustNoAndItemCdAndUsedYn(Long custNo, String matrCd, String y);
+    MatrInfo findByCustNoAndMatrTpAndMatrNmAndUsedYn(Long custNo, Long matrTpCd, String matrNm, String y);
 }

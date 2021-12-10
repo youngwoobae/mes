@@ -67,15 +67,7 @@ public class FileController {
         }
         Long userId = Long.parseLong(request.getParameter("userId").toString());
         FileInfo fileEntity = new FileInfo();
-        /*
-        Long fileNo
-        Long saveSeq
-        usedYn
-        tmpYn
-        MultipartFile multipartFile
-        Long userId
-        String ipaddr
-        */
+
         fileEntity = new FileInfo (
                   fileNo
                 , 1L

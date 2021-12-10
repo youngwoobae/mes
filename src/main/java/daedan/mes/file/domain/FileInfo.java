@@ -86,16 +86,4 @@ public class FileInfo {
     @Column(name="tmp_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String tmpYn;
 
-
-    public Date getRegDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
-
-    public Date getModDt(){
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
-        Date date = new Date();
-        return  new Timestamp(date.getTime());
-    }
 }

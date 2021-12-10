@@ -1,5 +1,6 @@
 package daedan.mes.bord.domain;
 
+import daedan.mes.user.domain.IndsType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -32,6 +33,11 @@ public class BordInfo {
     /*게시제목*/
     @Column(name="bord_subj",nullable = false )
     private String bordSubj;
+
+    /*처리우선순위*/
+    @Enumerated(EnumType.STRING)
+    @Column(name="prioTp",nullable = true, length = 10)
+    private PrioType prioTp;
 
     /*게시내용*/
     @Column(name="bord_cont",nullable = false )

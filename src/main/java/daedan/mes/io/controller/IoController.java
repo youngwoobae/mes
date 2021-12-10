@@ -2300,13 +2300,13 @@ public class IoController {
         }
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-//        ioService.saveProdIwhList(paraMap);
+        ioService.saveProdIwhList(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
             } catch (NullPointerException ne) {
             }
         }

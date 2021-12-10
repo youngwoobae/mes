@@ -29,12 +29,13 @@ import java.util.Date;
     @Column(name="consistRt", precision=10, scale=8 )
     private  float consistRt;
 
-    @Column(name="needQty",nullable = false, precision=8, scale=2)
+    @Column(name="needQty", precision=8, scale=2)
     private  float needQty;
 
     /*제품 bom 레벨*/
     @Column(name="bomLvl", columnDefinition = "numeric default 1" )
     private Long bomLvl;
+
     /*구매필요여부*/
     @Column(name="pursYn", columnDefinition = "char default 'Y'")
     private String pursYn;

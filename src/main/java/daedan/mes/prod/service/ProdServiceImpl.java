@@ -1184,6 +1184,7 @@ public class ProdServiceImpl implements  ProdService {
             }
             pivo.setCustNo(custNo);
             pivo = prodRepository.save(pivo);
+
             //여기서 BOM 구성할 것.
         }
 

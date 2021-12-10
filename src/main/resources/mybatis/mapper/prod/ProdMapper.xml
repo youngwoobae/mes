@@ -579,22 +579,20 @@
              , a.prod_nm as 품명
              , a.erp_prod_nm as ERP제품명
              , a.prod_code as 제품코드
-             , a.spga as 비중
-             , a.heat_tp  as  살균기준
-             , a.modl_nm as 모델명
-             , a.valid_term as 유통기한
-             , a.sz as 규격
-             , a.brnch_no as 제조공정번호
-             , coalesce (a.mess,0) as 단위중량
-             , a.save_tmpr as 보관온도
-             , a.sale_unit as 판매단위코드
              , a.qty_per_pkg as 입수량
+             , a.vol       as 중량
+             , coalesce(a.spga,1) as 비중
+             , coalesce(a.mess,a.vol) as 질량
+             , fn_get_cmpy_name(a.cmpy_no) as OEM업체
+             , fn_get_code_name('nm', a.save_tmpr) as 보관온도
+             , coalesce(a.valid_term,12) as 유통기한
+             , fn_get_code_name('nm',a.brnch_no) as 제조공정
+             , a.sz as 규격
+             , fn_get_code_name('nm',a.sale_unit) as 판매단위
+
              , c.save_file_nm as 저장파일명
              , c.org_file_nm as 원본파일명
              , fn_get_code_name('nm', a.prod_tp)  as 판매구분명
-             , fn_get_code_name('nm', a.brnch_no) as 제조공정명
-             , fn_get_code_name('nm', a.save_tmpr) as 보관온도명
-             , fn_get_code_name('nm', a.sale_unit) as 판매단위명
              , coalesce( (select  sum(c.ord_qty)
                             from ord_info b join ord_prod c on b.ord_no = c.ord_no
                                       and b.used_yn  = 'Y'
@@ -648,78 +646,34 @@
     </select>
 
     <select id="getBomExcelList" parameterType="map"  resultType="camelMap">
-        select a.prod_no as 제품번호
-             , a.prod_nm as 제품명
-             , a.erp_prod_nm as 품목제조보고서제품명
-             , '' as 아아큐브_제품명
-             , a.prod_code as 제품코드
-             , a.brnch_no as 제조공정번호
-             , coalesce (e.code_nm,'미확인') as 제조공정명
-             , a.heat_tp  as  HACCP살균기준코드
-             , coalesce (h.code_nm,'미확인')  as HACCP살균기준명
-             , a.modl_nm as 모델명
-             , a.sz as 규격
-             , coalesce (a.mess,0) as 단위용량
-             , a.save_tmpr as 보관온도코드
-             , a.mngr_base as 질량중량구분
-             , l.code_nm as mngrBase
-             , p.code_nm as 보관온도명
-             , a.sale_unit as 판매단위코드
-             , coalesce (m.code_nm,'미확인') as 판매단위명
-             , a.qty_per_pkg as INCASE수량
-             , a.valid_term as 유통기한
-             , b.bom_no as BOM관리번호
-             , b.matr_no as 원료번호
-             , c.matr_nm as 원료명
-             , c.item_cd as 원료코드
-             , c.matr_tp as 원자재구분코드
-             , d.code_nm as 원자재구분명
-             , round(b.consist_rt::numeric,4) as 구성함량
-             , b.consist_rt AS 원료투입율
-             , coalesce (c.brix,0)  as 당도
-             , c.valid_term as 유효기간
-             , c.mngr_base as 질량중량구분코드
-             , k.code_nm  as matrMngrBase
-             , c.mess as 원료중량
-             , c.spga as 비중
-             , c.vol  as 질량비중곱
-             , c.sz as 규격
-             , c.purs_unit as 구매단위코드
-             , coalesce (n.code_nm,'미확인') as 구매단위명
-             , c.made as 원산지
-             , a.spga as 제품비중
-             , c.save_tmpr as 보관온도코드
-             , i.code_nm as 보관온도
-             , q.code_nm as 제품형태
-             , a.bom_lvl as prodBom레벨
-             , b.bom_lvl as bom레벨
-        from prod_info a join prod_bom  b on a.prod_no = b.prod_no and b.used_yn ='Y' and b.cust_no =#{custNo}
-                         join matr_info c on b.matr_no = c.matr_no and c.used_yn ='Y' and c.cust_no =#{custNo}
-                         join code_info d on c.matr_tp = d.code_no
-                    left join code_info e on a.brnch_no  = e.code_no
-                    left join code_info n on c.purs_unit  = n.code_no
-                    left join code_info p on a.save_tmpr  = p.code_no
-                    left join code_info m on a.sale_unit  = m.code_no
-                    left join code_info g on c.purs_unit = g.code_no
-                    left join code_info k on c.mngr_base  = k.code_no
-                    left join code_info h on a.heat_tp = h.code_no
-                    left join code_info i on c.save_tmpr = i.code_no
-                    left join code_info l on a.mngr_base = l.code_no
-                    left join code_info q on a.prod_shape  = q.code_no
-         where a.used_yn = 'Y'
-           and a.cust_no =#{custNo}
+        /*BOM Export Export 목록(prodMapper.getBomExcelList) */
+        select a.bom_no as BOM번호
+             , a.prod_no as 제품번호
+             , a.matr_no as 원자재번호
+             , b.prod_code as 제품코드
+             , b.prod_nm  as 제품명
+             , c.item_cd  as 원자재코드
+             , c.matr_nm as 원자재명
+             ,a.bom_lvl   as BOM레벨
+             ,fn_get_code_name('nm', c.matr_tp) as 원자재구
+             ,coalesce (a.consist_rt,0)   as 구성함량
+             ,a.purs_yn --자사조달여부
+        from prod_bom a join prod_info b on a.cust_no = b.cust_no and b.used_yn ='Y'
+        join matr_info c on a.cust_no = c.cust_no and c.used_yn = 'Y'
+        where a.cust_no = #{custNo}
+        and a.used_yn = 'Y'
         <if test="findSz != null and findSz != ''">
             <if test="findTp != null and findTp == 'prodNm'">
-                AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                AND upper(replace(b.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
             <if test="findTp != null and findTp == 'matrNm'">
                 AND upper(replace(c.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
         <if test="bomNo != null and bomNo != ''">
-            AND b.bom_no = #{bomNo}
+            AND a.bom_no = #{bomNo}
         </if>
-        order by a.prod_nm collate "ko_KR.utf8", c.matr_nm collate "ko_KR.utf8"
+        order by b.prod_nm collate "ko_KR.utf8", c.matr_nm collate "ko_KR.utf8"
     </select>
 
     <select id="getProdInfo" parameterType="map"  resultType="camelMap">

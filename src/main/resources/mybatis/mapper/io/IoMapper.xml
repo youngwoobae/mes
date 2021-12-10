@@ -2889,14 +2889,12 @@
              , a.prod_nm
              , coalesce (c.stk_qty,0) as stk_qty
              , case when b.indc_no is not null then 'Y' else 'N' end as indc_yn
-             , d.wh_nm
-             , c.wh_no
+             , fn_get_wh_name(a.wh_no) as wh_nm
+             , a.wh_no
         from prod_info a left join make_indc b on a.prod_no = b.prod_no
                                        and b.used_yn ='Y' and b.cust_no =#{custNo}
                         left join prod_stk c on a.prod_no = c.prod_no and c.used_yn = 'Y'
                                         and c.used_yn ='Y' and c.cust_no =#{custNo}
-                        left join wh_info d on c.wh_no = d.wh_no and d.used_yn = 'Y'
-                                        and d.used_yn ='Y' and d.cust_no =#{custNo}
         where a.used_yn ='Y' and a.cust_no =#{custNo}
         and a.prod_no not in (select prod_no from prod_iwh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
         <if test="findStr != null and findStr != ''">
