@@ -137,7 +137,7 @@ public class UserController {
         Long userId = Long.parseLong(szUserId);
         UserInfo uservo = userService.getUserInfoById(userId);
         Long custNo = uservo.getCustInfo().getCustNo();
-        uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+        uservo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
 
         token = jwtService.create("member", uservo, "user");
         log.info(tag + "created user token = " + token);
@@ -179,7 +179,7 @@ public class UserController {
                 String strCustNo = orgLcnsCd.replaceAll("[^0-9]", "");
                 Long custNo = Long.parseLong(strCustNo);
 
-                uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+                uservo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
                 log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
                 if (uservo.getCustInfo().getKpiYn().equals("Y")) { /* KPI API 세션 생성 */
                     Map<String, Object> amap = new HashMap<String, Object>();
@@ -1059,11 +1059,11 @@ public class UserController {
         String tag = "TableMenu => ";
         log.info(tag+"!!!!!@@@@@#####");
         Result result = Result.successInstance();
-        CustInfo civo = custInfoRepo.findByCustNo(Long.valueOf(nPath));
+        CustInfo civo = custInfoRepo.findByCustNoAndUsedYn(Long.valueOf(nPath),"Y");
         if (civo != null) {
             UserInfo uservo = userRepo.findByMailAddrAndUsedYn(civo.getAutoSignId(),"Y");
             Long custNo = uservo.getCustInfo().getCustNo();
-            uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+            uservo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
             String token = jwtService.create("member", uservo, "user");
             log.info(tag + "created user token = " + token);
 

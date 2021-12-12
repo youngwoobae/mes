@@ -1452,8 +1452,7 @@ public class StringUtil {
         return crc;
     }
 
-    private static String getUnixTimeToDate(String unitTime){
-        long timestamp = Long.parseLong(unitTime);
+    public static String getUnixTimeToDate(Long timestamp ){
         Date date = new Date(timestamp*1000L);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         sdf.setTimeZone(TimeZone.getTimeZone("GMT+9"));
@@ -1591,5 +1590,33 @@ public class StringUtil {
             }
         }
         return obj;
+    }
+
+    public static boolean chkSaupNo(String saupNo) {
+        final int[] LOGIC_NUM = {1, 3, 7, 1, 3, 7, 1, 3, 5, 1};
+
+        if (!isNumeric(saupNo) || saupNo.length() != 10) return false;
+        int sum = 0;
+        int j = -1;
+        for (int i = 0; i < 9; i++) {
+            j = Character.getNumericValue(saupNo.charAt(i));
+            sum += j * LOGIC_NUM[i];
+        }
+        sum += (int) (Character.getNumericValue(saupNo.charAt(8)) * 5 / 10);
+        int checkNum = (10 - sum % 10) % 10;
+        return (checkNum == Character.getNumericValue(saupNo.charAt(9)));
+    }
+
+    public static boolean isNumeric(String str) {
+        if (str == null) {
+            return false;
+        }
+        int sz = str.length();
+        for (int i = 0; i < sz; i++) {
+            if (Character.isDigit(str.charAt(i)) == false) {
+                return false;
+            }
+        }
+        return true;
     }
 }

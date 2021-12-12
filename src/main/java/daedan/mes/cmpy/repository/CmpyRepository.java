@@ -8,4 +8,5 @@ public interface CmpyRepository extends JpaRepository<CmpyInfo, Long> {
     CmpyInfo findByCustNoAndMngrGbnCdAndCmpyNoAndUsedYn(Long custNo, Long mngrGbnCd, Long cmpyNo, String y);
     CmpyInfo findByCustNoAndMngrGbnCdAndCmpyNmAndReprMailAddrAndUsedYn(Long custNo, Long mngrGbnCd, String cmNm, String cmMi, String y);
     CmpyInfo findByCustNoAndCmpyNoAndUsedYn(Long custNo, Long cmpyNo, String y);
+    CmpyInfo findByCustNoAndSaupNoAndUsedYn(Long custNo, String sendCmpyNo, String y);
 }

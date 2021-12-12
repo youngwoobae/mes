@@ -1,5 +1,6 @@
 package daedan.mes.stock.mapper;
 
+import daedan.mes.common.domain.Result;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
@@ -98,4 +99,6 @@ public interface StockMapper {
 
     List<Map<String, Object>> getMatrRealStockHstr(HashMap<String, Object> paraMap);
     int getMatrRealStockHstrCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getShdList(Map<String, Object> paraMap);
 }

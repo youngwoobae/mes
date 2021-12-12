@@ -49,7 +49,7 @@ public class CmmnServiceImpl implements CmmnService {
         String tag = "CmmnService.encryptStr => ";
         byte[] encryptedMessage = null;
         byte[] encArray = null;
-        CustInfo custvo = custInfoRepo.findByCustNo(custNo);
+        CustInfo custvo = custInfoRepo.findByCustNoAndUsedYn(custNo,"Y");
         if (custvo != null) {
             byte[] pbszUserKey = custvo.getPbszUserKey().getBytes(StandardCharsets.UTF_8);
             byte[] pbszIv = custvo.getPbszIv().getBytes(StandardCharsets.UTF_8);
@@ -71,7 +71,7 @@ public class CmmnServiceImpl implements CmmnService {
     @Override
     public String decryptStr(Long custNo, byte[] encStr) throws UnsupportedEncodingException {
         String result = "";
-        CustInfo custvo = custInfoRepo.findByCustNo(custNo);
+        CustInfo custvo = custInfoRepo.findByCustNoAndUsedYn(custNo,"Y");
 
         if (encStr != null) {
             String tag = "CmmnService.decryptStr => ";

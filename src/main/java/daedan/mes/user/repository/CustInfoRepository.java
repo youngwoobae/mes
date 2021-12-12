@@ -5,5 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Component;
 
 public interface CustInfoRepository  extends JpaRepository<CustInfo, Long> {
-    CustInfo findByCustNo(Long custNo);
+    CustInfo findByCustNoAndUsedYn(Long custNo,String y);
+    CustInfo findByLcnsCdAndUsedYn(String lcnsCd, String y);
+    CustInfo findBySaupNoAndUsedYn(String saupNo, String y);
 }

@@ -906,4 +906,21 @@ public class StockController {
 
         return result;
     }
+    /**
+     * 주문접수를 기반한 SHD 목록
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/getShdList") //
+    public Result getShdList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        result.setData(stockService.getShdList(paraMap));
+        return result;
+    }
 }

@@ -1140,6 +1140,36 @@ public class StockServiceImpl implements  StockService{
         return mapper.getMatrRealStockHstrCount(paraMap);
     }
 
+    @Override
+    public Map<String, Object> getShdList(Map<String, Object> paraMap) {
+        String tag = "stockService.getShdList =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        ArrayList<String> dsDate = new ArrayList<String>();
+        ArrayList<Long> dsOrdRecv = new ArrayList<Long>();
+        ArrayList<Long> dsProd = new ArrayList<Long>();
+        ArrayList<Long> dsCmpy = new ArrayList<Long>();
+
+        ArrayList<Integer> dsStkQty = new ArrayList<Integer>();
+        ArrayList<Integer> dsReqQty = new ArrayList<Integer>();
+        Map<String,Object> rmap = new HashMap<String,Object>();
+        List<Map<String,Object>> ds = mapper.getShdList(paraMap);
+        for (Map<String, Object> el : ds) {
+            dsDate.add(el.get("date").toString());
+            dsOrdRecv.add(Long.parseLong(el.get("ordRecvNo").toString()));
+            dsCmpy.add(Long.parseLong(el.get("cmpyNo").toString()));
+            dsProd.add(Long.parseLong(el.get("prodNo").toString()));
+            dsStkQty.add((int) Math.ceil(Float.parseFloat(el.get("stkQty").toString())));
+            dsReqQty.add((int) Math.ceil(Float.parseFloat(el.get("reqQty").toString())));
+        }
+        rmap.put("ordRecvNo", dsOrdRecv);
+        rmap.put("cmpyNo", dsCmpy);
+        rmap.put("prodNo", dsProd);
+        rmap.put("stkDt", dsDate);
+        rmap.put("stkQty", dsStkQty);
+        rmap.put("reqQty", dsReqQty);
+        return rmap;
+    }
+
 
     private void closingMatr(Map<String,Object> paraMap) {
         List<Map<String, Object>> dsProd = mapper.getMatrClosList(paraMap);

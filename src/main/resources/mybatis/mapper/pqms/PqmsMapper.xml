@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.pqms.mapper.PqmsMapper">
+    <select id="getOrdRecvList" parameterType="map" resultType="camelMap">
+        /*PQMS로부턴 수신된 주문목록(PqmsMapper.getOrdRecvList)*/
+        select a.ord_recv_no
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --발송거래처명
+             , a.cmpy_no --발송거래처
+             , a.send_ut --전송일자(Unix TimeStamp)
+             , to_char(to_timestamp(a.send_ut),'YYYY-MM-DD') as send_dt --전송일자
+             , a.prod_no --품번
+             , fn_get_prod_name(a.prod_no) as prod_nm --품명
+             , a.req_ut --요청일자(Unix TimeStamp)
+             , to_char(to_timestamp(a.req_ut),'YYYY-MM-DD') as req_dt --요청일자
+             , a.req_qty --요청수량
+             , a.proc_sts --처리상태
+             ,fn_get_code_name('nm',a.proc_sts) as proc_sts_nm --처리상태
+        from ord_recv a
+        where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
+        <if test="cmpyNo != null and cmpyNo != ''">
+            and a.cmpy_no = #{prodNo}
+        </if>
+        <if test="prodNo != null and prodNo != ''">
+            and a.cmpy_no = #{prodNo}
+        </if>
+        <if test="prodSts != null and procSts != ''">
+            and a.proc_sts = #{procSts}
+        </if>
+
+        order by send_ut desc, fn_get_prod_name(a.prod_no)  collate "ko_KR.utf8"
+        limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getOrdRecvListCount" parameterType="map" resultType="int">
+        select count(a.ord_recv_no)
+        from (
+            select a.ord_recv_no
+            from ord_recv a
+            where a.used_yn = 'Y'
+            and a.cust_no = #{custNo}
+            <if test="cmpyNo != null and cmpyNo != ''">
+                and a.cmpy_no = #{prodNo}
+            </if>
+            <if test="prodNo != null and prodNo != ''">
+                and a.cmpy_no = #{prodNo}
+            </if>
+            <if test="prodSts != null and procSts != ''">
+                and a.proc_sts = #{procSts}
+            </if>
+        ) a
+    </select>
+    <select id="getComboOrdSender" parameterType="map" resultType="camelMap">
+       /*PQMS로부턴 수신된 주문목록의 발송거래처목록(PqmsMapper.getOrdRecvList)*/
+        select 0 as prt_seq
+              ,null as value
+              ,#{selectStr} as text
+         union
+        select 1
+             ,  a.cmpy_no as value
+             , fn_get_cmpy_name(a.cmpy_no) as text
+        from ord_recv a
+        where a.used_yn = 'Y'
+        and a.cust_no = #{custNo}
+        and   to_char(to_timestamp(a.send_ut),'YYYY-MM-DD') between #{dateFr} and #{dateTo}
+        group by cmpy_no
+        order by prt_seq, value
+    </select>
+</mapper>

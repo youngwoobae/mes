@@ -20,44 +20,44 @@ public class OrdInfo {
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
-    @Column(name="cmpy_no",nullable = false, columnDefinition = "numeric")
+    @Column(name="cmpyNo",nullable = false, columnDefinition = "numeric")
     private Long cmpyNo;
 
     /*주문유형:주문,수주(자체영업)*/
-    @Column(name="ord_tp",nullable = false, columnDefinition = "numeric")
+    @Column(name="ordTp",nullable = false, columnDefinition = "numeric")
     private Long ordTp;
 
     /*주문경로:수주(자체영업)인 경우*/
-    @Column(name="ord_path", columnDefinition = "numeric")
+    @Column(name="ordPath", columnDefinition = "numeric")
     private Long ordPath;
 
     /*주문일자*/
-    @Column(name="ord_dt",nullable = false)
+    @Column(name="ordDt",nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date ordDt;
 
     /*주문상태*/
-    @Column(name="ord_sts",nullable = false)
+    @Column(name="ordSts",nullable = false)
     private Long ordSts;
 
     /*주문명*/
-    @Column(name="ord_nm",nullable = false, length = 250)
+    @Column(name="ordNm",nullable = false, length = 250)
     private String ordNm;
 
     //인수증번호
-    @Column(name="take_no")
+    @Column(name="takeNo")
     private String takeNo;
 
     /*택배사*/
-    @Column(name="trk_cmpy_no", columnDefinition = "numeric")
+    @Column(name="trkCmpyNo", columnDefinition = "numeric")
     private Long trkCmpyNo;
 
     /*운송장번호*/
-    @Column(name="trk_no")
+    @Column(name="trkNo")
     private String trkNo;
 
     /*운송금액*/
-    @Column(name="trk_amt")
+    @Column(name="trkAmt")
     private Long trkAmt;
 
     /*납품요청일*/
@@ -81,7 +81,7 @@ public class OrdInfo {
     */
 
     /*주문형태*/
-    @Column(name="ord_gbn")
+    @Column(name="ordGbn")
     private Long ordGbn;
 
     /*단가*/

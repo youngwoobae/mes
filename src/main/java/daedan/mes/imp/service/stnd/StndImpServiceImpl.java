@@ -1136,17 +1136,17 @@ public class StndImpServiceImpl implements StndImpService {
 
                     catch (NullPointerException ne) {
                         isExist = false;
-                        for (Map<String, Object> el : errList) { //상품에 설정된 제조공정별 처리작업목록 (예:해동,염지,열처리,금속검출,내포장,완제품입고)
-                            if (el.containsKey(rowindex)) {
+                        for (Map<String, Object> el : errList) {
+                            if (el.get("contnt").toString().equals(prodNm)) {
                                 isExist = true;
                                 break;
                             }
                         }
                         if (!isExist) {
                             errMap = new HashMap<String, Object>();
-                            errMap.put(Integer.toString(rowindex), rowindex);
-                            errMap.put("error", "제품정보 없음.");
-                            errMap.put("품명", prodNm);
+                            errMap.put("rownum", rowindex);
+                            errMap.put("header", "제품정보 없음.");
+                            errMap.put("contnt", prodNm);
                             errList.add(errMap);
                             continue;
                         }
@@ -1163,17 +1163,17 @@ public class StndImpServiceImpl implements StndImpService {
                     }
                     catch (NullPointerException ne) {
                         isExist = false;
-                        for (Map<String, Object> el : errList) { //상품에 설정된 제조공정별 처리작업목록 (예:해동,염지,열처리,금속검출,내포장,완제품입고)
-                            if (el.containsKey(rowindex)) {
+                        for (Map<String, Object> el : errList) {
+                            if (el.get("contnt").toString().equals(matrNm)) {
                                 isExist = true;
                                 break;
                             }
                         }
                         if (!isExist) {
                             errMap = new HashMap<String, Object>();
-                            errMap.put(Integer.toString(rowindex), rowindex);
-                            errMap.put("error", "원자재정보 없음.");
-                            errMap.put("원자재명", matrNm);
+                            errMap.put("rownum", rowindex);
+                            errMap.put("header", "원자재정보 없음.");
+                            errMap.put("contnt", matrNm);
                             errList.add(errMap);
                             continue;
                         }
@@ -1218,7 +1218,7 @@ public class StndImpServiceImpl implements StndImpService {
 
     @Override
     public void makeOrdByExcel(Map<String, Object> paraMap) {
-        String tag = "ImptoolService.makeOrdByExcel => ";
+        String tag = "StndImpService.makeOrdByExcel => ";
         StringBuffer buf = new StringBuffer();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         String fileRoot = paraMap.get("fileRoot").toString();
@@ -1700,7 +1700,7 @@ public class StndImpServiceImpl implements StndImpService {
             uservo.setModIp("localhost");
             uservo.setModId(0L);
             uservo.setUsedYn("Y");
-            uservo.setCustInfo(custInfoRepo.findByCustNo(Long.parseLong(env.getProperty("cust_no"))));
+            uservo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
             UserInfo chkvo = userRepo.findByUserNmAndUsedYn(uservo.getUserNm(), "Y");
             if (chkvo != null) {
                 uservo.setUserId(chkvo.getUserId());
@@ -1713,7 +1713,7 @@ public class StndImpServiceImpl implements StndImpService {
                 uservo.setRegIp("localhost");
                 uservo.setRegId(0L);
             }
-            uservo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+            uservo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
             userRepo.save(uservo);
         }
 

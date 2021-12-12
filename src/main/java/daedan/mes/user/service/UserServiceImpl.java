@@ -174,7 +174,7 @@ public  class UserServiceImpl implements UserService {
 			chkvo.setModDt(chkvo.getRegDt());
 			chkvo.setModIp(chkvo.getRegIp());
 			chkvo.setModId(chkvo.getRegId());
-			chkvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+			chkvo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
 			ur.save(chkvo);
 		}
 	}
@@ -182,7 +182,7 @@ public  class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> getEntryInfo() {
 		Long custNo = Long.parseLong(env.getProperty("cust_no"));
-		return StringUtil.voToMap(custInfoRepo.findByCustNo(custNo));
+		return StringUtil.voToMap(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
 	}
 
 
@@ -218,7 +218,7 @@ public  class UserServiceImpl implements UserService {
 		catch (NullPointerException ne) {
 
 		}
-		uvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+		uvo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
 		uvo.setUsedYn("Y");
 		uvo.setOcpnKind(Long.parseLong(paraMap.get("ocpnKind").toString())); //직종구분 (사무직,생산직)
 
@@ -292,7 +292,7 @@ public  class UserServiceImpl implements UserService {
 			uvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
 			uvo.setSecrtNo(BCrypt.hashpw("adm", BCrypt.gensalt()));
 		}
-		uvo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+		uvo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
 
 		chkvo = userRepo.findByUserIdAndUsedYn(uvo.getUserId(),"Y");
 		if (chkvo != null) {
@@ -462,7 +462,7 @@ public  class UserServiceImpl implements UserService {
 //			log.info("머냐?"+chkvo);
 //
 //			if (chkvo == null) {
-				userInfo.setCustInfo(custInfoRepo.findByCustNo(custNo));
+				userInfo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
 				ur.save(userInfo);
 //			}
 //					dr.save(deptInfo);
@@ -738,7 +738,7 @@ public  class UserServiceImpl implements UserService {
 		String tag = "userService.getCustInfoByCustNo";
 		CustInfo vo = new CustInfo();
 		log.info(tag + "paraMap = " + paraMap.toString());
-		CustInfo chkvo =  custInfoRepo.findByCustNo(Long.parseLong(paraMap.get("custNo").toString()));
+		CustInfo chkvo =  custInfoRepo.findByCustNoAndUsedYn(Long.parseLong(paraMap.get("custNo").toString()),"Y");
 		if  (chkvo != null) vo = chkvo;
 		return vo;
 	}

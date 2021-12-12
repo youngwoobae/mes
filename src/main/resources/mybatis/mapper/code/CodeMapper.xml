@@ -178,7 +178,7 @@
 	<select id="getComboCodeList" parameterType="map"  resultType="camelMap">
 		/*공통코드 검색조건 추출(CodeMapper.getComboCodeList)*/
 		 select    0 as prt_seq
-		         , 0 as value
+		         , null as value
                  ,coalesce(#{selectStr},'선택'::varchar) as text
 		         , 0  as code_seq
 		 union

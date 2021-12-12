@@ -316,8 +316,8 @@
                 , coalesce (b.stk_qty,0) as matr_stk_qty --자재재고
                 , coalesce (b.iwh_qty,0) as matr_iwh_qty --자재입고
                 , coalesce (b.owh_qty,0) as matr_owh_qty --자재출고
-           from (   select  to_char(generate_series(date('2021'||'-'||#{procYm}||'-'||'01')
-                        , (date_trunc('month', (replace('2021','-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
+           from (   select  to_char(generate_series(date(#{procYy}||'-'||#{procYm}||'-'||'01')
+                        , (date_trunc('month', (replace(#{procYy},'-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
                 ) a left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
                                     , b.matr_no
                                     , b.matr_nm
@@ -351,8 +351,8 @@
                     , coalesce (b.stk_qty,0) as matr_stk_qty --자재재고
                     , coalesce (b.iwh_qty,0) as matr_iwh_qty --자재입고
                     , coalesce (b.owh_qty,0) as matr_owh_qty --자재출고
-                from (  select  to_char(generate_series(date('2021'||'-'||#{procYm}||'-'||'01')
-                            , (date_trunc('month', (replace('2021','-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
+                from (  select  to_char(generate_series(date(#{procYy}||'-'||#{procYm}||'-'||'01')
+                            , (date_trunc('month', (replace(#{procYy},'-','')||#{procYm}||'01')::date) + INTERVAL '1 MONTH - 1 day'), '1 day' ), 'YYYY-MM-DD') as date
                      ) a left join (select to_char(a.clos_dt,'YYYY-MM-DD') as date
                                         , b.matr_no
                                         , b.matr_nm
@@ -1340,5 +1340,28 @@
 
              ) a
     </select>
-
+    <select id="getShdList" parameterType="map" resultType="camelMap">
+    /*주문접수를 기반한 SHD 목록 (ioMapper.getMatrOwhHistList) */
+    select d.*
+    from (
+        select a.date
+            , coalesce (b.ord_recv_no,0) as ord_recv_no --수신관리번호
+            , coalesce(b.cmpy_no ,0)  as cmpy_no --발송처번호
+            , coalesce(b.prod_no ,0) as prod_no --요청제품번호
+            , round(coalesce(b.req_qty,0)) as req_qty --요청수량
+            , round(coalesce(c.stk_qty,0)) as stk_qty --재고수량
+        from ( select to_char(DATE(GENERATE_SERIES(DATE  (substring('2021-12',1,7) || '-01')
+                    , (date_trunc('MONTH', (substring(replace('2021-12','-',''),1,6)||'01')::date) + INTERVAL '1 MONTH - 1 day'),'1 day')),'YYYY-MM-DD') as date
+             ) a
+            left join ord_recv b on a.date = to_char(to_timestamp(b.req_ut),'YYYY-MM-DD')
+                                and b.used_yn = 'Y'
+                                and b.cust_no = #{custNo}
+                                <if test="prodNo != null and prodNo != ''"> and b.prod_no = #{prodNo} </if>
+            left join prod_stk c on b.cust_no = c.cust_no and b.prod_no = c.prod_no
+                                and c.used_yn  = 'Y'
+                                <if test="prodNo != null and prodNo != ''"> and c.prod_no = #{prodNo} </if>
+        ) d
+    where d.date between substring(#{procDt},1,10) and to_char(to_date(substring(#{procDt},1,10),'YYYY-MM-DD')  + '9 day'::interval,'YYYY-MM-DD')
+    order by d.date
+    </select>
 </mapper>

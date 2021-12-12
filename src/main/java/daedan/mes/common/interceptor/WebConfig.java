@@ -17,8 +17,8 @@ public class WebConfig implements WebMvcConfigurer{
 	private Environment env;
 
 	private static final String[] EXCLUDE_PATHS = {
-			"/api/daedan/mes/**",
 			"/api/daedan/mes/user/signin",
+			"/api/daedan/mes/ord/pqms/syncOrdPlan",
 			"/fileroot/**",
 		    "/static/**",
 			"/error/**",

@@ -107,4 +107,6 @@ public interface StockService {
 
     List<Map<String, Object>> getMatrRealStockHstr(HashMap<String, Object> paraMap);
     int getMatrRealStockHstrCount(Map<String, Object> paraMap);
+
+    Map<String, Object> getShdList(Map<String, Object> paraMap);
 }

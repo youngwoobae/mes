@@ -12,5 +12,4 @@ public interface ProdRepository extends JpaRepository<ProdInfo, Long> {
     ProdInfo findByCustNoAndBrnchNoAndProdNmAndUsedYn(Long custNo, Long brnchNo, String prodNm, String y);
     ProdInfo findByCustNoAndErpProdNmAndUsedYn(Long custNo, String erProdNm, String y);
     ProdInfo findByCustNoAndProdCodeAndProdNmAndUsedYn(Long custNo, String stringCellValue, String stringCellValue1, String y);
-
 }

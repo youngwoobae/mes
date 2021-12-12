@@ -19,6 +19,7 @@
             AND b.prod_no = #{prodNo}
         </if>
     </select>
+
     <!--선택된 자재가 적재된 창고추출-->
     <select id="getComboMatrWhList" parameterType="map"  resultType="camelMap">
         /*선택된 자재가 적재된 창고 추출 (ioMapper.getComboMatrWhList) */
