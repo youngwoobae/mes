@@ -1350,6 +1350,7 @@
             , coalesce(b.prod_no ,0) as prod_no --요청제품번호
             , round(coalesce(b.req_qty,0)) as req_qty --요청수량
             , round(coalesce(c.stk_qty,0)) as stk_qty --재고수량
+            , round(coalesce(d.plan_qty,0)) as plan_qty --생산계획수량
         from ( select to_char(DATE(GENERATE_SERIES(DATE  (substring('2021-12',1,7) || '-01')
                     , (date_trunc('MONTH', (substring(replace('2021-12','-',''),1,6)||'01')::date) + INTERVAL '1 MONTH - 1 day'),'1 day')),'YYYY-MM-DD') as date
              ) a
@@ -1360,6 +1361,10 @@
             left join prod_stk c on b.cust_no = c.cust_no and b.prod_no = c.prod_no
                                 and c.used_yn  = 'Y'
                                 <if test="prodNo != null and prodNo != ''"> and c.prod_no = #{prodNo} </if>
+            left join make_plan d on  a.date = to_char(to_timestamp(d.plan_ut),'YYYY-MM-DD')
+                                 and b.cust_no = d.cust_no
+                                 and b.prod_no = d.prod_no
+                                 <if test="prodNo != null and prodNo != ''"> and d.prod_no = #{prodNo} </if>
         ) d
     where d.date between substring(#{procDt},1,10) and to_char(to_date(substring(#{procDt},1,10),'YYYY-MM-DD')  + '9 day'::interval,'YYYY-MM-DD')
     order by d.date

@@ -1151,7 +1151,10 @@ public class StockServiceImpl implements  StockService{
 
         ArrayList<Integer> dsStkQty = new ArrayList<Integer>();
         ArrayList<Integer> dsReqQty = new ArrayList<Integer>();
+        ArrayList<Integer> dsPlanQty = new ArrayList<Integer>();
+
         Map<String,Object> rmap = new HashMap<String,Object>();
+
         List<Map<String,Object>> ds = mapper.getShdList(paraMap);
         for (Map<String, Object> el : ds) {
             dsDate.add(el.get("date").toString());
@@ -1160,6 +1163,7 @@ public class StockServiceImpl implements  StockService{
             dsProd.add(Long.parseLong(el.get("prodNo").toString()));
             dsStkQty.add((int) Math.ceil(Float.parseFloat(el.get("stkQty").toString())));
             dsReqQty.add((int) Math.ceil(Float.parseFloat(el.get("reqQty").toString())));
+            dsPlanQty.add((int) Math.ceil(Float.parseFloat(el.get("planQty").toString())));
         }
         rmap.put("ordRecvNo", dsOrdRecv);
         rmap.put("cmpyNo", dsCmpy);
@@ -1167,6 +1171,7 @@ public class StockServiceImpl implements  StockService{
         rmap.put("stkDt", dsDate);
         rmap.put("stkQty", dsStkQty);
         rmap.put("reqQty", dsReqQty);
+        rmap.put("planQty", dsPlanQty);
         return rmap;
     }
 
