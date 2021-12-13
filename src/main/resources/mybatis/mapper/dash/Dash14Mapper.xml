@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="daedan.mes.dash.mapper.Dash14Mapper">
+    <select id="getUserGroupDashs" parameterType="map"  resultType="camelMap">
+        /*하담푸드 대시보드 최근 14일 근태현황 (Dash14Mapper.getUserGroupDash) */
+        select to_char(work_dt , 'MM-DD') as work_dt ,
+               count(user_id) as user_count
+        from user_work a
+        where to_char(work_dt , 'YYYY-MM-DD') between to_char(now() + '-2 week' , 'YYYY-MM-DD')  and to_char(now() , 'YYYY-MM-DD')
+        and cust_no = #{custNo} and used_yn = 'Y'
+        group by work_dt
+        order by to_char(work_dt , 'YYYY-MM-DD')
+    </select>
+</mapper>
