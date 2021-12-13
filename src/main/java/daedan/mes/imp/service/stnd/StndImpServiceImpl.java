@@ -405,7 +405,7 @@ public class StndImpServiceImpl implements StndImpService {
                         matrvo.setVol(Float.parseFloat(String.valueOf(row.getCell(format.IX_VOL).getNumericCellValue())));  //중량
                     }
                     catch (NullPointerException ne) {
-                        strChk = "1";
+
                     }
 
                     try {
@@ -517,6 +517,9 @@ public class StndImpServiceImpl implements StndImpService {
                     matrvo = matrRepo.save(matrvo);
                     try {
                         strChk = row.getCell(format.IX_CMPY_NM).getStringCellValue();
+                    }
+                    catch(IllegalStateException ie) {
+                        strChk = "구매처미상";
                     }
                     catch (NullPointerException ne) {
                         strChk = "구매처미상";
