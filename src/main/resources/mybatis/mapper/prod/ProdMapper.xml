@@ -591,6 +591,7 @@
              , fn_get_code_name('nm',a.brnch_no) as 제조공정
              , a.sz as 규격
              , fn_get_code_name('nm',a.sale_unit) as 판매단위
+             , fn_get_code_name('nm',a.prod_tp)   as 판매구분
         from prod_info a left join file_info c on a.file_no = c.file_no
                                                      and c.used_yn = 'Y' and c.cust_no =#{custNo} and c.file_no <![CDATA[ > ]]> 0
         where a.used_yn ='Y'
