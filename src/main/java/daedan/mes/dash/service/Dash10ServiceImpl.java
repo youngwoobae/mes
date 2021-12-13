@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,10 +23,32 @@ public class Dash10ServiceImpl implements Dash10Service {
 
 
     @Override
-    public List<Map<String, Object>> getTmpr10List(Map<String, Object> paraMap) {
+    public Map<String, Object> getTmpr10List(Map<String, Object> paraMap) {
         String tag = "Dash10Service.getTmpr10List => ";
         log.info(tag + "paraMap = " + paraMap.toString());
-        return  mapper.getTmpr10List(paraMap);
+
+        Map<String, Object> rmap = new HashMap<String,Object>();
+        Map<String, Object> dmap = new HashMap<String,Object>();
+        List<Map<String,Object>> ds = (mapper.getTmpr10List(paraMap));
+        int idx = -1;
+        ArrayList<String> rcvTm = new ArrayList<String>();
+        ArrayList<Float> maxval = new ArrayList<Float>();
+        ArrayList<Float> minval = new ArrayList<Float>();
+        ArrayList<Float> avgval = new ArrayList<Float>();
+        while(++idx < ds.size()) {
+            dmap = ds.get(idx);
+            rcvTm.add(dmap.get("rcvTm").toString());
+            maxval.add(Float.parseFloat(dmap.get("maxVal").toString()));
+            minval.add(Float.parseFloat(dmap.get("minVal").toString()));
+            avgval.add(Float.parseFloat(dmap.get("avgVal").toString()));
+        }
+        rmap.put("griDs",ds);
+        rmap.put("rcvTm",rcvTm);
+        rmap.put("minVal",minval);
+        rmap.put("avgVal",avgval);
+        rmap.put("maxVal",maxval);
+//        log.info(("******rmap=" +rmap));
+        return rmap;
     }
     @Override
     public Map<String, Object> getFinalMetalDetect(Map<String, Object> paraMap) {

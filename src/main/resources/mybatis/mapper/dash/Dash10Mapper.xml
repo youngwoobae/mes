@@ -3,23 +3,15 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="daedan.mes.dash.mapper.Dash10Mapper">
     <select id="getTmpr10List" parameterType="map"  resultType="camelMap">
-        /* 유진 설비기준 최신시간 온도모니터링 리스트 (mpMapper.getTmpr10List) */
-        select a.spot_no  --작업장번
-             , a.spot_nm  --작업장명
-             , b.rcv_msg  --메세지
-             , b.rcv_tmpr  --측정온도
-             , to_char(to_timestamp(b.unix_hms) ,'MM월DD일 HH24:MI:SS') as rcv_tm --수신시각
-        from spot_info a join tmpr_log b on a.spot_no  = b.spot_no
-                                        and b.used_yn  = 'Y' and b.cust_no  = a.cust_no
-                         join (select spot_no, max(unix_hms) as unix_hms
-                                from tmpr_log
-                                where used_yn = 'Y' and cust_no = #{custNo}
-                                  --and to_char(to_timestamp(unix_hms),'YY-MM-DD') = to_char(now(),'YY-MM-DD')
-                                group by spot_no
-        ) c on b.spot_no = c.spot_no and b.unix_hms  = c.unix_hms
-        where a.used_yn  = 'Y'
-          and a.cust_no = #{custNo}
-        order by spot_nm collate "ko_KR.utf8"
+        /* 우천 설비기준 최신시간 온도모니터링 리스트 (mpMapper.getTmpr10List) */
+        select  to_char(to_timestamp(a.unix_hms),'HH24:MI') as rcv_tm --수신일자
+             , max(a.rcv_tmpr) as max_val --최대
+             , avg(a.rcv_tmpr) avg_val --평균
+             , min(a.rcv_tmpr) as min_val --최소
+        from tmpr_log a join spot_info b on a.spot_no  = b.spot_no
+            and a.cust_no = #{custNo} and a.used_yn = 'Y'
+        group by fn_get_spot_name(a.spot_no),  to_char(to_timestamp(a.unix_hms),'HH24:MI')
+        order by rcv_tm
         limit #{pageSz}
     </select>
 
