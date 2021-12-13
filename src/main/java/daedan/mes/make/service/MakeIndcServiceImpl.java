@@ -92,6 +92,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     private MakeIndcProcRepository makeIndcProcRepo;
 
     @Autowired
+    private MakePlanRepository makePlanRepo;
+
+    @Autowired
     private PursService pursService;
 
     @Autowired
@@ -151,18 +154,17 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public Map<String, Object>  getMakeIndcInfo(Map<String, Object> paraMap) {
+    public Map<String, Object> getMakeIndcInfo(Map<String, Object> paraMap) {
 
         StringBuffer buf = new StringBuffer();
-        Map<String,Object> rmap = null;
+        Map<String, Object> rmap = null;
         rmap = mapper.getMakeIndcInfo(paraMap);
         try {
             buf.append(env.getProperty("base_file_url")).append("make/").append(rmap.get("indcNo")).append(".png");
             rmap.put("barCodeUrl", buf.toString());
             log.info("getMakeIndcInfo.barCodeUrl = " + rmap.get("barCodeUrl"));
-        }
-        catch (NullPointerException ne) {
-            rmap = new HashMap<String,Object>();
+        } catch (NullPointerException ne) {
+            rmap = new HashMap<String, Object>();
             buf.setLength(0);
             buf.append(env.getProperty("base_file_url")).append("make/default.png");
             rmap.put("barCodeUrl", buf.toString());
@@ -236,7 +238,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Transactional
     public void resetMakeTermByDragDrop(Map<String, Object> paraMap) {
         String tag = "makeIndcService.resetMakeTermByDragDrop ==> ";
-        paraMap.put("ipaddr",paraMap.get("ipaddr"));
+        paraMap.put("ipaddr", paraMap.get("ipaddr"));
         log.info(tag + "paraMap = " + paraMap.toString());
         mapper.resetMakeTermByDragDrop(paraMap);
     }
@@ -259,35 +261,35 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Transactional
     @Override
-    public void saveMakeIndcFullByPlan(Map<String, Object> paraMap){
-        String tag = "makeIndcService.saveMakeIndcFullByPlan == > " ;
+    public void saveMakeIndcFullByPlan(Map<String, Object> paraMap) {
+        String tag = "makeIndcService.saveMakeIndcFullByPlan == > ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long ordNo = Long.parseLong(paraMap.get("ordNo").toString());
         Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
 
         Map<String, Object> prodMap = new HashMap<>();
-        prodMap.put("ordNo",ordNo);
-        prodMap.put("prodNo",prodNo);
-        prodMap.put("custNo",custNo);
-        List<Map<String,Object>> passMap = mapper.getOrdProdInfo(prodMap);
-        for(Map<String, Object> el : passMap){
+        prodMap.put("ordNo", ordNo);
+        prodMap.put("prodNo", prodNo);
+        prodMap.put("custNo", custNo);
+        List<Map<String, Object>> passMap = mapper.getOrdProdInfo(prodMap);
+        for (Map<String, Object> el : passMap) {
             //el.put("ord_no",paraMap.get("ordNo"));
             el.put("indc_dt", paraMap.get("indcDt"));
             el.put("indc_qty", paraMap.get("indcQty"));
-            el.put("cust_no",paraMap.get("custNo"));
+            el.put("cust_no", paraMap.get("custNo"));
             el.put("make_fr_dt", paraMap.get("makeFrDt"));
             el.put("make_to_dt", paraMap.get("makeToDt"));
             el.put("indc_sts", paraMap.get("indcSts"));
-            el.put("type",paraMap.get("type"));
+            el.put("type", paraMap.get("type"));
             el.put("user_id", paraMap.get("userId"));
             el.put("ipaddr", paraMap.get("ipaddr"));
-            el.put("indc_tp",paraMap.get("indcTp"));
+            el.put("indc_tp", paraMap.get("indcTp"));
             this.saveMakeIndcFull(el);
         }
 
-        OrdInfo chkoivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,Long.parseLong(paraMap.get("ordNo").toString()), "Y");
-        if(chkoivo != null){ //주분접수-> 생산의뢰로 변경됨 (141-> 142)
+        OrdInfo chkoivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo, Long.parseLong(paraMap.get("ordNo").toString()), "Y");
+        if (chkoivo != null) { //주분접수-> 생산의뢰로 변경됨 (141-> 142)
             chkoivo.setOrdSts(Long.parseLong(env.getProperty("ord_status_makeIndc")));
             ordRepo.save(chkoivo);
         }
@@ -306,9 +308,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 //        Long oem = Long.parseLong(env.getProperty("code.indcTp.oem"));
 //        Long odm = Long.parseLong(env.getProperty("code.indcTp.odm"));
 
-        Map<String, Object> procMap = new HashMap<String,Object>();
-        procMap.put("prodNo",prodNo);
-        procMap.put("custNo",custNo);
+        Map<String, Object> procMap = new HashMap<String, Object>();
+        procMap.put("prodNo", prodNo);
+        procMap.put("custNo", custNo);
 
 
         Long parIndcNo = 0L;
@@ -318,39 +320,38 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         boolean isCreate = false;
 
         log.info("작업지시 추가로 인한 ordInfo, ordProd 생성 시작" + paraMap.get("type"));
-        if(paraMap.get("type") == null){
-            paraMap.put("type","newMake");
+        if (paraMap.get("type") == null) {
+            paraMap.put("type", "newMake");
         }
-        OrdInfo oivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,prodNo,"Y");
+        OrdInfo oivo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo, prodNo, "Y");
 
 
-        if(paraMap.get("type").toString().equals("newMake")) {
+        if (paraMap.get("type").toString().equals("newMake")) {
             ordNo = this.makeOrderByIndc(paraMap);
-            log.info("신규생성된 주문번호 : "+ ordNo);
+            log.info("신규생성된 주문번호 : " + ordNo);
         } else {
             ordNo = Long.parseLong(paraMap.get("ordNo").toString());
         }
         try {
             chkZeroParent = Long.parseLong(paraMap.get("parIndcNo").toString());
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             chkZeroParent = 0L; //신규로 등록한 경우만 해당됨.
         }
-        try{
-            if(paraMap.get("type").toString().equals("rowClick")){ //공정전체를 생성하지 않고 클릭된 공정만 생성
+        try {
+            if (paraMap.get("type").toString().equals("rowClick")) { //공정전체를 생성하지 않고 클릭된 공정만 생성
                 return saveMakeIndc(paraMap);
             }
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
 
         }
 
         int idx = 0;
-        List<Map<String,Object>> ds =  mapper.getProdProcList(procMap); //작업지시제품의 제조공정목록 추가
+        List<Map<String, Object>> ds = mapper.getProdProcList(procMap); //작업지시제품의 제조공정목록 추가
         for (Map<String, Object> el : ds) { //상품에 설정된 제조공정별 처리작업목록 (예:해동,염지,열처리,금속검출,내포장,완제품입고)
             paraMap.put("matr_req_able_yn", (idx == 0) ? "Y" : "N");
             paraMap.put("par_indc_no", (idx == 0) ? 0L : svParIndcNo);
             paraMap.put("proc_cd", Long.parseLong(el.get("value").toString())); //value = > 작업공정번호(721,732..etc)
-            paraMap.put("brnch_no",Long.parseLong(el.get("brnchno").toString())); //상품제조분류번호(1253... etc)
+            paraMap.put("brnch_no", Long.parseLong(el.get("brnchno").toString())); //상품제조분류번호(1253... etc)
             //paraMap.put("custNo",paraMap.get("custNo")); Remarked by KMJ AT 21.10.20 --이미들어와 있음.
             /*작업지시 추가 버튼 클릭 시, 입력된 중량 값으로 소요량을 계산하도록 변경. --Remarked By KMJ 사용중지(21.10.20)
             try{
@@ -358,8 +359,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }catch (NullPointerException ne){
             }
             */
-            if(ordNo != null){
-                paraMap.put("ord_no",ordNo); //작업지시 추가 버튼으로 생성된 주문번호.
+            if (ordNo != null) {
+                paraMap.put("ord_no", ordNo); //작업지시 추가 버튼으로 생성된 주문번호.
             }
 
             if (chkZeroParent != 0) { //child를 가지고 있는 작업지시인 경우
@@ -376,7 +377,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             ++idx;
         }
 
-        if(Integer.parseInt(paraMap.get("custNo").toString()) == 8) { //영양제과
+        if (Integer.parseInt(paraMap.get("custNo").toString()) == 8) { //영양제과
             Map<String, Object> indcRslt = new HashMap<>();
             indcRslt.put("ordNo", ordNo);
             indcRslt.put("prodNo", paraMap.get("prodNo"));
@@ -386,13 +387,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             indcRslt.put("makeWgt", paraMap.get("indcQty"));
             indcRslt.put("procUnitNm", "EA");
             paraMap.put("indcRslt", indcRslt);
-            log.info("paraMap = > "+ paraMap );
+            log.info("paraMap = > " + paraMap);
             this.saveIndcRslt(paraMap);
         }
 
         return svParIndcNo;
     }
-
 
 
     @Transactional
@@ -406,8 +406,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Long cmpyNo = 0L; //AddOn By KMJ AT 21.09.10 09:52
         Long parIndcNo = 0L;
 
-        if (mivo.getParIndcNo() == 0L ) {
-           parIndcNo = mivo.getIndcNo();
+        if (mivo.getParIndcNo() == 0L) {
+            parIndcNo = mivo.getIndcNo();
         }
         if (mivo.getProdNo() == 0L) {
             log.info(tag + "생산지시 상품 불필요 공정(생산제품에 공통 적용등) 이므로 이하 프로세스 생략");
@@ -418,7 +418,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         if (paraMap.get("matrReqAbleYn").toString().equals("Y")) {
             log.info(tag + "2.BOM추출용 생산지시 상품번호 ===> " + mivo.getProdNo());
 
-            Map<String,Object> bomchkmap = new HashMap<String,Object>();
+            Map<String, Object> bomchkmap = new HashMap<String, Object>();
             bomchkmap.put("prodNo", mivo.getProdNo());
 
             //camel 혼용으로 인한 ord_no 구분 추가, ord_no에 null이 글자로 들어가는 경우있음
@@ -435,31 +435,30 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             try {
                 ordNo = Long.parseLong(paraMap.get("ordNo").toString());
 
-                Map<String,Object> tmpMap = new HashMap<String,Object>();
-                tmpMap.put("custNo",custNo);
-                tmpMap.put("ordNo",ordNo);
+                Map<String, Object> tmpMap = new HashMap<String, Object>();
+                tmpMap.put("custNo", custNo);
+                tmpMap.put("ordNo", ordNo);
 
                 //OrdInfo ordvo = new OrdInfo();
                 //tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
                 //ordvo = (OrdInfo) StringUtil.mapToVo(tmpMap,ordvo);
-                OrdInfo ordvo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo,"Y");  //사입기능 구현으로 인하여 추가됨
+                OrdInfo ordvo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo, ordNo, "Y");  //사입기능 구현으로 인하여 추가됨
                 if (ordvo != null) {
                     cmpyNo = ordvo.getCmpyNo();
                 }
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
                 ordNo = 0L;
             }
             /* EOL Addon By KMJ AT 21.09.10 08:58 */
 
-            bomchkmap.put("cmpyNo" ,cmpyNo); //AddOn By KMJ AT 21.09.10 09:53 : 사입기능 구현으로 인한 추가
-            bomchkmap.put("ordNo" ,ordNo);
+            bomchkmap.put("cmpyNo", cmpyNo); //AddOn By KMJ AT 21.09.10 09:53 : 사입기능 구현으로 인한 추가
+            bomchkmap.put("ordNo", ordNo);
             bomchkmap.put("custNo", custNo);
             bomchkmap.put("pageNo", 0);
             bomchkmap.put("pageSz", 100);
             bomchkmap.put("checkPursYn", "checking");
             bomchkmap.put("indcQty", mivo.getIndcQty()); //소요량 산출용
-            List<Map<String,Object>> ds = null;
+            List<Map<String, Object>> ds = null;
 
             /* SOL Addon By KMJ AT 21.09.10 08:58 */
             ds = prodService.getProdBomListByIndc(bomchkmap);
@@ -480,21 +479,21 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             for (Map<String, Object> el : ds) {
                 ++idx;
                 el.put("indc_no", mivo.getIndcNo());
-                el.put("fill_yield",mivo.getFillYield());
+                el.put("fill_yield", mivo.getFillYield());
                 el.put("userId", paraMap.get("userId"));
                 el.put("ipaddr", paraMap.get("ipaddr"));
-                el.put("cust_no",custNo);
-                log.info("작업지시에 해당하는 원료 목록 : "+el);
+                el.put("cust_no", custNo);
+                log.info("작업지시에 해당하는 원료 목록 : " + el);
                 //작업지시 추가 버튼 클릭 시, 지시중량 값을 받아서 넘겨주어야 함.
                 this.saveMakeIndcMatr(el);
             }
 
             boolean chk = true;
-            MakeIndc inchk = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,parIndcNo ,"Y");
-            if(inchk != null){
-                Map<String,Object> datas = new HashMap<String,Object>();
-                datas.put("custNo",custNo);
-                datas.put("indcNo",parIndcNo);
+            MakeIndc inchk = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, parIndcNo, "Y");
+            if (inchk != null) {
+                Map<String, Object> datas = new HashMap<String, Object>();
+                datas.put("custNo", custNo);
+                datas.put("indcNo", parIndcNo);
                 /*kmjkmj.21.12.03 -- 시연을 위해 잠시 막아둠
                 List<Map<String, Object>> dl = mapper.chkStkByIndc(datas); // 재고 파악
                 for (Map<String, Object> es : dl) {
@@ -505,7 +504,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 }
                 inchk.setIndcSts( (!chk) ?  2401L : 2402L );
                 시연을 위해 잠시 막아둠*/
-                inchk.setIndcSts( 2403L ); //kmjkmj - 시연을 위해 잠시 추가됨.
+                inchk.setIndcSts(2403L); //kmjkmj - 시연을 위해 잠시 추가됨.
                 inchk.setCustNo(custNo);
                 makeIndcRepo.save(inchk);
             }
@@ -513,10 +512,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             try {
                 log.info("4.작업지시기반 구매정보(purs_info) , 구매자재(purs_matr) 및 자재위치(matr_pos) 정보 생성 / 작업지시번호 = " + mivo.getIndcNo());
                 paraMap.put("indcNo", mivo.getIndcNo());
-                paraMap.put("custNo",custNo);
+                paraMap.put("custNo", custNo);
                 this.savePursInfo(paraMap);
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
                 ne.printStackTrace();
             }
         }
@@ -525,30 +523,30 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     /*작업지시 추가 버튼을 클릭 후 저장 클릭 시, 주문정보 생성.*/
-    private Long makeOrderByIndc(Map<String, Object> paraMap){
+    private Long makeOrderByIndc(Map<String, Object> paraMap) {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
 
-        log.info("계획생산의 주문정보 추가 => " +paraMap);
+        log.info("계획생산의 주문정보 추가 => " + paraMap);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         OrdInfo oivo = new OrdInfo();
         Long ordNo = 0L;
 
-        try{
+        try {
             ordNo = Long.parseLong(paraMap.get("ordNo").toString());
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
             ordNo = 0L;
         }
 
-        OrdInfo chkvo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo,ordNo, "Y");
-        Map<String,Object> tmpMap = new HashMap<String,Object>();
-        tmpMap.put("custNo",custNo);
-        tmpMap.put("ordNo",ordNo);
+        OrdInfo chkvo = ordRepo.findByCustNoAndOrdNoAndUsedYn(custNo, ordNo, "Y");
+        Map<String, Object> tmpMap = new HashMap<String, Object>();
+        tmpMap.put("custNo", custNo);
+        tmpMap.put("ordNo", ordNo);
 //        OrdInfo chkvo = new OrdInfo();
 //        tmpMap = ordMapper.findByCustNoAndOrdNoAndUsedYn(tmpMap);
 //        chkvo = (OrdInfo) StringUtil.mapToVo(tmpMap,chkvo);
-        if(chkvo != null){
+        if (chkvo != null) {
             oivo.setOrdNo(chkvo.getOrdNo());
-        }else{
+        } else {
             oivo.setOrdNo(0L);
         }
 
@@ -558,23 +556,23 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         oivo.setPlcNo(0L);
         oivo.setUsedYn("Y");
 
-        try{
+        try {
             oivo.setOrdDt(sdf.parse(paraMap.get("makeToDt").toString()));
-        }catch(ParseException e){
+        } catch (ParseException e) {
             e.printStackTrace();
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
             oivo.setOrdDt(DateUtils.getCurrentDate());
         }
 
-        try{
+        try {
             oivo.setDlvReqDt(sdf.parse(paraMap.get("makeFrDt").toString()));
-        }catch(ParseException e){
+        } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        try{
+        try {
             oivo.setCmpyNo(Long.parseLong(paraMap.get("cmpyNo").toString()));
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
             oivo.setCmpyNo(0L);
         }
 
@@ -585,11 +583,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         oivo = ordRepo.save(oivo);
 
         OrdProd opvo = new OrdProd();
-        OrdProd chkopvo = ordProdRepo.findByCustNoAndOrdNoAndProdNoAndUsedYn(custNo,oivo.getOrdNo(), Long.parseLong(paraMap.get("prodNo").toString()), "Y");
-        if(chkopvo != null){
+        OrdProd chkopvo = ordProdRepo.findByCustNoAndOrdNoAndProdNoAndUsedYn(custNo, oivo.getOrdNo(), Long.parseLong(paraMap.get("prodNo").toString()), "Y");
+        if (chkopvo != null) {
             opvo.setOrdNo(chkopvo.getOrdNo());
             opvo.setOrdProdNo(chkopvo.getOrdProdNo());
-        }else{
+        } else {
             opvo.setOrdProdNo(0L);
             opvo.setOrdNo(oivo.getOrdNo());
         }
@@ -598,40 +596,38 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         opvo.setQtyPerPkg(1);
         opvo.setUsedYn("Y");
         /*SOL AddOn By KMJ At 21.09.04*/
-        try{
+        try {
             opvo.setPursNo(Long.parseLong(paraMap.get("pursNo").toString()));
-        }catch(NullPointerException ne){
-           opvo.setPursNo(0L);
+        } catch (NullPointerException ne) {
+            opvo.setPursNo(0L);
         }
         /*EOL AddOn By KMJ At 21.09.04*/
 
         Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
         float val = 0f;
-        ProdInfo chk = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
-        if(chk != null){
+        ProdInfo chk = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo, prodNo, "Y");
+        if (chk != null) {
             //하담푸드의 경우 vol과 mess 구분 X
-            try{
-                if(custNo == 3 || custNo == 2){
+            try {
+                if (custNo == 3 || custNo == 2) {
                     val = chk.getVol() * 0.001F;
-                }
-                else{
+                } else {
                     val = chk.getVol();
                 }
-            }catch(NullPointerException e){
+            } catch (NullPointerException e) {
                 val = chk.getVol();
             }
         }
 
         Float ordQty = 0F;
-        if(custNo == 6){
-                Float indcWgt = Float.parseFloat(paraMap.get("indcWgt").toString());
-                ordQty = ((indcWgt/val));
-        }else {
-            try{
+        if (custNo == 6) {
+            Float indcWgt = Float.parseFloat(paraMap.get("indcWgt").toString());
+            ordQty = ((indcWgt / val));
+        } else {
+            try {
                 Float indcWgt = Float.parseFloat(paraMap.get("indcWgt").toString());
                 ordQty = indcWgt;
-            }
-            catch(NullPointerException ne){
+            } catch (NullPointerException ne) {
                 Float indcQty = Float.parseFloat(paraMap.get("indcQty").toString());
                 ordQty = indcQty;
             }
@@ -639,9 +635,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         opvo.setOrdQty(ordQty);
 
-        try{
+        try {
             opvo.setSaleUnit(Long.parseLong(paraMap.get("makeUnit").toString()));
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
             opvo.setSaleUnit(Long.parseLong(env.getProperty("code.base.sale_unit_g")));
         }
 
@@ -654,7 +650,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public List<Map<String,Object>> getProdIndcNo(Map<String,Object> paraMap){
+    public List<Map<String, Object>> getProdIndcNo(Map<String, Object> paraMap) {
         return mapper.getProdIndcNo(paraMap);
     }
 
@@ -663,7 +659,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         return mapper.getCurrentProdStock(paraMap);
     }
 
-    private MakeIndc saveMakeIndcInfo(Map<String,Object> paraMap) {
+    private MakeIndc saveMakeIndcInfo(Map<String, Object> paraMap) {
         String tag = "MakeIndcService.saveMakeIndcInfo=> ";
         log.info(tag + "paraMap =  " + paraMap.toString());
         Long procCd = 0L;
@@ -681,15 +677,13 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         try {
             mivo.setParIndcNo(Long.parseLong(paraMap.get("parIndcNo").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setParIndcNo(0L);
         }
         try {
             //indcNo를 가져오지 못한상태로 공정별로 루틴을 돌면서 NullPointer 발생되면서 새로운 작어지시가 계속 만들어지는 현상 발생됨.(2021.04.26 : KMJ)
             mivo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setIndcNo(0L);
             mivo.setRegDt(DateUtils.getCurrentDate());
             mivo.setRegId(mivo.getModId());
@@ -697,14 +691,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
 
 
-        try{
+        try {
             mivo.setIndcTp(Long.parseLong(paraMap.get("indcTp").toString()));
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
 
         }
-        try{
+        try {
             mivo.setIndcSts(Long.parseLong(paraMap.get("indcSts").toString()));
-        }catch (NullPointerException en){
+        } catch (NullPointerException en) {
             mivo.setIndcSts(Long.parseLong(env.getProperty("code.base.indcsts")));
         }
 
@@ -712,9 +706,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         procCd = Long.parseLong(paraMap.get("procCd").toString()); //공정코드목록
         mivo.setProcCd(procCd);
         if (mivo.getParIndcNo() == 0L) {
-            MakeIndc chkvo = makeIndcRepo.findByCustNoAndParIndcNoAndIndcNoAndProcCdAndUsedYn(custNo,mivo.getParIndcNo(), mivo.getIndcNo(), mivo.getProcCd(), "Y");
-            if (chkvo != null ) {
-                if (chkvo.getParIndcNo() > 0L ) {
+            MakeIndc chkvo = makeIndcRepo.findByCustNoAndParIndcNoAndIndcNoAndProcCdAndUsedYn(custNo, mivo.getParIndcNo(), mivo.getIndcNo(), mivo.getProcCd(), "Y");
+            if (chkvo != null) {
+                if (chkvo.getParIndcNo() > 0L) {
                     log.info(tag + "하위작업 일괄생성자료 존재함.===> ");
                     log.info(tag + "부모작업지시번호 = " + mivo.getParIndcNo());
                     log.info(tag + "작업지시번호 = " + mivo.getIndcNo());
@@ -725,9 +719,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }
         }
         /*충진수율 : 칭량시점에 가열공정중 수분증발등으로 인하여 줄어드는 중량을 감안하여 지지중량보다 크게 칭량하는 경우 계산되는 수율 (충진중량 / 지시중량) : 일반적으로 100% 넘을 것으로 판단됨.*/
-        try{
+        try {
             mivo.setFillYield(Float.parseFloat(paraMap.get("fillYield").toString()));
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
             mivo.setFillYield(0F);
         }
         /*관리자 조정수율-결과에서만 입력됨
@@ -744,109 +738,106 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         try {
             mivo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString())); //품번
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setProdNo(0L); //품번
         }
 
         try {
             mivo.setOrdNo(Long.parseLong(paraMap.get("ordNo").toString())); //작업지시 추가 버튼 클릭으로 생성하는 주문번호
-        }
-        catch (NullPointerException ne) {
-                mivo.setOrdNo(0L); //연관주문번호
+        } catch (NullPointerException ne) {
+            mivo.setOrdNo(0L); //연관주문번호
         }
 
         prodNo = Long.parseLong(paraMap.get("prodNo").toString());
-        ProdInfo chk = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
+        ProdInfo chk = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo, prodNo, "Y");
 
-        if(chk != null){
+        if (chk != null) {
             //하담푸드의 경우 vol과 mess 구분 X
             //try{ //Remarked By KMJ At 21.10.25
-                //if(custNo == 3 || custNo == 2){ //Remarked By KMJ At 21.10.25
-                //    val = chk.getVol() * 0.001F; //Remarked By KMJ At 21.10.25
-                //} //Remarked By KMJ At 21.10.25
-                //else{ //Remarked By KMJ At 21.10.25
-                    val = chk.getVol();
-                    mess = chk.getMess();
-                //} //Remarked By KMJ At 21.10.25
+            //if(custNo == 3 || custNo == 2){ //Remarked By KMJ At 21.10.25
+            //    val = chk.getVol() * 0.001F; //Remarked By KMJ At 21.10.25
+            //} //Remarked By KMJ At 21.10.25
+            //else{ //Remarked By KMJ At 21.10.25
+            val = chk.getVol();
+            mess = chk.getMess();
+            //} //Remarked By KMJ At 21.10.25
             //}catch(NullPointerException e){ //Remarked By KMJ At 21.10.25
             //   val = chk.getVol(); //Remarked By KMJ At 21.10.25
             //} //Remarked By KMJ At 21.10.25
         }
 
-        try{
+        try {
             indcQty = Float.parseFloat(paraMap.get("indcQty").toString());
-        }catch(NullPointerException ne){
+        } catch (NullPointerException ne) {
             indcQty = 0F;
         }
 
-        try{
+        try {
             indcWgt = Float.parseFloat(paraMap.get("indcWgt").toString());
-        }catch (NullPointerException ne){
+        } catch (NullPointerException ne) {
             indcWgt = 0F;
         }
 
-        if(indcQty == 0){
+        if (indcQty == 0) {
 
             mivo.setIndcWgt(indcWgt);
-            if(custNo == 2){
+            if (custNo == 2) {
                 mivo.setIndcQty((indcWgt));
-            }else{
+            } else {
                 mivo.setIndcQty(indcWgt / val);
             }
 
-        }else{
+        } else {
             mivo.setIndcQty(indcQty);
             mivo.setIndcWgt(indcWgt);//생산지시중량
         }
 
         try {
             mivo.setMakeUnit(Long.parseLong(paraMap.get("makeUnit").toString())); //생산지시단위
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setMakeUnit(0L);
         }
         try {
-            mivo.setIndcDt(sdf.parse(paraMap.get("indcDt").toString().substring(0,10)));
+            mivo.setIndcDt(sdf.parse(paraMap.get("indcDt").toString().substring(0, 10)));
         } catch (ParseException e) {
             e.printStackTrace();
-        }catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setIndcDt(DateUtils.getCurrentDateTime());
         }
         try {
-            try{
+            try {
                 brnchNo = Long.parseLong(paraMap.get("brnchNo").toString());
-            }catch(NullPointerException ne){
+            } catch (NullPointerException ne) {
                 brnchNo = Long.parseLong(paraMap.get("brnchNo").toString());
             }
 
-            ProcBrnch brnvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo,brnchNo, procCd, "Y");
+            ProcBrnch brnvo = procBrnchRepo.findByCustNoAndBrnchNoAndProcCdAndUsedYn(custNo, brnchNo, procCd, "Y");
             if (brnvo != null) {
                 needValDt = brnvo.getNeedDtVal();
                 nextvalDt = brnvo.getNextStepVal();
             }
 
             /*공정별 작업일자 계산( 추후에 더 추가할 필요있음)*/
-            frd = sdf.parse(paraMap.get("indcDt").toString().substring(0,10));
+            frd = sdf.parse(paraMap.get("indcDt").toString().substring(0, 10));
 
 
-            tomkdt =sdf.parse(paraMap.get("makeToDt").toString().substring(0,10));
+            tomkdt = sdf.parse(paraMap.get("makeToDt").toString().substring(0, 10));
 
             //작업지시의 최상단 리스트에는 생산계획에서 지정한 작업시작 종료일을 넣고,  이후 공정엔 계산된 값을 넣도록 변경 - 21.07.18
-            if(procCd == 721){
+            if (procCd == 721) {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(frd);
-                cal.add(Calendar.DATE, needValDt-1);
+                cal.add(Calendar.DATE, needValDt - 1);
                 toDt = cal.getTime();
 
                 mivo.setMakeFrDt(frd);
                 mivo.setMakeToDt(tomkdt);
-            }else{
+            } else {
                 mivo.setMakeFrDt(toDt);
 
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(toDt);
-                cal.add(Calendar.DATE, needValDt+nextvalDt-1);
+                cal.add(Calendar.DATE, needValDt + nextvalDt - 1);
                 toDt = cal.getTime();
 
                 mivo.setMakeToDt(toDt);
@@ -887,10 +878,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 //                    mivo.setMakeToDt(toDt);
 //                }
 //            }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
-        }catch (NullPointerException ne){
+        } catch (NullPointerException ne) {
             try {
                 mivo.setMakeFrDt(sdf.parse(paraMap.get("makeFrDt").toString()));//생산시작일
                 mivo.setMakeToDt(sdf.parse(paraMap.get("makeToDt").toString()));//생산종료일
@@ -922,71 +912,64 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         try {
             mivo.setStatCd(Long.parseLong(paraMap.get("statCd").toString()));
-        }
-        catch (NullPointerException ne) {
-            Map<String,Object> scm = new HashMap<String,Object>();
+        } catch (NullPointerException ne) {
+            Map<String, Object> scm = new HashMap<String, Object>();
             scm.put("makeFrDt", mivo.getMakeFrDt());
             scm.put("makeToDt", mivo.getMakeToDt());
             mivo.setStatCd(mapper.getMakeIndcStatus(scm)); //시작일및 종료일을 기반으로 작업상태(대기,진행,완료 설정)
         }
         try {
             mivo.setFaultRt(Float.parseFloat(paraMap.get("faultRt").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setFaultRt(0f);
         }
         try {
             mivo.setOperRt(Float.parseFloat(paraMap.get("operRt").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setOperRt(0f);
         }
 
         try {
             mivo.setFillYield(Float.parseFloat(paraMap.get("fillYield").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setFillYield(0f);
         }
         try {
             mivo.setCtlFillYield(Float.parseFloat(paraMap.get("ctlFillYield").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setCtlFillYield(mivo.getFillYield());
         }
         try {
             mivo.setRealYield(Float.parseFloat(paraMap.get("realYield").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             mivo.setRealYield(0f);
         }
 
-        try{
+        try {
             mivo.setModDt(mivo.getModDt());
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
         }
-        try{
+        try {
             mivo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
         }
-        try{
+        try {
             mivo.setModIp(paraMap.get("ipaddr").toString());
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
         }
         try {
             mivo.setIndcCont(paraMap.get("indcCont").toString());
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
         }
 
 
-        MakeIndc chkvo = makeIndcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo,mivo.getIndcNo(), mivo.getProcCd(), "Y");
+        MakeIndc chkvo = makeIndcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo, mivo.getIndcNo(), mivo.getProcCd(), "Y");
         if (chkvo != null) {
             mivo.setIndcNo(chkvo.getIndcNo());
-            if (mivo.getCtlFillYield()== 0f) {
+            if (mivo.getCtlFillYield() == 0f) {
                 mivo.setCtlFillYield(chkvo.getCtlFillYield());
             }
             if (mivo.getOperRt() == 0f) {
@@ -1001,35 +984,30 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mivo.setRegId(chkvo.getRegId());
             mivo.setRegIp(chkvo.getRegIp());
             mivo.setRegDt(chkvo.getRegDt());
-        }
-        else {
+        } else {
             mivo.setIndcNo(0L);
             mivo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
             mivo.setRegIp(paraMap.get("ipaddr").toString());
             mivo.setRegDt(DateUtils.getCurrentBaseDateTime());
             try {
                 mivo.setFaultRt(Float.parseFloat(paraMap.get("faultRt").toString())); //불량율
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
 
             }
             try {
                 mivo.setFillYield(Float.parseFloat(paraMap.get("fillYield").toString())); //충진수율
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
 
             }
             try {
                 mivo.setCtlFillYield(Float.parseFloat(paraMap.get("ctlFillYield").toString())); //관지자조정수율
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
 
             }
             try {
                 mivo.setRealYield(chkvo.getRealYield()); //운영수율
-            }
-            catch (NullPointerException ne) {
-                MakeIndcRslt rvo = mir.findByCustNoAndIndcNoAndUsedYn(custNo,mivo.getIndcNo(),"Y");
+            } catch (NullPointerException ne) {
+                MakeIndcRslt rvo = mir.findByCustNoAndIndcNoAndUsedYn(custNo, mivo.getIndcNo(), "Y");
                 if (rvo != null) {
                     mivo.setRealYield(rvo.getMakeWgt() / mivo.getIndcQty());
                 }
@@ -1037,15 +1015,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             //SOL AddOn By KMJ At 21.08.06 : 생산완료 구분 필드 처리
             try {
                 mivo.setClosYn(paraMap.get("closYn").toString());
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
                 mivo.setClosYn("N");
             }
             //EOL AddOn By KMJ At 21.08.06 : 생산완료 구분 필드 처리
         }
         mivo.setCustNo(custNo);
         mivo = makeIndcRepo.save(mivo); //생산지시 기본정보
-        log.info("저장완료 "+ mivo +"지시중량은 : " + mivo.getIndcWgt());
+        log.info("저장완료 " + mivo + "지시중량은 : " + mivo.getIndcWgt());
 
 
 //        if (chkvo == null) {
@@ -1058,7 +1035,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         return mivo;
     }
 
-    private void saveMakeIndcMatr(Map<String,Object> el) {
+    private void saveMakeIndcMatr(Map<String, Object> el) {
         String tag = "MakeIndcService.saveMakeIndcMatr => ";
         Long matrNo = Long.parseLong(el.get("matrNo").toString());
         Long custNo = Long.parseLong(el.get("custNo").toString());
@@ -1076,27 +1053,28 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 //        matrvo.setNeedQty ((float) ( ((consistRt * 0.01) * indcWgt )) );
 
 
-
         matrvo.setNeedQty(Float.parseFloat(el.get("needQty").toString()));
         matrvo.setUsedYn("Y");
         matrvo.setMatrSts("N");
         // 추후 수정해줘야 합니다. 21/08/24
         matrvo.setTakeYn("N");
 
-        try{
+        try {
             matrvo.setModId(Long.parseLong(el.get("userId").toString()));
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
-        } try{
+        }
+        try {
             matrvo.setModDt(DateUtils.getCurrentBaseDateTime());
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
 
-        } try{
+        }
+        try {
             matrvo.setModIp(el.get("ipaddr").toString());
-        }catch (NullPointerException e){
+        } catch (NullPointerException e) {
         }
 
-        MakeIndcMatr chkvo = makeIndcMatrRepo.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo,matrvo.getIndcNo(), matrvo.getMatrNo(), "Y");
+        MakeIndcMatr chkvo = makeIndcMatrRepo.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo, matrvo.getIndcNo(), matrvo.getMatrNo(), "Y");
         if (chkvo != null) {
             matrvo.setIndcMatrNo(chkvo.getIndcMatrNo());
         } else {
@@ -1115,8 +1093,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public void dropMakeIndc(Map<String, Object> paraMap) {
         Long indcNo = Long.parseLong(paraMap.get("indcNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        MakeIndc vo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo,"Y");
-        if(vo != null){
+        MakeIndc vo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+        if (vo != null) {
             log.info("1. 해당 작업지시 삭제");
             vo.setUsedYn("N");
             makeIndcRepo.save(vo);
@@ -1125,12 +1103,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mapper.dropMakeIndcMatr(indcNo);
 
             log.info("3. 원료 출고가 있는경우");
-            List<Map<String,Object>>  ds =  mapper.dropSumMatrOwh(indcNo);
-            for (Map<String,Object> el : ds) {
+            List<Map<String, Object>> ds = mapper.dropSumMatrOwh(indcNo);
+            for (Map<String, Object> el : ds) {
                 Long matrNo = Long.parseLong(el.get("matrNo").toString());
                 Float stkQty = Float.parseFloat(el.get("owhQty").toString());
-                MatrStk skvo = matrStkRepo.findByCustNoAndMatrNoAndUsedYn(custNo,matrNo,"Y");
-                if(skvo != null){
+                MatrStk skvo = matrStkRepo.findByCustNoAndMatrNoAndUsedYn(custNo, matrNo, "Y");
+                if (skvo != null) {
                     skvo.setMatrNo(skvo.getMatrNo());
                     skvo.setMatrStkNo(skvo.getMatrStkNo());
                     skvo.setWhNo(skvo.getWhNo());
@@ -1141,7 +1119,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }
             //mapper.dropMatrOwh(indcNo); // usedYn = N
 
-            MakeIndc mivoForDrop = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo,"Y");
+            MakeIndc mivoForDrop = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
             if (mivoForDrop != null) {
                 mivoForDrop.setUsedYn("N");
                 mivoForDrop.setModDt(DateUtils.getCurrentBaseDateTime());
@@ -1150,12 +1128,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 makeIndcRepo.save(mivoForDrop);
             }
             Long pursNo = 0L;
-            PursInfo pivo = pursRepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo, "Y");
-            if(pivo != null){
+            PursInfo pivo = pursRepo.findByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+            if (pivo != null) {
                 pursNo = pivo.getPursNo();
                 //원료구매(purs_info)의 상태가 입고이거나 부분입고인 경우, 적재수량에서 입고수량만큼 감소.
                 log.info("4. 원료 입고가 있는 경우");
-                if(pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.end")) || pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.ing")) ){
+                if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.end")) || pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.ing"))) {
                     pivo.setPursSts(Long.parseLong(env.getProperty("purs.sts.insp")));
                     pursRepo.save(pivo);
 
@@ -1164,14 +1142,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     Float iwhQty = 0F;
                     Long matrNo = 0L;
                     Long whNo = 0L;
-                    for(Map<String, Object> el : iwhList){
+                    for (Map<String, Object> el : iwhList) {
                         iwhQty = Float.parseFloat(el.get("iwhQty").toString());
                         matrNo = Long.parseLong(el.get("matrNo").toString());
                         whNo = Long.parseLong(el.get("whNo").toString());
 
                         //입고된 원료 원복.
-                        MatrStk msvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo,whNo, matrNo, "Y");
-                        if(msvo != null){
+                        MatrStk msvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo, whNo, matrNo, "Y");
+                        if (msvo != null) {
                             Float qty = Float.parseFloat(msvo.getStkQty().toString()) - iwhQty;
                             msvo.setStkQty(qty);
                             msvo.setCustNo(custNo);
@@ -1183,14 +1161,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     mapper.dropIwhList(pursNo);
                 }
                 //원료구매정보(purs_info)의 상태가 검수인 경우, 사용여부 N으로 변경
-                else{
+                else {
                     log.info("5. 원료 입고 하지 않은 경우");
                     pivo.setUsedYn("N");
                     pivo.setCustNo(custNo);
                     pivo = pursRepo.save(pivo);
 
                     //원료구매(purs_matr)의 사용여부 N으로 변경
-                    PursInfo pivoForDrop = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo,pivo.getPursNo(),"Y");
+                    PursInfo pivoForDrop = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo, pivo.getPursNo(), "Y");
                     if (pivoForDrop != null) {
                         pivoForDrop.setUsedYn("N");
                         pivoForDrop.setModDt(DateUtils.getCurrentBaseDateTime());
@@ -1209,9 +1187,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Override
     public List<Map<String, Object>> getComboWorkDay(Map<String, Object> paraMap) {
 
-        Map<String,Object> infoMap = mapper.getMakeIndcInfo(paraMap);
+        Map<String, Object> infoMap = mapper.getMakeIndcInfo(paraMap);
         List<Date> ds = null;
-        List<Map<String,Object>> comboList = new ArrayList<Map<String,Object>>();
+        List<Map<String, Object>> comboList = new ArrayList<Map<String, Object>>();
         SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         Calendar cal = Calendar.getInstance();
@@ -1224,22 +1202,19 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             Date to = sdFormat.parse(infoMap.get("makeToDt").toString());
 
 
-
             cal.setTime(to);
             //cal.add(Calendar.DATE ,  +1);
             ds = DateUtils.getBetweenDates(fr, to);
 
             for (Date el : ds) {
-                Map<String,Object> dateMap = new HashMap<String,Object>();
-                dateMap.put("value",sdFormat.format(el));
-                dateMap.put("text",sdFormat.format(el));
+                Map<String, Object> dateMap = new HashMap<String, Object>();
+                dateMap.put("value", sdFormat.format(el));
+                dateMap.put("text", sdFormat.format(el));
                 comboList.add(dateMap);
             }
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
 
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             e.printStackTrace();
         }
         return comboList;
@@ -1248,11 +1223,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Override
     public void saveMakeIndcMp(Map<String, Object> paraMap) {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        List<Map<String,Object>> ds = (List<Map<String,Object>>) paraMap.get("users");
+        List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("users");
         SimpleDateFormat sdFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar cal = Calendar.getInstance();
         Date workDt = null;
-        for (Map<String,Object> el : ds) {
+        for (Map<String, Object> el : ds) {
             el.put("indcNo", paraMap.get("indcNo"));
 
             MakeIndcMp mpvo = new MakeIndcMp();
@@ -1265,7 +1240,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             }
             mpvo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
             mpvo.setMpUsedDt(workDt);
-            MakeIndcMp chkvo = makeMpRepo.findByCustNoAndUserIdAndMpUsedDtAndUsedYn(custNo,mpvo.getUserId(), mpvo.getMpUsedDt(),"Y");
+            MakeIndcMp chkvo = makeMpRepo.findByCustNoAndUserIdAndMpUsedDtAndUsedYn(custNo, mpvo.getUserId(), mpvo.getMpUsedDt(), "Y");
             if (chkvo != null) continue;
 
 
@@ -1292,7 +1267,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Override
     public List<Map<String, Object>> getMakeIndcMpList(Map<String, Object> paraMap) {
-        String tag  = "vsvc.MakeIndcService.getMakeIndcMpList => ";
+        String tag = "vsvc.MakeIndcService.getMakeIndcMpList => ";
         log.info(tag + "params = " + paraMap.toString());
         return mapper.getMakeIndcMpList(paraMap);
     }
@@ -1330,7 +1305,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         /* Remarked At 21.03.05 : 출고처리 시점에 matr_pos테이블에서 matrNo,whNo로 카운트하여 재고조정 해야 함*/
         log.info(tag + "작업지시 상품의 BOM에 근거한 출고요청 시작.지시번호(indcNo) = " + paraMap.get("indcNo"));
-        List<Map<String,Object>> ds = mapper.getReqMatrList(paraMap); //작업지시 상품의 BOM에 근거한 출고요청용 소요자재 목록 추출
+        List<Map<String, Object>> ds = mapper.getReqMatrList(paraMap); //작업지시 상품의 BOM에 근거한 출고요청용 소요자재 목록 추출
         Long indcNo = Long.parseLong(paraMap.get("indcNo").toString());
         for (Map<String, Object> el : ds) {
             MatrOwh owhvo = new MatrOwh();
@@ -1340,7 +1315,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             owhvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
             owhvo.setModIp(paraMap.get("ipaddr").toString());
 
-            MatrOwh chkvo = omr.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo,owhvo.getIndcNo(), owhvo.getMatrNo(), "Y");
+            MatrOwh chkvo = omr.findByCustNoAndIndcNoAndMatrNoAndUsedYn(custNo, owhvo.getIndcNo(), owhvo.getMatrNo(), "Y");
             if (chkvo != null) {
                 owhvo.setOwhNo(chkvo.getOwhNo()); //관리번호
                 owhvo.setWhNo(chkvo.getWhNo());//창고번호
@@ -1394,13 +1369,10 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
 
-
-
     @Override
     public List<Map<String, Object>> getMakeProcList(Map<String, Object> paraMap) {
         return mapper.getMakeProcList(paraMap);
     }
-
 
 
     /*상품별 제조공정 이외 별도 공정을 추가하는 경우 처리됨*/
@@ -1410,7 +1382,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     /*생산지시기반 작업에 필요한 소요자재 구매요청*/
-    private PursInfo  savePursInfo(Map<String, Object> paraMap) {
+    private PursInfo savePursInfo(Map<String, Object> paraMap) {
         String tag = "MakeIndcService.saveReqMatr==>";
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long confirmPurs = 0L;
@@ -1441,7 +1413,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         pivo.setPursSts(confirmPurs);
         try {
             pivo.setOrdNo(Long.parseLong(paraMap.get("ord_no").toString()));
-        }catch (NullPointerException en){
+        } catch (NullPointerException en) {
             pivo.setOrdNo(0L);
         }
         pivo.setDlvDt(DateUtils.getCurrentDateTime());
@@ -1473,7 +1445,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             pmvo.setPursQty(Float.valueOf(el.get("reqPursQty").toString()));
             pmvo.setPursUnit(Long.parseLong(el.get("pursUnit").toString()));
             pmvo.setUsedYn("Y");
-            PursMatr chkmvo = pmr.findByCustNoAndPursNoAndMatrNoAndUsedYn(custNo,pmvo.getPursNo(), pmvo.getMatrNo(), "Y");
+            PursMatr chkmvo = pmr.findByCustNoAndPursNoAndMatrNoAndUsedYn(custNo, pmvo.getPursNo(), pmvo.getMatrNo(), "Y");
             if (chkmvo != null) {
                 pmvo.setPursMatrNo(chkmvo.getPursMatrNo());
                 pmvo.setModDt(DateUtils.getCurrentBaseDateTime());
@@ -1535,22 +1507,23 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
         return pivo;
     }
-    private  void saveMatrIwh(PursInfo pivo) {
+
+    private void saveMatrIwh(PursInfo pivo) {
         String tag = "MakeIndcService.svaematrIwh => ";
         log.info(tag + "상품의 BOM에 근거하여 구매요청된 자료를 자동으로 자재입고 자료로 생성 시작.구매번호(pursNo) = " + pivo.getPursNo());
         Long custNo = pivo.getCustNo();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        Map<String,Object> pmap = new HashMap<String,Object>();
+        Map<String, Object> pmap = new HashMap<String, Object>();
         pmap.put("pursNo", pivo.getPursNo());
-        pmap.put("pageNo",0);
-        pmap.put("custNo",custNo);
-        pmap.put("pageSz",1000);
+        pmap.put("pageNo", 0);
+        pmap.put("custNo", custNo);
+        pmap.put("pageSz", 1000);
 
 
-        List<Map<String,Object>> ds = pursService.getPursMatrList(pmap);
+        List<Map<String, Object>> ds = pursService.getPursMatrList(pmap);
         log.info(tag + "자재입고대상건 수 = " + ds.size());
-        for (Map<String,Object> el : ds) {
-            log.info(tag + "자재입고 처리.pursMatrNo =  " +el.get("pursMatrNo").toString());
+        for (Map<String, Object> el : ds) {
+            log.info(tag + "자재입고 처리.pursMatrNo =  " + el.get("pursMatrNo").toString());
             MatrIwh mivo = new MatrIwh();
             mivo.setPursNo(Long.valueOf(el.get("pursNo").toString()));
             mivo.setPursMatrNo(Long.valueOf(el.get("pursMatrNo").toString()));
@@ -1564,7 +1537,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mivo.setIwhQty(Float.valueOf(el.get("pursQty").toString()));
             mivo.setWhNo(0L);//입고창고번호는 입고 검수 시점에 설정 해야 함,
             mivo.setUsedYn("Y");
-            MatrIwh chkMatrIwh = imr.findByCustNoAndPursNoAndMatrNoAndUsedYn(custNo,mivo.getPursNo(), mivo.getMatrNo(),"Y");
+            MatrIwh chkMatrIwh = imr.findByCustNoAndPursNoAndMatrNoAndUsedYn(custNo, mivo.getPursNo(), mivo.getMatrNo(), "Y");
             if (chkMatrIwh != null) {
                 mivo.setIwhNo(chkMatrIwh.getIwhNo());
             }
@@ -1572,8 +1545,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 mivo.setRetnQty(Float.valueOf(String.valueOf(el.get("retnQty"))));
             } catch (NullPointerException ne) {
                 mivo.setRetnQty(Float.valueOf(0));
-            }
-            catch(NumberFormatException ne) {
+            } catch (NumberFormatException ne) {
                 mivo.setRetnQty(Float.valueOf(0));
             }
             mivo.setCustNo(custNo);
@@ -1603,8 +1575,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         mpvo.setRowIdx(0);
         mpvo.setStairIdx(0);
 
-        MatrPos chkmp = matrPosRepo.findByCustNoAndMatrNoAndWhNoAndStairIdxAndColIdxAndRowIdxAndIwhSeq(custNo,mpvo.getMatrNo(), mpvo.getWhNo(), mpvo.getStairIdx(), mpvo.getColIdx(), mpvo.getRowIdx(), mpvo.getIwhSeq());
-        if(chkmp != null){ //기존 레이아웃이 형성되어 있을 때
+        MatrPos chkmp = matrPosRepo.findByCustNoAndMatrNoAndWhNoAndStairIdxAndColIdxAndRowIdxAndIwhSeq(custNo, mpvo.getMatrNo(), mpvo.getWhNo(), mpvo.getStairIdx(), mpvo.getColIdx(), mpvo.getRowIdx(), mpvo.getIwhSeq());
+        if (chkmp != null) { //기존 레이아웃이 형성되어 있을 때
             mpvo.setMatrPosNo(chkmp.getMatrPosNo());
             mpvo.setIwhSeq(chkmp.getIwhSeq());
             mpvo.setWhNo(chkmp.getWhNo());
@@ -1621,8 +1593,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
             mpvo.setMatrQty(chkmp.getMatrQty());
             mpvo.setUsedYn("Y");
-        }
-        else{//신규 형성
+        } else {//신규 형성
             mpvo.setIwhSeq(Integer.parseInt(paraMap.get("iwhSeq").toString()));
             mpvo.setMatrQty(0f);
             mpvo.setUsedYn("Y");
@@ -1663,6 +1634,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public List<Map<String, Object>> getMakeStatusList(Map<String, Object> paraMap) {
         return mapper.getMakeStatusList(paraMap);
     }
+
     @Override
     public int getMakeStatusListCount(Map<String, Object> paraMap) {
         return mapper.getMakeStatusListCount(paraMap);
@@ -1704,9 +1676,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mirvo.setAdjMakeWgt(0F);
         }
 
-        mivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,mirvo.getIndcNo(), "Y");
+        mivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, mirvo.getIndcNo(), "Y");
         if (mivo != null) {
-            pivo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,mivo.getProdNo(), "Y");
+            pivo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo, mivo.getProdNo(), "Y");
             if (pivo != null) {
                 mess = pivo.getMess();
             }
@@ -1751,7 +1723,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mirvo.setModId(Long.parseLong(passMap.get("userId").toString()));
             mirvo.setModIp(passMap.get("ipaddr").toString());
             mirvo.setUsedYn("Y");
-            MakeIndcRslt chkvo = mir.findByCustNoAndIndcRsltNoAndUsedYn(custNo,mirvo.getIndcRsltNo(), "Y");
+            MakeIndcRslt chkvo = mir.findByCustNoAndIndcRsltNoAndUsedYn(custNo, mirvo.getIndcRsltNo(), "Y");
             if (chkvo != null) {
                 mirvo.setIndcRsltNo(chkvo.getIndcRsltNo());
                 mirvo.setRegId(chkvo.getRegId());
@@ -1794,7 +1766,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 int procCd = Integer.parseInt(passMap.get("procCd").toString());
                 if (procCd == 999) {
                     Long parIndcNo = Long.parseLong(paraMap.get("parIndcNo").toString()); //완제품입고의 parIndcNo 가져오기.
-                    MakeIndc chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,parIndcNo, "Y");
+                    MakeIndc chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, parIndcNo, "Y");
                     if (chkmivo != null) {
                         //SOL AddOn By KMJ At 21.08.05 23:00
                         chkmivo.setModDt(DateUtils.getCurrentBaseDateTime());
@@ -1804,20 +1776,18 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                             if (paraMap.get("closYn").toString().equals("Y")) { //생산완료
                                 chkmivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makeEnd")));
                                 chkmivo.setClosYn("Y");
-                            }
-                            else {
+                            } else {
                                 chkmivo.setClosYn("N");
                             }
                             makeIndcRepo.save(chkmivo);
-                        }
-                        catch(NullPointerException ne) {
+                        } catch (NullPointerException ne) {
 
                         }
                         //EOL AddOn By KMJ At 21.08.05 23:00
 
                     }
                     //SOL AddOn By KMJ At 21.12.01 07:57 --완제품입고 작업지시도 closYn -'Y' 인 경우 상태값을 생산올료처리
-                    chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,mivo.getIndcNo(), "Y");
+                    chkmivo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, mivo.getIndcNo(), "Y");
                     if (chkmivo != null) {
                         try {
                             chkmivo.setModDt(DateUtils.getCurrentBaseDateTime());
@@ -1826,13 +1796,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                             if (paraMap.get("closYn").toString().equals("Y")) { //생산완료
                                 chkmivo.setIndcSts(Long.parseLong(env.getProperty("code.base.makeEnd")));
                                 chkmivo.setClosYn("Y");
-                            }
-                            else {
+                            } else {
                                 chkmivo.setClosYn("N");
                             }
                             makeIndcRepo.save(chkmivo);
-                        }
-                        catch(NullPointerException ne) {
+                        } catch (NullPointerException ne) {
 
                         }
                     }
@@ -1922,6 +1890,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public void dropIndcRslt(Map<String, Object> paraMap) {
         mapper.dropIndcRslt(paraMap);
     }
+
     @Override
     public List<Map<String, Object>> getMpUsedList(Map<String, Object> paraMap) {
         return mapper.getMpUsedList(paraMap);
@@ -1929,11 +1898,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Override
     public int getMpUsedListCount(Map<String, Object> paraMap) {
-        return  mapper.getMpUsedListCount(paraMap);
+        return mapper.getMpUsedListCount(paraMap);
     }
+
     @Override
     public int getMaxMakeCapacityPerDay(Map<String, Object> paraMap) {
-        return  mapper.getMaxMakeCapacityPerDay(paraMap);
+        return mapper.getMaxMakeCapacityPerDay(paraMap);
     }
 
     @Override
@@ -1961,15 +1931,15 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         //               , userId=4} , request : org.apache.catalina.connector.RequestFacade@57bd70c0 ,
 
 
-        List<Map<String,Object>> dsWorker =(List<Map<String,Object>>) paraMap.get("workerList");
+        List<Map<String, Object>> dsWorker = (List<Map<String, Object>>) paraMap.get("workerList");
         log.info(tag + "투입인력 카운트 = " + dsWorker.size());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        for (Map<String,Object> el : dsWorker) {
+        for (Map<String, Object> el : dsWorker) {
             MakeIndcMp mpInfo = new MakeIndcMp();
             mpInfo.setUserId(Long.parseLong(el.get("workerId").toString()));
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                String date = passMap.get("mpUsedDt").toString().substring(0,10);
+                String date = passMap.get("mpUsedDt").toString().substring(0, 10);
                 mpInfo.setMpUsedDt(sdf.parse(date));
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -1986,8 +1956,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             //Long rcvIndcNo = Long.parseLong(passMap.get("indcNo").toString());
             try {
                 mpInfo.setIndcMpNo(Long.parseLong(passMap.get("indcMpNo").toString()));
-            }
-            catch (NullPointerException ne) {
+            } catch (NullPointerException ne) {
                 mpInfo.setIndcMpNo(0L);
             }
             mpInfo.setIndcNo(Long.parseLong(passMap.get("indcNo").toString()));
@@ -2010,7 +1979,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mpInfo.setUsedYn("Y");
             mpInfo.setSpotNo(0L);
             //MakeIndcMp chkvo = makeMpRepo.findByIndcNoAndUserIdAndUsedYn(mpInfo.getIndcNo(), mpInfo.getUserId(), "Y");
-            MakeIndcMp chkvo = makeMpRepo.findByCustNoAndIndcMpNoAndUsedYn(custNo,mpInfo.getIndcMpNo(), "Y");
+            MakeIndcMp chkvo = makeMpRepo.findByCustNoAndIndcMpNoAndUsedYn(custNo, mpInfo.getIndcMpNo(), "Y");
             if (chkvo != null) {
                 mpInfo.setRegIp(chkvo.getRegIp());
                 mpInfo.setRegDt(chkvo.getRegDt());
@@ -2028,19 +1997,19 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             makeMpRepo.save(mpInfo);
         }
     }
+
     private Long chkIndcInfo(Map<String, Object> paraMap) {
         Long retVal = 0L;
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         MakeIndc indcvo = new MakeIndc();
         indcvo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
         indcvo.setProcCd(Long.parseLong(paraMap.get("procCd").toString()));
-        MakeIndc orgvo =  makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcvo.getIndcNo(),"Y");
+        MakeIndc orgvo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, indcvo.getIndcNo(), "Y");
         if (orgvo != null) {
-            MakeIndc chkvo =  makeIndcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo,indcvo.getIndcNo(),indcvo.getProcCd(),"Y");
+            MakeIndc chkvo = makeIndcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo, indcvo.getIndcNo(), indcvo.getProcCd(), "Y");
             if (chkvo != null) {
                 retVal = chkvo.getIndcNo();
-            }
-            else { //투입의 작업공정 변경시 변경된 공정의 작업지시가 없는 경우임.
+            } else { //투입의 작업공정 변경시 변경된 공정의 작업지시가 없는 경우임.
                 MakeIndc newIndcVo = new MakeIndc();
                 newIndcVo.setIndcNo(0L);
                 newIndcVo.setIndcCont(orgvo.getIndcCont());
@@ -2063,7 +2032,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 newIndcVo.setRegDt(DateUtils.getCurrentBaseDateTime());
                 newIndcVo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
                 newIndcVo.setRegIp(paraMap.get("ipaddr").toString());
-                chkvo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,newIndcVo.getIndcNo(), "Y");
+                chkvo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, newIndcVo.getIndcNo(), "Y");
                 if (chkvo == null) {
                     newIndcVo.setIndcNo(0L);
                     newIndcVo.setCustNo(custNo);
@@ -2083,7 +2052,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long fileNo = Long.parseLong(paraMap.get("fileNo").toString());
         String fileRoot = paraMap.get("fileRoot").toString();
-        FileInfo fileEntity = fr.findByCustNoAndFileNoAndUsedYn(custNo,fileNo,"Y");
+        FileInfo fileEntity = fr.findByCustNoAndFileNoAndUsedYn(custNo, fileNo, "Y");
 
         buf.setLength(0);
         buf.append(fileRoot)
@@ -2120,24 +2089,24 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             //userInfo = ur.findByUserNm(userNm);
 
             Date Date = row.getCell(3).getDateCellValue();
-            String frhm = substring(row.getCell(5).getStringCellValue() , 0,2) +substring(row.getCell(5).getStringCellValue() , 3,5);
-            String tohm = substring(row.getCell(6).getStringCellValue() , 0,2) +substring(row.getCell(6).getStringCellValue() , 3,5);
+            String frhm = substring(row.getCell(5).getStringCellValue(), 0, 2) + substring(row.getCell(5).getStringCellValue(), 3, 5);
+            String tohm = substring(row.getCell(6).getStringCellValue(), 0, 2) + substring(row.getCell(6).getStringCellValue(), 3, 5);
 
 
-            Long starthh = Long.valueOf(substring(row.getCell(5).getStringCellValue() , 0,2));
-            Long startmm = Long.valueOf(substring(row.getCell(5).getStringCellValue() , 3,5));
-            Long endhh = Long.valueOf(substring(row.getCell(6).getStringCellValue() , 0,2));
-            Long endmm = Long.valueOf(substring(row.getCell(6).getStringCellValue() , 3,5));
+            Long starthh = Long.valueOf(substring(row.getCell(5).getStringCellValue(), 0, 2));
+            Long startmm = Long.valueOf(substring(row.getCell(5).getStringCellValue(), 3, 5));
+            Long endhh = Long.valueOf(substring(row.getCell(6).getStringCellValue(), 0, 2));
+            Long endmm = Long.valueOf(substring(row.getCell(6).getStringCellValue(), 3, 5));
 
-            Long Starthm = ((starthh*60)+startmm);
-            Long Endhm = ((endhh*60)+endmm);
+            Long Starthm = ((starthh * 60) + startmm);
+            Long Endhm = ((endhh * 60) + endmm);
 
 
             // 7시이전출근 7시로맞춤
-            if(Starthm < 420){
+            if (Starthm < 420) {
                 Starthm = Long.valueOf(420);
             }
-            Long Tot =  Endhm - Starthm;
+            Long Tot = Endhm - Starthm;
             log.info(" 일한시간 = " + Tot);
 
             try {
@@ -2147,39 +2116,38 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 mpInfo.setFrHm(frhm);
                 mpInfo.setToHm(String.valueOf(Endhm));
 
-                if (Tot >= 570){ //정규시간  9시 30분
+                if (Tot >= 570) { //정규시간  9시 30분
                     mpInfo.setRegulWorkHm(570);
                     log.info("570분 정규시간 이상이면 570 강제 삽입" + mpInfo.getRegulWorkHm());
-                }else{
+                } else {
                     mpInfo.setRegulWorkHm(Integer.parseInt(String.valueOf(Tot)));
                     log.info("아닐경우 그냥삽임" + mpInfo.getRegulWorkHm());
                 }
-                if (Tot > 570){ //환산시간 570분이상일경우계산
-                    mpInfo.setExchgWorkHm(Integer.parseInt(String.valueOf(((Tot - 570)*15)/10)));
+                if (Tot > 570) { //환산시간 570분이상일경우계산
+                    mpInfo.setExchgWorkHm(Integer.parseInt(String.valueOf(((Tot - 570) * 15) / 10)));
 
-                    log.info("570분이사이면 환산시간"+mpInfo.getExchgWorkHm());
-                }else{         // 아닐경우 0값
+                    log.info("570분이사이면 환산시간" + mpInfo.getExchgWorkHm());
+                } else {         // 아닐경우 0값
                     mpInfo.setExchgWorkHm(Integer.parseInt(String.valueOf(0)));
 
-                    log.info("570분이하이면 0삽입"+mpInfo.getExchgWorkHm());
+                    log.info("570분이하이면 0삽입" + mpInfo.getExchgWorkHm());
                     mpInfo.setTotWorkHm(Integer.parseInt(String.valueOf(Tot)));
                     log.info("그냥 최종 시간" + mpInfo.getTotWorkHm());
                 }
 
-                if(Tot > 570) { //잔업시간 위와같음
+                if (Tot > 570) { //잔업시간 위와같음
                     mpInfo.setOverWorkHm(Integer.parseInt(String.valueOf(Tot - 570)));
                     log.info("그냥 570분 이상이면 잔업시간" + mpInfo.getOverWorkHm());
-                }else{
+                } else {
                     mpInfo.setOverWorkHm(Integer.parseInt(String.valueOf(0)));
                     log.info("아니면 0" + mpInfo.getOverWorkHm());
                 }
                 mpInfo.setUsedYn("Y");
 
-                mpInfo.setTotWorkHm(Integer.parseInt(String.valueOf(570+Integer.parseInt(String.valueOf(((Tot-570)*15)/10)))));
+                mpInfo.setTotWorkHm(Integer.parseInt(String.valueOf(570 + Integer.parseInt(String.valueOf(((Tot - 570) * 15) / 10)))));
                 log.info("그냥 최종 시간" + mpInfo.getTotWorkHm());
-                log.info("머냐이거"+mpInfo.getTotWorkHm());
-            }
-            catch (NullPointerException e) {
+                log.info("머냐이거" + mpInfo.getTotWorkHm());
+            } catch (NullPointerException e) {
                 mpInfo.setSpotNo(0L);
                 mpInfo.setIndcMpNo(0L);
                 mpInfo.setIndcNo(0L);
@@ -2188,6 +2156,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             makeMpRepo.save(mpInfo);
         }
     }
+
     /*공정별 일 최대 생산량 : 가동율 계산시 사용됨*/
     @Override
     public Map<String, Object> getMaxMakeCapacity(Map<String, Object> paraMap) {
@@ -2258,14 +2227,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Map<String, Object> procMap = new HashMap<String, Object>();
-        procMap.put("indcNo",Long.parseLong(paraMap.get("indcNo").toString()));
-        List<Map<String,Object>> ds = mapper.getForMpMakerIndcList(procMap);// Excel로 작업지시 내릴때 사용
+        procMap.put("indcNo", Long.parseLong(paraMap.get("indcNo").toString()));
+        List<Map<String, Object>> ds = mapper.getForMpMakerIndcList(procMap);// Excel로 작업지시 내릴때 사용
         int idx = -1;
         Long procCd = 0L;
         MakeIndcMp mpvo = new MakeIndcMp();
-        Map<String,Object> mpmap = new HashMap<String,Object>();
+        Map<String, Object> mpmap = new HashMap<String, Object>();
         final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        while(++idx < ds.size()) {
+        while (++idx < ds.size()) {
             try {
                 mpmap = ds.get(idx);
                 mpvo.setIndcNo(Long.parseLong(mpmap.get("indcNo").toString()));
@@ -2278,26 +2247,26 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 mpvo.setUsedYn("Y");
                 mpvo.setRegulWorkHm(Integer.parseInt(mpmap.get("regulWorkHm").toString()));
                 mpvo.setTotWorkHm(Integer.parseInt(mpmap.get("totWorkHm").toString()));
-                try{
+                try {
                     mpvo.setMpUsedDt(sdf.parse(mpmap.get("makeDt").toString()));
-                }catch (NullPointerException en ) {
-                    mpvo.setMpUsedDt((Date)paraMap.get("makeDt"));
+                } catch (NullPointerException en) {
+                    mpvo.setMpUsedDt((Date) paraMap.get("makeDt"));
                 }
 
 
                 mpvo.setModDt(DateUtils.getCurrentBaseDateTime());
                 try {
                     mpvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                }catch (NullPointerException en){
+                } catch (NullPointerException en) {
                     mpvo.setModId(2L);
                 }
-                try{
+                try {
                     mpvo.setModIp(paraMap.get("ipaddr").toString());
-                }catch (NullPointerException en){
+                } catch (NullPointerException en) {
                     mpvo.setModIp("127.0.0.1");
                 }
 
-                MakeIndcMp chkvo = makeMpRepo.findByCustNoAndIndcNoAndUserIdAndUsedYn(custNo,mpvo.getIndcNo(), mpvo.getUserId(), "Y");
+                MakeIndcMp chkvo = makeMpRepo.findByCustNoAndIndcNoAndUserIdAndUsedYn(custNo, mpvo.getIndcNo(), mpvo.getUserId(), "Y");
                 if (chkvo != null) {
                     mpvo.setIndcMpNo(chkvo.getIndcMpNo());
                     mpvo.setRegDt(chkvo.getRegDt());
@@ -2309,17 +2278,17 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     mpvo.setRegDt(DateUtils.getCurrentBaseDateTime());
                     try {
                         mpvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-                    }catch (NullPointerException en){
+                    } catch (NullPointerException en) {
                         mpvo.setRegId(2L);
                     }
-                    try{
+                    try {
                         mpvo.setRegIp(paraMap.get("ipaddr").toString());
-                    }catch (NullPointerException en){
+                    } catch (NullPointerException en) {
                         mpvo.setRegIp("127.0.0.1");
                     }
                 }
                 mpvo.setCustNo(custNo);
-                 makeMpRepo.save(mpvo);
+                makeMpRepo.save(mpvo);
 
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -2343,15 +2312,15 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public List<Map<String, Object>> getMakeIndcPrintList(Map<String, Object> paraMap){
+    public List<Map<String, Object>> getMakeIndcPrintList(Map<String, Object> paraMap) {
         return mapper.getMakeIndcPrintList(paraMap);
     }
 
     @Override
-    public List<Map<String, Object>> getMakeIndcBfPrintList(Map<String, Object> paraMap){
+    public List<Map<String, Object>> getMakeIndcBfPrintList(Map<String, Object> paraMap) {
         List<Map<String, Object>> printList = (List<Map<String, Object>>) paraMap.get("bomList");
         List<Map<String, Object>> rList = new ArrayList<>();
-        for(Map<String,Object> el : printList){
+        for (Map<String, Object> el : printList) {
             String prodNm = el.get("matrNm").toString();
 
             Map<String, Object> indcChk = new HashMap<>();
@@ -2359,7 +2328,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             indcChk.put("bomLvl", 2);
 
             rList = mapper.getMakeIndcBfPrintList(indcChk);
-            if(rList.size() > 0){
+            if (rList.size() > 0) {
                 return rList;
             }
 
@@ -2368,12 +2337,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public List<Map<String, Object>> getProcCtntList(Map<String, Object> paraMap){
+    public List<Map<String, Object>> getProcCtntList(Map<String, Object> paraMap) {
         return mapper.getProcCtntList(paraMap);
     }
 
     @Override
-    public void resetIndcSts(Map<String, Object> paraMap){
+    public void resetIndcSts(Map<String, Object> paraMap) {
         mapper.resetIndcSts(paraMap);
     }
 
@@ -2391,27 +2360,26 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     //작업지시 - 자재입고 완료여부 확인
     @Override
-    public List<Map<String, Object>> getMatchIndcList(Map<String, Object> paraMap){
-        List<Map<String,Object>> list = new ArrayList<>();
-        List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("indcList");
+    public List<Map<String, Object>> getMatchIndcList(Map<String, Object> paraMap) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        List<Map<String, Object>> ds = (List<Map<String, Object>>) paraMap.get("indcList");
 
-        for (Map<String,Object> el : ds) {
-            Map<String, Object> passMap = new HashMap<String,Object>();
+        for (Map<String, Object> el : ds) {
+            Map<String, Object> passMap = new HashMap<String, Object>();
             passMap.put("indcNo", el.get("indcNo"));
 
             Map<String, Object> yn = mapper.getMatchIndcList(passMap);
             log.info("yn : " + yn);
-            if(yn == null){
+            if (yn == null) {
                 passMap.put("stkSts", "N");
                 passMap.put("matrIwhDt", "");
-            }
-            else{
+            } else {
                 log.info("yn : " + yn);
                 passMap.put("stkSts", yn.get("stkSts"));
-                try{
+                try {
                     passMap.put("matrIwhDt", yn.get("matrIwhDt").toString().substring(0, 10));
-                }catch(NullPointerException ne){
-                    passMap.put("matrIwhDt" , "");
+                } catch (NullPointerException ne) {
+                    passMap.put("matrIwhDt", "");
                 }
 
             }
@@ -2424,7 +2392,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public List<Map<String, Object>> getIndcListByProc(Map<String, Object> paraMap){
+    public List<Map<String, Object>> getIndcListByProc(Map<String, Object> paraMap) {
         return mapper.getIndcListByProc(paraMap);
     }
 
@@ -2435,28 +2403,27 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
 
     @Override
-    public List<Map<String, Object>> getIndcSaltList(Map<String, Object> paraMap){
+    public List<Map<String, Object>> getIndcSaltList(Map<String, Object> paraMap) {
         return mapper.getIndcSaltList(paraMap);
     }
 
     @Override
-    public int getIndcSaltListCount(Map<String, Object> paraMap){
+    public int getIndcSaltListCount(Map<String, Object> paraMap) {
         return mapper.getIndcSaltListCount(paraMap);
     }
 
     @Override
-    public void saveIndcSaltList(Map<String, Object> paraMap){
+    public void saveIndcSaltList(Map<String, Object> paraMap) {
         Long prodNo = 0L;
         Long indcNo = 0L;
         Float val = 0F;
         MakeIndcRslt mirvo = new MakeIndcRslt();
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         paraMap.put("searchTp", "first");
-        Map<String,Object> saltMap = mapper.getIndcListBySalt(paraMap);
-        if(Float.parseFloat(saltMap.get("parIndcNo").toString()) == 0F){
+        Map<String, Object> saltMap = mapper.getIndcListBySalt(paraMap);
+        if (Float.parseFloat(saltMap.get("parIndcNo").toString()) == 0F) {
             indcNo = Long.parseLong(saltMap.get("indcNo").toString());
-        }
-        else{
+        } else {
             indcNo = Long.parseLong(saltMap.get("parIndcNo").toString());
         }
 
@@ -2464,29 +2431,28 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Long procCd = Long.parseLong(paraMap.get("procCd").toString());
 
         prodNo = Long.parseLong(paraMap.get("prodNo").toString());
-        ProdInfo chk = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
-        if(chk != null){
+        ProdInfo chk = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo, prodNo, "Y");
+        if (chk != null) {
 
             //하담푸드의 경우 vol과 mess 구분 X
-            try{
-                if(custNo == 3){
+            try {
+                if (custNo == 3) {
                     val = chk.getSpga();
-                }
-                else{
+                } else {
                     val = chk.getVol();
                 }
-            }catch(NullPointerException e){
+            } catch (NullPointerException e) {
                 val = chk.getVol();
             }
         }
 
-        MakeIndc michkvo = makeIndcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo,indcNo, procCd, "Y");
-        if(michkvo != null){
+        MakeIndc michkvo = makeIndcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo, indcNo, procCd, "Y");
+        if (michkvo != null) {
             indcNo = michkvo.getIndcNo();
         }
 
-        MakeIndcRslt chkvo = mir.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo, "Y");
-        if(chkvo != null){
+        MakeIndcRslt chkvo = mir.findByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+        if (chkvo != null) {
             chkvo.setModDt(DateUtils.getCurrentBaseDateTime());
             chkvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
             chkvo.setModIp(paraMap.get("ipaddr").toString());
@@ -2494,8 +2460,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             chkvo.setMakeWgt(Float.parseFloat(paraMap.get("makeQty").toString()) * val);//생산지시중량
             chkvo.setCustNo(custNo);
             mir.save(chkvo);
-        }
-        else{
+        } else {
             mirvo.setIndcRsltNo(0L);
             mirvo.setIndcNo(indcNo);
             mirvo.setAdjMakeQty(0F);
@@ -2522,10 +2487,10 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public void saveIndcPrintText(Map<String, Object> paraMap) {
         Long indcNo = Long.parseLong(paraMap.get("indcNo").toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        MakeIndc michkvo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo,indcNo, "Y");
-        try{
+        MakeIndc michkvo = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
+        try {
             michkvo.setIndcCont(paraMap.get("indcCont").toString());
-        }catch(NullPointerException e){
+        } catch (NullPointerException e) {
             michkvo.setIndcCont(null);
         }
         michkvo.setCustNo(custNo);
@@ -2575,14 +2540,14 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         Long procCd = 0L;
         Long indcNo = Long.parseLong(paraMap.get("indcNo").toString());
         Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
-        ProdInfo pivo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo,prodNo,"Y");
+        ProdInfo pivo = prodRepo.findByCustNoAndProdNoAndUsedYn(custNo, prodNo, "Y");
 
         Long userId = Long.parseLong(paraMap.get("userId").toString());
         String ipaddr = paraMap.get("ipaddr").toString();
 
-        List<ProcBrnch> dspb = procBrnchRepo.findAllByCustNoAndBrnchNoAndUsedYnOrderByProcSeq(custNo,pivo.getBrnchNo(),"Y");
+        List<ProcBrnch> dspb = procBrnchRepo.findAllByCustNoAndBrnchNoAndUsedYnOrderByProcSeq(custNo, pivo.getBrnchNo(), "Y");
         for (ProcBrnch el : dspb) {
-            procCd =  el.getProcCd();
+            procCd = el.getProcCd();
 
             MakeIndcProc mipvo = new MakeIndcProc();
             mipvo.setIndcNo(indcNo);
@@ -2594,7 +2559,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mipvo.setModDt(DateUtils.getCurrentBaseDateTime());
             mipvo.setModIp(ipaddr);
             mipvo.setUsedYn("Y");
-            MakeIndcProc chkmipvo = makeIndcProcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo,indcNo,procCd,"Y");
+            MakeIndcProc chkmipvo = makeIndcProcRepo.findByCustNoAndIndcNoAndProcCdAndUsedYn(custNo, indcNo, procCd, "Y");
             if (chkmipvo == null) {
                 mipvo.setRegDt(DateUtils.getCurrentBaseDateTime());
                 mipvo.setRegId(userId);
@@ -2604,4 +2569,75 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
     }
 
+    @Override
+    @Transactional
+    public void saveMakePlan(Map<String, Object> paraMap) {
+        String tag = "MakeIndcService.saveMakePlan => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        /*
+          { cmpyNo=495424
+           , prodNo=495428
+           , userId=14
+           , custNo=14
+           , ipaddr=127.0.0.1
+           , DateList=[2021-12-12, 2021-12-13, 2021-12-14, 2021-12-15, 2021-12-16, 2021-12-17, 2021-12-18, 2021-12-19, 2021-12-20, 2021-12-21, 2021-12-22]
+           , ordRecList=[499498, 499499, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+           , planQtyList=[300, 200, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+         }
+         */
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        Long cmpyNo = Long.parseLong(paraMap.get("cmpyNo").toString());
+        Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        List<Long> dsOrdRecNo = (List<Long>) paraMap.get("ordRecList");
+        List<String> dsDateList = (List<String>) paraMap.get("dateList");
+        List<Integer> dsQtyList = (List<Integer>) paraMap.get("planQtyList");
+
+        for (int ix = 0; ix < dsDateList.size(); ix++) {
+            int planQty = Integer.parseInt(String.valueOf(dsQtyList.get(ix)));
+            if (planQty == 0) continue;
+            MakePlan mpvo = new MakePlan();
+
+            mpvo.setCustNo(custNo);
+            mpvo.setCmpyNo(cmpyNo);
+            mpvo.setProdNo(prodNo);
+            mpvo.setOrdRecvNo(Long.parseLong(String.valueOf(dsOrdRecNo.get(ix))));
+            mpvo.setPlanQty(planQty);
+            mpvo.setUsedYn("Y");
+            try {
+                Date shd = sdf.parse(dsDateList.get(ix));
+                mpvo.setPlanUt(shd.getTime() / 1000);
+            } catch (ParseException e) {
+                e.printStackTrace();
+                break;
+            }
+            mpvo.setStatCd(Long.parseLong(env.getProperty("code.make_plan_plan")));
+            mpvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            mpvo.setModId(userId);
+            mpvo.setModIp(ipaddr);
+            MakePlan chkvo = makePlanRepo.findByCustNoAndPlanUtAndProdNoAndUsedYn(custNo, mpvo.getPlanUt(), prodNo, "Y");
+            if (chkvo != null) {
+                mpvo.setMakePlanNo(chkvo.getMakePlanNo());
+                mpvo.setOrdRecvNo(chkvo.getOrdRecvNo());
+                mpvo.setRegDt(chkvo.getRegDt());
+                mpvo.setRegId(chkvo.getRegId());
+                mpvo.setRegIp(chkvo.getRegIp());
+            } else {
+                mpvo.setMakePlanNo(0L);
+                mpvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                mpvo.setRegId(userId);
+                mpvo.setRegIp(ipaddr);
+            }
+            makePlanRepo.save(mpvo);
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap) {
+        String tag = "MakeIndcService.getProductionPlan =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return null;
+    }
 }

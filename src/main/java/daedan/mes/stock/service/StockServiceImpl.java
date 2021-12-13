@@ -11,6 +11,7 @@ import daedan.mes.matr.domain.MatrInfo;
 import daedan.mes.stock.domain.*;
 import daedan.mes.stock.mapper.StockMapper;
 import daedan.mes.stock.repository.*;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -1144,7 +1145,7 @@ public class StockServiceImpl implements  StockService{
     public Map<String, Object> getShdList(Map<String, Object> paraMap) {
         String tag = "stockService.getShdList =>";
         log.info(tag + "paraMap = " + paraMap.toString());
-        ArrayList<String> dsDate = new ArrayList<String>();
+        ArrayList<String> dsStkDate = new ArrayList<String>();
         ArrayList<Long> dsOrdRecv = new ArrayList<Long>();
         ArrayList<Long> dsProd = new ArrayList<Long>();
         ArrayList<Long> dsCmpy = new ArrayList<Long>();
@@ -1156,22 +1157,28 @@ public class StockServiceImpl implements  StockService{
         Map<String,Object> rmap = new HashMap<String,Object>();
 
         List<Map<String,Object>> ds = mapper.getShdList(paraMap);
+        List<Map<String,Object>> dsPlan = mapper.getShdPlanList(paraMap);
+        int idx = -1;
+        Map<String,Object> planMap = null;
         for (Map<String, Object> el : ds) {
-            dsDate.add(el.get("date").toString());
+            dsStkDate.add(el.get("date").toString());
             dsOrdRecv.add(Long.parseLong(el.get("ordRecvNo").toString()));
             dsCmpy.add(Long.parseLong(el.get("cmpyNo").toString()));
             dsProd.add(Long.parseLong(el.get("prodNo").toString()));
             dsStkQty.add((int) Math.ceil(Float.parseFloat(el.get("stkQty").toString())));
             dsReqQty.add((int) Math.ceil(Float.parseFloat(el.get("reqQty").toString())));
-            dsPlanQty.add((int) Math.ceil(Float.parseFloat(el.get("planQty").toString())));
+
+            idx++;
+            planMap = dsPlan.get(idx);
+            dsPlanQty.add((int) Math.ceil(Float.parseFloat(planMap.get("planQty").toString())));
         }
         rmap.put("ordRecvNo", dsOrdRecv);
-        rmap.put("cmpyNo", dsCmpy);
-        rmap.put("prodNo", dsProd);
-        rmap.put("stkDt", dsDate);
-        rmap.put("stkQty", dsStkQty);
-        rmap.put("reqQty", dsReqQty);
-        rmap.put("planQty", dsPlanQty);
+        rmap.put("cmpyNo"   , dsCmpy);
+        rmap.put("prodNo"   , dsProd);
+        rmap.put("stkDt"    , dsStkDate);
+        rmap.put("stkQty"   , dsStkQty);
+        rmap.put("reqQty"   , dsReqQty);
+        rmap.put("planQty"  , dsPlanQty);
         return rmap;
     }
 

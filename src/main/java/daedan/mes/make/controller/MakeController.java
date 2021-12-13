@@ -35,7 +35,7 @@ public class MakeController {
     private CodeService codeService;
 
     @Autowired
-    private MakeIndcService moService;
+    private MakeIndcService makeIndcService;
 
     @Autowired
     private Metal10Service metal10;
@@ -112,7 +112,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         log.info(tag + "params = " + paraMap.toString());
-        result.setData(moService.getComboWorkDay(paraMap));
+        result.setData(makeIndcService.getComboWorkDay(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -138,7 +138,7 @@ public class MakeController {
         log.info("123 paraMap : " + paraMap);
         try {
             if (typeCd.equals("date")) {
-                rmap.put("workDays", moService.getComboWorkDay(paraMap));
+                rmap.put("workDays", makeIndcService.getComboWorkDay(paraMap));
             }
 
             else if(typeCd.equals("code")){
@@ -150,7 +150,7 @@ public class MakeController {
             paraMap.put("parCodeNo", Long.parseLong(env.getProperty("code.base.sale_unit"))); //판매단위
 //            paraMap.put("parCodeNo", Long.parseLong(env.getProperty("code_base_proc")));
 //            rmap.put("unitCodes",codeService.getComboCodeList(paraMap));
-            rmap.put("startProc", moService.getStartProc(paraMap)); //최초공정
+            rmap.put("startProc", makeIndcService.getStartProc(paraMap)); //최초공정
         }
         result.setData(rmap);
 
@@ -175,7 +175,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getComboOrdrCmpyList(paraMap));
+        result.setData(makeIndcService.getComboOrdrCmpyList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -206,8 +206,8 @@ public class MakeController {
 
         }
         log.info(tag + "paraMap = " + paraMap.toString());
-        result.setData(moService.getMakeIndcList(paraMap));
-        result.setTotalCount(moService.getMakeIndcListCount(paraMap));
+        result.setData(makeIndcService.getMakeIndcList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeIndcListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -228,7 +228,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMakeIndcInfo(paraMap));
+        result.setData(makeIndcService.getMakeIndcInfo(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -251,7 +251,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.autoSaveIndcMp(paraMap);
+        makeIndcService.autoSaveIndcMp(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -274,7 +274,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMaxMakeCapacity(paraMap));
+        result.setData(makeIndcService.getMaxMakeCapacity(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -300,7 +300,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("baseUrl",env.getProperty("base_file_url"));
-        result.setData(moService.getOperProdList(paraMap));
+        result.setData(makeIndcService.getOperProdList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -323,7 +323,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMaxMakeCapacityPerDay(paraMap));
+        result.setData(makeIndcService.getMaxMakeCapacityPerDay(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -346,7 +346,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        moService.resetMakeTermByDragDrop(paraMap);
+        makeIndcService.resetMakeTermByDragDrop(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -372,7 +372,7 @@ public class MakeController {
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
-        moService.saveMakeIndcFullByPlan(paraMap);
+        makeIndcService.saveMakeIndcFullByPlan(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -398,7 +398,7 @@ public class MakeController {
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
-        result.setData(moService.saveMakeIndcFull(paraMap));
+        result.setData(makeIndcService.saveMakeIndcFull(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -431,7 +431,7 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
-        moService.saveMakeIndcProc(paraMap);
+        makeIndcService.saveMakeIndcProc(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -455,7 +455,7 @@ public class MakeController {
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
-        result.setData(moService.getProdIndcNo(paraMap));
+        result.setData(makeIndcService.getProdIndcNo(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -481,7 +481,7 @@ public class MakeController {
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
         paraMap.put("userId",paraMap.get("userId"));
         log.info(tag + "procMap = " + paraMap.toString());
-        moService.saveMakeIndc(paraMap);
+        makeIndcService.saveMakeIndc(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -503,7 +503,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.dropMakeIndc(paraMap);
+        makeIndcService.dropMakeIndc(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -527,7 +527,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.saveMakeIndcMp(paraMap);
+        makeIndcService.saveMakeIndcMp(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -553,7 +553,7 @@ public class MakeController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
 
-        result.setData(moService.getMakeIndcMpInfo(paraMap));
+        result.setData(makeIndcService.getMakeIndcMpInfo(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -579,8 +579,8 @@ public class MakeController {
         paraMap.put("ocpnKind", Long.parseLong(env.getProperty("ocpn_kind_blue").toString()));
         log.info(tag + "paraMap = " + paraMap.toString());
 
-        result.setData(moService.getMakeIndcMpList(paraMap));
-        result.setTotalCount(moService.getMakeIndcMpListCount(paraMap));
+        result.setData(makeIndcService.getMakeIndcMpList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeIndcMpListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -603,8 +603,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
-        result.setData(moService.getMakeStatusList(paraMap));
-        result.setTotalCount(moService.getMakeStatusListCount(paraMap));
+        result.setData(makeIndcService.getMakeStatusList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeStatusListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -628,7 +628,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 
-        result.setData(moService.getTimeString(paraMap));
+        result.setData(makeIndcService.getTimeString(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -654,8 +654,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
-        result.setData(moService.getReqMatrList(paraMap));
-        result.setTotalCount(moService.getReqMatrListCount(paraMap));
+        result.setData(makeIndcService.getReqMatrList(paraMap));
+        result.setTotalCount(makeIndcService.getReqMatrListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -679,7 +679,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.saveReqMatr(paraMap);
+        makeIndcService.saveReqMatr(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -702,7 +702,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMakeIndcRsltInfo(paraMap));;
+        result.setData(makeIndcService.getMakeIndcRsltInfo(paraMap));;
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -728,7 +728,7 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("indcNo",Long.parseLong(paraMap.get("indc_no").toString()));
-        result.setData(moService.makeIndcProc(paraMap));;
+        result.setData(makeIndcService.makeIndcProc(paraMap));;
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -751,7 +751,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.saveIndcRslt(paraMap);
+        makeIndcService.saveIndcRslt(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -773,7 +773,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.dropIndcRslt(paraMap);
+        makeIndcService.dropIndcRslt(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -797,7 +797,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getExportPlanList(paraMap));
+        result.setData(makeIndcService.getExportPlanList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -820,8 +820,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info("maekStatListController.paraMap = " + paraMap.toString());//kill
-        result.setData(moService.getMakeStatList(paraMap));
-        result.setTotalCount(moService.getMakeStatListCount(paraMap));
+        result.setData(makeIndcService.getMakeStatList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeStatListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -844,8 +844,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info("maekStatListController.paraMap = " + paraMap.toString());//kill
-        result.setData(moService.getMakeStatMoreList(paraMap));
-        result.setTotalCount(moService.getMakeStatMoreListCount(paraMap));
+        result.setData(makeIndcService.getMakeStatMoreList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeStatMoreListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -870,8 +870,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("procCd",Long.parseLong(env.getProperty("proc.code.complete")));
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(moService.getMakeDailyReportList(paraMap));
-        result.setTotalCount(moService.getMakeDailyReportListCount(paraMap));
+        result.setData(makeIndcService.getMakeDailyReportList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeDailyReportListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -894,8 +894,8 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(moService.getMakeIndcRsltList(paraMap));
-        result.setTotalCount(moService.getMakeIndcRsltListCount(paraMap));
+        result.setData(makeIndcService.getMakeIndcRsltList(paraMap));
+        result.setTotalCount(makeIndcService.getMakeIndcRsltListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -919,7 +919,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getWorkerList(paraMap));
+        result.setData(makeIndcService.getWorkerList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -945,8 +945,8 @@ public class MakeController {
         paraMap.put("ocpnKind", Long.parseLong(env.getProperty("ocpn_kind_blue").toString()));
         log.info(tag + "paraMap = " + paraMap.toString());
 
-        result.setData(moService.getMpUsedList(paraMap));
-        result.setTotalCount(moService.getMpUsedListCount(paraMap));
+        result.setData(makeIndcService.getMpUsedList(paraMap));
+        result.setTotalCount(makeIndcService.getMpUsedListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -971,8 +971,8 @@ public class MakeController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
         log.info("emplKind = " + paraMap.get("emplKind"));
-        result.setData(moService.getMpUsedDetlList(paraMap));
-        result.setTotalCount(moService.getMpUsedDetlListCount(paraMap));
+        result.setData(makeIndcService.getMpUsedDetlList(paraMap));
+        result.setTotalCount(makeIndcService.getMpUsedDetlListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -995,7 +995,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.saveMpInfo(paraMap);
+        makeIndcService.saveMpInfo(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1016,7 +1016,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        moService.getMpDropInfo(paraMap);
+        makeIndcService.getMpDropInfo(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1046,8 +1046,8 @@ public class MakeController {
         catch (NullPointerException ne) {
 
         }
-        result.setData(moService.getFaultList(paraMap));
-        result.setTotalCount(moService.getFaultListCount(paraMap));
+        result.setData(makeIndcService.getFaultList(paraMap));
+        result.setTotalCount(makeIndcService.getFaultListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1080,7 +1080,7 @@ public class MakeController {
             properties.load(reader);
             paraMap.put("matrTp", Integer.parseInt(properties.getProperty("rawmatr_cd")));
             paraMap.put(fileRoot,fileRoot);
-            moService.loadMpByExcel(paraMap);
+            makeIndcService.loadMpByExcel(paraMap);
              } catch (Exception e) {
             e.printStackTrace();
             Objects.requireNonNull(null, properties.getProperty("property_file_not_found"));
@@ -1108,8 +1108,8 @@ public class MakeController {
         paraMap.put("baseProcNo",Long.parseLong(env.getProperty("code_base_proc")));
         log.info(tag + "params = " + paraMap.toString());
         Result result = Result.successInstance();
-        result.setData(moService.getMakeStatusReport(paraMap));
-        result.setTotalCount(moService.getMakeStatusReportCount(paraMap));
+        result.setData(makeIndcService.getMakeStatusReport(paraMap));
+        result.setTotalCount(makeIndcService.getMakeStatusReportCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1134,7 +1134,12 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(moService.getMakePlanList(paraMap));
+        if (uvo.getCustInfo().getProcYn().equals("Y")) { //상세버전(대동고려삼,하담푸드,서울식품)
+            result.setData(makeIndcService.getMakePlanList(paraMap));
+        }
+        else {
+            result.setData(makeIndcService.getProductionPlan(paraMap)); //간략버전
+        }
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1158,8 +1163,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageSz", 10);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(moService.getMakePlanProdList(paraMap));
-        result.setTotalCount(moService.getMakePlanProdListCount(paraMap));
+        result.setData(makeIndcService.getMakePlanProdList(paraMap));
+        result.setTotalCount(makeIndcService.getMakePlanProdListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1181,7 +1186,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getComboProdProcList(paraMap));
+        result.setData(makeIndcService.getComboProdProcList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1202,7 +1207,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMakeMainProc(paraMap));
+        result.setData(makeIndcService.getMakeMainProc(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1223,7 +1228,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMakeExtraProc(paraMap));
+        result.setData(makeIndcService.getMakeExtraProc(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1246,7 +1251,7 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
-        rmap.put("procList", moService.getMakeProcList(paraMap)); //최초공정
+        rmap.put("procList", makeIndcService.getMakeProcList(paraMap)); //최초공정
         result.setData(rmap);
 
         //SOL AddOn By KMJ AT 21.11.16
@@ -1270,7 +1275,7 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         Map<String, Object> rmap = new HashMap<String,Object>();
 
-        rmap.put("procList", moService.getMoniterItemList(paraMap)); //최초공정
+        rmap.put("procList", makeIndcService.getMoniterItemList(paraMap)); //최초공정
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1297,8 +1302,8 @@ public class MakeController {
         paraMap.put("dateFr", paraMap.get("dateFr").toString().substring(0, 10));
         paraMap.put("dateTo", paraMap.get("dateTo").toString().substring(0, 10));
         log.info(tag + "paraMap = " + paraMap.toString());
-        result.setData(moService.getManPowerSummaryList(paraMap));
-        result.setTotalCount(moService.getManPowerSummaryListCount(paraMap));
+        result.setData(makeIndcService.getManPowerSummaryList(paraMap));
+        result.setTotalCount(makeIndcService.getManPowerSummaryListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1323,8 +1328,8 @@ public class MakeController {
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("mpUsedDt", paraMap.get("mpUsedDt").toString().substring(0,10));
 
-        result.setData(moService.getManPowerList(paraMap));
-        result.setTotalCount(moService.getManPowerListCount(paraMap));
+        result.setData(makeIndcService.getManPowerList(paraMap));
+        result.setTotalCount(makeIndcService.getManPowerListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1347,8 +1352,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
-        result.setData(moService.getWgtchkSummaryList(paraMap));
-        result.setTotalCount(moService.getWgtchkSummaryListCount(paraMap));
+        result.setData(makeIndcService.getWgtchkSummaryList(paraMap));
+        result.setTotalCount(makeIndcService.getWgtchkSummaryListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1371,8 +1376,8 @@ public class MakeController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         log.info(tag + "paraMap = " + paraMap.toString());
-        result.setData(moService.getWgtchkDiaryList(paraMap));
-        result.setTotalCount(moService.getWgtchkDiaryListCount(paraMap));
+        result.setData(makeIndcService.getWgtchkDiaryList(paraMap));
+        result.setTotalCount(makeIndcService.getWgtchkDiaryListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1396,7 +1401,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMakeIndcPrintList(paraMap));
+        result.setData(makeIndcService.getMakeIndcPrintList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1420,7 +1425,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMakeIndcBfPrintList(paraMap));
+        result.setData(makeIndcService.getMakeIndcBfPrintList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1444,7 +1449,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getProcCtntList(paraMap));
+        result.setData(makeIndcService.getProcCtntList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1468,7 +1473,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getMatchIndcList(paraMap));
+        result.setData(makeIndcService.getMatchIndcList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1490,7 +1495,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getNeedProdBomList(paraMap));
+        result.setData(makeIndcService.getNeedProdBomList(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1513,7 +1518,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        result.setData(moService.getIndcListByProc(paraMap));
+        result.setData(makeIndcService.getIndcListByProc(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1537,8 +1542,8 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
-        result.setData(moService.getIndcSaltList(paraMap));
-        result.setTotalCount(moService.getIndcSaltListCount(paraMap));
+        result.setData(makeIndcService.getIndcSaltList(paraMap));
+        result.setTotalCount(makeIndcService.getIndcSaltListCount(paraMap));
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1562,7 +1567,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.saveIndcSaltList(paraMap);
+        makeIndcService.saveIndcSaltList(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1586,7 +1591,7 @@ public class MakeController {
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        moService.saveIndcPrintText(paraMap);
+        makeIndcService.saveIndcPrintText(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1608,7 +1613,7 @@ public class MakeController {
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
-        moService.planSave(paraMap);
+        makeIndcService.planSave(paraMap);
 
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
@@ -1697,7 +1702,7 @@ public class MakeController {
         switch (custNo.intValue()) {
             case 2 : //서울식품
                 modbusService.startOper(paraMap);
-                moService.saveIndcPrintText(paraMap);
+                makeIndcService.saveIndcPrintText(paraMap);
                 break;
         }
         //SOL AddOn By KMJ AT 21.11.16
@@ -1750,6 +1755,27 @@ public class MakeController {
         }
         //EOL AddON By KMJ AT 21.11.26
 
+        return result;
+    }
+
+
+    /**
+     * 생산계획수립
+     *
+     * @param paraMap
+     * @param request
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/saveMakePlan")
+    public Result saveMakePlan(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
+        String tag = "MakeController.saveMakePlan => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        makeIndcService.saveMakePlan(paraMap);
         return result;
     }
 }

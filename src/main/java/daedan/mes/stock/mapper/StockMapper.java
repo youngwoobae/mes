@@ -101,4 +101,5 @@ public interface StockMapper {
     int getMatrRealStockHstrCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getShdList(Map<String, Object> paraMap);
+    List<Map<String, Object>> getShdPlanList(Map<String, Object> paraMap);
 }

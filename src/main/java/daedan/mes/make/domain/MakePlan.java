@@ -13,7 +13,7 @@ public class MakePlan {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name="make_plan_no",nullable = false, columnDefinition = "numeric")
-    private Long make_plan_No;
+    private Long makePlanNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
@@ -22,11 +22,16 @@ public class MakePlan {
     @Column(name = "plan_ut",nullable = false, columnDefinition = "numeric")
     private Long planUt;
 
+    /*발송처번호목*/
+    @Column(name = "cmpy_no", columnDefinition = "numeric")
+    private Long cmpyNo;
+
     /*발송처에서 발송한 주문접수 번호*/
     @Column(name="ord_recv_no", columnDefinition = "numeric default 0")
     private Long ordRecvNo;
 
-    /*생산걔획품목*/
+
+    /*생산계획품목*/
     @Column(name = "prod_no",nullable = false, columnDefinition = "numeric")
     private Long prodNo;
 

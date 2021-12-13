@@ -2247,4 +2247,20 @@
           and cust_no = #{custNo}
     </select>
 
+
+    <select id="findByCustNoAndOrdNo" parameterType="map" resultType="camelMap">
+    /* 간략생산계획 (makeMapper.findByCustNoAndOrdNoAndUsedYn) */
+    select a.make_plan_no --생산계획번호
+         , a.cmpy_no --발송거래처번호
+         , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --발송거래처명
+         , a.prod_no --품번
+         , fn_get_prod_name(a.prod_no) as prod_nm --품명
+         , a.plan_qty --계획수량
+         , a.stat_cd --상태코드
+         , fn_get_code_name('nm',a.stat_cd) as stat_nm --상태명
+         , to_char(to_timestamp(a.plan_ut),'YYYY-MM-DD') as plan_dt --생산계획일자
+    from make_plan a
+    where a.used_yn = 'Y'
+    and to_char(to_timestamp(a.plan_ut),'YYYY-MM')  = #{procYm}
+    </select>
 </mapper>

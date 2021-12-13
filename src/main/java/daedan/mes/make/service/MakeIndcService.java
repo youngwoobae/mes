@@ -172,4 +172,8 @@ public interface MakeIndcService {
 
     @Transactional
     void saveMakeIndcProc(Map<String, Object> paraMap);
+
+    void saveMakePlan(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap);
 }
