@@ -1,6 +1,5 @@
 package daedan.mes.make.mapper;
 
-import daedan.mes.make.domain.MakeIndc;
 import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Component;
 
@@ -190,7 +189,6 @@ public interface MakeIndcMapper {
 
     void dropMakeIndcMatr(Long indcNo);
 
-    void dropPursMatr(Long pursNo);
 
     List<Map<String, Object>> getDropMatrIwhList(Long pursNo);
 
@@ -198,7 +196,7 @@ public interface MakeIndcMapper {
 
     List<Map<String, Object>> getMakeIndcBfPrintList(Map<String, Object> el);
 
-    Map<String, Object> findByCustNoAndOrdNo(Map<String,Object> paraMap);
 
+    List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap);
 }
 

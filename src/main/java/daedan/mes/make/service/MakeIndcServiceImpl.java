@@ -2638,6 +2638,6 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap) {
         String tag = "MakeIndcService.getProductionPlan =>";
         log.info(tag + "paraMap = " + paraMap.toString());
-        return null;
+        return mapper.getProductionPlan(paraMap);
     }
 }
