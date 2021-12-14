@@ -322,14 +322,6 @@ public  class UserServiceImpl implements UserService {
 				e.printStackTrace();
 			}
 		}
-//		try {
-//			byte[] byteCellNo =(byte[]) rmap.get("cell_no");
-//			rmap.put("cell_no", cmmnService.decryptStr(byteCellNo));
-//			//log.info(tag + "decript cell_no = " + rmap.get("cell_no"));
-//		}
-//		catch (NullPointerException | UnsupportedEncodingException ne) {
-//			ne.printStackTrace();
-//		}
 		return rmap;
 	}
 
