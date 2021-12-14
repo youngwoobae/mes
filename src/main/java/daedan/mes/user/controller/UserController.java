@@ -56,6 +56,8 @@ public class UserController {
     @Autowired
     private JwtService jwtService;
 
+    private static final String CHANGE_USER_LCNS = "입력하신 라이센스 코드가 일치하지 않습니다..";
+
     @PostMapping(value="/entryin")
     public Result entryin(HttpSession session) {
         Result result = Result.successInstance();
@@ -180,6 +182,12 @@ public class UserController {
                 Long custNo = Long.parseLong(strCustNo);
 
                 uservo.setCustInfo(custInfoRepo.findByCustNoAndUsedYn(custNo,"Y"));
+                boolean isRightLcns = BCrypt.checkpw(orgLcnsCd, uservo.getCustInfo().getLcnsCd());
+                //log.info("LicenseCode is isRightLenc =====> " + isRightLenc );
+                if (!isRightLcns) {
+                    throw new IllegalStateException(CHANGE_USER_LCNS);
+                }
+
                 log.info(tag + " uservo = " + StringUtil.voToMap(uservo));
                 if (uservo.getCustInfo().getKpiYn().equals("Y")) { /* KPI API 세션 생성 */
                     Map<String, Object> amap = new HashMap<String, Object>();
