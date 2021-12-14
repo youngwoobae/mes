@@ -757,6 +757,7 @@
         select a.prod_no --품번
              , a.prod_code --코드
              , a.prod_nm  --품명
+             , a.cmpy_no --oem업체명
              , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --oem업체명
              , a.erp_prod_nm --erp제품명
              , a.mess -- 단위중량
@@ -764,15 +765,14 @@
              , a.sale_unit --판매단위
              , a.qty_per_pkg --판매단위(포장당)수량
              , a.brnch_no --제조공정코드
-             , b.code_nm as sale_unit_nm --판매단위명
-             , c.code_nm as mngr_unit_nm
-             , d.code_nm as shape
-        from prod_info a left join code_info b on a.sale_unit = b.code_no
-                         left join code_info c on a.mngr_unit = c.code_no
-                         left join code_info d on a.prod_shape = d.code_no
-        where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
-          AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
-
+             , fn_get_code_name('nm',a.sale_unit) as  sale_unit_nm --판매단위명
+             , fn_get_code_name('nm', a.mngr_unit) as  mngr_unit_nm --관리단위명
+             , fn_get_code_name('nm', a.prod_shape) as  shape --
+        from prod_info a
+        where a.used_yn = 'Y'
+          and a.cust_no = #{custNo}
+          and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
+          and a.brnch_no is not null
         <choose>
             <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo != '0'.toString())">
                 AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
@@ -800,10 +800,11 @@
     <select id="getExOrdProdListCount" parameterType="map" resultType="int">
         select count(a.prod_no)
         from ( select a.prod_no
-               from prod_info a left join code_info b on a.sale_unit = b.code_no
-                                left join code_info c on a.mngr_unit = c.code_no
-                where a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
-                 AND a.brnch_no is not null and  a.used_yn = 'Y' and a.cust_no = #{custNo}
+               from prod_info a
+               where a.used_yn = 'Y'
+               and a.cust_no = #{custNo}
+               and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})
+               and a.brnch_no is not null
                 <choose>
                     <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo != '0'.toString())">
                         AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
@@ -812,18 +813,18 @@
                         and coalesce (a.cmpy_no , 0) = 0
                     </when>
                 </choose>
+
                 <if test="ordNo != null and ordNo != ''">
                     and a.prod_no not in (select prod_no from ord_prod where used_yn = 'Y' and ord_no=#{ordNo})
                 </if>
-               <if test="findSz != null and findSz != ''">
-                   <if test="findSz != null and findSz != ''">
-                       <if test="findTp != null and findTp == 'prodNm'">
-                           AND (   upper(replace(prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-                                or upper(replace(erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-                               )
-                       </if>
-                   </if>
-               </if>
+
+                <if test="findSz != null and findSz != ''">
+                    <if test="findTp != null and findTp == 'prodNm'">
+                        AND (   upper(replace(prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        or  upper(replace(erp_prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+                        )
+                    </if>
+                </if>
         ) a
     </select>
 

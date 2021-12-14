@@ -1,12 +1,12 @@
 package daedan.mes.make.service;
 
 
+import daedan.mes.cmpy.repository.CmpyRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.file.domain.FileInfo;
 import daedan.mes.file.repository.FileRepository;
 import daedan.mes.io.domain.MatrIwh;
 import daedan.mes.io.domain.MatrOwh;
-import daedan.mes.io.repository.ProdIwhRepository;
 import daedan.mes.io.service.IoService;
 import daedan.mes.io.repository.MatrIwhRepository;
 import daedan.mes.io.repository.MatrOwhRepository;
@@ -15,7 +15,6 @@ import daedan.mes.make.mapper.MakeIndcMapper;
 import daedan.mes.make.repository.*;
 import daedan.mes.ord.domain.OrdInfo;
 import daedan.mes.ord.domain.OrdProd;
-import daedan.mes.ord.mapper.OrdMapper;
 import daedan.mes.ord.repository.OrdProdRepository;
 import daedan.mes.ord.repository.OrdRepository;
 import daedan.mes.proc.domain.ProcBrnch;
@@ -72,6 +71,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Autowired
     private OrdRepository ordRepo;
+
+    @Autowired
+    private CmpyRepository cmpyRepo;
 
     @Autowired
     private OrdProdRepository ordProdRepo;
@@ -136,6 +138,8 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     @Autowired
     private StockService stockService;
 
+    @Autowired
+    private IndcInfoRepository indcInfoRepo;
 
     //시작 날짜 -- make_indc 날짜 생성을 위한 전역 변수
     private Date frDt;
@@ -176,6 +180,16 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     public Map<String, Object> getMakeIndcRsltInfo(Map<String, Object> paraMap) {
         return mapper.getMakeIndcRsltInfo(paraMap);
     }
+
+    @Override
+    public Map<String, Object> getIndcInfo(Map<String, Object> paraMap) {
+        String tag = " MakeIndcService.getIndcInfo => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        StringBuffer buf = new StringBuffer();
+        Map<String, Object> rmap = null;
+        return mapper.getIndcInfo(paraMap);
+    }
+
 
     @Override
     public List<Map<String, Object>> getFaultList(Map<String, Object> paraMap) {
@@ -392,6 +406,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
 
         return svParIndcNo;
+    }
+
+    @Override
+    public Long saveIndcInfo(Map<String, Object> paraMap) {
+        return null;
     }
 
 
@@ -2639,5 +2658,83 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         String tag = "MakeIndcService.getProductionPlan =>";
         log.info(tag + "paraMap = " + paraMap.toString());
         return mapper.getProductionPlan(paraMap);
+    }
+
+    @Override
+    public Map<String, Object> getIndcPlanInfo(Map<String, Object> paraMap) {
+        String tag = "MakeIndcService.getIndcPlanInfo =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getIndcPlanInfo(paraMap);
+    }
+    /*간략 생산지시용*/
+    @Override
+    public void saveIndcInfoBrief(Map<String, Object> paraMap) {
+        String tag = "MakeIndcService.saveMakeIndcBrief=> ";
+        log.info(tag + "paraMap =  " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        IndcInfo iivo = new IndcInfo();
+        iivo.setUsedYn("Y");
+
+        try {
+            iivo.setStatCd(Long.parseLong(paraMap.get("statCd").toString()));
+        } catch (NullPointerException en) {
+            iivo.setStatCd(Long.parseLong(env.getProperty("code.workst.proc"))); //502=진행
+        }
+        try {
+            iivo.setIndcCont(paraMap.get("indcCont").toString());
+        } catch (NullPointerException en) {
+
+        }
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        iivo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString())); //품번
+        iivo.setIndcQty(Float.parseFloat(paraMap.get("indcQty").toString())); //지시량
+        try {
+            iivo.setIndcDt(sdf.parse(paraMap.get("indcDt").toString().substring(0, 10)));
+            iivo.setMakeFrDt(sdf.parse(paraMap.get("makeFrDt").toString()));//생산시작일
+            iivo.setMakeToDt(sdf.parse(paraMap.get("makeToDt").toString()));//생산종료일
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        try {
+            iivo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
+        }
+        catch (NullPointerException ne) {
+            iivo.setIndcNo(0L);
+        }
+        IndcInfo chkvo = indcInfoRepo.findByCustNoAndIndcNoAndUsedYn(custNo, iivo.getIndcNo(), "Y");
+        if (chkvo != null) {
+            iivo.setIndcNo(chkvo.getIndcNo());
+            iivo.setRegId(chkvo.getRegId());
+            iivo.setRegIp(chkvo.getRegIp());
+            iivo.setRegDt(chkvo.getRegDt());
+        } else {
+            iivo.setRegId(userId);
+            iivo.setRegIp(ipaddr);
+            iivo.setRegDt(DateUtils.getCurrentBaseDateTime());
+            try {
+                iivo.setClosYn(paraMap.get("closYn").toString());
+            } catch (NullPointerException ne) {
+                iivo.setClosYn("N");
+            }
+            //EOL AddOn By KMJ At 21.08.06 : 생산완료 구분 필드 처리
+        }
+        iivo.setCustNo(custNo);
+        iivo = indcInfoRepo.save(iivo); //생산지시 기본정보
+    }
+
+    @Override
+    public List<Map<String, Object>> getIndcList(Map<String, Object> paraMap) {
+        String tag = "MakeIndcService.getIndcList=> ";
+        log.info(tag + "paraMap =  " + paraMap.toString());
+        return mapper.getIndcList(paraMap);
+    }
+
+    @Override
+    public int getIndcListCount(Map<String, Object> paraMap) {
+        return mapper.getIndcListCount(paraMap);
     }
 }

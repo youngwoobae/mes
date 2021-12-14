@@ -49,6 +49,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -878,9 +879,9 @@ public class StndImpServiceImpl implements StndImpService {
                     }
                     //제품보관창고
                     if (prodvo.getSaveTmpr() > 0L) {
-                        WhInfo wivo = whInfoRepo.findByCustNoAndSaveTmprAndWhTpAndUsedYn(custNo, prodvo.getSaveTmpr(), whTpSale, "Y");
-                        if (wivo != null) {
-                            prodvo.setWhNo(wivo.getWhNo());
+                            List<WhInfo> wids = whInfoRepo.findAllByCustNoAndSaveTmprAndWhTpAndUsedYn(custNo, prodvo.getSaveTmpr(), whTpSale, "Y");
+                        if (wids != null) {
+                            prodvo.setWhNo(wids.get(0).getWhNo());
                         } else {
                             prodvo.setWhNo(0L);
                         }

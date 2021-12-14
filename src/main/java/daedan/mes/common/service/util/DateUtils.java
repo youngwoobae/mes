@@ -854,4 +854,12 @@ public abstract class DateUtils implements DateConstants {
         return dsDate;
 
     }
+
+    public static String getTimestampToDate(Long timestamp){
+        Date date = new java.util.Date(timestamp*1000L);
+        SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT+9"));
+        String formattedDate = sdf.format(date);
+        return formattedDate;
+    }
 }

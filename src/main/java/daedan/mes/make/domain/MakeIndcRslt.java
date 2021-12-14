@@ -26,6 +26,7 @@ public class MakeIndcRslt {
     @Column(name="make_dt")
     @Temporal(TemporalType.TIMESTAMP)
     private Date makeDt;
+
     /*조정충진수율:2021.05.04 추가*/
     @Column(name="ctl_fill_yield" , columnDefinition = "numeric default 100.0", precision=7, scale=3)
     private Float ctlFillYield;
