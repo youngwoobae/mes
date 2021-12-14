@@ -24,6 +24,9 @@ public interface MakeIndcService {
     @Transactional
     Long saveMakeIndcFull(Map<String, Object> procMap);
 
+    @Transactional
+    Long saveIndcInfo(Map<String, Object> paraMap);
+
     Long saveMakeIndc(Map<String, Object> paraMap);
     Float getCurrentProdStock(Map<String, Object> paraMap);
 
@@ -94,6 +97,8 @@ public interface MakeIndcService {
     List<Map<String, Object>> getOperProdList(Map<String, Object> paraMap);
 
     Map<String, Object> getStartProc(Map<String, Object> paraMap);
+
+    Map<String, Object> getIndcInfo(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getFaultList(Map<String, Object> paraMap);
 
@@ -176,4 +181,14 @@ public interface MakeIndcService {
     void saveMakePlan(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap);
+
+    Map<String, Object> getIndcPlanInfo(Map<String, Object> paraMap);
+
+    /*간단 생산지시용*/
+    void saveIndcInfoBrief(Map<String, Object> paraMap);
+    
+    /*간단 생산지시 목록*/
+    List<Map<String, Object>> getIndcList(Map<String, Object> paraMap);
+
+    int getIndcListCount(Map<String, Object> paraMap);
 }
