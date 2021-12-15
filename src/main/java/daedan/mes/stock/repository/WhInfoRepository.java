@@ -11,4 +11,10 @@ public interface WhInfoRepository extends JpaRepository<WhInfo, Long> {
     WhInfo findByCustNoAndWhNmAndUsedYn(Long custNo, String whNm, String y);
     WhInfo findByCustNoAndSaveTmprAndWhTpAndUsedYn(Long custNok, Long saveTmpr, Long whTp, String y);
     List<WhInfo> findAllByCustNoAndSaveTmprAndWhTpAndUsedYn(Long custNo, Long saveTmpr, Long whTpSale, String y);
+
+    WhInfo findByCustNoAndSaveTmprAndWhTpAndUsedYnAndWhLocSeq(Long custNo, long saveTmpr, long wh_tp, String y, long wh_loc_seq);
+
+//    void save();
+
+
 }

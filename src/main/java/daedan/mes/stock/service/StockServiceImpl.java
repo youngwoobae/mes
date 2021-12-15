@@ -347,6 +347,7 @@ public class StockServiceImpl implements  StockService{
         vo.setModDt(DateUtils.getCurrentDate());
         vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
         vo.setModIp(paraMap.get("ipaddr").toString());
+        vo.setWhLocSeq(1L);
         WhInfo chkvo = null;
         if (vo.getWhNo() != 0L) {
             chkvo = whInfoRepo.findByCustNoAndWhNoAndUsedYn(custNo,vo.getWhNo(), "Y");
