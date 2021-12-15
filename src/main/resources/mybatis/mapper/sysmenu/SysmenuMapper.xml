@@ -3,33 +3,6 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="daedan.mes.sysmenu.mapper.SysMenuMapper">
-    <insert id="appendSysMenu" parameterType="map"  >
-        insert into sys_menu (
-           par_sys_menu_no
-         , sys_menu_no
-         , sys_menu_nm
-         , disp_yn
-         , used_yn
-         , reg_id
-         , reg_ip
-         , reg_dt
-         , mod_id
-         , mod_ip
-         , mod_dt
-         ) values (
-           #{parSysMenuNo}
-         , #{sysMenuNo}
-         , #{sysMenuNm}
-         , #{dispYn}
-         , #{usedYn}
-         , #{userId}
-         , #{ipaddr}
-         , now()
-         , #{userId}
-         , #{ipaddr}
-         , now()
-         )
-    </insert>
   <select id="getSysMenuList" parameterType="map"  resultType="camelMap">
    WITH recursive cte (
                     cust_no
@@ -58,9 +31,11 @@
                   , case when length(a.sys_menu_path) = 0  then 'N' else 'Y' end as leaf_yn
                   , a.disp_yn
 				  , a.used_yn
-             FROM  sys_menu a
+             FROM  sys_menu a join sys_menu_cust b on a.sys_menu_no= b.sys_menu_no
+                                                  and b.cust_no = #{custNo}
+                                                  and b.used_yn = 'Y'
             WHERE a.par_sys_menu_no = 0
-              and a.cust_no = #{custNo}
+
             UNION ALL
             SELECT    b.cust_no
                     , b.par_sys_menu_no
@@ -76,8 +51,10 @@
                     , b.disp_yn
 				    , b.used_yn
              FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
-             where b.cust_no = #{custNo}
-               and b.used_yn = 'Y'
+                             join sys_menu_cust d on b.sys_menu_no= d.sys_menu_no
+                                                 and d.cust_no = #{custNo}
+                                                 and d.used_yn = 'Y'
+             where b.used_yn = 'Y'
                and b.disp_yn = 'Y'
         )
         select * from cte
