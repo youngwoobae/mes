@@ -664,39 +664,16 @@
     <!--생산계획상세정보-->
     <select id="getMakePlanProdList" parameterType="map"  resultType="camelMap">
         /* 생산계획상세정보 (makeIndcMapper.getMakePlanProdList)*/
-        select a.ord_prod_no --주문제품관리번호
-             , a.ord_no --주문번호
-             , a.prod_no --품번
-             , b.prod_nm --품명
-             , case when coalesce(b.cmpy_no,0) = 0 then 'odm' else 'oem' end as ord_tp
-             , coalesce(a.purs_no,0) as purs_no --구매번호
-             --, a.ord_qty Remarked By KMJ AT 2021.08.29 10:52
-<!--            <if test="custNo != null and custNo != 6">-->
-<!--             , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty &#45;&#45;AddOn By KMJ AT 2021.08.29 10:52-->
-<!--            </if>-->
-<!--            <if test="custNo != null and custNo == 6">-->
-<!--                , a.ord_qty  &#45;&#45;AddOn By KMJ AT 2021.08.29 10:52-->
-<!--            </if>-->
-        , a.ord_qty
-        , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
-             , case when b.prod_tp = 36 then coalesce(e.cmpy_nm,'계획생산') else j.cmpy_nm end as cmpy_nm --거래처명
-             , c.ord_dt
-             , a.make_able_yn -- 생산가능여부
-        from ord_prod a join prod_info b on a.prod_no = b.prod_no
-                                        and b.used_yn = 'Y' and b.cust_no =#{custNo}
-                        join ord_info c on a.ord_no = c.ord_no
-                                        and c.used_yn = 'Y' and c.cust_no =#{custNo}
-                   left join cmpy_info e on c.cmpy_no = e.cmpy_no
-                                        and e.used_yn = 'Y' and e.cust_no =#{custNo}
-                   left join cmpy_info j on b.cmpy_no = j.cmpy_no
-                                        and j.used_yn = 'Y' and j.cust_no =#{custNo}
-        where 1 = 1
-          and a.used_yn = 'Y' and a.cust_no =#{custNo}
-          and a.ord_no = #{ordNo}
-          and a.prod_no not in (select prod_no from make_indc
-                                where used_yn = 'Y' and cust_no =#{custNo}
-                                  and par_indc_no = 0 and ord_no = c.ord_no)
-            limit #{pageSz} offset #{pageNo}
+        select
+            fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --고객명
+             , fn_get_prod_name(prod_no) as prod_nm
+             , a.plan_qty --계획수량
+             , a.stat_cd --상태코드
+             , fn_get_code_name('nm',a.stat_cd) as stat_nm --상태명
+             , to_char(to_timestamp(a.plan_ut),'YYYY-MM-DD') as plan_dt --생산계획일자
+        from make_plan a
+        where a.used_yn = 'Y'
+          and to_char(to_timestamp(a.plan_ut),'YYYY-MM')  = '2021-12'
     </select>
 
     <select id="getMakePlanProdListCount" parameterType="map"  resultType="int">

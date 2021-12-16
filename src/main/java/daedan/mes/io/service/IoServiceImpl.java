@@ -179,17 +179,18 @@ public class IoServiceImpl implements IoService {
             vo.setRegIp(paraMap.get("ipaddr").toString());
             vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
         }
-        List<WhInfo> whVals = whr.findAllByCustNoAndSaveTmprAndWhTpAndUsedYn(custNo, Long.parseLong(passMap.get("saveTmpr").toString()), Long.parseLong(passMap.get("wh_tp").toString()), "Y");
 
-        if (whVals != null) {
-            whVals.get(0).setCustNo(custNo);
-            whr.save(whVals.get(0));
+        WhInfo whVal = whr.findByCustNoAndSaveTmprAndWhTpAndUsedYnAndWhLocSeq(custNo, Long.parseLong(passMap.get("saveTmpr").toString()), Long.parseLong(passMap.get("wh_tp").toString()), "Y" , Long.parseLong(passMap.get("wh_loc_seq").toString()));
+
+        if (whVal != null) {
+            whr.save(whVal);
         } else {
             vo.setWhNm(passMap.get("whNm").toString());
             vo.setModDt(vo.getModDt());
             vo.setModIp(paraMap.get("ipaddr").toString());
             vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
             vo.setUsedYn("Y");
+            vo.setWhLocSeq(1L);
             vo.setCustNo(custNo);
             whr.save(vo);
         }

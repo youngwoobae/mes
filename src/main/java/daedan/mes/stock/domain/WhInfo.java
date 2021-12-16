@@ -23,6 +23,10 @@ public class WhInfo {
     @Column(name="wh_nm",nullable = false, length = 100)
     private String whNm;
 
+    /*창고위치*/
+    @Column(name="wh_loc_seq", nullable = false)
+    private Long whLocSeq;
+
     /*보관온도*/
     @Column(name="save_tmpr",nullable = false, length = 100)
     private Long saveTmpr;
