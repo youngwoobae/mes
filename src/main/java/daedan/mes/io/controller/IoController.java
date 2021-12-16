@@ -123,32 +123,7 @@ public class IoController {
         return result;
     }
 
-    @PostMapping(value = "/saveWhInfo")
-    public Result saveWhInfo(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
-        String tag = "ioController.saveWhInfo => ";
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        paraMap.put("userId", paraMap.get("userId"));
-        ioService.saveWhInfo(paraMap);
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-
-        return result;
-    }
-
-    @PostMapping(value = "/dropWhInfo")
+     @PostMapping(value = "/dropWhInfo")
     public Result dropWhInfo(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
         String tag = "ioController.dropWhInfo => ";
         Result result = Result.successInstance();

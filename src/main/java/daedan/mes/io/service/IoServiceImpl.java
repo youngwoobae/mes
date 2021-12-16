@@ -164,37 +164,8 @@ public class IoServiceImpl implements IoService {
         return mapper.getWhInfo(paraMap);
     }
 
-    @Transactional
-    @Override
-    public void saveWhInfo(Map<String, Object> paraMap) {
-        Map<String, Object> passMap = (Map<String, Object>) paraMap.get("whInfo");
-        WhInfo vo = new WhInfo();
-        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-        vo.setCustNo(custNo); //AddOn By KMJ At 21.10.21
-        try {
-            vo.setWhNo(Long.parseLong(passMap.get("whNo").toString()));
-        } catch (NullPointerException ne) {
-            vo.setWhNo(0L);
-            vo.setRegDt(vo.getRegDt());
-            vo.setRegIp(paraMap.get("ipaddr").toString());
-            vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-        }
 
-        WhInfo whVal = whr.findByCustNoAndSaveTmprAndWhTpAndUsedYnAndWhLocSeq(custNo, Long.parseLong(passMap.get("saveTmpr").toString()), Long.parseLong(passMap.get("wh_tp").toString()), "Y" , Long.parseLong(passMap.get("wh_loc_seq").toString()));
 
-        if (whVal != null) {
-            whr.save(whVal);
-        } else {
-            vo.setWhNm(passMap.get("whNm").toString());
-            vo.setModDt(vo.getModDt());
-            vo.setModIp(paraMap.get("ipaddr").toString());
-            vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-            vo.setUsedYn("Y");
-            vo.setWhLocSeq(1L);
-            vo.setCustNo(custNo);
-            whr.save(vo);
-        }
-    }
 
     @Transactional
     @Override

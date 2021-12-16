@@ -23,17 +23,13 @@ public class WhInfo {
     @Column(name="wh_nm",nullable = false, length = 100)
     private String whNm;
 
-    /*창고위치*/
-    @Column(name="wh_loc_seq", nullable = false)
-    private Long whLocSeq;
-
     /*보관온도*/
     @Column(name="save_tmpr",nullable = false, length = 100)
     private Long saveTmpr;
 
     /*창고위치번호*/
-    @Column(name="wh_loc_seq", columnDefinition = "numeric default 1")
-    private Byte whLogSeq;
+    @Column(name="wh_loc_no", columnDefinition = "numeric default 1")
+    private Byte whLocNo;
 
     /*창고유형:자재창고,상품창고*/
     @Column(name="wh_tp",nullable = false)

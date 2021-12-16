@@ -17,9 +17,6 @@ public interface IoService {
     Map<String, Object> getWhInfo(Map<String, Object> paraMap);
 
     @Transactional
-    void saveWhInfo(Map<String, Object> paraMap);
-
-    @Transactional
     void dropWhInfo(Map<String, Object> paraMap);
 
     List<Map<String, Object>>  getWaitMatrIwhList(Map<String, Object> paraMap);
