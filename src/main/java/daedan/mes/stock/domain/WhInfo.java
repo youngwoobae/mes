@@ -16,7 +16,7 @@ public class WhInfo {
     @Column(name="wh_no",nullable = false, columnDefinition = "numeric")
     private Long whNo;
 
-    @Column(name="custNo", columnDefinition = "numeric default 0")
+    @Column(name="cust_no", columnDefinition = "numeric default 0")
     private Long custNo;
 
     /*창고명*/
