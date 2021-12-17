@@ -87,8 +87,6 @@ public interface MakeIndcMapper {
 
     List<Map<String, Object>>  getMakePlanList(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getMakePlanInfo(Map<String, Object> paraMap);
-
     void initPursMatr(Map<String, Object> paraMap);
 
     void initPursInfo(Map<String, Object> paraMap);
@@ -138,9 +136,6 @@ public interface MakeIndcMapper {
     List<Map<String, Object>> getmakeIndcProc(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getOrdProdInfo(Map<String, Object> prodMap);
-
-
-    int getMakePlanInfoCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMakePlanProdList(Map<String, Object> paraMap);
     int getMakePlanProdListCount(Map<String, Object> paraMap);

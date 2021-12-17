@@ -47,8 +47,12 @@ public class MatrIwh {
     private Date dateManufacture;
 
     /*검수자id*/
-    @Column(name="inspEr", columnDefinition = "numeric default 0")
+    @Column(name="insp_er", columnDefinition = "numeric default 0")
     private Long inspEr;
+
+    /*박스형태*/
+    @Column(name="box_tp", columnDefinition = "numeric default 0")
+    private Long boxTp;
 
     /*파레트코드*/
     @Column(name="paltCd", columnDefinition = "numeric default 0")

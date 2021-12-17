@@ -926,6 +926,7 @@ public class MakeController {
         return result;
     }
 
+
     @PostMapping(value="/makeStatMoreList")
     public Result makeStatMoreList(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();

@@ -12,7 +12,7 @@ public interface MakeIndcService {
 
     Map<String, Object> getMakeIndcRsltInfo(Map<String, Object> paraMap);
 
-    List<Map<String, Object>> getMakePlanInfo(Map<String, Object> paraMap);
+    Map<String, Object> getMakePlanInfo(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMakeIndcRsltList(Map<String, Object> paraMap);
     int getMakeIndcRsltListCount(Map<String, Object> paraMap);
