@@ -370,13 +370,14 @@
     </select>
 
     <select id="getCustMenuList" parameterType="map" resultType="camelMap">
+    /*고객사별 사용메뉴 목록 (sysMenuMapper.getCustMenuList) */
         select a.cust_no
              , a.cust_nm
              , f.par_sys_menu_no
              , f.sys_menu_no
              , f.sys_menu_nm
              , fn_get_sys_menu_name(f.par_sys_menu_no) as par_sys_menu_nm
-        from cust_info a join sys_menu_cust e on a.cust_no = e.cust_no and a.cust_nm = #{findTp} and e.used_yn = 'Y'
+        from cust_info a join sys_menu_cust e on a.cust_no = e.cust_no and e.cust_no = #{custNum} and e.used_yn = 'Y'
                          join sys_menu f on e.sys_menu_no = f.sys_menu_no and f.used_yn  = 'Y'
                          join ( WITH recursive cte (
                                                     sys_menu_no
@@ -412,6 +413,19 @@
                                 order by path
         )d  on f.sys_menu_no = d.sys_menu_no
         order by d.path
+    </select>
+    <select id="getCustMenu" parameterType="map" resultType="camelMap">
+        /* 고객사선택(sysMenuMapper.getCustMenu) */
+        select 0 as seq
+             , null    as value
+               ,'고객사선택' as text
+        union
+        select 1 as seq
+             ,cust_no as value
+               ,cust_nm as text
+        from cust_info
+        where used_yn = 'Y'
+        order by seq, text
     </select>
 
 </mapper>

@@ -45,4 +45,6 @@ public interface SysMenuMapper {
     void getMenuNumberList(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getCustMenuList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getCustMenu();
 }

@@ -4,7 +4,6 @@ import daedan.mes.sysmenu.domain.SysMenu;
 import daedan.mes.user.domain.AccHstr;
 
 import javax.transaction.Transactional;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -47,4 +46,9 @@ public interface SysMenuService {
     int getCircleMenuListCount(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getCustMenuList(Map<String, Object> paraMap);
+
+
+    List<Map<String, Object>> getCustMenu(Map<String, Object> paraMap);
+
+    void deleteCustMenu(Map<String, Object> paraMap);
 }

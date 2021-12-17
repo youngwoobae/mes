@@ -1,16 +1,15 @@
 package daedan.mes.sysmenu.service;
 
 import daedan.mes.cmmn.service.CmmnService;
-import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.sysmenu.domain.AuthSysMenu;
 import daedan.mes.sysmenu.domain.SysMenu;
 import daedan.mes.sysmenu.domain.SysMenuHot;
+import daedan.mes.sysmenu.domain.sysMenuCust;
 import daedan.mes.sysmenu.mapper.SysMenuMapper;
 import daedan.mes.sysmenu.repository.SysMenuAuthRepository;
 import daedan.mes.sysmenu.repository.SysMenuHotRepository;
 import daedan.mes.sysmenu.repository.SysMenuRepository;
 import daedan.mes.user.domain.AccHstr;
-import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.repository.AccHstrRepository;
 import daedan.mes.user.repository.UserRepository;
 import org.apache.commons.logging.Log;
@@ -20,9 +19,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service("sysmenuService")
@@ -52,8 +48,8 @@ public class SysMenuServiceImpl implements SysMenuService {
     @Autowired
     private SysMenuMapper sysmenuMapper;
 
-    private List<Map<String,Object>> elist = null;
-    LinkedHashMap <String,Object> root  = new LinkedHashMap < String, Object > ();
+    private List<Map<String, Object>> elist = null;
+    LinkedHashMap<String, Object> root = new LinkedHashMap<String, Object>();
 
 
     @Override
@@ -67,6 +63,7 @@ public class SysMenuServiceImpl implements SysMenuService {
     public int getSysMenuListCount(Map<String, Object> paraMap) {
         return sysmenuMapper.getSysMenuListCount(paraMap);
     }
+
     @Override
     public List<Map<String, Object>> getActMenuList(Map<String, Object> map) {
         return sysmenuMapper.getActMeuList(map);
@@ -78,13 +75,13 @@ public class SysMenuServiceImpl implements SysMenuService {
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long sysMenuNo = Long.parseLong(paraMap.get("sysMenuNo").toString());
-        return sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo,sysMenuNo,"Y");
+        return sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo, sysMenuNo, "Y");
     }
 
     @Override
     public List<Map<String, Object>> saveHotMenu(Map<String, Object> paraMap) {
         String tag = "SysMenuService.saveHotMenu => ";
-        int  hotMenuCounter = sysmenuMapper.getHotMenuCounter(paraMap);
+        int hotMenuCounter = sysmenuMapper.getHotMenuCounter(paraMap);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         SysMenuHot vo = new SysMenuHot();
         vo.setSysMenuNo(Long.parseLong(paraMap.get("sysMenuNo").toString()));
@@ -101,11 +98,12 @@ public class SysMenuServiceImpl implements SysMenuService {
 
         String atmc = env.getProperty("able_tab_menu_counter");
         ableHotMenuCount = Integer.parseInt(atmc);
-        paraMap.put("ableHotMenuCount",ableHotMenuCount);
-        List<Map<String, Object>>  hotMenus = sysmenuMapper.getHotMenuList(paraMap);
-        List<Map<String, Object>> retMenus = new ArrayList<Map<String,Object>>();
+        paraMap.put("ableHotMenuCount", ableHotMenuCount);
+        List<Map<String, Object>> hotMenus = sysmenuMapper.getHotMenuList(paraMap);
+        List<Map<String, Object>> retMenus = new ArrayList<Map<String, Object>>();
         return hotMenus;
     }
+
     @Transactional
     @Override
     public void saveSysMenuInfo(Map<String, Object> passMap) {
@@ -115,8 +113,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         sysvo.setSysMenuNo(Long.parseLong(paraMap.get("sys_menu_no").toString()));
         try {
             sysvo.setSysMenuNo(Long.parseLong(paraMap.get("sys_menu_no").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             sysvo.setSysMenuNo(0L); // 게시
             // 생성일자 등록
             sysvo.setRegDt(sysvo.getModDt());
@@ -127,7 +124,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         }
         sysvo.setParSysMenuNo(Long.parseLong(paraMap.get("par_sys_menu_no").toString()));
         sysvo.setSysMenuNm((String) paraMap.get("sys_menu_nm"));
-        sysvo.setPrtSeq(Long.parseLong( paraMap.get("prt_seq").toString()));
+        sysvo.setPrtSeq(Long.parseLong(paraMap.get("prt_seq").toString()));
         sysvo.setDispYn((String) paraMap.get("disp_yn"));
         sysvo.setUsedYn((String) paraMap.get("used_yn"));
 
@@ -163,7 +160,7 @@ public class SysMenuServiceImpl implements SysMenuService {
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long authCd = Long.parseLong(paraMap.get("authCd").toString());
-        sysMenuAuthRepo.deleteByCustNoAndAuthCd(custNo,authCd);
+        sysMenuAuthRepo.deleteByCustNoAndAuthCd(custNo, authCd);
     }
 
     @Transactional
@@ -173,37 +170,35 @@ public class SysMenuServiceImpl implements SysMenuService {
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         List<String> ds = (List<String>) paraMap.get("menuNos");
-        Map<String,Object> smap = null;
+        Map<String, Object> smap = null;
         Long authCd = Long.parseLong(paraMap.get("authCd").toString());
         //sysMenuAuthRepo.deleteByAuthCd(authCd);
         Long chkMenuNo = 0L;
-        for(String el : ds){
-            SysMenu vo = sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo,Long.parseLong(el),"Y");
+        for (String el : ds) {
+            SysMenu vo = sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo, Long.parseLong(el), "Y");
             if (vo == null) continue;
-            while(true) {
+            while (true) {
                 AuthSysMenu authvo = new AuthSysMenu();
                 authvo.setSysMenuNo(vo.getSysMenuNo());
                 authvo.setAuthCd(authCd);
-                AuthSysMenu chkvo = sysMenuAuthRepo.findByCustNoAndSysMenuNoAndAuthCd(custNo,authvo.getSysMenuNo(), authvo.getAuthCd());
+                AuthSysMenu chkvo = sysMenuAuthRepo.findByCustNoAndSysMenuNoAndAuthCd(custNo, authvo.getSysMenuNo(), authvo.getAuthCd());
                 if (chkvo != null) {
                     authvo.setSysMenuAuthNo(chkvo.getSysMenuAuthNo());
-                }
-                else {
+                } else {
                     authvo.setSysMenuAuthNo(0L);
                 }
                 sysMenuAuthRepo.save(authvo);
 
-                vo = sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo,vo.getParSysMenuNo(),"Y");
+                vo = sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo, vo.getParSysMenuNo(), "Y");
                 log.info(tag + "chkMenuNo = " + vo.getParSysMenuNo());
                 if (vo.getParSysMenuNo() == 0) {
                     authvo = new AuthSysMenu();
                     authvo.setSysMenuNo(vo.getSysMenuNo());
                     authvo.setAuthCd(authCd);
-                    chkvo = sysMenuAuthRepo.findByCustNoAndSysMenuNoAndAuthCd(custNo,authvo.getSysMenuNo(), authvo.getAuthCd());
+                    chkvo = sysMenuAuthRepo.findByCustNoAndSysMenuNoAndAuthCd(custNo, authvo.getSysMenuNo(), authvo.getAuthCd());
                     if (chkvo != null) {
                         authvo.setSysMenuAuthNo(chkvo.getSysMenuAuthNo());
-                    }
-                    else {
+                    } else {
                         authvo.setSysMenuAuthNo(0L);
                     }
                     sysMenuAuthRepo.save(authvo);
@@ -215,52 +210,52 @@ public class SysMenuServiceImpl implements SysMenuService {
     }
 
     @Override
-    public List<Object> getSysMenuTree(Map<String, Object> paraMap){
+    public List<Object> getSysMenuTree(Map<String, Object> paraMap) {
         //String tag = "mgr.am.aadm.selectPageGradeMappingList==>";
         //Map < String, Object > state = new HashMap<String,Object>();
 
         elist = sysmenuMapper.getSysMenuTree(paraMap);
         List<Object> children = getChildren(0); //eaMenuList(node) 생성
-        List < Object > treeData =  new ArrayList < Object > ();
+        List<Object> treeData = new ArrayList<Object>();
         root.put("id", "0");
         root.put("text", "MES 시스템");
 
-        LinkedHashMap <String,Object> state  = new LinkedHashMap < String, Object > ();
+        LinkedHashMap<String, Object> state = new LinkedHashMap<String, Object>();
 
-        state.put("expanded",true);
-        root.put("state",state);
-        root.put("children",children );
+        state.put("expanded", true);
+        root.put("state", state);
+        root.put("children", children);
         treeData.add(root);
         return treeData;
     }
 
-    private List < Object > getChildren( int idx) {
+    private List<Object> getChildren(int idx) {
         String pid = "";
         String menuNo = "";
         String menuNm = "";
-        Map<String,Object> emap = null;
+        Map<String, Object> emap = null;
         int nReadDepth = 0;
 
-        List < Object > menuList0 =  new ArrayList < Object > ();
-        List < Object > menuList1 =  new ArrayList < Object > ();
-        List < Object > menuList2 =  new ArrayList < Object > ();
-        List < Object > menuList3 =  new ArrayList < Object > ();
-        List < Object > menuList4 =  new ArrayList < Object > ();
+        List<Object> menuList0 = new ArrayList<Object>();
+        List<Object> menuList1 = new ArrayList<Object>();
+        List<Object> menuList2 = new ArrayList<Object>();
+        List<Object> menuList3 = new ArrayList<Object>();
+        List<Object> menuList4 = new ArrayList<Object>();
 
         int nSaveDepth = 4; //메뉴최대깊이 : 임시로 상수처리하고 있음.
         int nJdx = 0;
-        Map < String, Object > state = new HashMap<String,Object>();
-        while (idx < elist.size() ) {
+        Map<String, Object> state = new HashMap<String, Object>();
+        while (idx < elist.size()) {
 
             emap = elist.get(idx);
             menuNo = String.valueOf(emap.get("sys_menu_no"));
             menuNm = String.valueOf(emap.get("sys_menu_nm"));
             pid = String.valueOf(emap.get("par_sys_menu_no"));
             nReadDepth = (int) emap.get("level");
-            LinkedHashMap <String,Object> node  = new LinkedHashMap < String, Object > ();
-            List < Object > etree = null;
+            LinkedHashMap<String, Object> node = new LinkedHashMap<String, Object>();
+            List<Object> etree = null;
             //
-            if (nReadDepth != nSaveDepth  ) {
+            if (nReadDepth != nSaveDepth) {
 
                 if (nReadDepth == 0) {
                     node.put("id", menuNo);
@@ -275,15 +270,14 @@ public class SysMenuServiceImpl implements SysMenuService {
                         Long chkParentId = Long.parseLong(chkmap.get("id").toString());
                         Long parent = Long.parseLong(mapInfo.get("pid").toString());
                         if (chkParentId == parent) {
-                           etree.add( menuList1.get(nJdx));
+                            etree.add(menuList1.get(nJdx));
                         }
                     }
                     if (etree.size() > 0) {
                         chkmap.put("children", etree);
                     }
                     menuList0.add(node);
-                }
-                else if (nReadDepth == 1) {
+                } else if (nReadDepth == 1) {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
@@ -309,10 +303,9 @@ public class SysMenuServiceImpl implements SysMenuService {
                         chkmap.put("children", etree);
 
                     }
-                     menuList1.add(node);
+                    menuList1.add(node);
 
-                }
-                else if (nReadDepth == 2) {
+                } else if (nReadDepth == 2) {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
@@ -332,8 +325,7 @@ public class SysMenuServiceImpl implements SysMenuService {
                         chkmap.put("children", etree);
                     }
                     menuList2.add(node);
-                }
-                else if (nReadDepth == 3) {
+                } else if (nReadDepth == 3) {
                     node.put("pid", pid);
                     node.put("id", menuNo);
                     node.put("text", menuNm);
@@ -370,12 +362,12 @@ public class SysMenuServiceImpl implements SysMenuService {
         pid = String.valueOf(emap.get("par_sys_menu_no"));
         nReadDepth = (int) emap.get("level");
 
-        if (nReadDepth > 0){
+        if (nReadDepth > 0) {
             --nReadDepth;
         }
 
-        LinkedHashMap <String,Object> node  = new LinkedHashMap < String, Object > ();
-        List < Object > etree = null;
+        LinkedHashMap<String, Object> node = new LinkedHashMap<String, Object>();
+        List<Object> etree = null;
         if (nReadDepth == 0) {
             node.put("id", menuNo);
             node.put("text", menuNm);
@@ -389,15 +381,14 @@ public class SysMenuServiceImpl implements SysMenuService {
                 Long chkParentId = Long.parseLong(chkmap.get("id").toString());
                 Long parent = Long.parseLong(mapInfo.get("pid").toString());
                 if (chkParentId == parent) {
-                    etree.add( menuList1.get(nJdx));
+                    etree.add(menuList1.get(nJdx));
                 }
             }
             if (etree.size() > 0) {
                 chkmap.put("children", etree);
             }
 //            menuList0.add(node);
-        }
-        else if (nReadDepth == 1) {
+        } else if (nReadDepth == 1) {
             node.put("pid", pid);
             node.put("id", menuNo);
             node.put("text", menuNm);
@@ -422,8 +413,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             }
 //            menuList1.add(node);
 
-        }
-        else if (nReadDepth == 2) {
+        } else if (nReadDepth == 2) {
 
             node.put("pid", pid);
             node.put("id", menuNo);
@@ -432,7 +422,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             etree = new ArrayList<Object>();
             Map<String, Object> chkmap = null;
             while (++nJdx < menuList3.size()) {
-                    chkmap = (Map<String, Object>) menuList2.get(menuList2.size() - 1);
+                chkmap = (Map<String, Object>) menuList2.get(menuList2.size() - 1);
                 Map<String, Object> mapInfo = (Map<String, Object>) menuList3.get(nJdx);
                 int chkParentId = (int) Long.parseLong(chkmap.get("id").toString());
                 int parent = (int) Long.parseLong(mapInfo.get("pid").toString());
@@ -446,8 +436,7 @@ public class SysMenuServiceImpl implements SysMenuService {
             }
 
 //            menuList2.add(node);
-        }
-        else if (nReadDepth == 3) {
+        } else if (nReadDepth == 3) {
             node.put("pid", pid);
             node.put("id", menuNo);
             node.put("text", menuNm);
@@ -475,27 +464,21 @@ public class SysMenuServiceImpl implements SysMenuService {
         }
 
 
-
-
-
-
-
-
         return menuList1;
     }
 
     @Override
-    public List<Map<String,Object>> getAuthMenuList(Map<String, Object> paraMap){
+    public List<Map<String, Object>> getAuthMenuList(Map<String, Object> paraMap) {
         return sysmenuMapper.getAuthMenuList(paraMap);
     }
 
     @Override
-    public String getMenuPosList(Map<String, Object> paraMap){
+    public String getMenuPosList(Map<String, Object> paraMap) {
         return sysmenuMapper.getMenuPosList(paraMap);
     }
 
     @Override
-    public List<Map<String,Object>> routerList(Map<String, Object> paraMap){
+    public List<Map<String, Object>> routerList(Map<String, Object> paraMap) {
         return sysmenuMapper.routerList(paraMap);
     }
 
@@ -508,7 +491,7 @@ public class SysMenuServiceImpl implements SysMenuService {
      Double형 난수 발생 임의값 = 0.8888650101288209
      */
     public AccHstr makeAccHstr(Map<String, Object> paraMap) {
-        String tag  = "sysMenuService.makeAccHstr => ";
+        String tag = "sysMenuService.makeAccHstr => ";
         log.info(tag + "paraMap = " + paraMap.toString());
 
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
@@ -561,14 +544,14 @@ public class SysMenuServiceImpl implements SysMenuService {
         ahvo.setCustNo(custNo);
         ahvo.setUserId(userId);
         ahvo.setAccNo(0L);
-        log.info(tag  + "메뉴접근시간 = " + ahvo.getAccUnixTime());//kill
+        log.info(tag + "메뉴접근시간 = " + ahvo.getAccUnixTime());//kill
         //ahvo.setAccDt(new java.util.Date(procUxixTime*1000L));
 
         //AccHstr chkvo = accHstrRepo.findByCustNoAndAccNo(custNo,ahvo.getAccNo());
         //if (chkvo == null) {
-            //ahvo.setAccNo(0L);
-            ahvo = accHstrRepo.save(ahvo);
-       // }
+        //ahvo.setAccNo(0L);
+        ahvo = accHstrRepo.save(ahvo);
+        // }
         return ahvo;
     }
 
@@ -590,6 +573,7 @@ public class SysMenuServiceImpl implements SysMenuService {
 //        return ds;
         return null;
     }
+
     @Override
     public int getCircleMenuListCount(Map<String, Object> paraMap) {
         return sysmenuMapper.getCircleMenuListCount(paraMap);
@@ -597,7 +581,25 @@ public class SysMenuServiceImpl implements SysMenuService {
 
     @Override
     public List<Map<String, Object>> getCustMenuList(Map<String, Object> paraMap) {
-            return sysmenuMapper.getCustMenuList(paraMap);
+        String tag = "SysMenuService.getCustMenuList => ";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return sysmenuMapper.getCustMenuList(paraMap);
     }
 
+    @Override
+    public List<Map<String, Object>> getCustMenu(Map<String, Object> paraMap) {
+        return sysmenuMapper.getCustMenu();
+    }
+
+    @Override
+    public void deleteCustMenu(Map<String, Object> paraMap) {
+        String tag = "BordService.deleteBord => ";
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long sysMenuNo = Long.parseLong(paraMap.get("sysMenuNo").toString());
+        SysMenu sysvo = sysmenuRepo.findByCustNoAndSysMenuNoAndUsedYn(custNo,sysMenuNo,"Y");
+        if (sysvo != null) {
+            sysvo.setUsedYn("N");
+            sysmenuRepo.save(sysvo);
+        }
+    }
 }
