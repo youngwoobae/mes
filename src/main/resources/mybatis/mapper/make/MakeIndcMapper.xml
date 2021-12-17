@@ -2226,7 +2226,7 @@
 
 
     <select id="getProductionPlan" parameterType="map" resultType="camelMap">
-    /* 간략생산계획 (makeMapper.findByCustNoAndOrdNoAndUsedYn) */
+    /* 간략생산계획 (makeMapper.getProductionPlan) */
     select a.make_plan_no --생산계획번호
          , a.cmpy_no --발송거래처번호
          , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --발송거래처명
@@ -2238,6 +2238,7 @@
          , to_char(to_timestamp(a.plan_ut),'YYYY-MM-DD') as plan_dt --생산계획일자
     from make_plan a
     where a.used_yn = 'Y'
+    and   a.cust_no = #{custNo}
     and to_char(to_timestamp(a.plan_ut),'YYYY-MM')  = #{procYm}
     </select>
 

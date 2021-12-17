@@ -1245,9 +1245,9 @@ public class MatrServiceImpl implements MatrService {
 
             owhWhNm = row.getCell(3).getStringCellValue(); // 출고 창고
             owhWhNm = owhWhNm.replaceAll("\\p{Z}", "");
-            WhInfo whchk = whinfoRepo.findByCustNoAndWhNmAndUsedYn(custNo,owhWhNm, "Y");
-            if (whchk != null) {
-                whNo = whchk.getWhNo();
+            List<WhInfo> whchks = whinfoRepo.findAllByCustNoAndWhNmAndUsedYn(custNo,owhWhNm, "Y");
+            if (whchks != null) {
+                whNo = whchks.get(0).getWhNo();
                 owh.setWhNo(whNo);
             } else {
                 Map.put("row", row); // 열

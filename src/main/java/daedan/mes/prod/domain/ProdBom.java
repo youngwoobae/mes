@@ -17,18 +17,27 @@ import java.util.Date;
     @Column(name="bomNo",nullable = false, columnDefinition = "numeric")
     private Long bomNo;
 
-    @Column(name="custNo" , columnDefinition = "numeric")
+    /*모bom관리번호*/
+    @Column(name="par_bom_no", columnDefinition = "numeric")
+    private Long parBomNo;
+
+    /*고객번호*/
+    @Column(name="custNo" ,nullable = false, columnDefinition = "numeric")
     private Long custNo;
 
-    @Column(name="matrNo",nullable = false , columnDefinition = "numeric")
-    private Long matrNo;
-
-    @Column(name="prodNo",nullable = false, columnDefinition = "numeric" )
+    /*품번*/
+    @Column(name="prod_no",nullable = false, columnDefinition = "numeric" )
     private Long prodNo;
 
+    /*자재번호*/
+    @Column(name="matr_no",nullable = false , columnDefinition = "numeric")
+    private Long matrNo;
+
+    /*함량비율(백분율,소숫점 8자리까지)*/
     @Column(name="consistRt", precision=10, scale=8 )
     private  float consistRt;
 
+    /*소요량 (부자재인경우 함량비율 대신 사용됨)*/
     @Column(name="needQty", precision=8, scale=2)
     private  float needQty;
 
@@ -36,13 +45,14 @@ import java.util.Date;
     @Column(name="bomLvl", columnDefinition = "numeric default 1" )
     private Long bomLvl;
 
-    /*구매필요여부*/
+    /*구매필요여부 : 외부에서 구매되는 경우 'Y' ,자체조달인 경우 'N' : 일반적으로 복합제품인 경우 자사제품이 구성요소로 포함되므로 'N'으로 설정됨*/
     @Column(name="pursYn", columnDefinition = "char default 'Y'")
     private String pursYn;
 
-
+    /*사용구분*/
     @Column(name="usedYn",nullable = false, length = 1, columnDefinition = "char default 'Y'")
     private String usedYn;
+
     /*
     @ManyToOne( fetch=FetchType.LAZY)
     @JoinColumn(name="prod_no")
@@ -64,6 +74,7 @@ import java.util.Date;
         this.matrInfo = matrInfo;
     }
     */
+
     @Column(name="reg_id", columnDefinition = "numeric")
     private Long regId;
 

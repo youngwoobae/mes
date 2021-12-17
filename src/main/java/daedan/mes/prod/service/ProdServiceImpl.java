@@ -1744,9 +1744,9 @@ public class ProdServiceImpl implements  ProdService {
 
             owhWhNm = row.getCell(3).getStringCellValue(); // 출고 창고
             owhWhNm = owhWhNm.replaceAll("\\p{Z}", "");
-            WhInfo whchk = whinfoRepo.findByCustNoAndWhNmAndUsedYn(custNo,owhWhNm, "Y");
-            if (whchk != null) {
-                whNo = whchk.getWhNo();
+            List<WhInfo> whchks = whinfoRepo.findAllByCustNoAndWhNmAndUsedYn(custNo,owhWhNm, "Y");
+            if (whchks != null) {
+                whNo = whchks.get(0).getWhNo();
                 owh.setWhNo(whNo);
             } else {
                 Map.put("whNm", owhWhNm); // 열
@@ -1844,7 +1844,7 @@ public class ProdServiceImpl implements  ProdService {
             }
 
             if (pochk != null) {
-                if (whchk != null) {
+                if (whchks != null) {
                     if (cmchk != null) {
                         if (cmchk.getMngrGbnCd() == 21) {
                             stkRepo.save(stkvo);
@@ -1950,9 +1950,9 @@ public class ProdServiceImpl implements  ProdService {
             iwh.setCustNo(custNo);
             iwhWhNm = row.getCell(3).getStringCellValue(); // 입고 창고
             iwhWhNm = iwhWhNm.replaceAll("\\p{Z}", "");
-            WhInfo whchk = whinfoRepo.findByCustNoAndWhNmAndUsedYn(custNo,iwhWhNm, "Y");
-            if (whchk != null) {
-                whNo = whchk.getWhNo();
+            List<WhInfo> whchks = whinfoRepo.findAllByCustNoAndWhNmAndUsedYn(custNo,iwhWhNm, "Y");
+            if (whchks != null) {
+                whNo = whchks.get(0).getWhNo();
                 iwh.setWhNo(whNo);
             } else {
                 Map.put("whNm", iwhWhNm); // 열
@@ -1986,7 +1986,7 @@ public class ProdServiceImpl implements  ProdService {
             stkvo.setUsedYn("Y");
             stkvo.setCustNo(custNo);
             if (pochk != null) {
-                if (whchk != null) {
+                if (whchks != null) {
                     stkRepo.save(stkvo);
                     iwhRepo.save(iwh);
                 }
@@ -2077,9 +2077,9 @@ public class ProdServiceImpl implements  ProdService {
 
             iwhWhNm = row.getCell(3).getStringCellValue(); // 입고 창고
             iwhWhNm = iwhWhNm.replaceAll("\\p{Z}", "");
-            WhInfo whchk = whinfoRepo.findByCustNoAndWhNmAndUsedYn(custNo,iwhWhNm, "Y");
-            if (whchk != null) {
-                whNo = whchk.getWhNo();
+            List<WhInfo> whchks = whinfoRepo.findAllByCustNoAndWhNmAndUsedYn(custNo,iwhWhNm, "Y");
+            if (whchks != null) {
+                whNo = whchks.get(0).getWhNo();
                 iwh.setWhNo(whNo);
             } else {
                 Map.put("whNm", iwhWhNm); // 열
@@ -2135,7 +2135,7 @@ public class ProdServiceImpl implements  ProdService {
             stkvo.setUsedYn("Y");
             stkvo.setCustNo(custNo);
             if (machk != null) {
-                if (whchk != null) {
+                if (whchks != null) {
                     if (cmchk != null) {
                         if (cmchk.getMngrGbnCd() == 21) {
                             matStkRepo.save(stkvo);
@@ -2234,9 +2234,9 @@ public class ProdServiceImpl implements  ProdService {
 
             owhWhNm = row.getCell(3).getStringCellValue(); // 입고 창고
             owhWhNm = owhWhNm.replaceAll("\\p{Z}", "");
-            WhInfo whchk = whinfoRepo.findByCustNoAndWhNmAndUsedYn(custNo,owhWhNm, "Y");
-            if (whchk != null) {
-                whNo = whchk.getWhNo();
+            List<WhInfo> whchks = whinfoRepo.findAllByCustNoAndWhNmAndUsedYn(custNo,owhWhNm, "Y");
+            if (whchks != null) {
+                whNo = whchks.get(0).getWhNo();
                 owh.setWhNo(whNo);
             } else {
                 Map.put("custNo",custNo);
@@ -2271,7 +2271,7 @@ public class ProdServiceImpl implements  ProdService {
             stkvo.setCustNo(custNo);
 
             if (machk != null) {
-                if (whchk != null) {
+                if (whchks != null) {
                     matStkRepo.save(stkvo);
                     omr.save(owh);
                 }

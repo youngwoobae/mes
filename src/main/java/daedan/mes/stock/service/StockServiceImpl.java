@@ -224,8 +224,8 @@ public class StockServiceImpl implements  StockService{
             MatrPos mpvo = new MatrPos();
 //            mpvo.setPursMatrNo(Long.parseLong(paraMap.get("pursMatrNo").toString()));
             mpvo.setMatrNo(Long.parseLong(paraMap.get("matrNo").toString()));
-            String wh_nm = paraMap.get("whNm").toString();
-            WhInfo whvo = whInfoRepo.findByCustNoAndWhNmAndUsedYn(custNo,wh_nm,"Y");
+            Long whNo = Long.parseLong(paraMap.get("whNo").toString());
+            WhInfo whvo = whInfoRepo.findByCustNoAndWhNoAndUsedYn(custNo,whNo,"Y");
             mpvo.setWhNo( (whvo != null) ? whvo.getWhNo() : 0L);
             mpvo.setStairIdx(0); //단
             mpvo.setRowIdx(0);   //행
@@ -300,74 +300,66 @@ public class StockServiceImpl implements  StockService{
         return mapper.getWhListCount(paraMap);
     }
 
+
+
+    @Transactional
     @Override
     public void saveWhInfo(Map<String, Object> paraMap) {
+        Map<String, Object> passMap = (Map<String, Object>) paraMap.get("whInfo");
         WhInfo vo = new WhInfo();
-        String tag = "stockService.saveWhImfo ==> ";
-        log.info(tag + "paraMap = "+ paraMap);
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+
+        vo.setCustNo(custNo); //AddOn By KMJ At 21.10.21
         try {
-            vo.setWhNo(Long.parseLong(paraMap.get("whNo").toString()));
-        }
-        catch (NullPointerException ne) {
+            vo.setWhNo(Long.parseLong(passMap.get("whNo").toString()));
+        } catch (NullPointerException ne) {
             vo.setWhNo(0L);
         }
         vo.setWhNm(paraMap.get("whNm").toString());
-        vo.setWhTp(Long.parseLong(paraMap.get("whTp").toString()));
         vo.setSaveTmpr(Long.parseLong(paraMap.get("saveTmpr").toString()));
+        vo.setWhTp(Long.parseLong(paraMap.get("whTp").toString()));
+        vo.setWhLocNo(Byte.valueOf(paraMap.get("whLocNo").toString()));
         try {
             vo.setMaxRow(Integer.parseInt(paraMap.get("maxRow").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             vo.setMaxRow(0);
-        }
-        catch (NumberFormatException nfe) {
+        } catch (NumberFormatException nfe) {
             vo.setMaxRow(0);
         }
         try {
             vo.setMaxCol(Integer.parseInt(paraMap.get("maxCol").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
             vo.setMaxCol(0);
-        }
-        catch (NumberFormatException nfe) {
+        } catch (NumberFormatException nfe) {
             vo.setMaxCol(0);
         }
 
         try {
             vo.setMaxStair(Integer.parseInt(paraMap.get("maxStair").toString()));
-        }
-        catch (NullPointerException ne) {
+        } catch (NullPointerException ne) {
+            vo.setMaxStair(0);
+        } catch (NumberFormatException nfe) {
             vo.setMaxStair(0);
         }
-        catch (NumberFormatException nfe) {
-            vo.setMaxStair(0);
-        }
+
+
+        vo.setModDt(DateUtils.getCurrentBaseDateTime());
+        vo.setModIp(ipaddr);
+        vo.setModId(userId);
         vo.setUsedYn("Y");
-        vo.setModDt(DateUtils.getCurrentDate());
-        vo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-        vo.setModIp(paraMap.get("ipaddr").toString());
-        vo.setWhLocSeq(1L);
-        WhInfo chkvo = null;
-        if (vo.getWhNo() != 0L) {
-            chkvo = whInfoRepo.findByCustNoAndWhNoAndUsedYn(custNo,vo.getWhNo(), "Y");
-        }
-        else {
-            chkvo = whInfoRepo.findByCustNoAndWhTpAndSaveTmprAndWhNmAndUsedYn(custNo,vo.getWhTp(), vo.getSaveTmpr(), vo.getWhNm(), "Y");
-        }
-        if (chkvo != null) {
-            vo.setWhNo(chkvo.getWhNo());
-            vo.setRegDt(chkvo.getRegDt());
-            vo.setRegId(chkvo.getRegId());
-            vo.setRegIp(chkvo.getRegIp());
-        }
-        else {
-            vo.setWhNo(0L);
-            vo.setRegDt(DateUtils.getCurrentDate());
-            vo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-            vo.setRegIp(paraMap.get("ipaddr").toString());
-        }
         vo.setCustNo(custNo);
+        WhInfo chkvo = whInfoRepo.findByCustNoAndWhNoAndUsedYn(custNo, vo.getWhNo(), "Y");
+        if (chkvo != null) {
+            vo.setRegDt(chkvo.getRegDt());
+            vo.setRegIp(chkvo.getRegIp());
+            vo.setRegId(chkvo.getRegId());
+        } else {
+            vo.setRegDt(DateUtils.getCurrentBaseDateTime());
+            vo.setRegId(userId);
+            vo.setRegIp(ipaddr);
+        }
         whInfoRepo.save(vo);
     }
 
