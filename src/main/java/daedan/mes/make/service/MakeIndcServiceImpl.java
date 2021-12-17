@@ -3,6 +3,7 @@ package daedan.mes.make.service;
 
 import daedan.mes.cmpy.repository.CmpyRepository;
 import daedan.mes.common.service.util.DateUtils;
+import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.file.domain.FileInfo;
 import daedan.mes.file.repository.FileRepository;
 import daedan.mes.io.domain.MatrIwh;
@@ -223,17 +224,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
     }
 
     @Override
-    public List<Map<String, Object>> getMakePlanInfo(Map<String, Object> paraMap) {
+    public Map<String, Object> getMakePlanInfo(Map<String, Object> paraMap) {
         String tag = "MakeIndcService.getMakePlanInfo => ";
-        List<Map<String, Object>> ds = mapper.getMakePlanInfo(paraMap);
-        /* Remarked By KMJ At 21.10.25 --사용중지
-        for(Map<String,Object> el : ds){
-            StringBuffer buf = new StringBuffer();
-            buf.append(env.getProperty("img.root.path")).append("prod/").append(el.get("prodNo")).append(".png");
-            el.put("barCodeUrl", buf.toString());
-        }
-         */
-        return ds;
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long makePlanNo = Long.parseLong(paraMap.get("makePlanNo").toString());
+        MakePlan mpvo = makePlanRepo.findByCustNoAndMakePlanNoAndUsedYn(custNo,makePlanNo,"Y");
+        return StringUtil.voToMap(mpvo);
     }
 
     @Override

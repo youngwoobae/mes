@@ -29,7 +29,7 @@ public class WhInfo {
 
     /*창고위치번호*/
     @Column(name="wh_loc_no", columnDefinition = "numeric default 1")
-    private Byte whLocNo;
+        private Byte whLocNo;
 
     /*창고유형:자재창고,상품창고*/
     @Column(name="wh_tp",nullable = false)

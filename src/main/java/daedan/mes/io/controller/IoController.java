@@ -1531,7 +1531,6 @@ public class IoController {
         return result;
     }
 
-
     /*키오스크 자재입고 리스트*/
     @PostMapping(value = "/kioMatrIwhList")
     public Result kioMatrIwhList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
