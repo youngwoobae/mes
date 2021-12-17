@@ -285,6 +285,7 @@
             , a.qty_per_pkg --세트수량
             , g.wh_nm --창고명
             , b.wh_no --창고번호
+            , g.wh_loc_no --창고번호
             , b.stk_no --창고번호
             , a.valid_term --유효기간
            -- , f.prod_real_no as prod_real_no -- 실재고상품번호
