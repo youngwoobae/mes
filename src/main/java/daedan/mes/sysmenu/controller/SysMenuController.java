@@ -385,4 +385,25 @@ public class SysMenuController {
 
         return result;
     }
+
+    @PostMapping(value="/getCustMenuList")
+    public Result getCustMenuList(@RequestBody Map<String,Object> paraMap , HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        paraMap.put("userId",uvo.getUserId());
+        result.setData(sysMenuService.getCustMenuList(paraMap));
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
 }

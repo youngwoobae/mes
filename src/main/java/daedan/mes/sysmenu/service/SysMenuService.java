@@ -45,4 +45,6 @@ public interface SysMenuService {
     List<Map<String, Object>> getCircleMenuList(Map<String, Object> paraMap);
 
     int getCircleMenuListCount(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getCustMenuList(Map<String, Object> paraMap);
 }

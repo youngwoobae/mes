@@ -369,4 +369,49 @@
              ) a
     </select>
 
+    <select id="getCustMenuList" parameterType="map" resultType="camelMap">
+        select a.cust_no
+             , a.cust_nm
+             , f.par_sys_menu_no
+             , f.sys_menu_no
+             , f.sys_menu_nm
+             , fn_get_sys_menu_name(f.par_sys_menu_no) as par_sys_menu_nm
+        from cust_info a join sys_menu_cust e on a.cust_no = e.cust_no and a.cust_nm = #{findTp} and e.used_yn = 'Y'
+                         join sys_menu f on e.sys_menu_no = f.sys_menu_no and f.used_yn  = 'Y'
+                         join ( WITH recursive cte (
+                                                    sys_menu_no
+                                                  , sys_menu_nm
+                                                  , level
+                                                  , prt_seq
+                                                  , path
+                                                  , sys_menu_path
+                                                  , used_yn
+                              ) AS ( SELECT a.sys_menu_no
+                                          , a.sys_menu_nm
+                                          , 1 AS level
+                                          , a.prt_seq
+                                          , a.sys_menu_no::text
+						                  , a.sys_menu_path
+                                          , a.used_yn
+                   FROM  sys_menu a
+                   WHERE a.par_sys_menu_no = 0
+                   UNION
+                   SELECT b.sys_menu_no
+                        , b.sys_menu_nm
+                        , c.level+1 AS level
+                        , b.prt_seq
+                        , path ||b.sys_menu_no::text
+						         , b.sys_menu_path
+                        , b.used_yn
+                   FROM sys_menu b JOIN cte c ON b.par_sys_menu_no = c.sys_menu_no
+        )
+                                select   path
+                                     , sys_menu_no
+                                from cte
+                                where used_yn = 'Y'
+                                order by path
+        )d  on f.sys_menu_no = d.sys_menu_no
+        order by d.path
+    </select>
+
 </mapper>

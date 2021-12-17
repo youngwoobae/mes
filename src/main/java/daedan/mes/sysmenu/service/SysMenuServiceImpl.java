@@ -595,4 +595,9 @@ public class SysMenuServiceImpl implements SysMenuService {
         return sysmenuMapper.getCircleMenuListCount(paraMap);
     }
 
+    @Override
+    public List<Map<String, Object>> getCustMenuList(Map<String, Object> paraMap) {
+            return sysmenuMapper.getCustMenuList(paraMap);
+    }
+
 }
