@@ -12,8 +12,6 @@ public interface MakeIndcService {
 
     Map<String, Object> getMakeIndcRsltInfo(Map<String, Object> paraMap);
 
-    Map<String, Object> getMakePlanInfo(Map<String, Object> paraMap);
-
     List<Map<String, Object>> getMakeIndcRsltList(Map<String, Object> paraMap);
     int getMakeIndcRsltListCount(Map<String, Object> paraMap);
 
@@ -178,15 +176,8 @@ public interface MakeIndcService {
     @Transactional
     void saveMakeIndcProc(Map<String, Object> paraMap);
 
-    void saveMakePlan(Map<String, Object> paraMap);
-
     List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap);
 
-    Map<String, Object> getIndcPlanInfo(Map<String, Object> paraMap);
-
-    /*간단 생산지시용*/
-    void saveIndcInfoBrief(Map<String, Object> paraMap);
-    
     /*간단 생산지시 목록*/
     List<Map<String, Object>> getIndcList(Map<String, Object> paraMap);
 

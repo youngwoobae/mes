@@ -862,4 +862,19 @@ public abstract class DateUtils implements DateConstants {
         String formattedDate = sdf.format(date);
         return formattedDate;
     }
+
+    public static Long getDateToTimeStamp(String szDate){
+        SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.KOREA);
+        //sdf.setTimeZone(java.util.TimeZone.getTimeZone("GMT+9"));
+
+        long unixTime = 0;
+        try {
+            unixTime = sdf.parse(szDate).getTime();
+            unixTime = unixTime / 1000;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return unixTime;
+    }
 }
+

@@ -1,4 +1,4 @@
-package daedan.mes.make.domain;
+package daedan.mes.product.domain;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,11 +9,11 @@ import java.util.Date;
 @Data
 @Entity
 @NoArgsConstructor
-public class MakePlan {
+public class ProductPlan {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name="make_plan_no",nullable = false, columnDefinition = "numeric")
-    private Long makePlanNo;
+    @Column(name="product_plan_no",nullable = false, columnDefinition = "numeric")
+    private Long productPlanNo;
 
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;

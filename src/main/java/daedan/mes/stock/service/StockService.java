@@ -109,4 +109,6 @@ public interface StockService {
     int getMatrRealStockHstrCount(Map<String, Object> paraMap);
 
     Map<String, Object> getShdList(Map<String, Object> paraMap);
+
+    List<Map<String,Object>> getMakePlanBomStkList(Map<String, Object> paraMap);
 }

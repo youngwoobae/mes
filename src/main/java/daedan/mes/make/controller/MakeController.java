@@ -505,35 +505,7 @@ public class MakeController {
         return result;
     }
 
-     /**
-     * 기능 : 작업지시 저장(공정없이 사용되는 간단 생산지시용)
-     *
-     * @param paraMap
-     * @param request
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/saveIndcInfoBrief")
-    public Result saveIndcInfoBrief(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
-        Result result = Result.successInstance();;
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
-        paraMap.put("userId",paraMap.get("userId"));
-        makeIndcService.saveIndcInfoBrief(paraMap);
 
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        return result;
-    }
     /**/
     @PostMapping(value="/getProdIndcNo")
     public Result getProdIndcNo(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
@@ -879,8 +851,7 @@ public class MakeController {
     }
 
     @PostMapping(value="/exportPlanList")
-    public Result exportPlanList(@RequestBody Map<String, Object> paraMap , HttpSession session){
-        String tag = "makeController.makeIndcPlanList => ";
+    public Result exportPlanList(@RequestBody Map<String, Object> paraMap , HttpSession session) {
 //        paraMap.put("ordSts",Long.parseLong(env.getProperty("ord_status.wait.owh"))); //출고대
         paraMap.put("ordSts",null); //출고대
         Result result = Result.successInstance();
@@ -1850,82 +1821,6 @@ public class MakeController {
     }
 
 
-    /**
-     * 생산계획수립
-     *
-     * @param paraMap
-     * @param request
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value = "/saveMakePlan")
-    public Result saveMakePlan(@RequestBody Map<String, Object> paraMap, HttpServletRequest request , HttpSession session) {
-        String tag = "MakeController.saveMakePlan => ";
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        makeIndcService.saveMakePlan(paraMap);
-        return result;
-    }
-    /**
-     * 신규생산계획 컨트롤 설정
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/conditionEmbIndcPlan")
-    public Result conditionEmbIndcPlan(@RequestBody Map<String, Object> paraMap , HttpSession session){
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        Map<String, Object> rmap = new HashMap<String,Object>();
 
-        paraMap.put("parCodeNo",Long.parseLong(env.getProperty("code.base_ord.recv")));
-        paraMap.put("selectStr", "처리상태선택");
-        rmap.put("comboStat", codeService.getComboCodeList(paraMap));
 
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        result.setData(rmap);
-        return result;
-    }
-    /**
-     * 신규생산계획 정보 추출
-     *
-     * @param paraMap
-     * @param session
-     * @return Result
-     */
-    @PostMapping(value="/getIndcPlanInfo")
-    public Result getIndcPlanInfo(@RequestBody Map<String, Object> paraMap , HttpSession session){
-        Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("custNo", custNo);
-        Map<String, Object> rmap = new HashMap<String,Object>();
-
-        result.setData(makeIndcService.getIndcPlanInfo(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        return result;
-    }
 }

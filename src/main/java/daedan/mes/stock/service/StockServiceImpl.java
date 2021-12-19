@@ -1327,6 +1327,11 @@ public class StockServiceImpl implements  StockService{
             }
         }
     }
-
+    @Override
+    public List<Map<String, Object>> getMakePlanBomStkList(Map<String, Object> paraMap) {
+        String tag = "StockService.getMakePlanBomStkList =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getMakePlanBomStkList(paraMap);
+    }
 }
 

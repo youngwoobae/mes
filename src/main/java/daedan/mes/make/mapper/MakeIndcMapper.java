@@ -194,7 +194,6 @@ public interface MakeIndcMapper {
 
     List<Map<String, Object>> getProductionPlan(Map<String, Object> paraMap);
 
-    Map<String, Object> getIndcPlanInfo(Map<String, Object> paraMap);
     Map<String, Object> getIndcInfo(Map<String, Object> paraMap);
     List<Map<String, Object>> getIndcList(Map<String, Object> paraMap); //간단MES용
     int getIndcListCount(Map<String, Object> paraMap); //간단MES용

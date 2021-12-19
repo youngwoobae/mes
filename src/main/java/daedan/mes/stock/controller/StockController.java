@@ -923,4 +923,34 @@ public class StockController {
         result.setData(stockService.getShdList(paraMap));
         return result;
     }
+
+    /**
+     * 생산계획시점 제품별 BOM 재고
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value = "/getMakePlanBomStkList")
+    public Result getBomStkList(@RequestBody Map<String, Object> paraMap, HttpSession session) {
+        String tag = "ioController.getBomStkList => ";
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+
+        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+        result.setData(stockService.getMakePlanBomStkList(paraMap));
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
 }
