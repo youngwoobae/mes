@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="daedan.mes.product.mapper.ProductMapper">
+    <select id="getProductPlanList" parameterType="map" resultType="camelMap">
+        /* 간략생산계획 (makeMapper.getProductPlanList) */
+        select a.product_plan_no --생산계획번호
+             , a.cmpy_no --발송거래처번호
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --발송거래처명
+             , a.prod_no --품번
+             , concat(fn_get_prod_name(a.prod_no),'(',a.plan_qty::varchar,')')  as prod_nm --품명
+             , a.plan_qty --계획수량
+             , a.stat_cd --상태코드
+             , fn_get_code_name('nm',a.stat_cd) as stat_nm --상태명
+             , to_char(to_timestamp(a.plan_ut),'YYYY-MM-DD') as plan_dt --생산계획일자
+        from product_plan a
+        where a.used_yn = 'Y'
+          and a.product_plan_no  not in (select product_plan_no from product_indc where used_yn = 'Y' and cust_no = a.cust_no)
+          and a.cust_no = #{custNo}
+          and to_char(to_timestamp(a.plan_ut),'YYYY-MM')  = #{procYm}
+    </select>
+
+    <select id="getPrductPlanInfo" parameterType="map" resultType="camelMap">
+        /* 간략생산계획목록 (makeMapper.getProductPlanInfo) */
+        select a.make_plan_no --생산계획번호
+             , to_char(to_timestamp(a.plan_ut) ,'YYYY-MM-DD') as plan_dt --생산계획일
+             , to_char(to_timestamp(b.send_ut) ,'YYYY-MM-DD') as send_dt --거래처에서 전송한 일자
+             , a.cmpy_no --데이터전송거래처번호
+             , fn_get_cmpy_name(a.cmpy_no) as cmpy_nm --데이터전송거래처명
+             , a.plan_qty --생산계획
+             , a.prod_no  --품번
+             , fn_get_prod_name(a.prod_no) as prod_nm --품명
+             , a.ord_recv_no --전송번호
+        from make_plan a left join ord_recv b on a.ord_recv_no  = b.ord_recv_no and a.cust_no = b.cust_no and b.used_yn  = 'Y'
+        where a.cust_no = #{custNo}
+          and a.make_plan_no = #{makePlanNo}
+    </select>
+
+    <select id="getProductIndcList" parameterType="map" resultType="camelMap">
+    /*간단 MES용 작업지시목록(makeIndcMapper.getProductIndcList) */
+        select a.product_indc_no --지시번호
+             , a.clos_yn --종료여부
+             , to_char(to_timestamp(a.make_fr_ut),'YYYY-MM-DD') as make_fr_dt --작업시작일
+             , to_char(to_timestamp(a.make_to_ut),'YYYY-MM-DD') as make_to_dt --작업종료일
+             , a.prod_no --품번
+             , fn_get_prod_name(a.prod_no) as prod_nm --품명
+             , a.indc_qty --지시량
+             , a.stat_cd --상태코드
+             , fn_get_code_name('nm',a.stat_cd) as stat_nm --상태명
+        from product_indc a
+        where a.used_yn ='Y'
+        and a.cust_no = #{custNo}
+        <if test="statCd != null and statCd != ''">
+            and a.stat_cd = #{statCd}
+        </if>
+        <if test="findSz != null and findSz != ''">
+            and upper(replace(fn_get_prod_name(a.prod_cd,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+        </if>
+    </select>
+
+    <select id="getProductIndcListCount" parameterType="map" resultType="int">
+        select count(a.product_indc_no)
+        from (
+            select a.product_indc_no --지시번호
+            from product_indc a
+            where a.used_yn ='Y'
+            and a.cust_no = #{custNo}
+            <if test="statCd != null and statCd != ''">
+                and a.stat_cd = #{statCd}
+            </if>
+            <if test="findSz != null and findSz != ''">
+                and upper(replace(fn_get_prod_name(a.prod_cd,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
+            </if>
+        ) a
+    </select>
+</mapper>

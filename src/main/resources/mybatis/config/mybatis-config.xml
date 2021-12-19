@@ -66,6 +66,7 @@
 
         <mapper resource="mybatis/mapper/proc/ProcMapper.xml"/>
         <mapper resource="mybatis/mapper/prod/ProdMapper.xml"/>
+        <mapper resource="mybatis/mapper/product/ProductMapper.xml"/>
         <mapper resource="mybatis/mapper/purs/PursMapper.xml"/>
         <mapper resource="mybatis/mapper/qc/QcMapper.xml"/>
         <mapper resource="mybatis/mapper/role/RoleMapper.xml"/>

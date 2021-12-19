@@ -1382,4 +1382,33 @@
     where e.date between substring(#{procDt},1,10) and to_char(to_date(substring(#{procDt},1,10),'YYYY-MM-DD')  + '10 day'::interval,'YYYY-MM-DD')
     order by e.date
     </select>
+
+    <select id="getMakePlanBomStkList" parameterType="map" resultType="camelMap">
+        /*제품별 BOM기반 원부자재 재고 목록  (stockMapper.getMakePlanBomStkList) */
+        select  a.par_bom_no as 모관리번호
+              , a.bom_no as 관리번호
+              , a.prod_no --제품관리번호
+              , c.prod_no --품번
+              , a.matr_no --원자재관번호
+              , a.bom_lvl --bom level
+              , to_char(to_timestamp(c .plan_ut),'YYYY-MM-DD') as plan_dt
+              , fn_get_prod_name(a.prod_no) as 제품명
+              , fn_get_matr_name(a.matr_no) as 원자재명
+              , a.consist_rt as  원료구성함량
+              , a.consist_qty  as 단위자재소요량
+              , ( a.consist_rt * 0.01) * c.plan_qty --원료소요량
+              , a.need_qty * c.plan_qty --자재소요
+              , d.stk_qty --재고량
+              , fn_get_code_name('nm', b.matr_tp) as 원부자재구분
+        from prod_bom a  join make_plan c on a.prod_no  =c.prod_no
+                                         and  a.cust_no = c.cust_no
+                                         and c.used_yn  = 'Y'
+                                         and to_char(to_timestamp(c .plan_ut),'YYYY-MM-DD')  = #{planDt}
+                         join matr_info b on a.matr_no = b.matr_no
+                                         and a.cust_no = b.cust_no
+                                         and b.used_yn ='Y'
+                    left join matr_stk d on a.matr_no  = d.matr_no
+    where a.cust_no = #{custNo
+    </select>
+
 </mapper>
