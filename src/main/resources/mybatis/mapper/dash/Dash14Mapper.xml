@@ -3,7 +3,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="daedan.mes.dash.mapper.Dash14Mapper">
     <select id="getUserGroupDashs" parameterType="map"  resultType="camelMap">
-        /*대시보드 최근 14일 근태현황 (Dash14Mapper.getUserGroupDash) */
+        /*우천식품 대시보드 근태현황 (Dash14Mapper.getUserGroupDash) */
         select to_char(work_dt , 'MM-DD') as work_dt
              , count(b.user_id) as user_count
              , fn_get_code_name('nm',b.empl_kind) as empl_kind_nm
@@ -12,5 +12,8 @@
           and a.cust_no = #{custNo}
           and a.used_yn = 'Y'
         group by work_dt,b.empl_kind
-        order by to_char(work_dt , 'YYYY-MM-DD'), b.empl_kind    </select>
+        order by to_char(work_dt , 'YYYY-MM-DD'), b.empl_kind
+    </select>
+
+
 </mapper>

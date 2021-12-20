@@ -41,6 +41,7 @@
         <mapper resource="mybatis/mapper/dash/Dash06Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash08Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash10Mapper.xml"/>
+        <mapper resource="mybatis/mapper/dash/Dash14Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash17Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash18Mapper.xml"/>
         <mapper resource="mybatis/mapper/dash/Dash19Mapper.xml"/>

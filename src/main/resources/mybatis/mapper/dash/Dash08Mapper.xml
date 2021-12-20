@@ -52,8 +52,7 @@
 									and used_yn = 'Y'
 									group by cust_no, prod_no
 								  )	p on c.prod_no = p.prod_no and c.cust_no = p.cust_no
-						where  1 = 1
-						  and c.used_yn = 'Y' and c.cust_no = #{custNo}
+						where  c.used_yn = 'Y' and c.cust_no = #{custNo}
 						order by prod_nm collate "ko_KR.utf8"
 	</select>
 
@@ -90,7 +89,7 @@
 												and used_yn = 'Y'
 											  group by cust_no, prod_no
 				 							)	p on c.prod_no = p.prod_no and c.cust_no = p.cust_no
-				 where  1 = 1
+				 where  c.cust_no = #{custNo}
 			   and c.used_yn = 'Y' and c.cust_no = #{custNo}
 			 ) a
 	</select>

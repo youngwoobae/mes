@@ -113,8 +113,8 @@ public class Dash14Controller {
 
         return result;
     }
-    @PostMapping(value="/getUserGroupDashboard")
-    public Result getUserGroupDashboard(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+    @PostMapping(value="/getUserGroupDash")
+    public Result getUserGroupDash(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();

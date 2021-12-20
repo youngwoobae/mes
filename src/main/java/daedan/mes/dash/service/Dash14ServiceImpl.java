@@ -79,7 +79,7 @@ public class Dash14ServiceImpl implements  Dash14Service {
     }
 
     public List<Map<String, Object>> getUserGroupDash(Map<String, Object> paraMap) {
-        String tag = "dash30Service.getUserGroupDash => ";
+        String tag = "dash14Service.getUserGroupDash => ";
         log.info(tag + " paraMap = " + paraMap.toString());
         return mapper14.getUserGroupDashs(paraMap);
     }
