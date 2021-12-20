@@ -630,8 +630,12 @@
              ,fn_get_code_name('nm', c.matr_tp) as 원자재구
              ,coalesce (a.consist_rt,0)   as 구성함량
              ,a.purs_yn --자사조달여부
-        from prod_bom a join prod_info b on a.cust_no = b.cust_no and b.used_yn ='Y'
-        join matr_info c on a.cust_no = c.cust_no and c.used_yn = 'Y'
+        from prod_bom a join prod_info b on a.cust_no = b.cust_no
+                                        and a.prod_no = b.prod_no
+                                        and b.used_yn ='Y'
+                        join matr_info c on a.cust_no = c.cust_no
+                                        and a.matr_no = c.matr_no
+                                        and c.used_yn = 'Y'
         where a.cust_no = #{custNo}
         and a.used_yn = 'Y'
         <if test="findSz != null and findSz != ''">
@@ -663,11 +667,12 @@
              , a.save_tmpr --보관온도
              , coalesce(a.ccp_tp,0) as ccp_tp   --CCP구분
              , coalesce(a.heat_tp,0) as heat_tp   --살균기준
-             , c.code_nm as save_tmpr_nm --보관온도명
+             , a.save_tmpr
+             , fn_get_code_name('nm',a.save_tmpr) as save_tmpr_nm --보관온도명
              , a.prod_code--제품코드
              , a.modl_nm --모델명
              , a.sale_unit--판매단위코드
-             , d.code_nm as sale_unit_nm -- 판매단위명
+             , fn_get_code_name('nm', a.sale_unit) as sale_unit_nm  -- 판매단위명
              , a.qty_per_pkg--세트구성수
              , b.reg_id --작성자
              , b.file_no --사진번호
@@ -685,8 +690,6 @@
              , a.cmpy_no --OEM상품의 주문업체 , Addon by KMJ At  21.10.19
              , a.wh_no
         from prod_info a left join file_info b on a.file_no = b.file_no and b.used_yn = 'Y' and b.cust_no =#{custNo}
-                         left join code_info c on a.save_tmpr = c.code_no
-                         left join code_info d on a.sale_unit = d.code_no
         where a.used_yn = 'Y'
           and a.cust_no =#{custNo}
          and a.prod_no = #{prodNo}
@@ -694,9 +697,10 @@
 
 
     <select id="getProdBomInfo" parameterType="map"  resultType="camelMap">
+    /* 제품별 BOM 정보 (prodMapper.getProdBomInfo)*/
         select a.prod_no --품번
              , a.prod_nm --자재명
-             , a.mess --단위중
+             , a.mess --단위중량
              , a.prod_shape --형태
              , a.brix --brix
              , a.spga --비중
@@ -721,11 +725,11 @@
                                          and b.used_yn ='Y'
                                          and b.cust_no =#{custNo}
                                          and b.bom_no = #{bomNo}
-                         join matr_info c on b.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no =#{custNo}
+                         join matr_info c on b.matr_no = c.matr_no and c.used_yn = 'Y' and c.cust_no = a.cust_no
                          join code_info d on c.matr_tp = d.code_no
                          join code_info g on a.sale_unit = g.code_no
                     left join code_info h on a.prod_shape = h.code_no
-                    left join brnch_info f on c.brnch_no  = f.brnch_no and f.used_yn = 'Y' and f.cust_no =#{custNo}
+                    left join brnch_info f on c.brnch_no  = f.brnch_no and f.used_yn = 'Y' and f.cust_no = a.cust_no
         where a.used_yn = 'Y'
          and a.cust_no =#{custNo}
     </select>

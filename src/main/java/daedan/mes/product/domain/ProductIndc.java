@@ -51,10 +51,6 @@ public class ProductIndc {
     private String indcCont;
 
 
-    // AddOn By KMJ At 21.08.05 22:10-생산완료여부
-    @Column(name="clos_yn", length = 1 , columnDefinition = "char default 'N'")
-    private String closYn;
-
     @Column(name="used_yn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
     private String usedYn;
 

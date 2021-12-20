@@ -49,7 +49,7 @@ public class ProdInfo {
     @Column(name="brnchNo", columnDefinition = "numeric")
     private Long brnchNo;
 
-    /*CCP TYPE:: baseCode=2300 (살균,금속검출, 살균및 금속검출)*/
+    /*CCP TYPE:: baseCode=2300 (살균,금속검출, 살균및 금속검출) : 용도가 애매함*/
     @Column(name="ccpTp", columnDefinition = "numeric default 0" )
     private Long ccpTp;
 

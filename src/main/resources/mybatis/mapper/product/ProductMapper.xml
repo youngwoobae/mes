@@ -22,7 +22,7 @@
     </select>
 
     <select id="getPrductPlanInfo" parameterType="map" resultType="camelMap">
-        /* 간략생산계획목록 (makeMapper.getProductPlanInfo) */
+        /* 간략생산계획정보 (makeMapper.getProductPlanInfo) */
         select a.make_plan_no --생산계획번호
              , to_char(to_timestamp(a.plan_ut) ,'YYYY-MM-DD') as plan_dt --생산계획일
              , to_char(to_timestamp(b.send_ut) ,'YYYY-MM-DD') as send_dt --거래처에서 전송한 일자
@@ -38,12 +38,12 @@
     </select>
 
     <select id="getProductIndcList" parameterType="map" resultType="camelMap">
-    /*간단 MES용 작업지시목록(makeIndcMapper.getProductIndcList) */
+    /*간략 작업지시목록(makeIndcMapper.getProductIndcList) */
         select a.product_indc_no --지시번호
-             , a.clos_yn --종료여부
+             , a.prod_no --품번
              , to_char(to_timestamp(a.make_fr_ut),'YYYY-MM-DD') as make_fr_dt --작업시작일
              , to_char(to_timestamp(a.make_to_ut),'YYYY-MM-DD') as make_to_dt --작업종료일
-             , a.prod_no --품번
+
              , fn_get_prod_name(a.prod_no) as prod_nm --품명
              , a.indc_qty --지시량
              , a.stat_cd --상태코드
