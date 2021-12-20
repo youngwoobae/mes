@@ -5,12 +5,12 @@
     <select id="getUserGroupDashs" parameterType="map"  resultType="camelMap">
         /*대시보드 최근 14일 근태현황 (Dash14Mapper.getUserGroupDash) */
         select to_char(work_dt , 'MM-DD') as work_dt
-              , count(user_id) as user_count
-              , fn_get_code_name('nm',b.empl_kind) as empl_kind_nm --내국인,외국인,용역구분
-        from user_work a
+             , count(b.user_id) as user_count
+             , fn_get_code_name('nm',b.empl_kind) as empl_kind_nm
+        from user_work a join user_info b on a.user_id  = b.user_id and a.cust_no = b.cust_info and b.used_yn ='Y'
         where to_char(work_dt , 'YYYY-MM-DD') between to_char(now() + '-2 week' , 'YYYY-MM-DD')  and to_char(now() , 'YYYY-MM-DD')
-        and cust_no = #{custNo} and used_yn = 'Y'
+          and a.cust_no = #{custNo}
+          and a.used_yn = 'Y'
         group by work_dt,b.empl_kind
-        order by to_char(work_dt , 'YYYY-MM-DD'), b.empl_kind
-    </select>
+        order by to_char(work_dt , 'YYYY-MM-DD'), b.empl_kind    </select>
 </mapper>
