@@ -2,7 +2,6 @@ package daedan.mes.pqms.controller;
 
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
-import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.pqms.service.PqmsServiceImpl;
 import daedan.mes.user.domain.AccHstr;
@@ -41,36 +40,6 @@ public class PqmsController {
     @Autowired
     private UserService userService;
 
-    /**
-     * 풀무원 주문접수
-     *
-     * @param paraMap
-     * @param session
-     * @param request
-     * @return Result
-     */
-    @PostMapping(value = "/syncOrdPlan")
-    public Result syncOrdPlan(@RequestBody Map<String, Object> paraMap, HttpSession session, HttpServletRequest request) {
-        Result result = Result.successInstance();
-        String saupNo = paraMap.get("saupNo").toString();
-        UserInfo uvo = pqmsService.getUserInfoBySaupNo(saupNo);
-        Long custNo = uvo.getCustInfo().getCustNo();
-        paraMap.put("userId", uvo.getUserId());
-        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
-        paraMap.put("custNo", custNo);
-        result.setData(pqmsService.syncOrdPlan(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
-        return result;
-    }
 
     @PostMapping(value = "/conditions405")
     public Result conditions405(@RequestBody Map<String, Object> paraMap, HttpSession session) {

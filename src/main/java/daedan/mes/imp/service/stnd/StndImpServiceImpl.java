@@ -779,7 +779,7 @@ public class StndImpServiceImpl implements StndImpService {
             int rows = sheet.getPhysicalNumberOfRows();
             ProdFormat format = new ProdFormat();
             Long baseProdTp = Long.parseLong(env.getProperty("code.base.prodTp")); //판매구분기준 : 34
-            Long prodTpOem = Long.parseLong(env.getProperty("ord_oem")); //판매구분(OEM) : 35
+            Long prodTpOem = Long.parseLong(env.getProperty("ord.oem")); //판매구분(OEM) : 35
             Long baseSaveTmpr = Long.parseLong(env.getProperty("code.base.save_tmpr_cd")); //보관온도 : 120
             Long baseSaleUnit = Long.parseLong(env.getProperty("code.base.sale_unit")); //판매단위 : 80
             Long mngrGbnSale = Long.parseLong(env.getProperty("code.mngrgbn.sale")); //거래처관리구분(판매처) : 21
