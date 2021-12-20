@@ -4,6 +4,7 @@
 
 <mapper namespace="daedan.mes.sysmenu.mapper.SysMenuMapper">
   <select id="getSysMenuList" parameterType="map"  resultType="camelMap">
+    /* 계층형메뉴목록 (sysMenuMapper.getSysMenuList) */
    WITH recursive cte (
                     cust_no
                   , par_sys_menu_no
