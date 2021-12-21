@@ -4,7 +4,6 @@ import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.sysmenu.domain.AuthSysMenu;
 import daedan.mes.sysmenu.domain.SysMenu;
 import daedan.mes.sysmenu.domain.SysMenuHot;
-import daedan.mes.sysmenu.domain.sysMenuCust;
 import daedan.mes.sysmenu.mapper.SysMenuMapper;
 import daedan.mes.sysmenu.repository.SysMenuAuthRepository;
 import daedan.mes.sysmenu.repository.SysMenuHotRepository;
@@ -53,10 +52,82 @@ public class SysMenuServiceImpl implements SysMenuService {
 
 
     @Override
-    public List<Map<String, Object>> getSysMenuList(Map<String, Object> paraMap) {
+    public HashMap<String, Object> getSysMenuList(Map<String, Object> paraMap) {
         String tag = "sysMenuService.getSysMenuList => ";
         log.info(tag + "paraMap = " + paraMap.toString());
-        return sysmenuMapper.getSysMenuList(paraMap);
+        ArrayList<Map<String, Object>> main =  new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> info =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> matr =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> prod =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> order =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> produce =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> moniter =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> currensi =  new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> notify =   new ArrayList<Map<String, Object>>();
+        ArrayList<Map<String, Object>> sys    =   new ArrayList<Map<String, Object>>();
+
+        List<Map<String, Object>> menulistMap =  sysmenuMapper.getSysMenuList(paraMap);
+        HashMap<String, Object> rmap = new HashMap<String, Object>();
+
+        for(int i = 0 ; i < menulistMap.size(); i++) {
+
+            Long parSysMenuNo = Long.parseLong(menulistMap.get(i).get("parSysMenuNo").toString());
+
+            if(parSysMenuNo == 1){//parsysmenuno = 1
+                main.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 10) {//기준정보
+                info.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 20) {//원료
+                matr.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 30) {//제품
+                prod.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 40) {//주문정보OEM
+                order.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 60) {//생산
+                produce.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 80) {//모니터
+                moniter.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 1000) {//
+                currensi.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 1200) {//공지
+                notify.add(menulistMap.get(i));
+            }
+
+            if(parSysMenuNo == 9000) {//시스템관리
+                sys.add(menulistMap.get(i));
+            }
+
+
+        }
+
+        rmap.put("mainList", main);
+        rmap.put("infoList", info);
+        rmap.put("matrList", matr);
+        rmap.put("prodList", prod);
+        rmap.put("orderList", order);
+        rmap.put("produceList", produce);
+        rmap.put("moniterList", moniter);
+        rmap.put("currensiList", currensi);
+        rmap.put("notiList", notify);
+        rmap.put("sysList", sys);
+
+        return rmap;
     }
 
     @Override
