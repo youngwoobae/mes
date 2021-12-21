@@ -25,6 +25,11 @@ public class MatrInfo {
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
+    //발송일시(UnixTime)
+    @Column(name="sendUt" , columnDefinition = "numeric default 0")
+    private Long sendUt;
+
+
     /*자재유형*/
     @Column(name="matrTp")
     private Long matrTp;

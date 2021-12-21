@@ -25,6 +25,10 @@ import java.util.Date;
     @Column(name="custNo" ,nullable = false, columnDefinition = "numeric")
     private Long custNo;
 
+    //발송일시(UnixTime)
+    @Column(name="sendUt" , columnDefinition = "numeric default 0")
+    private Long sendUt;
+
     /*품번*/
     @Column(name="prod_no",nullable = false, columnDefinition = "numeric" )
     private Long prodNo;
@@ -32,6 +36,10 @@ import java.util.Date;
     /*자재번호*/
     @Column(name="matr_no",nullable = false , columnDefinition = "numeric")
     private Long matrNo;
+
+    /*BOM단위:2021.12.21신규추가*/
+    @Column(name="unit_cd", columnDefinition = "numeric default 0")
+    private Long unitCd;
 
     /*함량비율(백분율,소숫점 8자리까지)*/
     @Column(name="consistRt", precision=10, scale=8 )
