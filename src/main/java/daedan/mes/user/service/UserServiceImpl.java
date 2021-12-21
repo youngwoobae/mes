@@ -1,20 +1,17 @@
-package daedan.mes.user.service;
+package daedan.mes.sysmenu.user.service;
 
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
-import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.domain.DeptInfo;
 import daedan.mes.dept.repository.DeptRepository;
-import daedan.mes.purs.domain.PursInfo;
-import daedan.mes.purs.domain.PursMatr;
 import daedan.mes.sysmenu.domain.SysMenu;
 import daedan.mes.sysmenu.service.SysMenuService;
-import daedan.mes.user.domain.*;
-import daedan.mes.user.mapper.UserMapper;
-import daedan.mes.user.repository.*;
+import daedan.mes.sysmenu.user.domain.*;
+import daedan.mes.sysmenu.user.mapper.UserMapper;
+import daedan.mes.sysmenu.user.repository.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -24,10 +21,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
-import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
@@ -113,7 +107,6 @@ public  class UserServiceImpl implements UserService {
 	@Override
 	public UserInfo signin(String mailAddr, String password) {
 		UserInfo userInfo = ur.findByMailAddrAndUsedYn(mailAddr,"Y");
-		log.info(userInfo+"userInfouserInfouserInfouserInfouserInfo");
 		if (userInfo != null) {
 			userInfo.setToken(null);
 			userRepo.save(userInfo);

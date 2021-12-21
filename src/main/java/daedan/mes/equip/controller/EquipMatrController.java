@@ -1,15 +1,15 @@
 package daedan.mes.equip.controller;
 
-import daedan.mes.user.domain.AccHstr;
-import daedan.mes.user.domain.EvntType;
-import daedan.mes.user.domain.UserInfo;
+import daedan.mes.sysmenu.user.domain.AccHstr;
+import daedan.mes.sysmenu.user.domain.EvntType;
+import daedan.mes.sysmenu.user.domain.UserInfo;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.equip.service.EquipBomService;
 import daedan.mes.equip.service.EquipMatrService;
-import daedan.mes.user.service.UserService;
+import daedan.mes.sysmenu.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.ibatis.io.Resources;

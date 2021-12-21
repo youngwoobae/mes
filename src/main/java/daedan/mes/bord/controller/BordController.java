@@ -4,11 +4,12 @@ import daedan.mes.bord.service.BordService;
 import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
-import daedan.mes.user.domain.*;
-import daedan.mes.user.service.UserService;
+import daedan.mes.sysmenu.user.domain.AccHstr;
+import daedan.mes.sysmenu.user.domain.EvntType;
+import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.sysmenu.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.apache.ibatis.io.Resources;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,12 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Properties;
 
 @RestController
 @RequestMapping("/api/daedan/mes/bord")

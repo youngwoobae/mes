@@ -1,4 +1,4 @@
-package daedan.mes.user.mapper;
+package daedan.mes.sysmenu.user.mapper;
 
 
 import org.apache.ibatis.annotations.Mapper;

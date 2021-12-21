@@ -2,11 +2,10 @@ package daedan.mes.cmmn.service;
 
 import daedan.mes.cmmn.mapper.CmmnMapper;
 import daedan.mes.common.service.util.KISA_SEED_CBC;
-import daedan.mes.user.domain.CustInfo;
-import daedan.mes.user.repository.CustInfoRepository;
+import daedan.mes.sysmenu.user.domain.CustInfo;
+import daedan.mes.sysmenu.user.repository.CustInfoRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;

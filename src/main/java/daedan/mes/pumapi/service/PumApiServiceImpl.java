@@ -1,21 +1,25 @@
 package daedan.mes.pumapi.service;
 
+import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.cmpy.domain.CmpyInfo;
 import daedan.mes.cmpy.repository.CmpyRepository;
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
+import daedan.mes.matr.domain.MatrInfo;
 import daedan.mes.pqms.domain.OrdRecv;
 import daedan.mes.pqms.repository.OrdRecvRepository;
 import daedan.mes.prod.domain.ProdInfo;
 import daedan.mes.prod.repository.ProdRepository;
-import daedan.mes.user.domain.CustInfo;
-import daedan.mes.user.domain.UserInfo;
-import daedan.mes.user.repository.CustInfoRepository;
-import daedan.mes.user.repository.UserRepository;
+import daedan.mes.sysmenu.user.domain.CustInfo;
+import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.sysmenu.user.domain.UserType;
+import daedan.mes.sysmenu.user.repository.CustInfoRepository;
+import daedan.mes.sysmenu.user.repository.UserRepository;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
@@ -52,6 +56,233 @@ public class PumApiServiceImpl implements PumApiService {
     @Autowired
     private CodeRepository codeRepo;
 
+    @Autowired
+    private CmmnService cmmnService;
+
+
+    @Transactional
+    @Override
+    public Map<String, Object> syncUser(Map<String, Object> paraMap) {
+        String tag = "PqmsService.sycnProc =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String sender = paraMap.get("sender").toString(); //전송업체 사업자번호(풀무원)
+        String ipaddr = paraMap.get("ipaddr").toString();
+
+        Map<String,Object> rmap = new HashMap<String,Object>();
+        int totalSz = 0; //수신데이터에 기록된 리스트 카운터
+        int apndQty = 0; //추가 카운터
+        int updtQty =0; //수정 카운터
+        int readCnt = 0; //리스트 read 카운터
+        int rsltCd= 0; //처리결과코드
+        StringBuffer buf = new StringBuffer();
+        ArrayList<Map<String, Object>> errList = new ArrayList<Map<String, Object>>();
+        Map<String, Object> ermap = null;
+
+        CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
+        totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
+        Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
+        CustInfo custvo =  custInfoRepo.findBySaupNoAndUsedYn(sender,"Y");
+        List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
+
+        for(Map<String, Object> el : ds) {
+            readCnt++;
+            UserInfo uivo = new UserInfo();
+            uivo.setCustInfo(custvo);
+
+            try {
+                if (!StringUtil.chkSaupNo(civo.getSaupNo()) ) {
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "발송거래처의 사업자번호에 오류가 있습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송거래처의 사업자 번호를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                uivo.setSendUt(Long.parseLong(el.get("sendDt").toString()));
+            }
+            catch(NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송일자를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                uivo.setErpUserNo(el.get("userId").toString());
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "사용자 ID를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                uivo.setMailAddr(el.get("mailAddr").toString());
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "메일주소를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                uivo.setUserNm(el.get("usertNm").toString());
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "사용자명을 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                uivo.setSecrtNo(BCrypt.hashpw(el.get("passwd").toString(), BCrypt.gensalt()));
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "비밀번호를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+
+            try {
+                String cellNo = el.get("cellNo").toString();
+                uivo.setCellNo(cmmnService.encryptStr(custNo,cellNo)); //이동전화(암호화사용)
+            }
+            catch (NullPointerException ne) {
+            }
+            uivo.setUserTp(UserType.valueOf("USER")); /*이용자권한 관리자,사용자,방문객*/
+
+            uivo.setModDt(DateUtils.getCurrentBaseDateTime());
+            uivo.setModId(userId);
+            uivo.setModIp(ipaddr);
+            UserInfo chkvo = userRepo.findByMailAddrAndUsedYn(uivo.getMailAddr(),"Y");
+            if (chkvo != null) {
+                uivo.setUserId(chkvo.getUserId());
+                uivo.setRegDt(chkvo.getRegDt());
+                uivo.setRegId(chkvo.getRegId());
+                uivo.setRegIp(chkvo.getRegIp());
+                updtQty++; //변경 카운터
+            }
+            else {
+                uivo.setUserId(0L);
+                uivo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                uivo.setRegId(userId);
+                uivo.setRegIp(ipaddr);
+                apndQty++; //추가 카운터
+            }
+            uivo.setUsedYn("Y");
+            userRepo.save(uivo);
+        }
+        return rmap;
+    }
+
+    @Transactional
+    @Override
+    public Map<String, Object> syncMatr(Map<String, Object> paraMap) {
+        String tag = "PqmsService.sycnMatr =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String sender = paraMap.get("sender").toString(); //전송업체 사업자번호(풀무원)
+        String ipaddr = paraMap.get("ipaddr").toString();
+
+        Map<String,Object> rmap = new HashMap<String,Object>();
+        int totalSz = 0; //수신데이터에 기록된 리스트 카운터
+        int apndQty = 0; //추가 카운터
+        int updtQty =0; //수정 카운터
+        int readCnt = 0; //리스트 read 카운터
+        int rsltCd= 0; //처리결과코드
+        StringBuffer buf = new StringBuffer();
+        ArrayList<Map<String, Object>> errList = new ArrayList<Map<String, Object>>();
+        Map<String, Object> ermap = null;
+
+        CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
+        totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
+        Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
+        CustInfo custvo =  custInfoRepo.findBySaupNoAndUsedYn(sender,"Y");
+        List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
+
+        for(Map<String, Object> el : ds) {
+            readCnt++;
+            MatrInfo mivo = new MatrInfo();
+            mivo.setCustNo(custNo);
+
+            try {
+                if (!StringUtil.chkSaupNo(civo.getSaupNo()) ) {
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "발송거래처의 사업자번호에 오류가 있습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송거래처의 사업자 번호를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                //mivo.setSendUt(Long.parseLong(el.get("sendDt").toString()));
+            }
+            catch(NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송일자를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            /*
+            mivo.setModDt(DateUtils.getCurrentBaseDateTime());
+            mivo.setModId(userId);
+            mivo.setModIp(ipaddr);
+            MatrInfo chkvo = matrRepo.findByCustNoAndMatrCdAndUsedYn(custNo, mivo.getMatrCd(),"Y");
+            if (chkvo != null) {
+                uivo.setUserId(chkvo.getUserId());
+                uivo.setRegDt(chkvo.getRegDt());
+                uivo.setRegId(chkvo.getRegId());
+                uivo.setRegIp(chkvo.getRegIp());
+                updtQty++; //변경 카운터
+            }
+            else {
+                uivo.setUserId(0L);
+                uivo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                uivo.setRegId(userId);
+                uivo.setRegIp(ipaddr);
+                apndQty++; //추가 카운터
+            }
+            uivo.setUsedYn("Y");
+            userRepo.save(uivo);
+             */
+        }
+        return rmap;
+    }
+
     @Transactional
     @Override
     public Map<String, Object> syncProd(Map<String, Object> paraMap) {
@@ -60,19 +291,17 @@ public class PumApiServiceImpl implements PumApiService {
 
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long userId = Long.parseLong(paraMap.get("userId").toString());
-        String sendCmpyNo = paraMap.get("sendCmpyNo").toString();
+        String sender = paraMap.get("sender").toString(); //전송업체 사업자번호(풀무원)
         String ipaddr = paraMap.get("ipaddr").toString();
         Long oem = Long.valueOf(env.getProperty("ord.oem"));
         Long odm = Long.valueOf(env.getProperty("ord.odm"));
         Long baseSaveTmpr = Long.valueOf(env.getProperty("code.base.save_tmpr_cd"));
 
-
         Map<String,Object> rmap = new HashMap<String,Object>();
 
         int totalSz = 0; //수신데이터에 기록된 리스트 카운터
         int apndQty = 0; //추가 카운터
-        int updtQty = 0; //변경 카운터
-        int recvQty = 0; //수신 카운터
+        int updtQty = 0;
         int readCnt = 0; //리스트 read 카운터
         int rsltCd= 0; //처리결과코드
         StringBuffer buf = new StringBuffer();
@@ -80,7 +309,7 @@ public class PumApiServiceImpl implements PumApiService {
         ArrayList<Map<String, Object>> errList = new ArrayList<Map<String, Object>>();
         Map<String, Object> ermap = null;
         CodeInfo cdvo = null;
-        CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sendCmpyNo,"Y");
+        CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
         totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
         Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
         List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");

@@ -1,4 +1,4 @@
-package daedan.mes.user.domain;
+package daedan.mes.sysmenu.user.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
