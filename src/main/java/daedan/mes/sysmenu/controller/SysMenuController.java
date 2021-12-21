@@ -74,7 +74,8 @@ public class SysMenuController {
         paraMap.put("custNo", custNo);
 
         paraMap.put("authYn",(String) env.getProperty("authYn")); //권한연동
-        List<Map<String,Object>> list = sysMenuService.getSysMenuList(paraMap);
+        HashMap<String, Object> list = sysMenuService.getSysMenuList(paraMap);
+        log.info("%%%%" + list);
         result.setData(list);
 
         //SOL AddOn By KMJ AT 21.11.16
@@ -436,7 +437,7 @@ public class SysMenuController {
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
         paraMap.put("userId",uvo.getUserId());
-        
+
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
