@@ -90,7 +90,7 @@ public class ProdInfo {
     private Long saleUnit;
 
     /*판매단위중량 (유지물산은 kg 기타 g임)*/
-    @Column(name="saleUnitgt", columnDefinition = "numeric" )
+    @Column(name="saleUnitWgt", columnDefinition = "numeric" )
     private Long saleUnitWgt;
 
     /*창고번호 : 제품적재창고 : 나중에 사용할 예정임.*/
@@ -143,6 +143,13 @@ public class ProdInfo {
     //유효기간
     @Column(name="validTerm", columnDefinition = "int" )
     private Integer validTerm;
+    //반제품여부
+    @Column(name="harfprodYn", length = 1 , columnDefinition = "char default 'N'")
+    private String harfProdYn;
+
+    @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
+    private String usedYn;
+
 
     //살균속성(온도,시간)
     @OneToOne (fetch = FetchType.LAZY, optional=true)
@@ -151,6 +158,10 @@ public class ProdInfo {
     //제품속성(연근,진세노사이드,브릭스,고형분,점도,색도등 : 대동고려삼..)
     @OneToOne (fetch = FetchType.LAZY, optional=true)
     private ProdAttr prodAttr;
+
+    //발송일시(UnixTime)
+    @Column(name="sendUt" , columnDefinition = "numeric default 0")
+    private Long sendUt;
 
     //공정내용
     @Column(name="prod_cont", length = 4000)
@@ -176,8 +187,6 @@ public class ProdInfo {
     @Temporal(TemporalType.TIMESTAMP)
     private Date modDt;
 
-    @Column(name="usedYn",nullable = false, length = 1 , columnDefinition = "char default 'Y'")
-    private String usedYn;
 
 
 }

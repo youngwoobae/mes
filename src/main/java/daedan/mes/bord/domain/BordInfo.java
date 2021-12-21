@@ -1,12 +1,9 @@
 package daedan.mes.bord.domain;
 
-import daedan.mes.user.domain.IndsType;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Data

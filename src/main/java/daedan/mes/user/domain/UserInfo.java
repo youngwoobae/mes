@@ -1,12 +1,10 @@
-package daedan.mes.user.domain;
+package daedan.mes.sysmenu.user.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @Data
@@ -109,6 +107,9 @@ public class UserInfo {
     @Column(name="makeSeq", columnDefinition = "numeric default 0")
     private Integer makeSeq;
 
+    //발송일시(UnixTime)
+    @Column(name="sendUt" , columnDefinition = "numeric default 0")
+    private Long sendUt;
 
     @Column(name="regId")
     private Long regId;

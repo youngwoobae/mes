@@ -4,10 +4,10 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.dash.service.Dash03Service;
 import daedan.mes.dash.service.Dash14Service;
-import daedan.mes.user.domain.AccHstr;
-import daedan.mes.user.domain.EvntType;
-import daedan.mes.user.domain.UserInfo;
-import daedan.mes.user.service.UserService;
+import daedan.mes.sysmenu.user.domain.AccHstr;
+import daedan.mes.sysmenu.user.domain.EvntType;
+import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.sysmenu.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,8 +113,8 @@ public class Dash14Controller {
 
         return result;
     }
-    @PostMapping(value="/getUserGroupDashboard")
-    public Result getUserGroupDashboard(@RequestBody Map<String, Object> paraMap  , HttpSession session){
+    @PostMapping(value="/getUserGroupDash")
+    public Result getUserGroupDash(@RequestBody Map<String, Object> paraMap  , HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
         Long custNo = uvo.getCustInfo().getCustNo();

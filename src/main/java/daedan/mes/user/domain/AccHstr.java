@@ -1,4 +1,4 @@
-package daedan.mes.user.domain;
+package daedan.mes.sysmenu.user.domain;
 
 import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.spot.domain.SpotEquip;

@@ -185,7 +185,9 @@ public class Metal10ServiceImpl implements Metal10Service {
             mlvo.setRcvMsg((String) jsonStr.get("msg"));
             mlvo.setEventYn("Y");
             mlvo.setMetalHstrNo(0L);
-            metalLogRepo.save(mlvo);
+            if (Long.parseLong(paraMap.get("stepNo").toString()) == 6) {
+                metalLogRepo.save(mlvo);
+            }
             rmap.put("rsltMsg",jsonStr.get("msg"));
             rmap.put("rsltStat",jsonStr.get("res"));
         } catch (MalformedURLException e) {

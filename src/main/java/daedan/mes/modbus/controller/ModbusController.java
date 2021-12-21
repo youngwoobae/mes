@@ -5,10 +5,10 @@ import daedan.mes.common.domain.Result;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.modbus.service.ModbusService;
-import daedan.mes.user.domain.AccHstr;
-import daedan.mes.user.domain.EvntType;
-import daedan.mes.user.domain.UserInfo;
-import daedan.mes.user.service.UserService;
+import daedan.mes.sysmenu.user.domain.AccHstr;
+import daedan.mes.sysmenu.user.domain.EvntType;
+import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.sysmenu.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController

@@ -1,7 +1,10 @@
-package daedan.mes.user.service;
+package daedan.mes.sysmenu.user.service;
 
 
-import daedan.mes.user.domain.*;
+import daedan.mes.sysmenu.user.domain.AccHstr;
+import daedan.mes.sysmenu.user.domain.CustInfo;
+import daedan.mes.sysmenu.user.domain.EvntType;
+import daedan.mes.sysmenu.user.domain.UserInfo;
 
 import javax.transaction.Transactional;
 import java.util.HashMap;
@@ -89,7 +92,8 @@ public interface UserService {
     @Transactional
     void saveWorkList(Map<String, Object> paraMap);
 
-    @Transactional  AccHstr saveAccHstr(Map<String, Object> paraMap);
+    @Transactional
+    AccHstr saveAccHstr(Map<String, Object> paraMap);
     @Transactional    void saveAccLogEvnt(Long custNo, Long accNo, EvntType evntTp, int transCnt);
 
     @Transactional void deleteAuthUser(Map<String, Object> paraMap);
