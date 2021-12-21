@@ -1,10 +1,10 @@
-package daedan.mes.sysmenu.user.service;
+package daedan.mes.user.service;
 
 
-import daedan.mes.sysmenu.user.domain.AccHstr;
-import daedan.mes.sysmenu.user.domain.CustInfo;
-import daedan.mes.sysmenu.user.domain.EvntType;
-import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.CustInfo;
+import daedan.mes.user.domain.EvntType;
+import daedan.mes.user.domain.UserInfo;
 
 import javax.transaction.Transactional;
 import java.util.HashMap;

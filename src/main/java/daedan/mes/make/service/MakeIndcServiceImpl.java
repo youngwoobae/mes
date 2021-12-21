@@ -32,7 +32,7 @@ import daedan.mes.stock.domain.MatrStk;
 import daedan.mes.stock.repository.MatrPosRepository;
 import daedan.mes.stock.repository.MatrStkRepository;
 import daedan.mes.stock.service.StockService;
-import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.user.domain.UserInfo;
 import lombok.SneakyThrows;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

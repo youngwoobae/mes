@@ -1,7 +1,7 @@
-package daedan.mes.sysmenu.user.repository;
+package daedan.mes.user.repository;
 
 
-import daedan.mes.sysmenu.user.domain.UserWork;
+import daedan.mes.user.domain.UserWork;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserHstrRepository extends JpaRepository<UserWork, Long> {

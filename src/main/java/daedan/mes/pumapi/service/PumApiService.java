@@ -1,6 +1,6 @@
 package daedan.mes.pumapi.service;
 
-import daedan.mes.sysmenu.user.domain.UserInfo;
+import daedan.mes.user.domain.UserInfo;
 
 import javax.transaction.Transactional;
 import java.util.Map;

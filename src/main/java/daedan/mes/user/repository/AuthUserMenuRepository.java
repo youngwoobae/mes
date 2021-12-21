@@ -1,6 +1,6 @@
-package daedan.mes.sysmenu.user.repository;
+package daedan.mes.user.repository;
 
-import daedan.mes.sysmenu.user.domain.AuthUserMenu;
+import daedan.mes.user.domain.AuthUserMenu;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface AuthUserMenuRepository extends JpaRepository<AuthUserMenu, Long> {

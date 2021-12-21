@@ -1,4 +1,4 @@
-package daedan.mes.sysmenu.user.controller;
+package daedan.mes.user.controller;
 
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.repository.CodeRepository;
@@ -9,13 +9,13 @@ import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.dept.service.DeptService;
-import daedan.mes.sysmenu.user.domain.AccHstr;
-import daedan.mes.sysmenu.user.domain.CustInfo;
-import daedan.mes.sysmenu.user.domain.EvntType;
-import daedan.mes.sysmenu.user.domain.UserInfo;
-import daedan.mes.sysmenu.user.repository.CustInfoRepository;
-import daedan.mes.sysmenu.user.repository.UserRepository;
-import daedan.mes.sysmenu.user.service.UserService;
+import daedan.mes.user.domain.AccHstr;
+import daedan.mes.user.domain.CustInfo;
+import daedan.mes.user.domain.EvntType;
+import daedan.mes.user.domain.UserInfo;
+import daedan.mes.user.repository.CustInfoRepository;
+import daedan.mes.user.repository.UserRepository;
+import daedan.mes.user.service.UserService;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.json.simple.JSONObject;

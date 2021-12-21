@@ -1,7 +1,7 @@
 package daedan.mes.sysmenu.service;
 
 import daedan.mes.sysmenu.domain.SysMenu;
-import daedan.mes.sysmenu.user.domain.AccHstr;
+import daedan.mes.user.domain.AccHstr;
 
 import javax.transaction.Transactional;
 import java.util.List;

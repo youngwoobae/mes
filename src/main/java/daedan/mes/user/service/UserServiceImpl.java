@@ -1,4 +1,4 @@
-package daedan.mes.sysmenu.user.service;
+package daedan.mes.user.service;
 
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.domain.CodeInfo;
@@ -9,9 +9,9 @@ import daedan.mes.dept.domain.DeptInfo;
 import daedan.mes.dept.repository.DeptRepository;
 import daedan.mes.sysmenu.domain.SysMenu;
 import daedan.mes.sysmenu.service.SysMenuService;
-import daedan.mes.sysmenu.user.domain.*;
-import daedan.mes.sysmenu.user.mapper.UserMapper;
-import daedan.mes.sysmenu.user.repository.*;
+import daedan.mes.user.mapper.UserMapper;
+import daedan.mes.user.domain.*;
+import daedan.mes.user.repository.*;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.poi.xssf.usermodel.XSSFRow;

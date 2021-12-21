@@ -1,4 +1,4 @@
-package daedan.mes.sysmenu.user.domain;
+package daedan.mes.user.domain;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;

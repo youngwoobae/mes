@@ -1,6 +1,6 @@
-package daedan.mes.sysmenu.user.repository;
+package daedan.mes.user.repository;
 
-import daedan.mes.sysmenu.user.domain.CustInfo;
+import daedan.mes.user.domain.CustInfo;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CustInfoRepository  extends JpaRepository<CustInfo, Long> {
