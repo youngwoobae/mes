@@ -73,7 +73,7 @@
         <if test="level != null and level != ''">
             AND level = #{level}
         </if>
---         AND par_sys_menu_no = NULL
+        AND par_sys_menu_no = #{parSysMenuNo}
         order by path,prt_seq
     </select>
 
