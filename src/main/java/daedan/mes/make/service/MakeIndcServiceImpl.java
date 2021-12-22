@@ -283,7 +283,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     }
 
-    @Transactional
+//    @Transactional
     @Override
     public Long saveMakeIndcFull(Map<String, Object> paraMap) { //상품정보에 설정된 제조공정 전체를 생성
         String tag = "makeIndcService.saveMakeIndcFull ==> ";
@@ -602,7 +602,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             //하담푸드의 경우 vol과 mess 구분 X
             try {
                 if (custNo == 3 || custNo == 2) {
-                    val = chk.getVol() * 0.001F;
+                    val = chk.getVol();
                 } else {
                     val = chk.getVol();
                 }
@@ -755,7 +755,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             //} //Remarked By KMJ At 21.10.25
             //}catch(NullPointerException e){ //Remarked By KMJ At 21.10.25
             //   val = chk.getVol(); //Remarked By KMJ At 21.10.25
-            //} //Remarked By KMJ At 21.10.25
+            //} //Remarked By KMJ At 21.10.25saveMakeIndcFull
         }
 
         try {
@@ -771,12 +771,11 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
 
         if (indcQty == 0) {
-
             mivo.setIndcWgt(indcWgt);
             if (custNo == 2) {
                 mivo.setIndcQty((indcWgt));
             } else {
-                mivo.setIndcQty(indcWgt / val);
+                mivo.setIndcQty((indcWgt * 1000) / (val * chk.getQtyPerPkg()));
             }
 
         } else {

@@ -65,9 +65,6 @@
                                    and e.used_yn = 'Y' and e.cust_no =#{custNo}
                          join proc_info d on a.proc_cd = d.proc_cd
                                       and d.used_yn = 'Y' and d.cust_no =#{custNo}
-                         join proc_brnch x on x.brnch_no = e.brnch_no
-                                         and x.proc_cd = a.proc_cd
-                                         and x.used_yn = 'Y' and x.cust_no =#{custNo}
                     left join (select count(mo.matr_no) as mo_matr_cnt
                                       ,mo.indc_no
                                 from matr_owh mo
@@ -146,7 +143,7 @@
         <if test="findSz != null and findSz != ''">
             and upper(replace(e.prod_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
         </if>
-        order by  proc_cd, indc_dt desc, prod_no
+        order by indc_dt desc, prod_no
         limit #{pageSz} offset #{pageNo}
     </select>
 
@@ -191,9 +188,6 @@
                                          and e.used_yn = 'Y' and e.cust_no =#{custNo}
                          join proc_info d on a.proc_cd = d.proc_cd
                                          and d.used_yn = 'Y' and d.cust_no =#{custNo}
-                         join proc_brnch x on x.brnch_no = e.brnch_no
-                                         and x.proc_cd = a.proc_cd
-                                         and x.used_yn = 'Y' and x.cust_no =#{custNo}
                     left join (select count(mo.matr_no) as mo_matr_cnt
                                      ,mo.indc_no
                                  from matr_owh mo
