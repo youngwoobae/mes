@@ -7,6 +7,8 @@ import daedan.mes.user.domain.AccHstr;
 import daedan.mes.user.domain.EvntType;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.service.UserService;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,6 +22,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/daedan/mes/puwapi")
 public class PumApiController {
+
+    private Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
     PumApiService pumApiService;
@@ -41,21 +45,12 @@ public class PumApiController {
         String sender = paraMap.get("sender").toString();
         UserInfo uvo = pumApiService.getUserInfoBySaupNo(saupNo);
         Long custNo = uvo.getCustInfo().getCustNo();
+        log.info("syncUser.custNo = " + custNo);
         paraMap.put("userId", uvo.getUserId());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         paraMap.put("custNo", custNo);
         paraMap.put("sender", sender);
         result.setData(pumApiService.syncUser(paraMap));
-
-        //SOL AddOn By KMJ AT 21.11.16
-        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
-            try {
-                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
-            } catch (NullPointerException ne) {
-            }
-        }
-        //EOL AddON By KMJ AT 21.11.26
         return result;
     }
 
@@ -63,12 +58,11 @@ public class PumApiController {
      * 풀무원 원자재정보 동기화
      *
      * @param paraMap
-     * @param session
      * @param request
      * @return Result
      */
     @PostMapping(value = "/syncMatr")
-    public Result syncMatr(@RequestBody Map<String, Object> paraMap, HttpSession session, HttpServletRequest request) {
+    public Result syncMatr(@RequestBody Map<String, Object> paraMap, HttpServletRequest request) {
         Result result = Result.successInstance();
         String saupNo = paraMap.get("saupNo").toString();
         String sender = paraMap.get("sender").toString();
@@ -112,6 +106,29 @@ public class PumApiController {
             }
         }
         //EOL AddON By KMJ AT 21.11.26
+        return result;
+    }
+
+
+    /**
+     * 풀무원 원자재정보 동기화
+     *
+     * @param paraMap
+     * @param request
+     * @return Result
+     */
+    @PostMapping(value = "/syncBom")
+    public Result syncBom(@RequestBody Map<String, Object> paraMap, HttpServletRequest request) {
+        Result result = Result.successInstance();
+        String saupNo = paraMap.get("saupNo").toString();
+        String sender = paraMap.get("sender").toString();
+        UserInfo uvo = pumApiService.getUserInfoBySaupNo(saupNo);
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("userId", uvo.getUserId());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("custNo", custNo);
+        paraMap.put("sender", sender);
+        result.setData(pumApiService.syncBom(paraMap));
         return result;
     }
     /**

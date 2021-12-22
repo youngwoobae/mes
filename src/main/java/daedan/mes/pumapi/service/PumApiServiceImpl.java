@@ -8,9 +8,12 @@ import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.matr.domain.MatrInfo;
+import daedan.mes.matr.repository.MatrRepository;
 import daedan.mes.pqms.domain.OrdRecv;
 import daedan.mes.pqms.repository.OrdRecvRepository;
+import daedan.mes.prod.domain.ProdBom;
 import daedan.mes.prod.domain.ProdInfo;
+import daedan.mes.prod.repository.ProdBomRepository;
 import daedan.mes.prod.repository.ProdRepository;
 import daedan.mes.user.domain.CustInfo;
 import daedan.mes.user.domain.UserInfo;
@@ -33,7 +36,7 @@ import java.util.Map;
 @Service("pumApiService")
 public class PumApiServiceImpl implements PumApiService {
 
-    private Log log = LogFactory.getLog(this.getClass());
+    private final Log log = LogFactory.getLog(this.getClass());
 
     @Autowired
     private Environment env;
@@ -49,6 +52,13 @@ public class PumApiServiceImpl implements PumApiService {
 
     @Autowired
     private ProdRepository prodRepo;
+
+    @Autowired
+    private MatrRepository matrRepo;
+
+    @Autowired
+    private ProdBomRepository prodBomRepo;
+
 
     @Autowired
     private OrdRecvRepository ordRecvRepo;
@@ -71,7 +81,7 @@ public class PumApiServiceImpl implements PumApiService {
         String sender = paraMap.get("sender").toString(); //전송업체 사업자번호(풀무원)
         String ipaddr = paraMap.get("ipaddr").toString();
 
-        Map<String,Object> rmap = new HashMap<String,Object>();
+        Map<String,Object> rmap = new HashMap<>();
         int totalSz = 0; //수신데이터에 기록된 리스트 카운터
         int apndQty = 0; //추가 카운터
         int updtQty =0; //수정 카운터
@@ -82,7 +92,7 @@ public class PumApiServiceImpl implements PumApiService {
         Map<String, Object> ermap = null;
 
         CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
-        totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
+        totalSz  = Integer.parseInt(paraMap.get("listSize").toString());
         Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
         CustInfo custvo =  custInfoRepo.findBySaupNoAndUsedYn(sender,"Y");
         List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
@@ -110,7 +120,7 @@ public class PumApiServiceImpl implements PumApiService {
                 continue;
             }
             try {
-                uivo.setSendUt(Long.parseLong(el.get("sendDt").toString()));
+                uivo.setSendUt(sendDt);
             }
             catch(NullPointerException ne) {
                 ermap = new HashMap<String, Object>();
@@ -143,7 +153,7 @@ public class PumApiServiceImpl implements PumApiService {
                 continue;
             }
             try {
-                uivo.setUserNm(el.get("usertNm").toString());
+                uivo.setUserNm(el.get("userNm").toString());
             }
             catch (NullPointerException ne) {
                 ermap = new HashMap<String, Object>();
@@ -172,6 +182,38 @@ public class PumApiServiceImpl implements PumApiService {
             catch (NullPointerException ne) {
             }
             uivo.setUserTp(UserType.valueOf("USER")); /*이용자권한 관리자,사용자,방문객*/
+            try {
+                uivo.setMatrInspYn(el.get("matrInspYn").toString());
+            }
+            catch (NullPointerException ne) {
+                uivo.setMatrInspYn("N");
+            }
+            try {
+                uivo.setProdInspYn(el.get("prodInspYn").toString());
+            }
+            catch (NullPointerException ne) {
+                uivo.setProdInspYn("N");
+            }
+
+            try {
+                uivo.setOcpnKind(Long.valueOf(el.get("ocpnKind").toString()));
+            }
+            catch (NullPointerException ne) {
+                uivo.setOcpnKind(Long.valueOf(env.getProperty("ocpn_kind_white")));
+            }
+            catch (NumberFormatException ne) {
+                uivo.setOcpnKind(Long.valueOf(env.getProperty("ocpn_kind_white")));
+            }
+
+            try {
+                uivo.setEmplKind(Long.valueOf(el.get("emplKind").toString()));
+            }
+            catch (NullPointerException  ne) {
+                uivo.setEmplKind(Long.valueOf(env.getProperty("empl_kind_domestic")));
+            }
+            catch (NumberFormatException ne) {
+                uivo.setEmplKind(Long.valueOf(env.getProperty("empl_kind_domestic")));
+            }
 
             uivo.setModDt(DateUtils.getCurrentBaseDateTime());
             uivo.setModId(userId);
@@ -179,6 +221,8 @@ public class PumApiServiceImpl implements PumApiService {
             UserInfo chkvo = userRepo.findByMailAddrAndUsedYn(uivo.getMailAddr(),"Y");
             if (chkvo != null) {
                 uivo.setUserId(chkvo.getUserId());
+                uivo.setMatrInspYn(chkvo.getMatrInspYn());
+                uivo.setProdInspYn(chkvo.getMatrInspYn());
                 uivo.setRegDt(chkvo.getRegDt());
                 uivo.setRegId(chkvo.getRegId());
                 uivo.setRegIp(chkvo.getRegIp());
@@ -193,6 +237,14 @@ public class PumApiServiceImpl implements PumApiService {
             }
             uivo.setUsedYn("Y");
             userRepo.save(uivo);
+        }
+        rmap.put("send", totalSz);
+        rmap.put("recv", readCnt);
+        rmap.put("apnd", apndQty);
+        rmap.put("updt", updtQty);
+        rmap.put("rsltCd",rsltCd);
+        if (rsltCd  == -1) {
+            rmap.put("errList", errList);
         }
         return rmap;
     }
@@ -219,7 +271,7 @@ public class PumApiServiceImpl implements PumApiService {
         Map<String, Object> ermap = null;
 
         CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
-        totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
+        totalSz  = Integer.parseInt(paraMap.get("listSize").toString());
         Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
         CustInfo custvo =  custInfoRepo.findBySaupNoAndUsedYn(sender,"Y");
         List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
@@ -247,7 +299,7 @@ public class PumApiServiceImpl implements PumApiService {
                 continue;
             }
             try {
-                //mivo.setSendUt(Long.parseLong(el.get("sendDt").toString()));
+                mivo.setSendUt(sendDt);
             }
             catch(NullPointerException ne) {
                 ermap = new HashMap<String, Object>();
@@ -257,28 +309,107 @@ public class PumApiServiceImpl implements PumApiService {
                 rsltCd = -1;
                 continue;
             }
-            /*
+            try {
+                mivo.setItemCd(el.get("itemCd").toString());
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "원자재명 코드를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+
+            try {
+                mivo.setMatrNm(el.get("matrNm").toString());
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "원자재명을 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                 mivo.setMatrTp(Long.parseLong(el.get("matrTp").toString()));
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "원자재명을 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                mivo.setSaveTmpr(Long.parseLong(el.get("saveTmpr").toString()));
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "보관온도 코드를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                mivo.setVol(Float.parseFloat(el.get("vol").toString()));
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "단위용량을 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                mivo.setSz(el.get("sz").toString());
+            }
+            catch (NullPointerException ne) {
+
+            }
+            try {
+                mivo.setValidTerm(Long.parseLong(el.get("validTerm").toString()));
+            }
+            catch (NullPointerException ne) {
+                mivo.setValidTerm(12L);
+            }
+            try {
+                mivo.setBrnchNo(Long.parseLong(el.get("brnchNo").toString()));
+            }
+            catch (NullPointerException ne) {
+                mivo.setBrnchNo(0L);
+            }
             mivo.setModDt(DateUtils.getCurrentBaseDateTime());
             mivo.setModId(userId);
             mivo.setModIp(ipaddr);
-            MatrInfo chkvo = matrRepo.findByCustNoAndMatrCdAndUsedYn(custNo, mivo.getMatrCd(),"Y");
+            MatrInfo chkvo = matrRepo.findByCustNoAndItemCdAndUsedYn(custNo, mivo.getItemCd(),"Y");
             if (chkvo != null) {
-                uivo.setUserId(chkvo.getUserId());
-                uivo.setRegDt(chkvo.getRegDt());
-                uivo.setRegId(chkvo.getRegId());
-                uivo.setRegIp(chkvo.getRegIp());
+                mivo.setRegId(chkvo.getRegId());
+                mivo.setRegDt(chkvo.getRegDt());
+                mivo.setRegIp(chkvo.getRegIp());
                 updtQty++; //변경 카운터
             }
             else {
-                uivo.setUserId(0L);
-                uivo.setRegDt(DateUtils.getCurrentBaseDateTime());
-                uivo.setRegId(userId);
-                uivo.setRegIp(ipaddr);
+                mivo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                mivo.setRegId(userId);
+                mivo.setRegIp(ipaddr);
                 apndQty++; //추가 카운터
             }
-            uivo.setUsedYn("Y");
-            userRepo.save(uivo);
-             */
+            mivo.setUsedYn("Y");
+            mivo.setCustNo(custNo);
+            matrRepo.save(mivo);
+        }
+        rmap.put("send", totalSz);
+        rmap.put("recv", readCnt);
+        rmap.put("apnd", apndQty);
+        rmap.put("updt", updtQty);
+        rmap.put("rsltCd",rsltCd);
+        if (rsltCd  == -1) {
+            rmap.put("errList", errList);
         }
         return rmap;
     }
@@ -310,7 +441,7 @@ public class PumApiServiceImpl implements PumApiService {
         Map<String, Object> ermap = null;
         CodeInfo cdvo = null;
         CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
-        totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
+        totalSz  = Integer.parseInt(paraMap.get("listSize").toString());
         Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
         List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
         for(Map<String, Object> el : ds) {
@@ -502,6 +633,227 @@ public class PumApiServiceImpl implements PumApiService {
         }
         return rmap;
     }
+    @Transactional
+    @Override
+    public Map<String, Object> syncBom(Map<String, Object> paraMap) {
+        String tag = "PqmsService.sycnProc =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String sender = paraMap.get("sender").toString(); //전송업체 사업자번호(풀무원)
+        String ipaddr = paraMap.get("ipaddr").toString();
+        Long oem = Long.valueOf(env.getProperty("ord.oem"));
+        Long odm = Long.valueOf(env.getProperty("ord.odm"));
+        Long baseSaveTmpr = Long.valueOf(env.getProperty("code.base.save_tmpr_cd"));
+
+        Map<String,Object> rmap = new HashMap<String,Object>();
+
+        int totalSz = 0; //수신데이터에 기록된 리스트 카운터
+        int apndQty = 0; //추가 카운터
+        int updtQty = 0;
+        int readCnt = 0; //리스트 read 카운터
+        int rsltCd= 0; //처리결과코드
+        StringBuffer buf = new StringBuffer();
+        Long baseUnitBom = Long.parseLong(env.getProperty("code.base.unit_bom"));
+        ArrayList<Map<String, Object>> errList = new ArrayList<Map<String, Object>>();
+        Map<String, Object> ermap = null;
+        CodeInfo cdvo = null;
+        CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sender,"Y");
+        totalSz  = Integer.parseInt(paraMap.get("listSize").toString());
+        Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
+        Long matrTp = 0L;
+
+        List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
+        for(Map<String, Object> el : ds) {
+            readCnt++;
+            ProdBom bomvo = new ProdBom();
+            bomvo.setCustNo(custNo);
+            try {
+                if (!StringUtil.chkSaupNo(civo.getSaupNo()) ) {
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "발송거래처의 사업자번호에 오류가 있습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+                //bomvo.setCmpyNo(civo.getCmpyNo()); //발송처거래처번호 (ex:풀무원)
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송거래처의 사업자번호에 오류가 있습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                bomvo.setSendUt(sendDt);
+            }
+            catch(NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송일자를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                String prodCode = el.get("prodCode").toString();
+                ProdInfo pivo = prodRepo.findByCustNoAndProdCodeAndUsedYn(custNo,prodCode,"Y");
+                if (pivo != null) {
+                    bomvo.setProdNo(pivo.getProdNo());
+                }
+                else {
+                    ermap = new HashMap<String, Object>();
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "제품코드가 존재하지 않않습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "제품코드를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                String itemCd = el.get("itemCd").toString();
+                MatrInfo mivo = matrRepo.findByCustNoAndItemCdAndUsedYn(custNo,itemCd,"Y");
+                if (mivo != null) {
+                    bomvo.setMatrNo(mivo.getMatrNo());
+                    matrTp = mivo.getMatrTp();
+                }
+                else {
+                    ermap = new HashMap<String, Object>();
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "원자재코드가 존재하지 않습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "원자재코드를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+
+            }
+            try {
+                if (matrTp == Long.parseLong(env.getProperty("submatr_cd"))) {
+                    bomvo.setNeedQty(Float.valueOf(el.get("needQty").toString()));
+                }
+                else {
+                    bomvo.setConsistRt(Float.valueOf(el.get("consistRt").toString()));
+                }
+            }
+            catch (NumberFormatException ne) {
+                String msg = (matrTp == Long.parseLong(env.getProperty("submatr_cd"))) ? "자재소요량에 오류가 있습니다" : "원료구성비율에 오류가 있습니다";
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", msg);
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            catch (NullPointerException ne) {
+                String msg = (matrTp == Long.parseLong(env.getProperty("submatr_cd"))) ? "자재소요량을 탖을 수 없습니다" : "원료구성비율을 찾을 수 없습니다.";
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", msg);
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+
+            try {
+                String szUnitCd = el.get("unitCd").toString();
+                CodeInfo cvo = codeRepo.findByParCodeNoAndCodeNmAndUsedYn(baseUnitBom,szUnitCd,"Y");
+                if (cvo != null) {
+                    bomvo.setUnitCd(cvo.getCodeNo());
+                }
+                else {
+                    ermap = new HashMap<String, Object>();
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "BOM 단위가 존재하지 않습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch (NumberFormatException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "BOM 단위를 찾을 수 없습니다..");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+
+            try {
+                bomvo.setPursYn(el.get("pursYn").toString());
+            }
+            catch (NumberFormatException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "구매 필요 여부를 찾을 수 없습니다..");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+
+            try {
+                bomvo.setBomLvl(Long.valueOf(el.get("bomLvl").toString()));
+            }
+            catch (NumberFormatException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "BOM Level을 찾을 수 없습니다..");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "BOM Level을 찾을 수 없습니다..");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+
+            bomvo.setUsedYn("Y");
+            bomvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            bomvo.setModId(userId);
+            bomvo.setModIp(ipaddr);
+
+            ProdBom chkvo = prodBomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(bomvo.getCustNo(), bomvo.getProdNo(), bomvo.getMatrNo(), "Y");
+            if (chkvo != null) {
+                bomvo.setBomNo(chkvo.getBomNo());
+                bomvo.setRegIp(chkvo.getRegIp());
+                bomvo.setRegId(chkvo.getRegId());
+                bomvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+
+            }
+        }
+        rmap.put("send", totalSz);
+        rmap.put("recv", readCnt);
+        rmap.put("apnd", apndQty);
+        rmap.put("updt", updtQty);
+        rmap.put("rsltCd",rsltCd);
+        if (rsltCd  == -1) {
+            rmap.put("errList", errList);
+        }
+        return rmap;
+
+    }
 
     @Transactional
     @Override
@@ -526,7 +878,7 @@ public class PumApiServiceImpl implements PumApiService {
         Map<String, Object> ermap = null;
         CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sendCmpyNo,"Y");
 
-        totalSz  = Integer.parseInt(paraMap.get("totalSize").toString());
+        totalSz  = Integer.parseInt(paraMap.get("listSize").toString());
         Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
         List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
         for(Map<String, Object> el : ds) {
@@ -627,8 +979,10 @@ public class PumApiServiceImpl implements PumApiService {
         CustInfo cvo = custInfoRepo.findBySaupNoAndUsedYn(saupNo,"Y");
         if (cvo != null) {
             uvo = userRepo.findByMailAddrAndUsedYn(cvo.getAutoSignId(),"Y");
+            uvo.setCustInfo(custInfoRepo.findBySaupNoAndUsedYn(saupNo,"Y"));
         }
         return uvo;
     }
+
 
 }
