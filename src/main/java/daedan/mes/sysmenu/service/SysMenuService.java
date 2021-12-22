@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface SysMenuService {
-    HashMap<String, Object> getSysMenuList(Map<String, Object> map);
+    List<Map<String, Object>> getSysMenuList(Map<String, Object> map);
     int getSysMenuListCount(Map<String, Object> paraMap);
     List<Map<String, Object>> getActMenuList(Map<String, Object> map);
     SysMenu getSysMenuToVo(Map<String, Object> map);

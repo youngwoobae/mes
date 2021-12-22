@@ -74,8 +74,7 @@ public class SysMenuController {
         paraMap.put("custNo", custNo);
 
         paraMap.put("authYn",(String) env.getProperty("authYn")); //권한연동
-        HashMap<String, Object> list = sysMenuService.getSysMenuList(paraMap);
-        log.info("%%%%" + list);
+        List<Map<String, Object>> list = sysMenuService.getSysMenuList(paraMap);
         result.setData(list);
 
         //SOL AddOn By KMJ AT 21.11.16
