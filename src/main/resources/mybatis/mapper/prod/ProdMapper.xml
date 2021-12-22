@@ -903,8 +903,9 @@
         from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y' and k.cust_no = #{custNo}
                         join prod_bom b on a.prod_no = b.prod_no
                                         and b.prod_no = #{prodNo}
-                                        and b.cust_no = #{custNo}
+                                        and b.cust_no = #{custNo}　
                                         and b.purs_yn = 'Y'
+                                        and b.used_yn = 'Y'
                         join prod_info c on b.prod_no = c.prod_no and c.used_yn = 'Y'  and c.cust_no = #{custNo}
                         join matr_info d on b.matr_no = d.matr_no and d.used_yn = 'Y'  and d.cust_no = #{custNo}
                    left join ( select matr_no, sum(stk_qty) as stk_qty
