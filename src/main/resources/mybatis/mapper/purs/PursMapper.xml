@@ -889,5 +889,13 @@
 	    then 'Y' else 'N' end as purs_type
     </select>
 
+    <select id="getMakeIndcPursList" parameterType="map"  resultType="camelMap">
+        select *
+        from purs_info a
+        where a.cust_no = #{custNo}
+        and a.indc_no = #{indcNo}
+        and a.used_yn = 'Y'
+    </select>
+
 </mapper>
 

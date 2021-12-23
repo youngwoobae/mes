@@ -13,6 +13,8 @@ import java.util.Map;
 public interface PursMapper {
     List<Map<String, Object>> getPursList(Map<String, Object> paraMap);
 
+    List<Map<String, Object>> getMakeIndcPursList(Map<String, Object> paraMap);
+
     int getPursListCount(Map<String, Object> paraMap);
 
     Map<String, Object> getPursInfo(Map<String, Object> paraMap);
