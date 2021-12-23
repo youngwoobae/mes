@@ -669,7 +669,7 @@
              , b.prod_nm --품명
              , coalesce(a.purs_no,0) as purs_no --구매번호
              --, a.ord_qty Remarked By KMJ AT 2021.08.29 10:52
-             , case when coalesce(b.qty_per_pkg,0) = 0 then a.ord_qty else a.ord_qty / b.qty_per_pkg end as ord_qty --AddOn By KMJ AT 2021.08.29 10:52
+             , a.ord_qty
              , to_char(c.dlv_req_dt, 'YYYY-MM-DD') as dlv_req_dt
              , case when b.prod_tp = 36 then coalesce(e.cmpy_nm,'계획생산') else j.cmpy_nm end as cmpy_nm --거래처명
              , c.ord_dt
