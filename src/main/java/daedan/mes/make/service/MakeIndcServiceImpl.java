@@ -712,7 +712,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
 
 
-        procCd = Long.parseLong(paraMap.get("procCd").toString()); //공정코드목록
+        procCd = Long.parseLong(paraMap.get("proc_cd").toString()); //공정코드목록 카멜 수정 하지 말것
         mivo.setProcCd(procCd);
         if (mivo.getParIndcNo() == 0L) {
             MakeIndc chkvo = makeIndcRepo.findByCustNoAndParIndcNoAndIndcNoAndProcCdAndUsedYn(custNo, mivo.getParIndcNo(), mivo.getIndcNo(), mivo.getProcCd(), "Y");
