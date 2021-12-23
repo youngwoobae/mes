@@ -682,7 +682,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         mivo.setUsedYn("Y");
 
         try {
-            mivo.setParIndcNo(Long.parseLong(paraMap.get("parIndcNo").toString()));
+            mivo.setParIndcNo(Long.parseLong(paraMap.get("par_indc_no").toString()));
         } catch (NullPointerException ne) {
             mivo.setParIndcNo(0L);
         }
@@ -1402,6 +1402,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         String tag = "MakeIndcService.saveReqMatr==>";
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long confirmPurs = 0L;
+        if (Long.parseLong(paraMap.get("par_indc_no").toString()) != 0L) return null;
         /*이하 두줄 remarked 된 이유 : 작업지시 제품의 bom을 기반으로 구매요청뙨 자재가 미출고된 상태에서 다시 동일 자제를
         사용하는 상품 작업지시가 이루어진 경우 미출고된 자료가 재고로 인식되어 구매요청이 이루어 지지 않은 경우가 발생함.
         이하 4줄 추가 다시 복구함:21.02.26
@@ -1455,6 +1456,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 //        그렇지 않은 경우 작업처리용으로 입고된 자료가 재고로 잡혀 자재입고 대상에서 제외되는 경우가 발생함.
             }
             pmvo = new PursMatr();
+            pmvo.setPursSts(confirmPurs);
             pmvo.setPursNo(pivo.getPursNo());
             pmvo.setMatrNo(Long.parseLong(el.get("matrNo").toString()));
             pmvo.setCmpyNo(0L);//구매거래처는 입고 검수 시점에 MatrIwh.cmptyNo와 함꼐 설정해야 함.
