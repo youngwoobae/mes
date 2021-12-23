@@ -982,7 +982,7 @@
         <if test="dateFr != null">
             and to_char(i.make_dt,'YYYY-MM-DD') =  substring(#{dateFr},1,10)
         </if>
-        order by g.code_nm collate "ko_KR.utf8"
+        order by g.code_nm
     </select>
 
     <select id="getmakeIndcExcelList" parameterType="map" resultType="camelMap">
