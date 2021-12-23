@@ -50,7 +50,7 @@
              , b.max_make_qty --일간최대 생산량
              , a.ccp_tp --관리공정
         from code_info a join proc_info b  on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
-                         join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
+                    left join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
                          <if test="brnchNo != null and brnchNo != ''">
                             and c.brnch_no = #{brnchNo}
                          </if>
@@ -72,23 +72,22 @@
     <select id="getProcBrnchListCount" parameterType="map" resultType="int">
         select count(a.code_no)
         from (  select a.code_no
-                from code_info a join proc_info b on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
+                from code_info a join proc_info b  on a.code_no = b.proc_cd and b.used_yn = 'Y' and b.cust_no = #{custNo}
                             left join proc_brnch c on b.proc_cd = c.proc_cd and c.cust_no = #{custNo}
-                                <if test="brnchNo != null and brnchNo != ''">
-                                    and c.brnch_no = #{brnchNo}
-                                    </if>
-                                <if test="mngrYn != null and mngrYn != ''">
-                                   and c.used_yn = #{mngrYn}
-                                </if>
-                          left join code_info d on c.proc_grp_cd  = d.code_no
+                            <if test="brnchNo != null and brnchNo != ''">
+                                and c.brnch_no = #{brnchNo}
+                            </if>
+                            <if test="mngrYn!= null and mngrYn != ''">
+                                and c.used_yn = #{mngrYn}
+                            </if>
+                            left join code_info d on c.proc_grp_cd  = d.code_no
                 where a.par_code_no  = #{parCodeNo} --공정모코드(720)
+                and a.used_yn  = 'Y'
                 <if test="findSz != null and findSz != ''">
                     <if test="findTp != null and findTp == 'procNm'">
                         and upper(replace(a.code_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
                     </if>
                 </if>
-
-                and a.used_yn  = 'Y'
         ) a
     </select>
 
