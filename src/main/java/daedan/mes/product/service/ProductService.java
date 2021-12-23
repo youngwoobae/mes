@@ -1,5 +1,6 @@
 package daedan.mes.product.service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 
@@ -16,4 +17,9 @@ public interface ProductService {
     List<Map<String, Object>> getProductIndcList(Map<String, Object> paraMap);
 
     void saveProductIndc(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getPursMatrListByIndc(Map<String, Object> paraMap);
+
+    @Transactional
+    Long expectMakeIndc(Map<String, Object> paraMap);
 }

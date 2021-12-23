@@ -74,4 +74,22 @@
             </if>
         ) a
     </select>
+
+
+    <select id="chkStkByIndc" parameterType="map"  resultType="camelMap">
+        /*BOM기반 소요자재의 구매필요 목록 추출 (productMapper.chkStkByIndc) */
+        select a.matr_no --자재번호
+             , d.matr_nm --자재명
+             , d.purs_unit --구매단위
+             , coalesce (max(d.vol),1) as vol --자재별단위용량(mess값이 없는 경우 프로세스 오류 발생함)
+             , sum(a.need_qty)  as need_qty   --생산지시량
+             , max(coalesce (f.stk_qty,0)) as stk_qty --현재고량
+             , max(coalesce (f.stk_qty,0))  - ceil(sum(a.need_qty)) as req_purs_qty --구매필요량
+        from make_indc_matr a join matr_info d on a.matr_no = d.matr_no and d.cust_no = a.custNo
+                         left join matr_stk f on a.matr_no = f.matr_no and f.cust_no = a.custNo
+        where a.used_yn = 'Y'
+          and a.cust_no = #{custNo}
+          and a.indc_no = #{indcNo}
+        group by a.matr_no, d.matr_nm, d.purs_unit
+    </select>
 </mapper>

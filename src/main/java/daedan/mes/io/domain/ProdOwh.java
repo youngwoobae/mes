@@ -20,7 +20,11 @@ public class ProdOwh {
     @Column(name="custNo", columnDefinition = "numeric default 0")
     private Long custNo;
 
-    /*입고번호 : 제품유효기간관ㄹ에서 사용하기 위함:2021.11.03 추가  */
+    //발송일시(UnixTime)
+    @Column(name="sendUt" , columnDefinition = "numeric default 0")
+    private Long sendUt;
+
+    /*입고번호 : 제품유효기간관리에서 사용하기 위함:2021.11.03 추가  */
     @Column(name="iwhNo", columnDefinition = "numeric default 0")
     private Long iwhNo;
 
