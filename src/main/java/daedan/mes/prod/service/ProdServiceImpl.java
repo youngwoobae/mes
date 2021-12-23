@@ -784,6 +784,12 @@ public class ProdServiceImpl implements  ProdService {
         bomvo.setCustNo(Long.parseLong(paraMap.get("custNo").toString())); //AddOn By KMJ At 21.10.21
         bomvo.setUsedYn("Y");
         bomvo.setCustNo(custNo);
+        bomvo.setConsistQty(0F);
+//        try{
+//            bomvo.setConsistQty(Float.parseFloat(paraMap.get("consistQty").toString()));
+//        }catch (NullPointerException ne){
+//
+//        }
         ProdBom chkvo = bomRepo.findByCustNoAndProdNoAndMatrNoAndUsedYn(custNo, bomvo.getProdNo(), bomvo.getMatrNo(), "Y");
         if (chkvo != null) {
             bomvo.setBomNo(chkvo.getBomNo());

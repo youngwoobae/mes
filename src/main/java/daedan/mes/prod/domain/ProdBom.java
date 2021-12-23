@@ -46,7 +46,7 @@ import java.util.Date;
     private  float consistRt;
 
     /*구성수량 (부자재인경우 함량비율 대신 사용됨)*/
-    @Column(name="consistQty", precision=8, scale=2)
+    @Column(name="consistQty", precision=8, scale=2 , columnDefinition = "numeric default 0")
     private  float consistQty;
 
     /*사요처가 불분명함.*/
