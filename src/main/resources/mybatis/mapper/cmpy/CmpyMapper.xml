@@ -87,9 +87,9 @@
             </if>
 
             <choose>
-                <when test="oemYn != null and oemYn == 35">
-                    and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
-                </when>
+<!--                <when test="oemYn != null and oemYn == 35">-->
+<!--                    and coalesce(x.prod_cnt,0) != 0  &#45;&#45;OEM업체여부-->
+<!--                </when>-->
                 <when test="oemYn != null and oemYn == 36">
                     and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
                 </when>
@@ -130,9 +130,9 @@
             and a.cmpy_no not in (select cmpy_no from matr_cmpy where matr_no = #{matrNo} and used_yn='Y')
         </if>
         <choose>
-            <when test="oemYn != null and oemYn == 35">
-                and coalesce(x.prod_cnt,0) != 0  --OEM업체여부
-            </when>
+<!--            <when test="oemYn != null and oemYn == 35">-->
+<!--                and coalesce(x.prod_cnt,0) != 0  &#45;&#45;OEM업체여부-->
+<!--            </when>-->
             <when test="oemYn != null and oemYn == 36">
                 and coalesce(x.prod_cnt,0) = 0  --OEM업체여부
             </when>
