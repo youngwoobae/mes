@@ -778,7 +778,7 @@
             <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo != '0'.toString())">
                 AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
             </when>
-            <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo == '0'.toString())">
+            <when test="cmpyNo == null or cmpyNo == '' or (cmpyNo == '0'.toString())">
                 and coalesce (a.cmpy_no , 0) = 0
             </when>
         </choose>
@@ -810,7 +810,7 @@
                     <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo != '0'.toString())">
                         AND a.cmpy_no = #{cmpyNo} --AddOn By KMJ AT 21.10.20 --OEM인경우 cmpyNo 들어옴.
                     </when>
-                    <when test="cmpyNo != null and cmpyNo != '' and (cmpyNo == '0'.toString())">
+                    <when test="cmpyNo == null or cmpyNo == '' or (cmpyNo == '0'.toString())">
                         and coalesce (a.cmpy_no , 0) = 0
                     </when>
                 </choose>
