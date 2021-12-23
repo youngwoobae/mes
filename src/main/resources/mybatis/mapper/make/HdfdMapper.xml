@@ -38,4 +38,6 @@
         where a.used_yn = 'Y' and a.brnch_no = #{brnchNo} and a.cust_no = #{custNo}
         and to_char(a.plan_dt,'YYYY-MM-DD') between to_char(now(), 'YYYY-MM-DD') and to_char(now() + '1 day'::interval, 'YYYY-MM-DD')
     </select>
+
+
 </mapper>

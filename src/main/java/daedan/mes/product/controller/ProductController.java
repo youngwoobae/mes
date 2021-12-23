@@ -189,4 +189,36 @@ public class ProductController {
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
+    /**
+     * 하담푸드 전용 주문정보 없이 생산지시 생성
+     *
+     * @param paraMap
+     * @param session
+     * @return Result
+     */
+    @PostMapping(value="/expectMakeIndc")
+    public Result expectMakeIndc(@RequestBody Map<String, Object> paraMap , HttpServletRequest request , HttpSession session){
+        String tag = "makeController.expectMakeIndc => ";
+        Result result = Result.successInstance();;
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("ipaddr" , NetworkUtil.getClientIp(request));
+        paraMap.put("userId",paraMap.get("userId"));
+        paraMap.put("custInfo", uvo.getCustInfo());
+        log.info(tag + "procMap = " + paraMap.toString());
+        result.setData(productService.expectMakeIndc(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
 }

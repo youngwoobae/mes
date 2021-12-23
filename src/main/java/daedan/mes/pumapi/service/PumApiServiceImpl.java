@@ -7,6 +7,8 @@ import daedan.mes.code.domain.CodeInfo;
 import daedan.mes.code.repository.CodeRepository;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.StringUtil;
+import daedan.mes.io.domain.ProdOwh;
+import daedan.mes.io.repository.ProdOwhRepository;
 import daedan.mes.matr.domain.MatrInfo;
 import daedan.mes.matr.repository.MatrRepository;
 import daedan.mes.pqms.domain.OrdRecv;
@@ -15,6 +17,8 @@ import daedan.mes.prod.domain.ProdBom;
 import daedan.mes.prod.domain.ProdInfo;
 import daedan.mes.prod.repository.ProdBomRepository;
 import daedan.mes.prod.repository.ProdRepository;
+import daedan.mes.stock.domain.ProdStk;
+import daedan.mes.stock.repository.ProdStkRepository;
 import daedan.mes.user.domain.CustInfo;
 import daedan.mes.user.domain.UserInfo;
 import daedan.mes.user.domain.UserType;
@@ -28,6 +32,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -57,6 +63,9 @@ public class PumApiServiceImpl implements PumApiService {
     private MatrRepository matrRepo;
 
     @Autowired
+    private ProdStkRepository prodStkRepo;
+
+    @Autowired
     private ProdBomRepository prodBomRepo;
 
 
@@ -69,6 +78,8 @@ public class PumApiServiceImpl implements PumApiService {
     @Autowired
     private CmmnService cmmnService;
 
+    @Autowired
+    private ProdOwhRepository prodOwhRepo;
 
     @Transactional
     @Override
@@ -643,9 +654,6 @@ public class PumApiServiceImpl implements PumApiService {
         Long userId = Long.parseLong(paraMap.get("userId").toString());
         String sender = paraMap.get("sender").toString(); //전송업체 사업자번호(풀무원)
         String ipaddr = paraMap.get("ipaddr").toString();
-        Long oem = Long.valueOf(env.getProperty("ord.oem"));
-        Long odm = Long.valueOf(env.getProperty("ord.odm"));
-        Long baseSaveTmpr = Long.valueOf(env.getProperty("code.base.save_tmpr_cd"));
 
         Map<String,Object> rmap = new HashMap<String,Object>();
 
@@ -839,8 +847,15 @@ public class PumApiServiceImpl implements PumApiService {
                 bomvo.setBomNo(chkvo.getBomNo());
                 bomvo.setRegIp(chkvo.getRegIp());
                 bomvo.setRegId(chkvo.getRegId());
+                bomvo.setRegDt(chkvo.getRegDt());
+                updtQty++; //변경 카운터
+            }
+            else {
+                bomvo.setBomNo(0L);
+                bomvo.setRegIp(ipaddr);
+                bomvo.setRegId(userId);
                 bomvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-
+                apndQty++; //변경 카운터
             }
         }
         rmap.put("send", totalSz);
@@ -855,6 +870,181 @@ public class PumApiServiceImpl implements PumApiService {
 
     }
 
+    @Transactional
+    @Override
+    public Map<String, Object> syncProdOut(Map<String, Object> paraMap) {
+        String tag = "PqmsService.syncProdOut =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        Long recvAcpt = Long.parseLong(env.getProperty("code.ord.recv_acpt"));
+        String sendCmpyNo = paraMap.get("sendCmpyNo").toString();
+        String ipaddr = paraMap.get("ipaddr").toString();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Map<String,Object> rmap = new HashMap<String,Object>();
+
+        int totalSz = 0; //수신데이터에 기록된 리스트 카운터
+        int apndQty = 0; //추가 카운터
+        int updtQty = 0; //변경 카운터
+        int recvQty = 0; //수신 카운터
+        int readCnt = 0; //리스트 read 카운터
+        int rsltCd= 0; //처리결과코드
+        ArrayList<Map<String, Object>> errList = new ArrayList<Map<String, Object>>();
+        Map<String, Object> ermap = null;
+        CmpyInfo civo = cmpyRepo.findByCustNoAndSaupNoAndUsedYn(custNo,sendCmpyNo,"Y");
+        Long prodWhNo = 0L;
+        totalSz  = Integer.parseInt(paraMap.get("listSize").toString());
+        Long sendDt = Long.parseLong(paraMap.get("sendDt").toString());
+        List<Map<String,Object>> ds = (List<Map<String, Object>>) paraMap.get("list");
+        for(Map<String, Object> el : ds) {
+            readCnt++;
+            ProdOwh povo = new ProdOwh();
+
+            try {
+                if (!StringUtil.chkSaupNo(civo.getSaupNo())) {
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "발송거래처의 사업자번호에 오류가 있습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+                povo.setCmpyNo(civo.getCmpyNo()); //발송처거래처번호 (ex:풀무원)
+            } catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송거래처의 사업자번호에 오류가 있습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                povo.setSendUt(sendDt);
+            }
+            catch(NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "발송일자를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                String prodCd = el.get("prodCode").toString();
+                ProdInfo pivo = prodRepo.findByCustNoAndProdCodeAndUsedYn(custNo,prodCd,"Y");
+                if (pivo != null) {
+                    povo.setProdNo(pivo.getProdNo());
+                    prodWhNo = pivo.getWhNo();
+                }
+                else {
+                    ermap = new HashMap<String, Object>();
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "상품코드가 존재하지 않습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch (NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "상품코드를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                try {
+                    povo.setOwhDt(sdf.parse(DateUtils.getTimestampToDate(Long.valueOf(el.get("owhDt").toString()))));
+                }
+                catch (ParseException e) {
+                    ermap = new HashMap<String, Object>();
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "출고일자 형식에 오류가 있습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+            }
+            catch(NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "출고일자를 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            try {
+                povo.setOwhQty(Float.valueOf(el.get("owhQty").toString()));
+            }
+            catch(NullPointerException ne) {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "출고수량을 찾을 수 없습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+            povo.setCustNo(custNo);
+            povo.setUsedYn("Y");
+            ProdOwh chkvo = prodOwhRepo.findByCustNoAndCmpyNoAndProdNoAndAndSendUtAndUsedYn(custNo,civo.getCmpyNo(),povo.getProdNo(),povo.getSendUt(),"Y");
+            if (chkvo != null) {
+                povo.setOwhNo(chkvo.getOwhNo());
+                povo.setRegIp(chkvo.getRegIp());
+                povo.setRegId(chkvo.getRegId());
+                povo.setRegDt(chkvo.getRegDt());
+                updtQty++; //변경 카운터
+            }
+            else {
+                povo.setOwhNo(0L);
+                povo.setRegIp(ipaddr);
+                povo.setRegId(userId);
+                povo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                apndQty++; //변경 카운터
+            }
+            povo = prodOwhRepo.save(povo);
+
+            ProdStk psvo = new ProdStk();
+            psvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setModIp(ipaddr);
+            psvo.setModIp(ipaddr);
+
+            //제품제고 adjust
+            ProdStk stkChkVo = prodStkRepo.findByCustNoAndProdNoAndUsedYn(custNo,povo.getProdNo(),"Y");
+            if (stkChkVo != null) {
+                stkChkVo.setWhNo(prodWhNo);
+                stkChkVo.setStkQty(stkChkVo.getStkQty() - povo.getOwhQty() );
+                if (stkChkVo.getStkQty() < 0) {
+                    ermap = new HashMap<String, Object>();
+                    ermap.put("rownum", readCnt);
+                    ermap.put("resn", "제품재고가 출고수량보다 작습니다.");
+                    errList.add(ermap);
+                    rsltCd = -1;
+                    continue;
+                }
+                stkChkVo.setModDt(DateUtils.getCurrentBaseDateTime());
+                stkChkVo.setModIp(ipaddr);
+                stkChkVo.setModIp(ipaddr);
+                prodStkRepo.save(stkChkVo);
+            }
+            else {
+                ermap = new HashMap<String, Object>();
+                ermap.put("rownum", readCnt);
+                ermap.put("resn", "제품재고 정보가 존재하지 않습니다.");
+                errList.add(ermap);
+                rsltCd = -1;
+                continue;
+            }
+        }
+        rmap.put("send", totalSz);
+        rmap.put("recv", recvQty);
+        rmap.put("apnd", apndQty);
+        rmap.put("updt", updtQty);
+        rmap.put("rsltCd",rsltCd);
+        if (rsltCd  == -1) {
+            rmap.put("errList", errList);
+        }
+        return rmap;
+    }
     @Transactional
     @Override
     public Map<String, Object> syncOrdPlan(Map<String, Object> paraMap) {

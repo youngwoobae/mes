@@ -20,6 +20,7 @@ public interface PumApiService {
 
     UserInfo getUserInfoBySaupNo(String saupNo);
 
-
     Map<String, Object>  syncBom(Map<String, Object> paraMap);
+
+    Map<String, Object> syncProdOut(Map<String, Object> paraMap);
 }

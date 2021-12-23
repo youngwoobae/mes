@@ -734,7 +734,7 @@ public class ProdServiceImpl implements  ProdService {
         Map<String,Object> bomMap = new HashMap<String,Object>();
         bomMap.put("custNo",paraMap.get("custNo"));
         bomMap.put("prodNo",paraMap.get("frProdNo"));
-        bomMap.put("pageNo",1);
+        bomMap.put("pageNo",0);
         bomMap.put("pageSz",1000);
         List<Map<String, Object>> prodBomList = mapper.getProdBom(bomMap);
 

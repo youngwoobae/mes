@@ -111,7 +111,7 @@ public class PumApiController {
 
 
     /**
-     * 풀무원 원자재정보 동기화
+     * 풀무원 제품별 BOM정보 동기화
      *
      * @param paraMap
      * @param request
@@ -161,5 +161,25 @@ public class PumApiController {
         //EOL AddON By KMJ AT 21.11.26
         return result;
     }
-
+    /**
+     * 풀무원 출고정보 수신(From 소신포털) 동기화
+     *
+     * @param paraMap
+     * @param request
+     * @return Result
+     */
+    @PostMapping(value = "/syncProdOut")
+    public Result syncProdOut(@RequestBody Map<String, Object> paraMap, HttpServletRequest request) {
+        Result result = Result.successInstance();
+        String saupNo = paraMap.get("saupNo").toString();
+        String sender = paraMap.get("sender").toString();
+        UserInfo uvo = pumApiService.getUserInfoBySaupNo(saupNo);
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("userId", uvo.getUserId());
+        paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
+        paraMap.put("custNo", custNo);
+        paraMap.put("sender", sender);
+        result.setData(pumApiService.syncProdOut(paraMap));
+        return result;
+    }
 }

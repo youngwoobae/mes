@@ -11,4 +11,5 @@ import java.util.Map;
 public interface ProductMapper {
     List<Map<String, Object>> getProductPlanList(Map<String, Object> paraMap);
     List<Map<String, Object>> getProductIndcList(Map<String, Object> paraMap);
+    List<Map<String, Object>> getPursMatrListByIndc(Map<String, Object> paraMap);
 }
