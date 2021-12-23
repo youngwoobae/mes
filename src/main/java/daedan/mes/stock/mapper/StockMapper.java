@@ -104,4 +104,8 @@ public interface StockMapper {
     List<Map<String, Object>> getShdPlanList(Map<String, Object> paraMap);
 
     List<Map<String, Object>> getMakePlanBomStkList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getProdRealStockHstr(HashMap<String, Object> paraMap);
+
+    int getProdRealStockHstrCount(Map<String, Object> paraMap);
 }

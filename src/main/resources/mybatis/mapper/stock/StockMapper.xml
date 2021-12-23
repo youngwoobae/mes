@@ -1340,6 +1340,41 @@
 
              ) a
     </select>
+
+
+    <!--원자재실사재고변경이력-->
+    <select id="getProdRealStockHstr" parameterType="map"  resultType="camelMap">
+        /* 원자재실사재고변경이력 (stockMapper.getProdRealStockHstr) */
+        select a.chng_no --변경이력번호
+             , a.prod_no --자재번호
+             , d.prod_nm --자재명
+             , to_char(coalesce(a.mod_dt,a.reg_dt),'YYYY-MM-DD HH24:MI:SS') as chng_dt --변경일자
+             , a.stk_qty --변경재고
+             , a.chng_resn --변경사유
+             , a.wh_no --창고번호
+             , b.code_nm as chng_resn_nm --변경사유명
+             , c.wh_nm --창고명
+        from prod_stk_hstr a join code_info b on a.chng_resn = b.code_no
+                             join wh_info c on a.wh_no = c.wh_no and c.cust_no = #{custNo}
+                             join prod_info d on a.prod_no = d.prod_no and d.cust_no = #{custNo}
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+          and a.prod_no = #{prodNo}
+        order by chng_dt desc
+            limit #{pageSz} offset #{pageNo}
+    </select>
+    <select id="getProdRealStockHstrCount" parameterType="map"  resultType="int">
+        select count(a.chng_no)
+        from (
+                 select a.chng_no
+                 from prod_stk_hstr a join code_info b on a.chng_resn = b.code_no
+                                      join wh_info c on a.wh_no = c.wh_no and c.cust_no = #{custNo}
+                                      join prod_info d on a.prod_no = d.prod_no and d.cust_no = #{custNo}
+                 where a.used_yn = 'Y' and a.cust_no = #{custNo}
+                   and a.prod_no = #{prodNo}
+
+             ) a
+    </select>
+
     <select id="getShdList" parameterType="map" resultType="camelMap">
     /*주문접수를 기반한 SHD 목록 (ioMapper.getMatrOwhHistList) */
     select e.*

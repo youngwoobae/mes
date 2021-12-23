@@ -715,6 +715,7 @@ public class StockServiceImpl implements  StockService{
             }
         }
         else{
+            prsvo.setWhNo(whNo);
             log.info("2. 창고이동 없는 경우.");
             ProdStkHstr chkvo = prodStkHstrRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,prsvo.getProdNo(), whNo, prsvo.getUsedYn());
             if(chkvo != null){
@@ -725,24 +726,36 @@ public class StockServiceImpl implements  StockService{
                 chkvo.setModIp(paraMap.get("ipaddr").toString());
                 chkvo.setCustNo(custNo);
                 prodStkHstrRepo.save(chkvo);
+            }else{
+                prsvo.setChngNo(0L);
+                prsvo.setUsedYn("Y");
+                prsvo.setChngResn(chngResn);
+                prsvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                prsvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
+                prsvo.setRegIp(paraMap.get("ipaddr").toString());
+                prsvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                prsvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                prsvo.setModIp(paraMap.get("ipaddr").toString());
+                prsvo.setCustNo(custNo);
+                prodStkHstrRepo.save(prsvo);
             }
         }
 
-        log.info(tag + "3.제품입고이력생성");
-        ProdIwh pivo = new ProdIwh();
-        pivo.setIwhNo(0L);
-        pivo.setIndcRsltNo(0L);
-        pivo.setIwhDt(DateUtils.getCurrentDateTime());
-        pivo.setIwhQty(prsvo.getStkQty());
-        pivo.setProdNo(prsvo.getProdNo());
-        pivo.setUsedYn("Y");
-        pivo.setWhNo(prsvo.getWhNo());
-
-        pivo.setRegDt(DateUtils.getCurrentDateTime());
-        pivo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
-        pivo.setRegIp(paraMap.get("ipaddr").toString());
-        pivo.setCustNo(custNo);
-        prodIwhRepo.save(pivo);
+//        log.info(tag + "3.제품입고이력생성");
+//        ProdIwh pivo = new ProdIwh();
+//        pivo.setIwhNo(0L);
+//        pivo.setIndcRsltNo(0L);
+//        pivo.setIwhDt(DateUtils.getCurrentDateTime());
+//        pivo.setIwhQty(prsvo.getStkQty());
+//        pivo.setProdNo(prsvo.getProdNo());
+//        pivo.setUsedYn("Y");
+//        pivo.setWhNo(prsvo.getWhNo());
+//
+//        pivo.setRegDt(DateUtils.getCurrentDateTime());
+//        pivo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
+//        pivo.setRegIp(paraMap.get("ipaddr").toString());
+//        pivo.setCustNo(custNo);
+//        prodIwhRepo.save(pivo);
 
         log.info(tag + "4.재고조정");
         ProdStk psvo = new ProdStk();
@@ -1132,6 +1145,18 @@ public class StockServiceImpl implements  StockService{
     @Override
     public int getMatrRealStockHstrCount(Map<String, Object> paraMap) {
         return mapper.getMatrRealStockHstrCount(paraMap);
+    }
+
+    @Override
+    public List<Map<String, Object>> getProdRealStockHstr(HashMap<String, Object> paraMap) {
+        String tag = "stockService.getRealStackHstr =>";
+        log.info(tag + "paraMap = " + paraMap.toString());
+        return mapper.getProdRealStockHstr(paraMap);
+    }
+
+    @Override
+    public int getProdRealStockHstrCount(Map<String, Object> paraMap) {
+        return mapper.getProdRealStockHstrCount(paraMap);
     }
 
     @Override

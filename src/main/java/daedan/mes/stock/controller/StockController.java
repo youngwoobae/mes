@@ -394,6 +394,32 @@ public class StockController {
         return result;
     }
 
+    @PostMapping(value="/prodRealStockHstr")
+    public Result prodRealStockHstr(@RequestBody HashMap<String, Object> paraMap, HttpSession session){
+        Result result = Result.successInstance();
+        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        Long custNo = uvo.getCustInfo().getCustNo();
+        paraMap.put("custNo", custNo);
+        paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
+
+        result.setData(stockService.getProdRealStockHstr(paraMap));
+        result.setTotalCount(stockService.getProdRealStockHstrCount(paraMap));
+
+        //SOL AddOn By KMJ AT 21.11.16
+        if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
+            try {
+                AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+            } catch (NullPointerException ne) {
+            }
+        }
+        //EOL AddON By KMJ AT 21.11.26
+
+        return result;
+    }
+
+
+
     @PostMapping(value="/realStockSave") //원부자재 실사재고 저장
     public Result realStockSave(@RequestBody HashMap<String, Object> paraMap , HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();

@@ -45,6 +45,7 @@ public interface StockService {
 
     void realStockSave(Map<String, Object> paraMap);
 
+
     void saveProdStock(HashMap<String, Object> paraMap);
 
     List<Map<String, Object>> getMatrProdIoYearList(HashMap<String, Object> paraMap);
@@ -111,4 +112,7 @@ public interface StockService {
     Map<String, Object> getShdList(Map<String, Object> paraMap);
 
     List<Map<String,Object>> getMakePlanBomStkList(Map<String, Object> paraMap);
+
+    List<Map<String, Object>> getProdRealStockHstr(HashMap<String, Object> paraMap);
+    int getProdRealStockHstrCount(Map<String, Object> paraMap);
 }
