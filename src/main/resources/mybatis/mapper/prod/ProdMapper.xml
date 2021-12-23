@@ -897,7 +897,7 @@
         /*BOM 리스트 (prodMapper.getProdBomList) */
         select d.matr_no --자재번호
              , d.matr_nm --자재명
-             , ceil(( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol ) as need_qty --소요량(Kg)
+             , ceil(( b.consist_rt * 0.01) * coalesce(a.ord_qty,0) * c.vol * coalesce(c.qty_per_pkg,1)/1000) as need_qty --소요량(Kg)
              , sum(coalesce (e.stk_qty ,0)) as stk_qty --재고량(Kg)
              , round(b.consist_rt::numeric,2) as consist_rt
         from ord_prod a join ord_info k on a.ord_no = k.ord_no and k.used_yn  = 'Y' and k.cust_no = #{custNo}
@@ -931,7 +931,7 @@
         <if test="prodNo != null and prodNo != ''">
             and a.prod_no = #{prodNo}
         </if>
-        group by c.mess, d.matr_no , d.matr_nm,  b.consist_rt, c.vol, a.ord_qty
+        group by c.mess, d.matr_no , d.matr_nm,  b.consist_rt, c.vol, a.ord_qty, c.qty_per_pkg
         order by d.matr_nm collate "ko_KR.utf8"
         limit #{pageSz} offset #{pageNo}
     </select>
