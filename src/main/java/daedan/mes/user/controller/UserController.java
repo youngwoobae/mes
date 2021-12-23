@@ -1029,6 +1029,8 @@ public class UserController {
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         userService.dropWorkerList(paraMap);
 
+
+
         //SOL AddOn By KMJ AT 21.11.16
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {

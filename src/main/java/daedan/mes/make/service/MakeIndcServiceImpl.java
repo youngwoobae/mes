@@ -684,7 +684,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         try {
             mivo.setParIndcNo(Long.parseLong(paraMap.get("par_indc_no").toString()));
         } catch (NullPointerException ne) {
-            mivo.setParIndcNo(0L);
+            mivo.setParIndcNo(Long.parseLong(paraMap.get("parIndcNo").toString()));
         }
 
 
@@ -711,8 +711,12 @@ public class MakeIndcServiceImpl implements MakeIndcService {
             mivo.setIndcSts(Long.parseLong(env.getProperty("code.base.indcsts")));
         }
 
+        try{
+            procCd = Long.parseLong(paraMap.get("proc_cd").toString()); //공정코드목록 카멜 수정 하지 말것
+        }catch (NullPointerException ne){
+            procCd = Long.parseLong(paraMap.get("procCd").toString()); //공정코드목록 카멜 수정 하지 말것
+        }
 
-        procCd = Long.parseLong(paraMap.get("proc_cd").toString()); //공정코드목록 카멜 수정 하지 말것
         mivo.setProcCd(procCd);
         if (mivo.getParIndcNo() == 0L) {
             MakeIndc chkvo = makeIndcRepo.findByCustNoAndParIndcNoAndIndcNoAndProcCdAndUsedYn(custNo, mivo.getParIndcNo(), mivo.getIndcNo(), mivo.getProcCd(), "Y");

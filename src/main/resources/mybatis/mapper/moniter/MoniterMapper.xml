@@ -607,7 +607,7 @@
                 and upper(replace(a.matr_nm,' ',''))  like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
         </if>
-        order by to_char(b.date_manufacture,'YYYY-MM-DD') desc
+        order by iwh_dt desc
         limit #{pageSz} offset #{pageNo}
     </select>
 
