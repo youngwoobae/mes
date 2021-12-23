@@ -9,4 +9,6 @@ public interface PursInfoRepository extends JpaRepository<PursInfo, Long> {
     PursInfo findByCustNoAndPursDtAndDlvReqDtAndDlvDtAndUsedYn(Long custNo,Date pursDt, Date dlvReqDt, Date dlvDt, String y);
     PursInfo findByCustNoAndPursNoAndUsedYn(Long custNo,Long pursNo, String usedYn);
     PursInfo findByCustNoAndIndcNoAndUsedYn(Long custNo,Long IndcNo, String userYn);
+
+    PursInfo findByPursNoAndUsedYn(Long pursNo, String y);
 }

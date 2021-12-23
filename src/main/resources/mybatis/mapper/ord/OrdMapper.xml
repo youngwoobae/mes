@@ -755,6 +755,7 @@
     <select id="getExOrdProdList" parameterType="map" resultType="camelMap">
         /*주문상품을 설정하기위한 제품목록(ordMapper.getExOrdProdList) */
         select a.prod_no --품번
+             , case when b.prod_no is not null then 'Y' else 'N' end as bom_yn
              , a.prod_code --코드
              , a.prod_nm  --품명
              , a.cmpy_no --oem업체명
@@ -768,7 +769,7 @@
              , fn_get_code_name('nm',a.sale_unit) as  sale_unit_nm --판매단위명
              , fn_get_code_name('nm', a.mngr_unit) as  mngr_unit_nm --관리단위명
              , fn_get_code_name('nm', a.prod_shape) as  shape --
-        from prod_info a
+        from prod_info a left join (select prod_no from prod_bom where cust_no = #{custNo} and used_yn = 'Y' group by prod_no) b on a.prod_no = b.prod_no
         where a.used_yn = 'Y'
           and a.cust_no = #{custNo}
           and a.prod_no not in (select prod_no from ord_prod_cart where user_id = #{userId} and cust_no = #{custNo})

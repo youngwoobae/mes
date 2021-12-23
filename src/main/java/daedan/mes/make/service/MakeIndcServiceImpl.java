@@ -27,6 +27,7 @@ import daedan.mes.purs.domain.PursMatr;
 import daedan.mes.purs.repository.PursInfoRepository;
 import daedan.mes.purs.repository.PursMatrRepository;
 import daedan.mes.purs.service.PursService;
+import daedan.mes.purs.mapper.PursMapper;
 import daedan.mes.stock.domain.MatrPos;
 import daedan.mes.stock.domain.MatrStk;
 import daedan.mes.stock.repository.MatrPosRepository;
@@ -97,6 +98,9 @@ public class MakeIndcServiceImpl implements MakeIndcService {
 
     @Autowired
     private PursInfoRepository pursRepo;
+
+    @Autowired
+    private PursMapper PursMapper;
 
     @Autowired
     private PursMatrRepository pmr;
@@ -486,7 +490,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 Map<String, Object> datas = new HashMap<String, Object>();
                 datas.put("custNo", custNo);
                 datas.put("indcNo", parIndcNo);
-                /*kmjkmj.21.12.03 -- 시연을 위해 잠시 막아둠
+
                 List<Map<String, Object>> dl = mapper.chkStkByIndc(datas); // 재고 파악
                 for (Map<String, Object> es : dl) {
                     if (Float.parseFloat(es.get("reqPursQty").toString()) < 0) { //구매수량 < 필요수량인 경우
@@ -495,8 +499,18 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                     }
                 }
                 inchk.setIndcSts( (!chk) ?  2401L : 2402L );
-                시연을 위해 잠시 막아둠*/
-                inchk.setIndcSts(2403L); //kmjkmj - 시연을 위해 잠시 추가됨.
+
+//                /*kmjkmj.21.12.03 -- 시연을 위해 잠시 막아둠
+//                List<Map<String, Object>> dl = mapper.chkStkByIndc(datas); // 재고 파악
+//                for (Map<String, Object> es : dl) {
+//                    if (Float.parseFloat(es.get("reqPursQty").toString()) < 0) { //구매수량 < 필요수량인 경우
+//                        chk = false;
+//                        break;
+//                    }
+//                }
+//                inchk.setIndcSts( (!chk) ?  2401L : 2402L );
+//                시연을 위해 잠시 막아둠*/
+//                inchk.setIndcSts(2403L); //kmjkmj - 시연을 위해 잠시 추가됨.
                 inchk.setCustNo(custNo);
                 makeIndcRepo.save(inchk);
             }
@@ -668,10 +682,13 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         mivo.setUsedYn("Y");
 
         try {
-            mivo.setParIndcNo(Long.parseLong(paraMap.get("parIndcNo").toString()));
+            mivo.setParIndcNo(Long.parseLong(paraMap.get("par_indc_no").toString()));
         } catch (NullPointerException ne) {
             mivo.setParIndcNo(0L);
         }
+
+
+
         try {
             //indcNo를 가져오지 못한상태로 공정별로 루틴을 돌면서 NullPointer 발생되면서 새로운 작어지시가 계속 만들어지는 현상 발생됨.(2021.04.26 : KMJ)
             mivo.setIndcNo(Long.parseLong(paraMap.get("indcNo").toString()));
@@ -695,7 +712,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         }
 
 
-        procCd = Long.parseLong(paraMap.get("procCd").toString()); //공정코드목록
+        procCd = Long.parseLong(paraMap.get("proc_cd").toString()); //공정코드목록
         mivo.setProcCd(procCd);
         if (mivo.getParIndcNo() == 0L) {
             MakeIndc chkvo = makeIndcRepo.findByCustNoAndParIndcNoAndIndcNoAndProcCdAndUsedYn(custNo, mivo.getParIndcNo(), mivo.getIndcNo(), mivo.getProcCd(), "Y");
@@ -1119,56 +1136,64 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 makeIndcRepo.save(mivoForDrop);
             }
             Long pursNo = 0L;
-            PursInfo pivo = pursRepo.findByCustNoAndIndcNoAndUsedYn(custNo, indcNo, "Y");
-            if (pivo != null) {
-                pursNo = pivo.getPursNo();
-                //원료구매(purs_info)의 상태가 입고이거나 부분입고인 경우, 적재수량에서 입고수량만큼 감소.
-                log.info("4. 원료 입고가 있는 경우");
-                if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.end")) || pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.ing"))) {
-                    pivo.setPursSts(Long.parseLong(env.getProperty("purs.sts.insp")));
-                    pursRepo.save(pivo);
 
-                    List<Map<String, Object>> iwhList = mapper.getDropMatrIwhList(pursNo);
+//           작업지시로 구매한 원료들을 지우는 구간 purs_info 에는 원료가 여러개가 들어 있을수 있음
 
-                    Float iwhQty = 0F;
-                    Long matrNo = 0L;
-                    Long whNo = 0L;
-                    for (Map<String, Object> el : iwhList) {
-                        iwhQty = Float.parseFloat(el.get("iwhQty").toString());
-                        matrNo = Long.parseLong(el.get("matrNo").toString());
-                        whNo = Long.parseLong(el.get("whNo").toString());
 
-                        //입고된 원료 원복.
-                        MatrStk msvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo, whNo, matrNo, "Y");
-                        if (msvo != null) {
-                            Float qty = Float.parseFloat(msvo.getStkQty().toString()) - iwhQty;
-                            msvo.setStkQty(qty);
-                            msvo.setCustNo(custNo);
-                            matrStkRepo.save(msvo);
+            List<Map<String,Object>> pursList = PursMapper.getMakeIndcPursList(paraMap);
+            if (pursList != null) {
+                for (Map<String, Object> item : pursList){
+                    PursInfo pivo = pursRepo.findByPursNoAndUsedYn(Long.parseLong(item.get("pursNo").toString()), "Y");
+                    pursNo = pivo.getPursNo();
+                    //원료구매(purs_info)의 상태가 입고이거나 부분입고인 경우, 적재수량에서 입고수량만큼 감소.
+                    log.info("4. 원료 입고가 있는 경우");
+                    if (pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.end")) || pivo.getPursSts() == Long.parseLong(env.getProperty("purs.sts.ing"))) {
+                        pivo.setPursSts(Long.parseLong(env.getProperty("purs.sts.insp")));
+                        pursRepo.save(pivo);
+
+                        List<Map<String, Object>> iwhList = mapper.getDropMatrIwhList(pursNo);
+
+                        Float iwhQty = 0F;
+                        Long matrNo = 0L;
+                        Long whNo = 0L;
+                        for (Map<String, Object> el : iwhList) {
+                            iwhQty = Float.parseFloat(el.get("iwhQty").toString());
+                            matrNo = Long.parseLong(el.get("matrNo").toString());
+                            whNo = Long.parseLong(el.get("whNo").toString());
+
+                            //입고된 원료 원복.
+                            MatrStk msvo = matrStkRepo.findByCustNoAndWhNoAndMatrNoAndUsedYn(custNo, whNo, matrNo, "Y");
+                            if (msvo != null) {
+                                Float qty = Float.parseFloat(msvo.getStkQty().toString()) - iwhQty;
+                                msvo.setStkQty(qty);
+                                msvo.setCustNo(custNo);
+                                matrStkRepo.save(msvo);
+                            }
                         }
+
+                        //입고이력 삭제.
+                        mapper.dropIwhList(pursNo);
                     }
 
-                    //입고이력 삭제.
-                    mapper.dropIwhList(pursNo);
-                }
-                //원료구매정보(purs_info)의 상태가 검수인 경우, 사용여부 N으로 변경
-                else {
-                    log.info("5. 원료 입고 하지 않은 경우");
-                    pivo.setUsedYn("N");
-                    pivo.setCustNo(custNo);
-                    pivo = pursRepo.save(pivo);
-
-                    //원료구매(purs_matr)의 사용여부 N으로 변경
-                    PursInfo pivoForDrop = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo, pivo.getPursNo(), "Y");
-                    if (pivoForDrop != null) {
-                        pivoForDrop.setUsedYn("N");
-                        pivoForDrop.setModDt(DateUtils.getCurrentBaseDateTime());
-                        pivoForDrop.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                        pivoForDrop.setModIp(paraMap.get("ipaddr").toString());
+                    //원료구매정보(purs_info)의 상태가 검수인 경우, 사용여부 N으로 변경
+                    else {
+                        log.info("5. 원료 입고 하지 않은 경우");
+                        pivo.setUsedYn("N");
                         pivo.setCustNo(custNo);
-                        pursRepo.save(pivoForDrop);
+                        pivo = pursRepo.save(pivo);
+
+                        //원료구매(purs_matr)의 사용여부 N으로 변경
+                        PursInfo pivoForDrop = pursRepo.findByCustNoAndPursNoAndUsedYn(custNo, pivo.getPursNo(), "Y");
+                        if (pivoForDrop != null) {
+                            pivoForDrop.setUsedYn("N");
+                            pivoForDrop.setModDt(DateUtils.getCurrentBaseDateTime());
+                            pivoForDrop.setModId(Long.parseLong(paraMap.get("userId").toString()));
+                            pivoForDrop.setModIp(paraMap.get("ipaddr").toString());
+                            pivo.setCustNo(custNo);
+                            pursRepo.save(pivoForDrop);
+                        }
+                        //mapper.dropPursMatr(pursNo);
                     }
-                    //mapper.dropPursMatr(pursNo);
                 }
             }
         }
@@ -1377,6 +1402,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
         String tag = "MakeIndcService.saveReqMatr==>";
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
         Long confirmPurs = 0L;
+        if (Long.parseLong(paraMap.get("par_indc_no").toString()) != 0L) return null;
         /*이하 두줄 remarked 된 이유 : 작업지시 제품의 bom을 기반으로 구매요청뙨 자재가 미출고된 상태에서 다시 동일 자제를
         사용하는 상품 작업지시가 이루어진 경우 미출고된 자료가 재고로 인식되어 구매요청이 이루어 지지 않은 경우가 발생함.
         이하 4줄 추가 다시 복구함:21.02.26
@@ -1430,6 +1456,7 @@ public class MakeIndcServiceImpl implements MakeIndcService {
                 //        그렇지 않은 경우 작업처리용으로 입고된 자료가 재고로 잡혀 자재입고 대상에서 제외되는 경우가 발생함.
             }
             pmvo = new PursMatr();
+            pmvo.setPursSts(confirmPurs);
             pmvo.setPursNo(pivo.getPursNo());
             pmvo.setMatrNo(Long.parseLong(el.get("matrNo").toString()));
             pmvo.setCmpyNo(0L);//구매거래처는 입고 검수 시점에 MatrIwh.cmptyNo와 함꼐 설정해야 함.

@@ -130,6 +130,11 @@
         <if test="parIndcNo != null and parIndcNo != ''">
             and a.par_indc_no = #{parIndcNo}
         </if>
+
+        <if test="parIndcNo == null or parIndcNo == ''">
+            and a.par_indc_no = 0
+        </if>
+
         <if test="indcTp != null and indcTp != 0">
             and a.indc_tp = #{indcTp}
         </if>

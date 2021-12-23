@@ -11,7 +11,6 @@ import daedan.mes.matr.domain.MatrInfo;
 import daedan.mes.stock.domain.*;
 import daedan.mes.stock.mapper.StockMapper;
 import daedan.mes.stock.repository.*;
-import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -609,24 +608,7 @@ public class StockServiceImpl implements  StockService{
         mscvo.setCustNo(custNo);
         matrStkRepo.save(mscvo);
 
-        //입고이력 생성
-        MatrIwh iwhvo = new MatrIwh();
-        iwhvo.setCmpyNo(0L);
-        iwhvo.setPursNo(0L);
-        iwhvo.setRetnQty(0f);
-        iwhvo.setWhNo(trkWhNo);
-        iwhvo.setIwhDt(DateUtils.getCurrentBaseDateTime());
-        iwhvo.setIwhQty(mshvo.getStkQty());
-        iwhvo.setMatrNo(mshvo.getMatrNo());
-        iwhvo.setRegId(userId);
-        iwhvo.setRegIp(ipaddr);
-        iwhvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-        iwhvo.setModId(userId);
-        iwhvo.setModIp(ipaddr);
-        iwhvo.setModDt(DateUtils.getCurrentBaseDateTime());
-        iwhvo.setUsedYn("Y");
-        iwhvo.setCustNo(custNo);
-        matrIwhRepo.save(iwhvo);
+
     }
 
     @Override
