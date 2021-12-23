@@ -2849,6 +2849,12 @@ public class IoServiceImpl implements IoService {
                     pursvo.setCmpyNo(mivo.getCmpyNo());
                     if (chkItem.get("pursType").toString().equals("Y")){
                         pursvo.setPursSts(pursEnd);
+                        MakeIndc chkMake = makeIndcRepo.findByCustNoAndIndcNoAndUsedYn(pursvo.getCustNo() , pursvo.getIndcNo() ,"Y");
+                        if (chkMake != null){
+                            chkMake.setIndcSts(2402L);
+                            makeIndcRepo.save(chkMake);
+                        }
+
                     }else{
                         pursvo.setPursSts(pursIng);
                     }
