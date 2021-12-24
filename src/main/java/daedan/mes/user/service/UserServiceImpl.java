@@ -830,12 +830,13 @@ public  class UserServiceImpl implements UserService {
 			uwvo.setModId(userId);
 			uwvo.setModIp(ipaddr);
 
-			UserWork uwchk = uhr.findByCustNoAndWorkNoAndUsedYn(custNo , workNo  , "Y");
+			UserWork uwchk = userWorkRepo.findByCustNoAndWorkNoAndUsedYn(custNo , workNo  , "Y");
 			if (uwchk != null){
 				uwvo.setWorkNo(uwchk.getWorkNo());
 				uwvo.setRegDt(uwchk.getRegDt());
 				uwvo.setRegId(uwchk.getRegId());
 				uwvo.setRegIp(uwchk.getRegIp());
+				uwvo.setUserId(uwchk.getUserId());
 			}
 			else{
 				uwvo.setWorkNo(0L);
@@ -845,7 +846,7 @@ public  class UserServiceImpl implements UserService {
 			}
 			uwvo.setUsedYn("Y");
 			uwvo.setCustNo(custNo);
-			uhr.save(uwvo);
+			userWorkRepo.save(uwvo);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
@@ -958,13 +959,13 @@ public  class UserServiceImpl implements UserService {
 		log.info(tag + " paraMap = " + paraMap.toString());
 		Long custNo  = Long.parseLong(paraMap.get("custNo").toString());
 		Long workNo  = Long.parseLong(paraMap.get("workNo").toString());
-		UserWork uwvo  = uhr.findByCustNoAndWorkNoAndUsedYn(custNo,workNo,"Y");
+		UserWork uwvo  = userWorkRepo.findByCustNoAndWorkNoAndUsedYn(custNo,workNo,"Y");
 		if  (uwvo != null) {
 			uwvo.setUsedYn("N");
 			uwvo.setUserId(Long.parseLong(paraMap.get("userId").toString()));
 			uwvo.setModDt(DateUtils.getCurrentDateTime());
 			uwvo.setModIp(paraMap.get("ipaddr").toString());
-			uhr.save(uwvo);
+			userWorkRepo.save(uwvo);
 		}
 	}
 

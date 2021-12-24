@@ -97,12 +97,13 @@
     <select id="getDashTotalMakeIndcRslt" parameterType="map"  resultType="camelMap">
         /*하담푸드 대시보드 좌측 전일 생산계획 (Dash03Mapper.getDashTotalMakeIndcRslt) */
         select
-		    coalesce(sum(a.make_qty) , 0 ) as make_qty ,
-		    coalesce(sum(a.make_wgt) , 0 ) as make_wgt ,
-		    coalesce(sum(b.indc_qty) , 0 ) as indc_qty ,
-		    coalesce(sum(b.indc_wgt) , 0 ) as indc_wgt
+            coalesce(sum(a.make_qty) , 0 ) as make_qty ,
+            coalesce(trunc(sum((c.qty_per_pkg * c.vol * a.make_qty) / 1000))  , 0 ) as make_wgt ,
+            coalesce(sum(b.indc_qty) , 0 ) as indc_qty ,
+            coalesce(sum(b.indc_wgt) , 0 ) as indc_wgt
         from make_indc_rslt a join make_indc b on a.indc_no = b.indc_no
-     	where a.cust_no = #{custNo} and a.used_yn = 'Y'
+                              join prod_info c on b.prod_no = c.prod_no
+        where a.cust_no = #{custNo} and a.used_yn = 'Y'
         and to_char(make_dt , 'YYYY-MM-DD') = to_char(now() + '-1 day' , 'YYYY-MM-DD')
         group by to_char(make_dt , 'YYYY-MM-DD')
     </select>

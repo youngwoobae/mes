@@ -631,7 +631,7 @@
         and a.used_yn = 'Y'
 
         <if test="dateFr != null and dateFr != ''">
-            and TO_CHAR(a.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10) and substring(#{dateTo},1,10)
+            and TO_CHAR(a.work_dt,'YYYY-MM-DD') = substring(#{dateFr},1,10)
         </if>
         <if test="emplKind != null and emplKind != ''">
           and b.empl_kind = #{emplKind}
@@ -659,7 +659,7 @@
             where a.cust_no = #{custNo}
             and a.used_yn = 'Y'
             <if test="dateFr != null and dateFr != ''">
-                and TO_CHAR(a.work_dt,'YYYY-MM-DD') between substring(#{dateFr},1,10)  and substring(#{dateTo},1,10)
+                and TO_CHAR(a.work_dt,'YYYY-MM-DD') = substring(#{dateFr},1,10)
             </if>
             <if test="emplKind != null and emplKind != ''">
                 and b.empl_kind = #{emplKind}
