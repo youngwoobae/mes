@@ -2961,6 +2961,7 @@
              , e.indc_rslt_no
              , to_char(e.make_dt,'YYYY-MM-DD') as make_dt --생산일자
              , e.make_qty
+             , e.make_qty as iwh_qty
         from prod_info a  join make_indc b on a.prod_no = b.prod_no
                                           and b.used_yn ='Y'
                                           and b.cust_no = #{custNo}
@@ -2972,7 +2973,7 @@
         where a.used_yn ='Y'
         and a.cust_no = #{custNo}
         and e.indc_rslt_no not in (select indc_rslt_no from prod_iwh where cust_no = #{custNo} and used_yn = 'Y')
-        and a.prod_no not in (select prod_no from prod_iwh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
+        --and a.prod_no not in (select prod_no from prod_iwh where used_yn = 'Y' and coalesce (wh_no, 0 ) = 0)
         <if test="findStr != null and findStr != ''">
             AND upper(replace(a.prod_nm,' ',''))  like '%' || upper(replace(#{findStr}, ' ','')) || '%'
         </if>
@@ -4609,5 +4610,17 @@
         </if>
         and used_yn = 'Y' and cust_no = #{custNo}
     </update>
+
+    <select id="getProdLotSummary" parameterType="map" resultType="camelMap">
+    /* 제품별롯트합계수량(ioMapper.getProdLotSummary) */
+        select coalesce ( sum(iwh_qty) ,0) as lot_sum_qty
+        from prod_iwh
+        where cust_no = #{custNo}
+        and to_char(iwh_dt,'YYYY-MM-DD') = substring(#{makeDt},1,10)
+        and wh_no = #{whNo}
+        and prod_no = #{prodNo}
+    </select>
+
+
 
 </mapper>

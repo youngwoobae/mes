@@ -1,6 +1,7 @@
 package daedan.mes.io.service;
 
 
+import com.querydsl.jpa.impl.JPAQueryFactory;
 import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.io.domain.MatrIwh;
 import daedan.mes.io.domain.MatrOwh;
@@ -29,14 +30,8 @@ import daedan.mes.purs.mapper.PursMapper;
 import daedan.mes.purs.repository.PursInfoRepository;
 import daedan.mes.purs.repository.PursMatrRepository;
 import daedan.mes.purs.service.PursService;
-import daedan.mes.stock.domain.MatrPos;
-import daedan.mes.stock.domain.MatrStk;
-import daedan.mes.stock.domain.ProdStk;
-import daedan.mes.stock.domain.WhInfo;
-import daedan.mes.stock.repository.MatrPosRepository;
-import daedan.mes.stock.repository.MatrStkRepository;
-import daedan.mes.stock.repository.ProdStkRepository;
-import daedan.mes.stock.repository.WhInfoRepository;
+import daedan.mes.stock.domain.*;
+import daedan.mes.stock.repository.*;
 import daedan.mes.stock.service.StockService;
 import lombok.SneakyThrows;
 import org.apache.commons.logging.Log;
@@ -45,6 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import javax.transaction.Transactional;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -63,7 +60,7 @@ public class IoServiceImpl implements IoService {
     private ProdRepository prodRepo;
 
     @Autowired
-    private PursMatrRepository pursMatrRepo;
+    private ProdStkLotRepository prodStkLotRepo;
 
     @Autowired
     private MakeIndcRepository makeIndcRepo;
@@ -138,6 +135,9 @@ public class IoServiceImpl implements IoService {
 
     @Autowired
     private StockService stockService;
+
+    @PersistenceContext
+    private EntityManager em; // 영속성 객체를 자동으로 삽입해줌
 
     @Override
     public List<Map<String, Object>> getComboWhList(Map<String, Object> paraMap) {
@@ -3086,13 +3086,15 @@ public class IoServiceImpl implements IoService {
         return mapper.getProdForIwhListCount(paraMap);
     }
 
-    @SneakyThrows
-    @Transactional
+    //@Transactional
     @Override
     public void saveProdIwhList(Map<String, Object> paraMap) {
         String tag = "vsvc.IoService.saveProdIwhList => ";
         log.info(tag + "paraMap = " + paraMap.toString());
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+
         List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("iwhList");
         Long prodNo = 0L;
         Float stkQty = 0F;
@@ -3106,9 +3108,9 @@ public class IoServiceImpl implements IoService {
             pivo.setWhNo(whNo);
             pivo.setIwhQty(Float.parseFloat(el.get("iwhQty").toString()));
             try{
-                pivo.setIwhDt(sdf.parse(paraMap.get("iwhDt").toString()));
-            }catch (NullPointerException en){
-                pivo.setIwhDt(DateUtils.getCurrentDateTime());
+                pivo.setIwhDt(sdf.parse(el.get("makeDt").toString()));
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
             pivo.setUsedYn("Y");
             pivo.setModDt(DateUtils.getCurrentDateTime());
@@ -3138,10 +3140,48 @@ public class IoServiceImpl implements IoService {
             pivo.setCustNo(custNo);
             prodIwhRepo.save(pivo);
 
+            //SOL Addon By KMJ AT 21.12.26 (여기에다 로트번호 처리기능 추가할 것)
+            //JPAQueryFactory queryFactory = new JPAQueryFactory(em);
+            //long result = queryFactory.selectFrom(pr.where(person.lastName.eq("김")).fetchCount();
+            el.put("custNo",custNo);
+            el.put("makeDt",el.get("makeDt").toString());
+            Map<String,Object> summap = mapper.getProdLotSummary(el);
+            log.info(tag + "summap = " + summap.toString());
+            log.info(tag + "elForLot = " + el.toString());
+            ProdStkLot pslvo = new ProdStkLot();
+
+            pslvo.setWhNo(pivo.getWhNo());
+            pslvo.setProdNo(pivo.getProdNo());
+            pslvo.setStkUt(DateUtils.getDateToTimeStamp(el.get("makeDt").toString()));
+            pslvo.setStkQty(Float.valueOf(summap.get("lotSumQty").toString()));
+            pslvo.setCustNo(custNo);
+            pslvo.setUsedYn("Y");
+            pslvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            pslvo.setModId(userId);
+            pslvo.setModIp(ipaddr);
+
+
+            ProdStkLot chkpslvo = prodStkLotRepo.findByCustNoAndWhNoAndProdNoAndStkUtAndUsedYn(custNo,whNo,prodNo,pslvo.getStkUt(),"Y");
+            if (chkpslvo != null) {
+                pslvo.setProdLotNo(chkpslvo.getProdLotNo());
+                pslvo.setRegDt(chkpslvo.getRegDt());
+                pslvo.setRegId(chkpslvo.getRegId());
+                pslvo.setRegIp(chkpslvo.getRegIp());
+            }
+            else {
+                pslvo.setProdLotNo(0L);
+                pslvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+                pslvo.setRegId(userId);
+                pslvo.setRegIp(ipaddr);
+            }
+            prodStkLotRepo.save(pslvo);
+            //EOL Addon By KMJ AT 21.12.26 (여기에다 로트번호 처리기능 추가할 것)
+
             ProdStk psvo = new ProdStk();
             psvo.setUsedYn("Y");
             psvo.setStkDt(DateUtils.getCurrentDate());
 
+            //제품별 재고 설정
             ProdStk chkvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,whNo,prodNo,"Y");
             if(chkvo != null){
                 stkQty = chkvo.getStkQty();

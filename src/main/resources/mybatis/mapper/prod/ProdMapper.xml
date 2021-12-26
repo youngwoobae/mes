@@ -39,15 +39,15 @@
     <select id="getProdStatList" parameterType="map"  resultType="camelMap">
         /*제품현황 (prodMapper.getProdStatList) */
         select a.prod_no --품번
-             ,a.prod_code --품코드
-             ,a.prod_nm --품명
-             ,a.erp_prod_nm
-             ,a.sale_unit --판매단위코드
-             ,a.save_tmpr --보관온도코드
-             ,e.code_nm as save_tmpr_nm  --보관온도명
-             ,a.mess --개별중량
-             ,d.code_nm as sale_unit_nm --판매단위드명
-             ,a.qty_per_pkg --세트수량
+             , a.prod_code --품코드
+             , a.prod_nm --품명
+             , a.erp_prod_nm
+             , a.sale_unit --판매단위코드
+             , a.save_tmpr --보관온도코드
+             , e.code_nm as save_tmpr_nm  --보관온도명
+             , a.mess --개별중량
+             , d.code_nm as sale_unit_nm --판매단위드명
+             , a.qty_per_pkg --세트수량
              , a.prod_tp --판매유형(OEM,ODM) 구분, Addon by KMJ At  21.10.19
              , a.cmpy_no --OEM상품의 주문업체번호 , Addon by KMJ At  21.10.19
              , h.cmpy_nm --OEM상품의 주문업체명 , Addon by KMJ At  21.10.19
@@ -270,30 +270,29 @@
         ) a
     </select>
 
-
-    <!--상품재고현황-->
     <select id="getProdStkList" parameterType="map"  resultType="camelMap">
+        /*제품재고현황 (prodMapper.getProdStkList) */
         select a.prod_no --품번
-            , a.prod_code --품코드
-            , a.prod_nm --품명
-            , a.erp_prod_nm
-            , a.sale_unit --판매단위코드
-            , a.save_tmpr --보관온도코드
-            , e.code_nm as save_tmpr_nm  --보관온도명
-            , a.sz --규격(단품중량)
-            , d.code_nm as sale_unit_nm --판매단위드명
-            , a.qty_per_pkg --세트수량
-            , g.wh_nm --창고명
-            , b.wh_no --창고번호
-            , g.wh_loc_no --창고번호
-            , b.stk_no --창고번호
-            , a.valid_term --유효기간
-           -- , f.prod_real_no as prod_real_no -- 실재고상품번호
-            , coalesce (b.stk_qty,0) as stk_qty --현재고
+             , a.prod_code --품코드
+             , a.prod_nm --품명
+             , a.erp_prod_nm
+             , a.sale_unit --판매단위코드
+             , a.save_tmpr --보관온도코드
+             , fn_get_code_name('nm', a.save_tmpr) as save_tmpr_nm  --보관온도명
+             , a.sz --규격(단품중량)
+             , d.code_nm as sale_unit_nm --판매단위드명
+             , a.qty_per_pkg --세트수량
+             , g.wh_nm --창고명
+             , b.wh_no --창고번호
+             , g.wh_loc_no --창고번호
+             , b.stk_no --창고번호
+             , a.valid_term --유효기간
+             , b.stk_dt + concat((coalesce (valid_term-1,0))::varchar  ,' day') ::interval  as reamining_day --잔여일수
+          -- , f.prod_real_no as prod_real_no -- 실재고상품번호
+             , coalesce (b.stk_qty,0) as stk_qty --현재고
         from prod_info a join code_info d on a.sale_unit  = d.code_no
                     left join prod_stk b on a.prod_no = b.prod_no and b.used_yn = 'Y' and b.cust_no = #{custNo}
                     left join wh_info  g on b.wh_no = g.wh_no and g.used_yn = 'Y'  and g.cust_no = #{custNo}
-                    left join code_info e on a.save_tmpr = e.code_no
         where a.used_yn = 'Y'
           and a.cust_no = #{custNo}
         <if test="saveTmpr != null and saveTmpr != ''">
@@ -322,7 +321,6 @@
                 from prod_info a join code_info d on a.sale_unit  = d.code_no
                             left join prod_stk b on a.prod_no = b.prod_no  and b.used_yn = 'Y' and b.cust_no = #{custNo}
                             left join wh_info  g on b.wh_no = g.wh_no and g.used_yn ='Y'  and g.cust_no = #{custNo}
-                            left join code_info e on a.save_tmpr = e.code_no
                 where a.used_yn = 'Y'
                   and a.cust_no = #{custNo}
                 <if test="saveTmpr != null and saveTmpr != ''">

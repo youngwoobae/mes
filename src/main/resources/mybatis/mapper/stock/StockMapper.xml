@@ -19,38 +19,38 @@
     </select>
 
     <select id="getWhList" parameterType="map"  resultType="camelMap">
-            select a.wh_no
-                 , a.wh_nm
-                 , a.wh_tp
-                 , a.save_tmpr
-                 , coalesce(a.max_row,0) as max_row
-                 , coalesce(a.max_col,0) as max_col
-                 , coalesce(a.max_stair,0) as max_stair
-                 , z.code_nm as save_tmpr_nm
-                 , y.code_nm as wh_tp_nm
-            from wh_info a join code_info z on a.save_tmpr = z.code_no
-                           join code_info y on a.wh_tp    =  y.code_no
-            where a.used_yn = 'Y' and a.cust_no = #{custNo}
-            <if test="whTp != null and whTp != ''">
-                and a.wh_tp = #{whTp}
-            </if>
-            <if test="saveTmpr != null and saveTmpr != ''">
-                and a.save_tmpr = #{saveTmpr}
-            </if>
+        /*창고목록 (stockMapper.getWhList) */
+        select a.wh_no --창고번호
+             , a.wh_nm --창고명
+             , a.wh_tp --창고유형코드
+             ,  concat(a.wh_loc_seq::varchar, '번 창고') as wh_loc_seq --창고번호
+             , a.save_tmpr --보관온도
+             , coalesce(a.max_row,0) as max_row
+             , coalesce(a.max_col,0) as max_col
+             , coalesce(a.max_stair,0) as max_stair
+             , fn_get_code_name('nm',a.save_tmpr )as save_tmpr_nm
+             , fn_get_code_name('nm',a.wh_tp )as wh_tp_nm
+        from wh_info a
+        where a.used_yn = 'Y' and a.cust_no = #{custNo}
+        <if test="whTp != null and whTp != ''">
+            and a.wh_tp = #{whTp}
+        </if>
+        <if test="saveTmpr != null and saveTmpr != ''">
+            and a.save_tmpr = #{saveTmpr}
+        </if>
 
-            <if test="findSz != null and findSz != ''">
-                <if test="findTp != null and findTp == 'whNm'">
-                    and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
-                </if>
+        <if test="findSz != null and findSz != ''">
+            <if test="findTp != null and findTp == 'whNm'">
+                and  upper(replace(a.wh_nm,' ','')) like '%' || upper(replace(#{findSz}, ' ','')) || '%'
             </if>
-            limit #{pageSz} offset #{pageNo}
+        </if>
+        limit #{pageSz} offset #{pageNo}
     </select>
 
     <select id="getWhListCount" parameterType="map"  resultType="int">
         select count(a.wh_no)
         from ( select a.wh_no
-                from wh_info a join code_info z on a.save_tmpr = z.code_no
-                               join code_info y on a.wh_tp    =  y.code_no
+                from wh_info a
                 where a.used_yn = 'Y' and a.cust_no = #{custNo}
                 <if test="whTp != null and whTp != ''">
                     and a.wh_tp = #{whTp}

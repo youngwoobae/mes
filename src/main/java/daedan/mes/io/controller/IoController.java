@@ -3,6 +3,7 @@ package daedan.mes.io.controller;
 import daedan.mes.cmmn.service.CmmnService;
 import daedan.mes.code.service.CodeService;
 import daedan.mes.common.domain.Result;
+import daedan.mes.common.service.util.DateUtils;
 import daedan.mes.common.service.util.NetworkUtil;
 import daedan.mes.common.service.util.StringUtil;
 import daedan.mes.io.service.IoService;
@@ -2260,18 +2261,10 @@ public class IoController {
     public Result saveProdIwhList(@RequestBody Map<String, Object> paraMap, HttpServletRequest request, HttpSession session) {
         String tag = "ioController.saveProdIwhList => ";
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
-
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("createDt", paraMap.get("createDt").toString().substring(0, 10));
-
-        try {
-            paraMap.put("iwhDt", paraMap.get("iwhDt").toString().substring(0, 10));
-        }
-        catch (NullPointerException ne) {
-            paraMap.put("iwhDt", paraMap.get("createDt").toString().substring(0, 10));
-        }
+        paraMap.put("custNo", custNo);
 
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         ioService.saveProdIwhList(paraMap);

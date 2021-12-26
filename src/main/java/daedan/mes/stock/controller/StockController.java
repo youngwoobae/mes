@@ -457,7 +457,7 @@ public class StockController {
         if (uvo.getCustInfo().getActEvtLogYn().equals("Y")) {
             try {
                 AccHstr acvo = (AccHstr) session.getAttribute("acchstr");
-                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.READ, 1);
+                userService.saveAccLogEvnt(custNo, acvo.getAccNo(), EvntType.SAVE, 1);
             } catch (NullPointerException ne) {
             }
         }

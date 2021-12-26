@@ -615,14 +615,18 @@ public class StockServiceImpl implements  StockService{
     @Transactional
     public void saveProdStock(HashMap<String, Object> paraMap) {
         String tag = "StockService.saveProdStock ==> ";
-
         log.info(tag + "parms = "  + paraMap.toString());
+
         Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+        Long prodNo = Long.parseLong(paraMap.get("prodNo").toString());
+        Long userId = Long.parseLong(paraMap.get("userId").toString());
+        String ipaddr = paraMap.get("ipaddr").toString();
+
         Long chngWhNo = 0L; //변경후 창고번호
         Long whNo = 0L;  //변경전 창고번호
+        Long chngResn = Long.parseLong(paraMap.get("chngResn").toString());
 
         ProdStkHstr prsvo = new ProdStkHstr();
-
         //변경전 창고번호 설정
         whNo = Long.parseLong(paraMap.get("whNo").toString());
         //변경 후 창고번호 설정
@@ -631,150 +635,66 @@ public class StockServiceImpl implements  StockService{
         }catch(NullPointerException ne){
             chngWhNo = whNo;
         }
-
+        prsvo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
+        prsvo.setWhNo(chngWhNo);
+        prsvo.setStkQty(Float.parseFloat(paraMap.get("stkQty").toString()));
+        prsvo.setCustNo(custNo);
+        prsvo.setUsedYn("Y");
+        prsvo.setModDt(DateUtils.getCurrentBaseDateTime());
+        prsvo.setModId(userId);
+        prsvo.setModIp(ipaddr);
         try{
             prsvo.setChngNo(Long.parseLong(paraMap.get("chngNo").toString()));
+
         }catch(NullPointerException ne){
             prsvo.setChngNo(0L);
+            prsvo.setRegId(userId);
+            prsvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+            prsvo.setRegIp(ipaddr);
         }
-        Long chngResn = Long.parseLong(paraMap.get("chngResn").toString());
-        prsvo.setProdNo(Long.parseLong(paraMap.get("prodNo").toString()));
-        prsvo.setStkQty(Float.parseFloat(paraMap.get("stkQty").toString()));
+        log.info("1. 변경이력 저장");
+        prsvo = prodStkHstrRepo.save(prsvo);
 
-        if(chngWhNo != whNo){
-            log.info("1. 창고이동 있는 경우.");
-            ProdStkHstr chkprs = prodStkHstrRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,chngWhNo, prsvo.getProdNo(), prsvo.getUsedYn());
-            if(chkprs != null){
-                log.info("1-1. 창고이동 + 변경 전 창고로 신규 이력 생성");
-
-                prsvo.setChngNo(0L);
-                prsvo.setWhNo(chkprs.getWhNo());
-                prsvo.setChngResn(chngResn);
-                prsvo.setUsedYn("Y");
-                prsvo.setRegDt(chkprs.getRegDt());
-                prsvo.setRegId(chkprs.getRegId());
-                prsvo.setRegIp(chkprs.getRegIp());
-                prsvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                prsvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                prsvo.setModIp(paraMap.get("ipaddr").toString());
-            }
-            else{
-
-                if(chngResn == Long.parseLong(env.getProperty("code.lose_cd.moveWh"))){
-                    log.info("1-2-1. 창고이동 + 변경 후 창고로 신규 이력 생성");
-                    prsvo.setWhNo(chngWhNo);
-                }else{
-                    log.info("1-2-2. 창고이동 없음 + 변경 전 창고로 신규 이력 생성");
-                    prsvo.setWhNo(whNo);
-                }
-                prsvo.setChngNo(0L);
-                prsvo.setUsedYn("Y");
-                prsvo.setChngResn(chngResn);
-                prsvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-                prsvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-                prsvo.setRegIp(paraMap.get("ipaddr").toString());
-                prsvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                prsvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                prsvo.setModIp(paraMap.get("ipaddr").toString());
-            }
-            prsvo.setCustNo(custNo);
-            prsvo = prodStkHstrRepo.save(prsvo);
-
-            try{
-                Long chngNo = Long.parseLong(paraMap.get("chngNo").toString());
-                chkprs = prodStkHstrRepo.findByCustNoAndChngNoAndUsedYn(custNo,chngNo, "Y");
-                if(chkprs != null){
-                    log.info("1-3. 기존 실사재고 이력 삭제");
-                    chkprs.setModDt(DateUtils.getCurrentBaseDateTime());
-                    chkprs.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                    chkprs.setModIp(paraMap.get("ipaddr").toString());
-                    chkprs.setUsedYn("N");
-                    chkprs.setCustNo(custNo);
-                    prodStkHstrRepo.save(chkprs);
-                }
-            }catch(NullPointerException ne){
-
+        log.info("2. 재고조정 저장");
+        if(chngWhNo != whNo) {
+            log.info("2.1. 창고이동 있는 경우 변경전 재고정보 삭제.");
+            ProdStk psvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo, whNo, prodNo, "Y");
+            if (psvo != null) {
+                psvo.setUsedYn("N");
+                psvo.setModId(userId);
+                psvo.setModDt(DateUtils.getCurrentBaseDateTime());
+                psvo.setModIp(ipaddr);
+                prodStkRepo.save(psvo);
             }
         }
-        else{
-            prsvo.setWhNo(whNo);
-            log.info("2. 창고이동 없는 경우.");
-            ProdStkHstr chkvo = prodStkHstrRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,prsvo.getProdNo(), whNo, prsvo.getUsedYn());
-            if(chkvo != null){
-                chkvo.setStkQty(prsvo.getStkQty());
-                chkvo.setChngResn(chngResn);
-                chkvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                chkvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                chkvo.setModIp(paraMap.get("ipaddr").toString());
-                chkvo.setCustNo(custNo);
-                prodStkHstrRepo.save(chkvo);
-            }else{
-                prsvo.setChngNo(0L);
-                prsvo.setUsedYn("Y");
-                prsvo.setChngResn(chngResn);
-                prsvo.setRegDt(DateUtils.getCurrentBaseDateTime());
-                prsvo.setRegId(Long.parseLong(paraMap.get("userId").toString()));
-                prsvo.setRegIp(paraMap.get("ipaddr").toString());
-                prsvo.setModDt(DateUtils.getCurrentBaseDateTime());
-                prsvo.setModId(Long.parseLong(paraMap.get("userId").toString()));
-                prsvo.setModIp(paraMap.get("ipaddr").toString());
-                prsvo.setCustNo(custNo);
-                prodStkHstrRepo.save(prsvo);
-            }
-        }
-
-//        log.info(tag + "3.제품입고이력생성");
-//        ProdIwh pivo = new ProdIwh();
-//        pivo.setIwhNo(0L);
-//        pivo.setIndcRsltNo(0L);
-//        pivo.setIwhDt(DateUtils.getCurrentDateTime());
-//        pivo.setIwhQty(prsvo.getStkQty());
-//        pivo.setProdNo(prsvo.getProdNo());
-//        pivo.setUsedYn("Y");
-//        pivo.setWhNo(prsvo.getWhNo());
-//
-//        pivo.setRegDt(DateUtils.getCurrentDateTime());
-//        pivo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
-//        pivo.setRegIp(paraMap.get("ipaddr").toString());
-//        pivo.setCustNo(custNo);
-//        prodIwhRepo.save(pivo);
-
-        log.info(tag + "4.재고조정");
-        ProdStk psvo = new ProdStk();
-        psvo.setProdNo(prsvo.getProdNo());
-        psvo.setWhNo(prsvo.getWhNo());
-        psvo.setStkQty(prsvo.getStkQty());
-        psvo.setStkDt(DateUtils.getCurrentDateTime());
-        psvo.setModDt(DateUtils.getCurrentDateTime());
-        psvo.setModId(Long.valueOf(paraMap.get("userId").toString()));
-        psvo.setModIp(paraMap.get("ipaddr").toString());
-        psvo.setUsedYn("Y");
-
-        ProdStk chvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,psvo.getWhNo(),psvo.getProdNo(),"Y");
-        if (chvo != null) {
-            psvo.setStkNo(chvo.getStkNo());
+        log.info("3. 재고수량 재설정");
+        ProdStk psvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,chngWhNo,prodNo,"Y");
+        if (psvo != null) {
+            psvo.setStatTrfDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setStkQty(prsvo.getStkQty());
+            psvo.setStkDt(psvo.getStatTrfDt());
+            psvo.setModId(userId);
+            psvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setModIp(ipaddr);
         }
         else {
+            psvo = new ProdStk();
             psvo.setStkNo(0L);
-            psvo.setRegDt(DateUtils.getCurrentDateTime());
-            psvo.setRegId(Long.valueOf(paraMap.get("userId").toString()));
-            psvo.setRegIp(paraMap.get("ipaddr").toString());
+            psvo.setCustNo(custNo);
+            psvo.setProdNo(prsvo.getProdNo());
+            psvo.setWhNo(chngWhNo);
+            psvo.setStatTrfDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setStkQty(prsvo.getStkQty());
+            psvo.setStkDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setRegDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setRegIp(ipaddr);
+            psvo.setRegId(userId);
+            psvo.setModId(userId);
+            psvo.setModDt(DateUtils.getCurrentBaseDateTime());
+            psvo.setModIp(ipaddr);
+            psvo.setUsedYn("Y");
         }
-        psvo.setCustNo(custNo);
         prodStkRepo.save(psvo);
-
-        if(chngWhNo != whNo && chngResn == Long.parseLong(env.getProperty("code.lose_cd.moveWh"))){
-            log.info(tag + "5.창고 이동이 있는 경우, 기존 prodStk 삭제");
-            chvo = prodStkRepo.findByCustNoAndWhNoAndProdNoAndUsedYn(custNo,whNo, psvo.getProdNo(),  "Y");
-            if(chvo != null){
-                chvo.setUsedYn("N");
-                chvo.setModDt(DateUtils.getCurrentDateTime());
-                chvo.setModId(Long.valueOf(paraMap.get("userId").toString()));
-                chvo.setModIp(paraMap.get("ipaddr").toString());
-                chvo.setCustNo(custNo);
-                prodStkRepo.save(chvo);
-            }
-        }
     }
 
     @Override

@@ -714,8 +714,10 @@ public  class UserServiceImpl implements UserService {
 
 	@Override
 	public UserInfo getUserInfoById(Long userId) {
-		return userRepo.findByUserId(userId );
-
+		UserInfo uvo = userRepo.findByUserId(userId );
+		//CustInfo civo = custInfoRepo.findByCustNoAndUsedYn(uvo.,"Y");
+		//uvo.setCustInfo(civo);
+		return uvo;
 	}
 
 	@Override

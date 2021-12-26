@@ -889,7 +889,7 @@ public class ProdController {
         return result;
     }
     /*상품재고*/
-    @PostMapping(value="/prodStkList")
+    @PostMapping(value="/getProdStkList")
     public Result prodStkList(@RequestBody Map<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();
 
