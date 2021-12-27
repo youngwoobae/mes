@@ -68,8 +68,8 @@ public class SysMenuController {
     @PostMapping(value="/topMenuList")
     public Result topMenuList(@RequestBody HashMap<String, Object> paraMap , HttpSession session){
         Result result = Result.successInstance();
-//        paraMap.put("level",2);
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 
