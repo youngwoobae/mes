@@ -130,6 +130,7 @@ public class MatrController {
     public Result popMatrCond(@RequestBody Map<String, Object> paraMap,HttpSession session){
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+//        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
 

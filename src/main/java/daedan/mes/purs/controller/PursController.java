@@ -442,6 +442,7 @@ public class PursController {
 
         Result result = Result.successInstance();
         UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+//        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
