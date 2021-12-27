@@ -630,8 +630,8 @@
         where a.cust_no = #{custNo}
         and a.used_yn = 'Y'
 
-        <if test="dateFr != null and dateFr != ''">
-            and TO_CHAR(a.work_dt,'YYYY-MM-DD') = substring(#{dateFr},1,10)
+        <if test="workDt != null and workDt != ''">
+            and TO_CHAR(a.work_dt,'YYYY-MM-DD') = substring(#{workDt},1,10)
         </if>
         <if test="emplKind != null and emplKind != ''">
           and b.empl_kind = #{emplKind}
@@ -658,8 +658,8 @@
                                              and b.ocpn_kind = #{ocpnKind} --생산직만(222)
             where a.cust_no = #{custNo}
             and a.used_yn = 'Y'
-            <if test="dateFr != null and dateFr != ''">
-                and TO_CHAR(a.work_dt,'YYYY-MM-DD') = substring(#{dateFr},1,10)
+            <if test="workDt != null and workDt != ''">
+                and TO_CHAR(a.work_dt,'YYYY-MM-DD') = substring(#{workDt},1,10)
             </if>
             <if test="emplKind != null and emplKind != ''">
                 and b.empl_kind = #{emplKind}

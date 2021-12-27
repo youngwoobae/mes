@@ -780,17 +780,47 @@ public  class UserServiceImpl implements UserService {
 	@Override
 	public void saveWorkList(Map<String, Object> paraMap) {
 		String tag = "UserService.saveWorkList => ";
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		log.info(tag + " paraMap = " + paraMap.toString());
+		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
+		Long userId = Long.parseLong(paraMap.get("userId").toString());
+		Long worker = 0L;
+		Long workNo = 0L;
+		String workDt = paraMap.get("workDt").toString().substring(0,10);
+		String ipaddr = paraMap.get("ipaddr").toString();
 		List<Map<String, Object>> ds = (ArrayList<Map<String, Object>>) paraMap.get("workerList");
 		for (Map<String, Object> el : ds) {
-			el.put("custNo", paraMap.get("custNo"));
-			el.put("worker", el.get("value"));
-			el.put("userId", paraMap.get("userId"));
-			el.put("workDt", paraMap.get("workDt").toString().substring(0,10));
-			el.put("workFrTm", paraMap.get("workFrTm").toString());
-			el.put("workToTm", paraMap.get("workToTm").toString());
-			el.put("ipaddr", paraMap.get("ipaddr").toString());
-			this.saveWork(el);
+			UserWork uwvo = new UserWork();
+			workNo = Long.parseLong(el.get("workNo").toString());
+			uwvo.setCustNo(custNo);
+			try {
+				uwvo.setWorkDt(sdf.parse(workDt));
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			uwvo.setUserId(Long.parseLong(el.get("userId").toString()));
+			//el.put("userId", userId);
+			uwvo.setWorkFrTm(paraMap.get("workFrTm").toString());
+			uwvo.setWorkToTm(paraMap.get("workToTm").toString());
+			uwvo.setModId(userId);
+			uwvo.setModIp(ipaddr);
+			uwvo.setModDt(DateUtils.getCurrentDateTime());
+			UserWork chkvo = userWorkRepo.findByCustNoAndWorkNoAndUsedYn(custNo,workNo,"Y");
+			if (chkvo != null) {
+				uwvo.setWorkNo(chkvo.getWorkNo());
+				uwvo.setRegDt(chkvo.getRegDt());
+				uwvo.setRegIp(chkvo.getRegIp());
+				uwvo.setRegDt(chkvo.getRegDt());
+			}
+			else {
+				uwvo.setWorkNo(0L);
+				uwvo.setRegId(userId);
+				uwvo.setRegIp(ipaddr);
+				uwvo.setRegDt(DateUtils.getCurrentDateTime());
+			}
+			uwvo.setUsedYn("Y");
+			uwvo.setCustNo(custNo);
+			userWorkRepo.save(uwvo);
 		}
 	}
 
@@ -804,7 +834,7 @@ public  class UserServiceImpl implements UserService {
 
 		Long worker = 0L;
 		try {
-			worker = Long.parseLong(paraMap.get("worker").toString());
+			worker = Long.parseLong(paraMap.get("workerId").toString());
 		}
 		catch (NullPointerException ne) {
 
@@ -918,17 +948,14 @@ public  class UserServiceImpl implements UserService {
 		String tag = "UserService.dropWorkerList =>";
 		log.info(tag + " paraMap = " + paraMap.toString());
 		Long custNo = Long.parseLong(paraMap.get("custNo").toString());
-//		Long pursNo = 0L;
 		Long userId = Long.parseLong(paraMap.get("userId").toString());
 		String ipaddr = paraMap.get("ipaddr").toString();
 
 		List<Map<String, Object>> dsMap = (List<Map<String, Object>>) paraMap.get("WorkerList");
-		System.out.println("%%%%" + dsMap);
 		for (Map<String, Object> el : dsMap) {
-			UserWork uwvo = new UserWork();
-			uwvo.setCustNo(custNo);
-			uwvo.setWorkNo(Long.parseLong(el.get("workNo").toString()));
-			UserWork chkpmvo = userWorkRepo.findByCustNoAndWorkNoAndUsedYn(custNo, uwvo.getWorkNo(), "Y");
+			String workDt = paraMap.get("workDt").toString().substring(0,10);
+			Long workerId= Long.parseLong(el.get("value").toString());
+			UserWork chkpmvo = userWorkRepo.findByCustNoAndWorkDtAndUserIdAndUsedYn(custNo, workDt, workerId ,"Y");
 			if (chkpmvo != null) {
 				chkpmvo.setUsedYn("N");
 				chkpmvo.setModDt(DateUtils.getCurrentBaseDateTime());

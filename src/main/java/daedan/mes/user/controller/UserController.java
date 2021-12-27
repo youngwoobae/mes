@@ -826,18 +826,10 @@ public class UserController {
     @PostMapping(value="/getWorkList")
     public Result getWorkList(@RequestBody HashMap<String, Object> paraMap, HttpSession session ){
         Result result = Result.successInstance();
-
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            paraMap.get("dateFr").toString().substring(0, 10);
-        }
-        catch (NullPointerException ne) {
-            paraMap.put("dateFr", sdf.format(DateUtils.getCurrentDateString().substring(0, 10)));
-            paraMap.put("dateTo", sdf.format(DateUtils.getCurrentDateString().substring(0, 10)));
-        }
         ArrayList<Map<String, Object>> kpiList = new ArrayList<>();
 
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
         paraMap.put("custNo", custNo);
         paraMap.put("pageNo", StringUtil.convertPageNo(paraMap));
@@ -910,11 +902,11 @@ public class UserController {
         String tag = "UserController.saveWorkInfo => ";
 
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = (UserInfo) userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
 
-        paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("sessId", uvo.getCustInfo().getCustNo());
+        paraMap.put("custNo", custNo);
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         userService.saveWorkInfo(paraMap);
 
@@ -941,11 +933,11 @@ public class UserController {
     @PostMapping(value = "/saveWorkList")
     public Result saveWorkList(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session) {
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
 
         paraMap.put("custNo", uvo.getCustInfo().getCustNo());
-        paraMap.put("sessId", uvo.getCustInfo().getCustNo());
         paraMap.put("ipaddr", NetworkUtil.getClientIp(request));
         userService.saveWorkList(paraMap);
 
@@ -1022,7 +1014,8 @@ public class UserController {
     @PostMapping(value="/dropWorkerList")
     public Result dropWorkerList(@RequestBody Map<String, Object> paraMap,HttpServletRequest request, HttpSession session){
         Result result = Result.successInstance();
-        UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        //UserInfo uvo = (UserInfo) session.getAttribute("userInfo");
+        UserInfo uvo = userService.getUserInfoById(Long.parseLong(paraMap.get("userId").toString()));
         Long custNo = uvo.getCustInfo().getCustNo();
 
         paraMap.put("custNo", custNo);
