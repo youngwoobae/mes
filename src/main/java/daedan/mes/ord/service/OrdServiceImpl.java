@@ -525,11 +525,11 @@ public class OrdServiceImpl implements  OrdService {
         //List<Map<String,Object>> listProd  = (List<Map<String,Object>>) paraMap.get("prodList");
         long userId = (int) paraMap.get("userId");
         String ipaddr = (String) paraMap.get("ipaddr");
-        SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        String ordDlvReqDt = (String) mapInfo.get("dlvReqDt").toString().substring(0, 10);
         Long acptOrdStat = Long.parseLong(env.getProperty("ord_status_acpt")); //주문접수
         OrdInfo ordInfo = new OrdInfo();
+
         try {
             ordInfo.setOrdNo(Long.parseLong(mapInfo.get("ordNo").toString()));
         } catch (NullPointerException ne) { //신규주문처리
@@ -541,12 +541,12 @@ public class OrdServiceImpl implements  OrdService {
 
         ordInfo.setOrdNm(mapInfo.get("ordNm").toString());
         try {
-            ordInfo.setOrdDt(transFormat.parse((String) mapInfo.get("ordDt").toString().substring(0, 10)));
+            ordInfo.setOrdDt(sdf.parse(mapInfo.get("ordDt").toString()));
         } catch (ParseException e) {
             e.printStackTrace();
         }
         try {
-            ordInfo.setDlvReqDt(transFormat.parse(ordDlvReqDt)); //납품의뢰일자
+            ordInfo.setDlvReqDt(sdf.parse(mapInfo.get("dlvReqDt").toString()));
         } catch (ParseException e) {
             e.printStackTrace();
         }
